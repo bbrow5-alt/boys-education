@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Chase — Mission Control</title>
+<style>
+  :root {
+    --bg: #000000;
+    --card: #0a0a0a;
+    --card-border: #1a1a2e;
+    --accent: #00ff88;
+    --accent-dim: #003d21;
+    --accent2: #00b4d8;
+    --success: #00ff88;
+    --success-dim: #002211;
+    --miss: #ff3366;
+    --miss-dim: #2a0011;
+    --text: #e0ffe8;
+    --text-dim: #4a6b52;
+    --grid-line: rgba(0,255,136,0.06);
+    --bonus: #ffaa00;
+    --bonus-dim: #2a1f00;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; padding: 16px;
+    padding-top: env(safe-area-inset-top, 16px);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .scan-line {
+    position: fixed; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.3; animation: scan 4s linear infinite;
+    pointer-events: none; z-index: 50;
+  }
+  @keyframes scan { 0% { top: 0; } 100% { top: 100vh; } }
+
+  .header { text-align: center; margin-bottom: 24px; }
+  .header h1 {
+    font-size: 20px; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 4px;
+    text-shadow: 0 0 20px rgba(0,255,136,0.3);
+  }
+  .header .callsign { font-size: 11px; color: var(--text-dim); letter-spacing: 6px; text-transform: uppercase; margin-top: 2px; }
+  .header .date { font-size: 12px; color: var(--text-dim); margin-top: 6px; font-family: monospace; }
+
+  .streak-box {
+    background: var(--card); border: 1px solid var(--accent); border-radius: 4px;
+    padding: 20px; text-align: center; margin-bottom: 16px; position: relative;
+    box-shadow: 0 0 15px rgba(0,255,136,0.1), inset 0 0 30px rgba(0,255,136,0.03);
+  }
+  .streak-box::before {
+    content: 'STREAK STATUS'; position: absolute; top: -9px; left: 16px;
+    background: var(--bg); color: var(--accent); font-size: 10px; padding: 0 8px; letter-spacing: 3px;
+  }
+  .streak-number {
+    font-size: 64px; font-weight: 800; color: var(--accent); line-height: 1;
+    font-family: 'SF Mono', monospace; text-shadow: 0 0 30px rgba(0,255,136,0.4);
+  }
+  .streak-label { font-size: 12px; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 3px; }
+  .streak-icon { font-size: 24px; margin-bottom: 4px; }
+
+  /* WEEKLY COMPLETION METER */
+  .weekly-meter {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 4px;
+    padding: 16px; margin-bottom: 16px; position: relative;
+  }
+  .weekly-meter::before {
+    content: 'WEEKLY POWER LEVEL'; position: absolute; top: -9px; left: 16px;
+    background: var(--bg); color: var(--accent2); font-size: 10px; padding: 0 8px; letter-spacing: 2px;
+  }
+  .meter-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; margin-top: 8px; }
+  .meter-count { font-size: 22px; font-weight: 700; color: var(--accent); font-family: monospace; }
+  .meter-count .total { font-size: 14px; color: var(--text-dim); }
+  .meter-label-right { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
+  .meter-bar { height: 20px; background: var(--bg); border: 1px solid var(--card-border); border-radius: 2px; overflow: hidden; }
+  .meter-fill { height: 100%; transition: width 0.4s ease; border-radius: 1px; }
+  .meter-fill.normal { background: linear-gradient(90deg, var(--accent-dim), var(--accent)); }
+  .meter-fill.over { background: linear-gradient(90deg, var(--accent), var(--bonus)); box-shadow: 0 0 10px rgba(255,170,0,0.3); }
+  .meter-note { font-size: 10px; color: var(--text-dim); text-align: center; margin-top: 6px; letter-spacing: 1px; }
+  .meter-note .bonus-text { color: var(--bonus); }
+
+  .section-label {
+    position: absolute; top: -9px; left: 16px;
+    background: var(--bg); color: var(--accent2);
+    font-size: 10px; padding: 0 8px; letter-spacing: 2px;
+  }
+
+  .daily-stack {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 4px;
+    padding: 16px; margin-bottom: 16px; position: relative;
+  }
+  .daily-stack::before {
+    content: 'DAILY SYSTEMS CHECK'; position: absolute; top: -9px; left: 16px;
+    background: var(--bg); color: var(--accent2); font-size: 10px; padding: 0 8px; letter-spacing: 2px;
+  }
+  .task-item {
+    display: flex; align-items: center; padding: 14px 8px;
+    border-bottom: 1px solid rgba(0,255,136,0.08);
+    cursor: pointer; transition: background 0.2s; -webkit-tap-highlight-color: transparent;
+  }
+  .task-item:last-child { border-bottom: none; }
+  .task-item:active { background: rgba(0,255,136,0.05); }
+  .task-check {
+    width: 24px; height: 24px; border: 2px solid var(--text-dim);
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 14px; flex-shrink: 0; transition: all 0.3s; font-size: 14px;
+  }
+  .task-item.done .task-check { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 8px rgba(0,255,136,0.3); }
+  .task-icon { font-size: 20px; margin-right: 10px; }
+  .task-info { flex: 1; }
+  .task-name { font-size: 14px; font-weight: 500; letter-spacing: 1px; }
+  .task-item.done .task-name { color: var(--text-dim); text-decoration: line-through; }
+  .task-detail { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .task-launch {
+    display: inline-block; font-size: 10px; color: var(--accent2);
+    text-decoration: none; border: 1px solid var(--accent2); border-radius: 2px;
+    padding: 2px 8px; margin-top: 4px; letter-spacing: 1px;
+    font-family: monospace; -webkit-tap-highlight-color: transparent;
+  }
+  .task-launch:active { opacity: 0.6; }
+  .task-status { font-size: 10px; padding: 2px 8px; border-radius: 2px; letter-spacing: 1px; font-weight: 600; }
+  .task-item:not(.done) .task-status { background: var(--miss-dim); color: var(--miss); }
+  .task-item.done .task-status { background: var(--success-dim); color: var(--success); }
+
+  /* BONUS BUTTONS */
+  .bonus-row { display: none; padding: 8px 8px 8px 50px; border-bottom: 1px solid rgba(0,255,136,0.08); }
+  .bonus-row.visible { display: flex; align-items: center; gap: 10px; }
+  .bonus-btn {
+    padding: 5px 14px; border: 1px solid var(--bonus); border-radius: 2px;
+    background: var(--bonus-dim); color: var(--bonus);
+    font-family: monospace; font-size: 11px; cursor: pointer;
+    letter-spacing: 1px; -webkit-tap-highlight-color: transparent;
+  }
+  .bonus-btn:active { opacity: 0.7; }
+  .bonus-count { font-size: 12px; color: var(--bonus); }
+
+  /* READING TIMER — HYBRID */
+  .timer-section {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 4px;
+    padding: 20px; margin-bottom: 16px; text-align: center; position: relative;
+  }
+  .timer-section::before {
+    content: 'DATA INTAKE TIMER'; position: absolute; top: -9px; left: 16px;
+    background: var(--bg); color: var(--accent2); font-size: 10px; padding: 0 8px; letter-spacing: 2px;
+  }
+  .timer-display {
+    font-size: 48px; font-weight: 700; color: var(--accent);
+    font-family: monospace; margin: 8px 0; text-shadow: 0 0 20px rgba(0,255,136,0.3);
+  }
+  .timer-display.bonus-mode { color: var(--bonus); text-shadow: 0 0 20px rgba(255,170,0,0.3); }
+  .timer-mode-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 4px; height: 16px; }
+  .timer-mode-label.counting-down { color: var(--accent); }
+  .timer-mode-label.bonus-active { color: var(--bonus); }
+  .timer-buttons { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+  .timer-btn {
+    padding: 10px 24px; border: 1px solid var(--accent);
+    background: transparent; color: var(--accent);
+    font-family: monospace; font-size: 12px; cursor: pointer;
+    letter-spacing: 2px; text-transform: uppercase; -webkit-tap-highlight-color: transparent;
+  }
+  .timer-btn.active { background: var(--accent); color: var(--bg); }
+  .timer-btn.bonus-style { border-color: var(--bonus); color: var(--bonus); }
+  .timer-btn.bonus-style.active { background: var(--bonus); color: var(--bg); }
+  .timer-progress { height: 2px; background: var(--card-border); margin-top: 12px; overflow: hidden; }
+  .timer-progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1s linear; }
+  .timer-progress-fill.bonus-mode { background: var(--bonus); }
+  .timer-note { font-size: 10px; color: var(--text-dim); margin-top: 8px; letter-spacing: 1px; }
+  .timer-total { font-size: 11px; color: var(--accent2); margin-top: 4px; }
+  .timer-honor {
+    margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid var(--card-border);
+    font-size: 10px; color: var(--text-dim);
+    letter-spacing: 1px; line-height: 1.6;
+    font-family: 'Courier New', monospace;
+  }
+  .timer-honor .verse { color: var(--accent); }
+  .timer-total .bonus-mins { color: var(--bonus); font-weight: 600; }
+
+  .stats-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .stat-box {
+    flex: 1; background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 4px; padding: 12px; text-align: center;
+  }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); font-family: monospace; text-shadow: 0 0 10px rgba(0,255,136,0.2); }
+  .stat-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin-top: 2px; }
+
+  .weekly-bar {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 4px;
+    padding: 16px; margin-bottom: 16px; position: relative;
+  }
+  .weekly-bar::before {
+    content: 'WEEKLY TELEMETRY'; position: absolute; top: -9px; left: 16px;
+    background: var(--bg); color: var(--accent2); font-size: 10px; padding: 0 8px; letter-spacing: 2px;
+  }
+  .week-days { display: flex; justify-content: space-between; gap: 6px; margin-top: 8px; }
+  .day-col { flex: 1; text-align: center; }
+  .day-label { font-size: 10px; color: var(--text-dim); margin-bottom: 6px; letter-spacing: 2px; }
+  .day-dot {
+    width: 36px; height: 36px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; border: 1px solid var(--card-border); font-family: monospace;
+  }
+  .day-dot.complete { background: var(--success-dim); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 6px rgba(0,255,136,0.2); }
+  .day-dot.partial { background: var(--bonus-dim); border-color: var(--bonus); color: var(--bonus); }
+  .day-dot.missed { background: var(--miss-dim); border-color: var(--miss); color: var(--miss); }
+  .day-dot.today { border-color: var(--accent2); color: var(--accent2); box-shadow: 0 0 8px rgba(0,180,216,0.3); }
+  .day-dot.future { opacity: 0.2; }
+  .day-bonus { font-size: 9px; color: var(--bonus); margin-top: 2px; height: 12px; }
+
+  .calendar-section {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 4px;
+    padding: 16px; margin-bottom: 16px; position: relative;
+  }
+  .calendar-section::before {
+    content: 'MISSION LOG'; position: absolute; top: -9px; left: 16px;
+    background: var(--bg); color: var(--accent2); font-size: 10px; padding: 0 8px; letter-spacing: 2px;
+  }
+  .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 4px; }
+  .calendar-nav button { background: none; border: 1px solid var(--card-border); color: var(--accent); font-size: 16px; cursor: pointer; padding: 4px 12px; }
+  .calendar-month { font-size: 14px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .cal-header { font-size: 10px; color: var(--text-dim); text-align: center; padding: 4px 0; letter-spacing: 1px; }
+  .cal-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: var(--text-dim); font-family: monospace;
+  }
+  .cal-day.has-data.complete { background: var(--success-dim); color: var(--accent); border: 1px solid rgba(0,255,136,0.3); }
+  .cal-day.has-data.partial { background: var(--bonus-dim); color: var(--bonus); border: 1px solid rgba(255,170,0,0.3); }
+  .cal-day.has-data.missed { background: var(--miss-dim); color: var(--miss); }
+  .cal-day.today-cal { border: 1px solid var(--accent2); color: var(--accent2); font-weight: 700; }
+
+  .quote-box {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 4px;
+    padding: 16px; margin-bottom: 16px; text-align: center; position: relative;
+  }
+  .quote-box::before {
+    content: 'SIGNAL INTERCEPT'; position: absolute; top: -9px; left: 16px;
+    background: var(--bg); color: var(--accent2); font-size: 10px; padding: 0 8px; letter-spacing: 2px;
+  }
+  .quote-text { font-size: 13px; font-style: italic; color: var(--text); line-height: 1.6; margin-bottom: 8px; margin-top: 4px; }
+  .quote-source { font-size: 11px; color: var(--text-dim); }
+
+  /* POINTS / REWARDS */
+  .points-section {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 4px;
+    padding: 16px; margin-bottom: 16px; position: relative;
+  }
+  .points-section::before {
+    content: 'CREDIT BANK'; position: absolute; top: -9px; left: 16px;
+    background: var(--bg); color: var(--accent2); font-size: 10px; padding: 0 8px; letter-spacing: 2px;
+  }
+  .points-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; margin-bottom: 16px; }
+  .points-score { font-size: 36px; font-weight: 800; color: var(--accent); font-family: monospace; text-shadow: 0 0 15px rgba(0,255,136,0.3); }
+  .points-score .pts-label { font-size: 14px; color: var(--text-dim); }
+  .points-dollar { font-size: 16px; color: var(--bonus); font-weight: 600; }
+  .points-breakdown { font-size: 10px; color: var(--text-dim); line-height: 1.8; margin-top: 6px; letter-spacing: 1px; }
+  .points-breakdown .earned { color: var(--accent); }
+  .points-breakdown .streak-bonus { color: var(--bonus); }
+
+  /* Contributor Grid */
+  .contributor-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0;
+  }
+  .contributor-box {
+    background: var(--card-border); border: 1px solid var(--accent-dim); border-radius: 4px;
+    padding: 12px; text-align: center;
+  }
+  .contributor-name { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; font-weight: 600; font-family: monospace; }
+  .contributor-amount { font-size: 18px; font-weight: 800; color: var(--accent); margin-top: 4px; font-family: monospace; text-shadow: 0 0 10px rgba(0,255,136,0.2); }
+
+  /* Lifetime Earnings */
+  .lifetime-earned {
+    font-size: 12px; color: var(--text-dim); margin: 12px 0; padding: 8px 0; border-top: 1px solid var(--accent-dim);
+    border-bottom: 1px solid var(--accent-dim); letter-spacing: 1px;
+  }
+  .lifetime-earned .earned { color: var(--accent); font-weight: 600; }
+
+  /* Payout History */
+  .payout-history-toggle { display: flex; align-items: center; cursor: pointer; margin: 12px 0 0 0; gap: 8px; }
+  .payout-history-toggle { font-size: 12px; color: var(--text-dim); letter-spacing: 1px; }
+  #payoutArrow { color: var(--accent-dim); font-weight: 600; }
+  .payout-history {
+    display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--accent-dim);
+  }
+  .payout-history.visible { display: block; }
+  .payout-item { font-size: 10px; color: var(--text-dim); margin: 6px 0; display: flex; justify-content: space-between; letter-spacing: 0.5px; }
+  .payout-date { color: var(--accent-dim); text-transform: uppercase; }
+  .payout-detail { color: var(--accent); text-transform: uppercase; }
+
+  /* TIMELINE */
+  .timeline-section {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 4px;
+    padding: 16px; margin-bottom: 16px; overflow-x: auto; position: relative;
+  }
+  .timeline-section::before {
+    content: 'MISSION TIMELINE'; position: absolute; top: -9px; left: 16px;
+    background: var(--bg); color: var(--accent2); font-size: 10px; padding: 0 8px; letter-spacing: 2px;
+  }
+  .timeline-track {
+    position: relative; height: 160px; min-width: 600px; margin-top: 8px;
+  }
+  .timeline-line {
+    position: absolute; top: 80px; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    box-shadow: 0 0 6px rgba(0,255,136,0.2);
+  }
+  .timeline-marker { position: absolute; text-align: center; transform: translateX(-50%); top: 0; bottom: 0; }
+  .timeline-marker .tm-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    position: absolute; top: 74px; left: 50%; transform: translateX(-50%);
+  }
+  .timeline-marker .tm-dot.past { background: var(--accent-dim); border: 2px solid var(--accent); }
+  .timeline-marker .tm-dot.upcoming { background: var(--accent); border: 2px solid var(--accent); box-shadow: 0 0 8px rgba(0,255,136,0.5); }
+  .timeline-marker .tm-dot.future { background: var(--card-border); border: 2px solid var(--text-dim); }
+  .timeline-marker .tm-emoji {
+    position: absolute; top: 58px; left: 50%; transform: translateX(-50%);
+    font-size: 28px; line-height: 1;
+    filter: drop-shadow(0 0 6px rgba(255,170,0,0.7));
+    animation: gentle-bob 3s ease-in-out infinite;
+  }
+  @keyframes gentle-bob { 0%,100% { top: 58px; } 50% { top: 55px; } }
+  .timeline-marker .tm-label-above {
+    position: absolute; top: 32px; left: 50%; transform: translateX(-50%);
+    white-space: nowrap; font-size: 9px; color: var(--text);
+    letter-spacing: 1px; font-weight: 600;
+  }
+  .timeline-marker .tm-date-above {
+    position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+    white-space: nowrap; font-size: 8px; color: var(--text-dim);
+  }
+  .timeline-marker .tm-label-below {
+    position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
+    white-space: nowrap; font-size: 9px; color: var(--text);
+    letter-spacing: 1px; font-weight: 600;
+  }
+  .timeline-marker .tm-date-below {
+    position: absolute; top: 114px; left: 50%; transform: translateX(-50%);
+    white-space: nowrap; font-size: 8px; color: var(--text-dim);
+  }
+
+  /* POINTS LINK */
+  .points-link {
+    display: block; text-align: center; margin-top: 10px; padding: 8px 16px;
+    border: 1px solid var(--accent2); color: var(--accent2); text-decoration: none;
+    font-size: 10px; letter-spacing: 2px; font-family: monospace; text-transform: uppercase;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .points-link:active { opacity: 0.6; }
+
+  /* BOOK RECOMMENDATIONS */
+  .books-section {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 4px;
+    padding: 16px; margin-bottom: 16px; position: relative;
+  }
+  .books-section::before {
+    content: 'READING LIST'; position: absolute; top: -9px; left: 16px;
+    background: var(--bg); color: var(--accent2); font-size: 10px; padding: 0 8px; letter-spacing: 2px;
+  }
+  .books-toggle {
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; -webkit-tap-highlight-color: transparent; margin-top: 4px;
+  }
+  .books-toggle .toggle-label { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+  .books-toggle .arrow { color: var(--accent); font-size: 16px; transition: transform 0.3s; }
+  .books-toggle.open .arrow { transform: rotate(90deg); }
+  .books-table-wrap { display: none; margin-top: 12px; overflow-x: auto; }
+  .books-table-wrap.visible { display: block; }
+  .books-why {
+    font-size: 10px; color: var(--text-dim); line-height: 1.6;
+    margin-bottom: 12px; padding: 10px 12px;
+    background: rgba(0,255,136,0.04); border-left: 2px solid var(--accent);
+    font-family: 'Courier New', monospace; letter-spacing: 0.5px;
+  }
+  .books-why strong { color: var(--accent); }
+  .books-table { width: 100%; border-collapse: collapse; min-width: 400px; }
+  .books-table th {
+    text-align: left; font-size: 9px; color: var(--text-dim); letter-spacing: 2px;
+    text-transform: uppercase; padding: 8px 6px; border-bottom: 1px solid var(--card-border);
+  }
+  .books-table td {
+    padding: 8px 6px; font-size: 12px; border-bottom: 1px solid rgba(0,255,136,0.06);
+    vertical-align: top; font-family: monospace;
+  }
+  .books-table .book-title { color: var(--text); font-weight: 500; }
+  .books-table .book-author { color: var(--text-dim); }
+  .books-table .book-cat { color: var(--accent2); font-size: 10px; letter-spacing: 1px; }
+  .books-table .book-link {
+    display: inline-block; padding: 3px 10px; border: 1px solid var(--accent);
+    color: var(--accent); text-decoration: none; font-size: 10px; letter-spacing: 1px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .books-table .book-link:active { opacity: 0.6; }
+
+  .reset-btn {
+    display: block; width: 100%; padding: 10px; background: none;
+    border: 1px solid var(--card-border); color: var(--text-dim);
+    font-size: 11px; cursor: pointer; margin-bottom: 40px;
+    font-family: monospace; letter-spacing: 2px; text-transform: uppercase;
+  }
+  .confetti-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 100; }
+
+  /* RESPONSIVE */
+  @media (min-width: 600px) {
+    body { max-width: 600px; margin: 0 auto; }
+  }
+  @media (min-width: 900px) {
+    body { max-width: 700px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scan-line"></div>
+
+<div class="header">
+  <h1>Mission Control</h1>
+  <div class="callsign">OPERATOR: CHASE</div>
+  <div class="date" id="todayDate"></div>
+</div>
+
+<div class="streak-box">
+  <div class="streak-icon" id="streakIcon"></div>
+  <div class="streak-number" id="streakNumber">0</div>
+  <div class="streak-label">Consecutive Days Online</div>
+</div>
+
+<!-- WEEKLY COMPLETION METER -->
+<div class="weekly-meter">
+  <div class="meter-header">
+    <div class="meter-count"><span id="meterCredits">0</span><span class="total"> / 21</span></div>
+    <div class="meter-label-right" id="meterStatus"></div>
+  </div>
+  <div class="meter-bar">
+    <div class="meter-fill normal" id="meterFill" style="width:0%"></div>
+  </div>
+  <div class="meter-note" id="meterNote"></div>
+</div>
+
+<div class="daily-stack">
+  <div class="task-item" id="task-anki" onclick="toggleTask('anki')" style="margin-top:8px;">
+    <span class="task-icon">&#9889;</span>
+    <div class="task-check"></div>
+    <div class="task-info">
+      <div class="task-name">MEMORY CORE</div>
+      <div class="task-detail">Anki Review — ~10 min</div>
+      <a class="task-launch" href="anki://" onclick="event.stopPropagation();">LAUNCH ANKI</a>
+    </div>
+    <div class="task-status">PENDING</div>
+  </div>
+  <div class="bonus-row" id="bonus-anki">
+    <button class="bonus-btn" onclick="event.stopPropagation(); addBonus('anki')">+ EXTRA RUN</button>
+    <span class="bonus-count" id="bonus-anki-count"></span>
+  </div>
+  <div class="task-item" id="task-khan" onclick="toggleTask('khan')">
+    <span class="task-icon">&#128295;</span>
+    <div class="task-check"></div>
+    <div class="task-info">
+      <div class="task-name">SKILL FORGE</div>
+      <div class="task-detail">Khan Academy — 15-20 min</div>
+      <a class="task-launch" href="https://www.khanacademy.org" onclick="event.stopPropagation();" target="_blank">LAUNCH KHAN</a>
+    </div>
+    <div class="task-status">PENDING</div>
+  </div>
+  <div class="bonus-row" id="bonus-khan">
+    <button class="bonus-btn" onclick="event.stopPropagation(); addBonus('khan')">+ EXTRA RUN</button>
+    <span class="bonus-count" id="bonus-khan-count"></span>
+  </div>
+  <div class="task-item" id="task-reading" onclick="toggleTask('reading')">
+    <span class="task-icon">&#128225;</span>
+    <div class="task-check"></div>
+    <div class="task-info">
+      <div class="task-name">DATA INTAKE</div>
+      <div class="task-detail">Reading — 20 min before bed</div>
+    </div>
+    <div class="task-status">PENDING</div>
+  </div>
+</div>
+
+<div class="timer-section">
+  <div class="timer-mode-label" id="timerModeLabel"></div>
+  <div class="timer-display" id="timerDisplay">20:00</div>
+  <div class="timer-progress"><div class="timer-progress-fill" id="timerFill"></div></div>
+  <div class="timer-buttons">
+    <button class="timer-btn" id="timerStart" onclick="toggleTimer()">ENGAGE</button>
+    <button class="timer-btn" id="timerReset" onclick="resetTimer()">ABORT</button>
+  </div>
+  <div class="timer-note">INITIATE WHEN BOOK IS OPEN. KEEPS TRACKING OVERTIME.</div>
+  <div class="timer-total" id="timerTotal"></div>
+  <div class="timer-honor">
+    <span class="verse">"THE LORD DETESTS LYING LIPS, BUT HE DELIGHTS IN PEOPLE WHO ARE TRUSTWORTHY."</span> — PROVERBS 12:22<br>
+    HONEST MINUTES ONLY, PILOT.
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-value" id="weeklyPct">0%</div>
+    <div class="stat-label">This Week</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-value" id="totalDays">0</div>
+    <div class="stat-label">Total Missions</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-value" id="readingMins">0</div>
+    <div class="stat-label">Min Read Today</div>
+  </div>
+</div>
+
+<div class="weekly-bar">
+  <div class="week-days" id="weekDays"></div>
+</div>
+
+<div class="calendar-section">
+  <div class="calendar-nav">
+    <button onclick="changeMonth(-1)">&#9664;</button>
+    <span class="calendar-month" id="calMonth"></span>
+    <button onclick="changeMonth(1)">&#9654;</button>
+  </div>
+  <div class="calendar-grid" id="calGrid"></div>
+</div>
+
+<!-- POINTS / REWARDS -->
+<div class="points-section">
+  <div class="points-row">
+    <div class="points-score"><span id="pointsBalance">0</span> <span class="pts-label">PTS</span></div>
+  </div>
+
+  <!-- Contributor Balances -->
+  <div class="contributor-grid" id="contributorGrid"></div>
+
+  <!-- Lifetime Earnings -->
+  <div class="lifetime-earned" id="lifetimeEarned"></div>
+
+  <!-- Payout History Toggle -->
+  <div class="payout-history-toggle" onclick="togglePayoutHistory()">
+    <span id="payoutArrow">►</span>
+    <span>PAYOUT HISTORY</span>
+  </div>
+
+  <!-- Payout History (Collapsible) -->
+  <div class="payout-history" id="payoutHistoryWrap">
+    <div id="payoutListContainer"></div>
+    <div id="lifetimeEarnedHistory" style="font-size: 11px; color: var(--accent-dim); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--accent-dim);"></div>
+  </div>
+
+  <a class="points-link" href="How_Points_Work.html">HOW DO POINTS WORK? →</a>
+</div>
+
+<!-- TIMELINE -->
+<div class="timeline-section">
+  <div class="timeline-track" id="timelineTrack"></div>
+</div>
+
+<div class="quote-box">
+  <div class="quote-text" id="quoteText"></div>
+  <div class="quote-source" id="quoteSource"></div>
+</div>
+
+<!-- BOOK RECOMMENDATIONS -->
+<div class="books-section">
+  <div class="books-toggle" id="booksToggle" onclick="toggleBooks()">
+    <span class="toggle-label">Tap to expand</span>
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="books-table-wrap" id="booksWrap">
+    <div class="books-why">
+      <strong>// WHY THESE BOOKS?</strong> Your 20-min reading window is for <strong>narrative books</strong> — stories with chapters that pull you forward page by page. This builds reading speed, vocabulary, and comprehension in ways that flipping through picture books or reference manuals can't. Those are fine on your own time, but the timer counts real reading only.
+    </div>
+    <table class="books-table">
+      <thead><tr><th>Title</th><th>Author</th><th>Category</th><th></th></tr></thead>
+      <tbody>
+        <tr><td class="book-title">The Boy Who Harnessed the Wind</td><td class="book-author">William Kamkwamba</td><td class="book-cat">Science</td><td><a class="book-link" href="https://www.amazon.com/s?k=Boy+Who+Harnessed+the+Wind+Young+Readers+William+Kamkwamba" target="_blank">Amazon</a></td></tr>
+        <tr><td class="book-title">What If?</td><td class="book-author">Randall Munroe</td><td class="book-cat">Science</td><td><a class="book-link" href="https://www.amazon.com/s?k=What+If+Serious+Scientific+Answers+Randall+Munroe" target="_blank">Amazon</a></td></tr>
+        <tr><td class="book-title">Nick and Tesla's High-Voltage Lab</td><td class="book-author">Science Bob Pflugfelder</td><td class="book-cat">Science/Mystery</td><td><a class="book-link" href="https://www.amazon.com/s?k=Nick+and+Tesla+High+Voltage+Danger+Lab+Science+Bob" target="_blank">Amazon</a></td></tr>
+        <tr><td class="book-title">Hatchet</td><td class="book-author">Gary Paulsen</td><td class="book-cat">Adventure</td><td><a class="book-link" href="https://www.amazon.com/s?k=Hatchet+Gary+Paulsen" target="_blank">Amazon</a></td></tr>
+        <tr><td class="book-title">The Wild Robot</td><td class="book-author">Peter Brown</td><td class="book-cat">Adventure</td><td><a class="book-link" href="https://www.amazon.com/s?k=The+Wild+Robot+Peter+Brown" target="_blank">Amazon</a></td></tr>
+        <tr><td class="book-title">The Maze Runner</td><td class="book-author">James Dashner</td><td class="book-cat">Adventure</td><td><a class="book-link" href="https://www.amazon.com/s?k=Maze+Runner+James+Dashner" target="_blank">Amazon</a></td></tr>
+        <tr><td class="book-title">The Phantom Tollbooth</td><td class="book-author">Norton Juster</td><td class="book-cat">Adventure</td><td><a class="book-link" href="https://www.amazon.com/s?k=Phantom+Tollbooth+Norton+Juster" target="_blank">Amazon</a></td></tr>
+        <tr><td class="book-title">Holes</td><td class="book-author">Louis Sachar</td><td class="book-cat">Adventure</td><td><a class="book-link" href="https://www.amazon.com/s?k=Holes+Louis+Sachar" target="_blank">Amazon</a></td></tr>
+        <tr><td class="book-title">Charlie and the Chocolate Factory</td><td class="book-author">Roald Dahl</td><td class="book-cat">Adventure</td><td><a class="book-link" href="https://www.amazon.com/s?k=Charlie+and+the+Chocolate+Factory+Roald+Dahl" target="_blank">Amazon</a></td></tr>
+        <tr><td class="book-title">Gregor the Overlander</td><td class="book-author">Suzanne Collins</td><td class="book-cat">Adventure</td><td><a class="book-link" href="https://www.amazon.com/s?k=Gregor+the+Overlander+Suzanne+Collins" target="_blank">Amazon</a></td></tr>
+        <tr><td class="book-title">Loyola Kids Book of Saints</td><td class="book-author">Amy Welborn</td><td class="book-cat">Faith</td><td><a class="book-link" href="https://www.amazon.com/s?k=Loyola+Kids+Book+Saints+Amy+Welborn" target="_blank">Amazon</a></td></tr>
+        <tr><td class="book-title">Bible for Kids: 40 Stories</td><td class="book-author">Tama Fortner</td><td class="book-cat">Faith</td><td><a class="book-link" href="https://www.amazon.com/s?k=Bible+for+Kids+40+Favorite+Stories+Tama+Fortner" target="_blank">Amazon</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<button class="reset-btn" onclick="resetToday()">[ RESET TODAY ]</button>
+
+<canvas class="confetti-overlay" id="confetti"></canvas>
+
+<script>
+const STORAGE_KEY = 'chase_dashboard_v3';
+const TIMER_KEY = 'chase_timer_v2';
+const STUDENT_NAME = 'Chase';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
+
+// --- Cloud Sync Module ---
+let SYNC_CONFIG = {
+  studentName: STUDENT_NAME,
+  appsScriptUrl: APPS_SCRIPT_URL,
+  storageKey: STORAGE_KEY,
+  timerKey: TIMER_KEY,
+  pointsKey: 'chase_points_v1'
+};
+
+let syncState = {
+  isInitialized: false,
+  lastSyncTime: 0,
+  syncPending: false,
+  syncDebounceTimer: null,
+  isOnline: true
+};
+
+async function initializeSync() {
+  if (!SYNC_CONFIG.appsScriptUrl) {
+    console.warn('Sync: Apps Script URL not configured');
+    return;
+  }
+
+  window.addEventListener('online', () => {
+    syncState.isOnline = true;
+    updateSyncIndicator(true);
+  });
+  window.addEventListener('offline', () => {
+    syncState.isOnline = false;
+    updateSyncIndicator(false);
+  });
+
+  try {
+    updateSyncIndicator('loading');
+    const data = await fetchDailyTrackingFromSheet();
+    if (data && Array.isArray(data) && data.length > 0) {
+      mergeSheetDataIntoLocalStorage(data);
+    }
+    syncState.isInitialized = true;
+    updateSyncIndicator(true);
+  } catch (err) {
+    console.error('Sync initialization failed:', err);
+    syncState.isInitialized = true;
+    updateSyncIndicator(false);
+  }
+}
+
+async function fetchDailyTrackingFromSheet() {
+  try {
+    const url = `${SYNC_CONFIG.appsScriptUrl}?action=getDailyTracking&student=${encodeURIComponent(SYNC_CONFIG.studentName)}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error('Failed to fetch daily tracking from sheet:', err);
+    syncState.isOnline = false;
+    updateSyncIndicator(false);
+    throw err;
+  }
+}
+
+function mergeSheetDataIntoLocalStorage(sheetRows) {
+  if (!sheetRows || !Array.isArray(sheetRows)) return;
+
+  const currentData = JSON.parse(localStorage.getItem(SYNC_CONFIG.storageKey)) || { days: {} };
+  const currentTimerData = JSON.parse(localStorage.getItem(SYNC_CONFIG.timerKey)) || {};
+
+  sheetRows.forEach(row => {
+    const date = row.Date;
+    if (!date) return;
+
+    if (!currentData.days[date]) {
+      currentData.days[date] = {};
+    }
+
+    const sheetDay = currentData.days[date];
+    if (row.Anki !== undefined && row.Anki !== null) sheetDay.anki = row.Anki === true || row.Anki === 'TRUE' || row.Anki === 1;
+    if (row.Khan !== undefined && row.Khan !== null) sheetDay.khan = row.Khan === true || row.Khan === 'TRUE' || row.Khan === 1;
+    if (row.Reading !== undefined && row.Reading !== null) sheetDay.reading = row.Reading === true || row.Reading === 'TRUE' || row.Reading === 1;
+    if (row.AnkiBonusSessions !== undefined && row.AnkiBonusSessions !== null) sheetDay.ankiBonus = parseInt(row.AnkiBonusSessions) || 0;
+    if (row.KhanBonusSessions !== undefined && row.KhanBonusSessions !== null) sheetDay.khanBonus = parseInt(row.KhanBonusSessions) || 0;
+
+    if (!currentTimerData[date]) {
+      currentTimerData[date] = { baseMinutes: 0, bonusMinutes: 0 };
+    }
+    if (row.ReadingBaseMinutes !== undefined && row.ReadingBaseMinutes !== null) {
+      currentTimerData[date].baseMinutes = parseInt(row.ReadingBaseMinutes) || 0;
+    }
+    if (row.ReadingBonusMinutes !== undefined && row.ReadingBonusMinutes !== null) {
+      currentTimerData[date].bonusMinutes = parseInt(row.ReadingBonusMinutes) || 0;
+    }
+  });
+
+  localStorage.setItem(SYNC_CONFIG.storageKey, JSON.stringify(currentData));
+  localStorage.setItem(SYNC_CONFIG.timerKey, JSON.stringify(currentTimerData));
+}
+
+async function syncDailyTracking(date, dayData) {
+  if (!syncState.isInitialized || !SYNC_CONFIG.appsScriptUrl) return;
+
+  const payload = {
+    action: 'saveDailyTracking',
+    student: SYNC_CONFIG.studentName,
+    date: date,
+    anki: dayData.anki || false,
+    khan: dayData.khan || false,
+    reading: dayData.reading || false,
+    ankiBonusSessions: dayData.ankiBonus || 0,
+    khanBonusSessions: dayData.khanBonus || 0,
+    readingBaseMinutes: 0,
+    readingBonusMinutes: 0
+  };
+
+  const timerData = JSON.parse(localStorage.getItem(SYNC_CONFIG.timerKey)) || {};
+  if (timerData[date]) {
+    payload.readingBaseMinutes = timerData[date].baseMinutes || 0;
+    payload.readingBonusMinutes = timerData[date].bonusMinutes || 0;
+  }
+
+  return postToSheet(payload);
+}
+
+async function syncTimerData(date, baseMinutes, bonusMinutes) {
+  if (!syncState.isInitialized || !SYNC_CONFIG.appsScriptUrl) return;
+
+  const payload = {
+    action: 'saveTimerData',
+    student: SYNC_CONFIG.studentName,
+    date: date,
+    baseMinutes: baseMinutes || 0,
+    bonusMinutes: bonusMinutes || 0
+  };
+
+  return postToSheet(payload);
+}
+
+async function syncPaidOutPoints(paidOutPoints) {
+  if (!syncState.isInitialized || !SYNC_CONFIG.appsScriptUrl) return;
+
+  const payload = {
+    action: 'savePaidOut',
+    student: SYNC_CONFIG.studentName,
+    paidOutPoints: paidOutPoints || 0
+  };
+
+  return postToSheet(payload);
+}
+
+async function postToSheet(payload) {
+  if (!syncState.isOnline) {
+    console.log('Sync: Offline - data will sync when reconnected');
+    return false;
+  }
+
+  try {
+    updateSyncIndicator('loading');
+    const response = await fetch(SYNC_CONFIG.appsScriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+    syncState.lastSyncTime = Date.now();
+    updateSyncIndicator(true);
+    return true;
+  } catch (err) {
+    console.error('Failed to sync to sheet:', err);
+    syncState.isOnline = false;
+    updateSyncIndicator(false);
+    return false;
+  }
+}
+
+function debouncedSync(callback, delayMs = 30000) {
+  clearTimeout(syncState.syncDebounceTimer);
+  syncState.syncPending = true;
+
+  syncState.syncDebounceTimer = setTimeout(() => {
+    callback();
+    syncState.syncPending = false;
+  }, delayMs);
+}
+
+function updateSyncIndicator(status) {
+  let indicator = document.getElementById('syncIndicator');
+
+  if (!indicator) {
+    indicator = document.createElement('div');
+    indicator.id = 'syncIndicator';
+    indicator.style.cssText = `
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      z-index: 999;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 8px rgba(0,0,0,0.3);
+      padding-top: env(safe-area-inset-top, 0);
+    `;
+    document.body.appendChild(indicator);
+  }
+
+  if (status === true) {
+    indicator.style.backgroundColor = '#00ff88';
+    indicator.title = 'Data synced';
+  } else if (status === false) {
+    indicator.style.backgroundColor = '#ff3366';
+    indicator.title = 'Offline - changes saved locally';
+  } else if (status === 'loading') {
+    indicator.style.backgroundColor = '#ffaa00';
+    indicator.title = 'Syncing...';
+  }
+}
+
+// --- Timer State (Hybrid: countdown then bonus count-up) ---
+let timerInterval = null;
+let timerSeconds = 20 * 60;
+let timerBonusSeconds = 0;
+let timerRunning = false;
+let timerPhase = 'countdown';
+
+function loadTimerData() {
+  try {
+    const data = JSON.parse(localStorage.getItem(TIMER_KEY)) || {};
+    return data[getToday()] || { baseMinutes: 0, bonusMinutes: 0 };
+  } catch { return { baseMinutes: 0, bonusMinutes: 0 }; }
+}
+function loadTimerDataForDate(date) {
+  try {
+    const data = JSON.parse(localStorage.getItem(TIMER_KEY)) || {};
+    return data[date] || { baseMinutes: 0, bonusMinutes: 0 };
+  } catch { return { baseMinutes: 0, bonusMinutes: 0 }; }
+}
+function saveTimerData(base, bonus) {
+  try {
+    const today = getToday();
+    const data = JSON.parse(localStorage.getItem(TIMER_KEY)) || {};
+    data[today] = { baseMinutes: base, bonusMinutes: bonus };
+    localStorage.setItem(TIMER_KEY, JSON.stringify(data));
+    debouncedSync(() => {
+      syncTimerData(today, base, bonus);
+    }, 30000);
+  } catch {}
+}
+
+function formatTime(secs) {
+  const m = Math.floor(secs / 60), s = secs % 60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function updateTimerDisplay() {
+  const display = document.getElementById('timerDisplay');
+  const fill = document.getElementById('timerFill');
+  const modeLabel = document.getElementById('timerModeLabel');
+  const startBtn = document.getElementById('timerStart');
+
+  if (timerPhase === 'countdown') {
+    display.textContent = formatTime(timerSeconds);
+    display.classList.remove('bonus-mode');
+    fill.classList.remove('bonus-mode');
+    fill.style.width = `${((20*60 - timerSeconds) / (20*60)) * 100}%`;
+    if (timerRunning) {
+      modeLabel.textContent = 'COUNTDOWN ACTIVE';
+      modeLabel.className = 'timer-mode-label counting-down';
+    } else if (timerSeconds < 20*60 && timerSeconds > 0) {
+      modeLabel.textContent = 'PAUSED';
+      modeLabel.className = 'timer-mode-label counting-down';
+    } else {
+      modeLabel.textContent = '';
+      modeLabel.className = 'timer-mode-label';
+    }
+  } else {
+    display.textContent = '+' + formatTime(timerBonusSeconds);
+    display.classList.add('bonus-mode');
+    fill.classList.add('bonus-mode');
+    fill.style.width = '100%';
+    if (timerRunning) {
+      modeLabel.textContent = 'OVERTIME ACTIVE';
+      modeLabel.className = 'timer-mode-label bonus-active';
+      startBtn.classList.add('bonus-style');
+    } else {
+      modeLabel.textContent = 'OVERTIME PAUSED';
+      modeLabel.className = 'timer-mode-label bonus-active';
+    }
+  }
+
+  const td = loadTimerData();
+  const totalMin = td.baseMinutes + td.bonusMinutes;
+  const totalEl = document.getElementById('timerTotal');
+  if (totalMin > 0) {
+    if (td.bonusMinutes > 0) {
+      totalEl.innerHTML = `TODAY: ${td.baseMinutes} MIN + <span class="bonus-mins">${td.bonusMinutes} MIN OVERTIME</span> = ${totalMin} MIN TOTAL`;
+    } else {
+      totalEl.textContent = `TODAY: ${totalMin} MIN LOGGED`;
+    }
+  } else {
+    totalEl.textContent = '';
+  }
+
+  document.getElementById('readingMins').textContent = totalMin;
+  if (td.bonusMinutes > 0) {
+    document.getElementById('readingMins').style.color = 'var(--bonus)';
+  } else if (totalMin >= 20) {
+    document.getElementById('readingMins').style.color = 'var(--accent)';
+  } else {
+    document.getElementById('readingMins').style.color = 'var(--accent)';
+  }
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval); timerRunning = false;
+    document.getElementById('timerStart').textContent = 'RESUME';
+    document.getElementById('timerStart').classList.remove('active');
+    if (timerPhase === 'countdown') {
+      const elapsed = 20*60 - timerSeconds;
+      if (elapsed > 0) saveTimerData(Math.ceil(elapsed / 60), 0);
+    } else {
+      saveTimerData(20, Math.floor(timerBonusSeconds / 60));
+    }
+  } else {
+    timerRunning = true;
+    document.getElementById('timerStart').textContent = 'PAUSE';
+    document.getElementById('timerStart').classList.add('active');
+
+    timerInterval = setInterval(() => {
+      if (timerPhase === 'countdown') {
+        timerSeconds--;
+        if (timerSeconds <= 0) {
+          timerSeconds = 0;
+          timerPhase = 'bonus';
+          timerBonusSeconds = 0;
+          saveTimerData(20, 0);
+          const today = getToday();
+          const dayData = getDayData(today);
+          dayData.reading = true;
+          setDayData(today, dayData);
+          render();
+          if (dayData.anki && dayData.khan && dayData.reading) celebrateCompletion();
+          document.getElementById('timerStart').classList.add('bonus-style');
+        }
+      } else {
+        timerBonusSeconds++;
+        if (timerBonusSeconds % 60 === 0) {
+          saveTimerData(20, Math.floor(timerBonusSeconds / 60));
+          render();
+        }
+      }
+      updateTimerDisplay();
+    }, 1000);
+  }
+  updateTimerDisplay();
+}
+
+function resetTimer() {
+  clearInterval(timerInterval); timerRunning = false;
+  timerPhase = 'countdown'; timerSeconds = 20*60; timerBonusSeconds = 0;
+  const btn = document.getElementById('timerStart');
+  btn.textContent = 'ENGAGE'; btn.classList.remove('active', 'bonus-style');
+  updateTimerDisplay();
+}
+
+const quotes = [
+  { text: "The expert in anything was once a beginner.", source: "Helen Hayes" },
+  { text: "Small daily improvements over time lead to stunning results.", source: "Robin Sharma" },
+  { text: "Engineering is the closest thing to magic that exists in the world.", source: "Elon Musk" },
+  { text: "The people who are crazy enough to think they can change the world are the ones who do.", source: "Steve Jobs" },
+  { text: "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you.", source: "Jeremiah 29:11" },
+  { text: "I can do all things through Christ who strengthens me.", source: "Philippians 4:13" },
+  { text: "The only way to do great work is to love what you do.", source: "Steve Jobs" },
+  { text: "Science is a way of thinking much more than it is a body of knowledge.", source: "Carl Sagan" },
+  { text: "The best way to predict the future is to invent it.", source: "Alan Kay" },
+  { text: "Be strong and courageous. Do not be afraid, for the Lord your God will be with you wherever you go.", source: "Joshua 1:9" },
+  { text: "Your brain is a machine. The more you train it, the more powerful it becomes.", source: "" },
+  { text: "Discipline is choosing between what you want now and what you want most.", source: "Abraham Lincoln" },
+  { text: "Any sufficiently advanced technology is indistinguishable from magic.", source: "Arthur C. Clarke" },
+  { text: "First, solve the problem. Then, write the code.", source: "John Johnson" },
+  { text: "The difference between ordinary and extraordinary is practice.", source: "" },
+  { text: "Commit to the Lord whatever you do, and He will establish your plans.", source: "Proverbs 16:3" },
+];
+
+function getToday() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function loadData() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { days: {} }; } catch { return { days: {} }; } }
+function saveData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function getDayData(date) {
+  const raw = loadData().days[date];
+  return raw || { anki: false, khan: false, reading: false, ankiBonus: 0, khanBonus: 0 };
+}
+function setDayData(date, dayData) { const data = loadData(); data.days[date] = dayData; saveData(data); }
+function isDayComplete(date) { const d = getDayData(date); return d.anki && d.khan && d.reading; }
+function dayTaskCount(date) {
+  const d = getDayData(date);
+  return (d.anki ? 1 : 0) + (d.khan ? 1 : 0) + (d.reading ? 1 : 0);
+}
+function dayTotalCredits(date) {
+  const d = getDayData(date);
+  const base = (d.anki ? 1 : 0) + (d.khan ? 1 : 0) + (d.reading ? 1 : 0);
+  const bonus = (d.ankiBonus || 0) + (d.khanBonus || 0);
+  const td = loadTimerDataForDate(date);
+  const readingBonus = td.bonusMinutes >= 20 ? Math.floor(td.bonusMinutes / 20) : 0;
+  return base + bonus + readingBonus;
+}
+
+function toggleTask(task) {
+  const today = getToday(); const dayData = getDayData(today);
+  dayData[task] = !dayData[task]; setDayData(today, dayData); render();
+  syncDailyTracking(today, dayData);
+  if (dayData.anki && dayData.khan && dayData.reading) celebrateCompletion();
+}
+
+function addBonus(task) {
+  const today = getToday(); const dayData = getDayData(today);
+  const key = task + 'Bonus';
+  dayData[key] = (dayData[key] || 0) + 1;
+  setDayData(today, dayData);
+  render();
+  syncDailyTracking(today, dayData);
+}
+
+function resetToday() {
+  const today = getToday();
+  const emptyData = { anki: false, khan: false, reading: false, ankiBonus: 0, khanBonus: 0 };
+  setDayData(today, emptyData);
+  try {
+    const data = JSON.parse(localStorage.getItem(TIMER_KEY)) || {};
+    delete data[today];
+    localStorage.setItem(TIMER_KEY, JSON.stringify(data));
+  } catch {}
+  resetTimer();
+  syncDailyTracking(today, emptyData);
+  render();
+}
+
+function calculateStreak() {
+  let streak = 0; const today = new Date(); let check = new Date(today);
+  if (!isDayComplete(getToday())) check.setDate(check.getDate() - 1);
+  while (true) {
+    const ds = `${check.getFullYear()}-${String(check.getMonth()+1).padStart(2,'0')}-${String(check.getDate()).padStart(2,'0')}`;
+    if (isDayComplete(ds)) { streak++; check.setDate(check.getDate() - 1); } else break;
+  }
+  return streak;
+}
+
+function getWeekDates() {
+  const today = new Date(); const day = today.getDay(); const monday = new Date(today);
+  monday.setDate(today.getDate() - ((day + 6) % 7));
+  return Array.from({length:7}, (_,i) => { const d = new Date(monday); d.setDate(monday.getDate()+i); return d; });
+}
+
+function render() {
+  const today = getToday(); const todayDate = new Date();
+  document.getElementById('todayDate').textContent = todayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase();
+  const dayData = getDayData(today);
+
+  ['anki','khan','reading'].forEach(task => {
+    const el = document.getElementById(`task-${task}`);
+    el.classList.toggle('done', dayData[task]);
+    el.querySelector('.task-check').textContent = dayData[task] ? '\u25A0' : '\u25A1';
+    el.querySelector('.task-status').textContent = dayData[task] ? 'COMPLETE' : 'PENDING';
+  });
+
+  // Bonus rows
+  ['anki','khan'].forEach(task => {
+    const bonusRow = document.getElementById(`bonus-${task}`);
+    if (dayData[task]) {
+      bonusRow.classList.add('visible');
+      const count = dayData[task + 'Bonus'] || 0;
+      document.getElementById(`bonus-${task}-count`).textContent = count > 0 ? `+${count} EXTRA` : '';
+    } else {
+      bonusRow.classList.remove('visible');
+    }
+  });
+
+  const streak = calculateStreak();
+  document.getElementById('streakNumber').textContent = streak;
+  const icon = document.getElementById('streakIcon');
+  if (streak >= 30) icon.textContent = '\uD83C\uDFC6';
+  else if (streak >= 14) icon.textContent = '\uD83D\uDE80\uD83D\uDE80\uD83D\uDE80';
+  else if (streak >= 7) icon.textContent = '\uD83D\uDE80\uD83D\uDE80';
+  else if (streak >= 3) icon.textContent = '\uD83D\uDE80';
+  else icon.textContent = '\uD83D\uDEF0\uFE0F';
+
+  // Weekly Completion Meter
+  const weekDates = getWeekDates();
+  let weekCredits = 0;
+  weekDates.forEach(date => {
+    const ds = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    if (date <= todayDate) weekCredits += dayTotalCredits(ds);
+  });
+
+  document.getElementById('meterCredits').textContent = weekCredits;
+  const meterFill = document.getElementById('meterFill');
+  const meterPct = Math.min((weekCredits / 21) * 100, 130);
+  meterFill.style.width = `${Math.min(meterPct, 100)}%`;
+  meterFill.className = weekCredits > 21 ? 'meter-fill over' : 'meter-fill normal';
+
+  const meterStatus = document.getElementById('meterStatus');
+  const meterNote = document.getElementById('meterNote');
+  if (weekCredits >= 21) {
+    const extra = weekCredits - 21;
+    meterStatus.textContent = 'TARGET ACHIEVED';
+    meterStatus.style.color = 'var(--accent)';
+    meterNote.innerHTML = extra > 0 ? `<span class="bonus-text">+${extra} BONUS CREDITS</span>` : 'PERFECT WEEK';
+  } else {
+    const remaining = 21 - weekCredits;
+    meterStatus.textContent = `${remaining} REMAINING`;
+    meterStatus.style.color = 'var(--text-dim)';
+    const daysLeft = weekDates.filter(d => d > todayDate).length + (isDayComplete(today) ? 0 : 1);
+    if (remaining <= daysLeft * 3) {
+      meterNote.textContent = 'SYSTEMS NOMINAL \u2014 ON TRACK';
+    } else {
+      meterNote.textContent = 'EXTRA RUNS CAN CLOSE THE GAP';
+    }
+  }
+
+  // Weekly dots
+  const dayNames = ['MO','TU','WE','TH','FR','SA','SU'];
+  const weekEl = document.getElementById('weekDays'); weekEl.innerHTML = '';
+  let completedWeek = 0, passedWeek = 0, totalComplete = 0, totalDays = 0;
+  const allData = loadData();
+  Object.keys(allData.days).forEach(d => { totalDays++; if (isDayComplete(d)) totalComplete++; });
+
+  weekDates.forEach((date, i) => {
+    const ds = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    const isToday = ds === today, isFuture = date > todayDate;
+    const complete = isDayComplete(ds);
+    const tasksDone = dayTaskCount(ds);
+    const credits = dayTotalCredits(ds);
+    if (!isFuture) passedWeek++;
+    if (complete) completedWeek++;
+
+    let cls = 'day-dot', label = '';
+    if (isToday) { cls += ' today'; label = '>>'; }
+    else if (isFuture) { cls += ' future'; label = '--'; }
+    else if (complete) { cls += ' complete'; label = '01'; }
+    else if (tasksDone > 0) { cls += ' partial'; label = tasksDone + '/3'; }
+    else { cls += ' missed'; label = '00'; }
+
+    const bonusLabel = (!isFuture && credits > 3) ? `+${credits - 3}` : '';
+
+    const col = document.createElement('div'); col.className = 'day-col';
+    col.innerHTML = `<div class="day-label">${dayNames[i]}</div><div class="${cls}">${label}</div><div class="day-bonus">${bonusLabel}</div>`;
+    weekEl.appendChild(col);
+  });
+
+  const pct = passedWeek > 0 ? Math.round((completedWeek / passedWeek) * 100) : 0;
+  document.getElementById('weeklyPct').textContent = `${pct}%`;
+  document.getElementById('weeklyPct').style.color = pct >= 80 ? 'var(--accent)' : pct >= 50 ? 'var(--accent2)' : 'var(--miss)';
+  document.getElementById('totalDays').textContent = totalComplete;
+
+  renderCalendar();
+  updateTimerDisplay();
+
+  const doy = Math.floor((todayDate - new Date(todayDate.getFullYear(),0,0)) / 86400000);
+  const q = quotes[doy % quotes.length];
+  document.getElementById('quoteText').textContent = `"${q.text}"`;
+  document.getElementById('quoteSource').textContent = q.source ? `\u2014 ${q.source}` : '';
+}
+
+let calendarMonth = new Date().getMonth(), calendarYear = new Date().getFullYear();
+function changeMonth(dir) {
+  calendarMonth += dir;
+  if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+  if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+  renderCalendar();
+}
+function renderCalendar() {
+  const today = getToday();
+  const mn = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  document.getElementById('calMonth').textContent = `${mn[calendarMonth]} ${calendarYear}`;
+  const grid = document.getElementById('calGrid'); grid.innerHTML = '';
+  ['SU','MO','TU','WE','TH','FR','SA'].forEach(d => { const h = document.createElement('div'); h.className = 'cal-header'; h.textContent = d; grid.appendChild(h); });
+  const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cell = document.createElement('div'); cell.className = 'cal-day'; cell.textContent = String(d).padStart(2,'0');
+    const cd = new Date(calendarYear, calendarMonth, d);
+    if (ds === today) cell.classList.add('today-cal');
+    const isPast = cd < new Date(new Date().setHours(0,0,0,0));
+    const tc = dayTaskCount(ds);
+    if (loadData().days[ds] || isPast) {
+      cell.classList.add('has-data');
+      if (isDayComplete(ds)) cell.classList.add('complete');
+      else if (tc > 0) cell.classList.add('partial');
+      else if (isPast) cell.classList.add('missed');
+    }
+    grid.appendChild(cell);
+  }
+}
+
+function celebrateCompletion() {
+  const canvas = document.getElementById('confetti');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d'); const particles = [];
+  const colors = ['#00ff88','#00b4d8','#00ffcc','#88ff00','#ffffff','#00ddff','#ffaa00'];
+  for (let i = 0; i < 80; i++) {
+    particles.push({ x: Math.random()*canvas.width, y: canvas.height+10, vx: (Math.random()-0.5)*8, vy: -(Math.random()*12+8), size: Math.random()*6+2, color: colors[Math.floor(Math.random()*colors.length)], rotation: Math.random()*360, rotSpeed: (Math.random()-0.5)*10, gravity: 0.3, life: 1 });
+  }
+  function animate() {
+    ctx.clearRect(0,0,canvas.width,canvas.height); let alive = false;
+    particles.forEach(p => {
+      if (p.life <= 0) return; alive = true;
+      p.x += p.vx; p.vy += p.gravity; p.y += p.vy; p.rotation += p.rotSpeed; p.life -= 0.015;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rotation*Math.PI/180); ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color; ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.3); ctx.restore();
+    });
+    if (alive) requestAnimationFrame(animate); else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  animate();
+}
+
+// --- MULTI-CONTRIBUTOR REWARDS SYSTEM ---
+const CONTRIBUTORS = [
+  { id: 'Dad', label: 'DAD', method: 'Apple Pay' },
+  { id: 'Mom', label: 'MOM', method: '' },
+  { id: 'Gaga & Papa', label: 'GAGA & PAPA', method: '' },
+  { id: 'Gigi & Pa', label: 'GIGI & PA', method: '' }
+];
+let contributorRates = [];
+let payoutHistory = [];
+let pointsMetadata = [];
+
+async function loadContributorData() {
+  try {
+    const baseUrl = SYNC_CONFIG.appsScriptUrl || '';
+    if (!baseUrl) {
+      console.warn('Apps Script URL not configured');
+      return;
+    }
+    const studentParam = `student=${encodeURIComponent(STUDENT_NAME)}`;
+    const [ratesRes, historyRes, metaRes] = await Promise.all([
+      fetch(`${baseUrl}?action=getContributorRates&${studentParam}`),
+      fetch(`${baseUrl}?action=getPayoutHistory&${studentParam}`),
+      fetch(`${baseUrl}?action=getPointsMetadata&${studentParam}`)
+    ]);
+    if (ratesRes.ok) contributorRates = await ratesRes.json();
+    if (historyRes.ok) payoutHistory = await historyRes.json();
+    if (metaRes.ok) pointsMetadata = await metaRes.json();
+  } catch(err) {
+    console.warn('Failed to load contributor data:', err);
+  }
+}
+
+function calculateContributorBalance(contributorId, dadDollarBalance) {
+  const rate = contributorRates.find(r => r.Contributor === contributorId);
+  if (!rate || !rate.Rate) return 0;
+
+  let owedAmount = 0;
+  if (rate.Type === 'match') {
+    owedAmount = dadDollarBalance * Number(rate.Rate);
+  } else if (rate.Type === 'flat_weekly') {
+    owedAmount = dadDollarBalance * Number(rate.Rate);
+  }
+
+  const meta = pointsMetadata.find(m => m.Contributor === contributorId);
+  const totalPaid = meta ? Number(meta.TotalPaidOut) || 0 : 0;
+  return Math.max(0, owedAmount - totalPaid);
+}
+
+function togglePayoutHistory() {
+  const wrap = document.getElementById('payoutHistoryWrap');
+  const arrow = document.getElementById('payoutArrow');
+  if (wrap.style.display === 'none' || !wrap.style.display) {
+    wrap.style.display = 'block';
+    arrow.textContent = '▼';
+  } else {
+    wrap.style.display = 'none';
+    arrow.textContent = '►';
+  }
+}
+
+// --- POINTS SYSTEM ---
+// 3 points = $1.00. Points accumulate forever. Dollar balance resets on payout.
+const POINTS_KEY = 'chase_points_v1';
+function loadPointsData() {
+  try { return JSON.parse(localStorage.getItem(POINTS_KEY)) || { paidOutPoints: 0 }; }
+  catch { return { paidOutPoints: 0 }; }
+}
+function savePointsData(data) {
+  localStorage.setItem(POINTS_KEY, JSON.stringify(data));
+  syncPaidOutPoints(data.paidOutPoints || 0);
+}
+
+function calculatePoints() {
+  const allData = loadData();
+  let totalPoints = 0;
+  let todayPoints = 0;
+  let weekPoints = 0;
+  const weekDates = getWeekDates();
+  const todayDate = new Date();
+  const weekDateStrings = weekDates.map(d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+  const today = getToday();
+
+  Object.entries(allData.days).forEach(([date, d]) => {
+    let dayPts = 0;
+    const tasks = (d.anki ? 1 : 0) + (d.khan ? 1 : 0) + (d.reading ? 1 : 0);
+    dayPts += tasks * 2;
+    if (tasks === 3) dayPts += 4;
+    dayPts += (d.ankiBonus || 0) * 2;
+    dayPts += (d.khanBonus || 0) * 2;
+    const td = loadTimerDataForDate(date);
+    dayPts += (td.bonusMinutes >= 20 ? Math.floor(td.bonusMinutes / 20) : 0) * 2;
+    totalPoints += dayPts;
+    if (date === today) todayPoints = dayPts;
+    if (weekDateStrings.includes(date)) weekPoints += dayPts;
+  });
+
+  const streak = calculateStreak();
+  if (streak >= 30) totalPoints += 75;
+  else if (streak >= 14) totalPoints += 30;
+  else if (streak >= 7) totalPoints += 15;
+
+  let weekCredits = 0;
+  weekDates.forEach(d => {
+    const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if (d <= todayDate) weekCredits += dayTotalCredits(ds);
+  });
+  if (weekCredits >= 21) weekPoints += 20;
+
+  const pData = loadPointsData();
+  const unpaidPoints = totalPoints - pData.paidOutPoints;
+  const dollarBalance = Math.max(0, unpaidPoints / 3);
+
+  return { totalPoints, todayPoints, weekPoints, streak, dollarBalance };
+}
+
+function renderPoints() {
+  const { totalPoints, todayPoints, weekPoints, streak, dollarBalance } = calculatePoints();
+  document.getElementById('pointsBalance').textContent = totalPoints;
+
+  // Render contributor grid
+  const gridHtml = CONTRIBUTORS.map(c => {
+    const balance = c.id === 'Dad' ? dollarBalance : calculateContributorBalance(c.id, dollarBalance);
+    return `
+      <div class="contributor-box">
+        <div class="contributor-name">${c.label}</div>
+        <div class="contributor-amount">$${balance.toFixed(2)}</div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('contributorGrid').innerHTML = gridHtml;
+
+  // Lifetime earnings
+  const lifetimeEarned = payoutHistory.reduce((sum, p) => sum + (Number(p.Amount) || 0), 0);
+  document.getElementById('lifetimeEarned').innerHTML =
+    `<span class="earned">LIFETIME EARNED: $${(lifetimeEarned + dollarBalance).toFixed(2)}</span>`;
+
+  // Payout history
+  const payoutContainer = document.getElementById('payoutListContainer');
+  if (payoutHistory.length > 0) {
+    const payoutHtml = payoutHistory.map(p => `
+      <div class="payout-item">
+        <span class="payout-date">${p.Date}</span>
+        <span class="payout-detail">${p.Contributor.toUpperCase()} PAID $${Number(p.Amount).toFixed(2)} VIA ${p.Method.toUpperCase()}</span>
+      </div>
+    `).join('');
+    payoutContainer.innerHTML = payoutHtml;
+    document.getElementById('lifetimeEarnedHistory').innerHTML =
+      `<span class="earned">LIFETIME EARNED: $${lifetimeEarned.toFixed(2)}</span>`;
+  } else {
+    payoutContainer.innerHTML = '<div class="payout-item"><span class="payout-date">NO PAYOUTS YET</span></div>';
+  }
+}
+
+// --- TIMELINE ---
+// Chase: 10, 5th grade (2025-2026)
+// 6th: 2026-2027, 7th: 2027-2028, 8th at St. Paul's: 2028-2029
+// 9th: 2029-2030, 10th: 2030-2031, 11th: 2031-2032, 12th: 2032-2033
+// Graduation: May 2033
+function renderTimeline() {
+  const track = document.getElementById('timelineTrack');
+  track.innerHTML = '<div class="timeline-line"></div>';
+
+  const milestones = [
+    { date: '2026-02-27', label: 'CHASE', type: 'now', above: 'You are here' },
+    { date: '2026-04-15', label: 'LEAP', type: 'upcoming', above: 'Spring 2026' },
+    { date: '2028-01-15', label: 'HSPT', type: 'future', above: 'Jan 2028' },
+    { date: '2028-08-15', label: 'ST. PAUL\'S', type: 'future', above: '8th Grade' },
+    { date: '2029-10-15', label: 'PSAT 8/9', type: 'future', above: 'Fall 2029' },
+    { date: '2030-10-15', label: 'PSAT 10', type: 'future', above: 'Fall 2030' },
+    { date: '2031-10-15', label: 'PSAT/NMSQT', type: 'future', above: 'Fall 2031' },
+    { date: '2032-03-15', label: 'SAT/ACT', type: 'future', above: 'Spring 2032' },
+    { date: '2033-05-20', label: 'GRADUATION', type: 'future', above: 'May 2033' },
+  ];
+
+  const startDate = new Date('2026-02-01');
+  const endDate = new Date('2033-06-30');
+  const totalSpan = endDate - startDate;
+
+  milestones.forEach((m, i) => {
+    const mDate = new Date(m.date);
+    const pct = ((mDate - startDate) / totalSpan) * 100;
+    const left = Math.max(3, Math.min(97, pct));
+    const labelAbove = i % 2 === 0; // alternate: even=above, odd=below
+
+    const marker = document.createElement('div');
+    marker.className = 'timeline-marker';
+    marker.style.left = `${left}%`;
+
+    // Dot or emoji
+    let dotHTML;
+    if (m.type === 'now') {
+      dotHTML = '<div class="tm-emoji">\u{1F466}\u{1F3FB}</div>';
+    } else {
+      dotHTML = `<div class="tm-dot ${m.type}"></div>`;
+    }
+
+    // Labels above or below the line
+    let labelHTML;
+    if (labelAbove) {
+      labelHTML = `<div class="tm-date-above">${m.above || ''}</div><div class="tm-label-above">${m.label}</div>`;
+    } else {
+      labelHTML = `<div class="tm-label-below">${m.label}</div><div class="tm-date-below">${m.above || ''}</div>`;
+    }
+
+    marker.innerHTML = dotHTML + labelHTML;
+    track.appendChild(marker);
+  });
+}
+
+// --- BOOK TOGGLE ---
+function toggleBooks() {
+  const toggle = document.getElementById('booksToggle');
+  const wrap = document.getElementById('booksWrap');
+  toggle.classList.toggle('open');
+  wrap.classList.toggle('visible');
+}
+
+const _originalRender = render;
+render = function() {
+  _originalRender();
+  renderPoints();
+  renderTimeline();
+};
+
+// Initialize sync, then render
+initializeSync().then(() => {
+  return loadContributorData();
+}).then(() => {
+  render();
+}).catch(() => {
+  render();
+});
+</script>
+</body>
+</html>

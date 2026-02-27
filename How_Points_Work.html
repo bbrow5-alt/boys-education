@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>How Points Work</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #181b23;
+    --card-border: #2a2e3a;
+    --accent: #f0c040;
+    --accent-dim: #3d3218;
+    --green: #4ade80;
+    --green-dim: #0d2818;
+    --blue: #60a5fa;
+    --blue-dim: #1a2744;
+    --orange: #fb923c;
+    --orange-dim: #2a1a08;
+    --red: #f87171;
+    --text: #e8ecf4;
+    --text-dim: #6b7280;
+    --text-mid: #9ca3af;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; padding: 16px 16px 60px;
+    padding-top: env(safe-area-inset-top, 16px);
+    line-height: 1.6;
+  }
+
+  .header { text-align: center; margin-bottom: 28px; padding-top: 12px; }
+  .header .icon { font-size: 40px; margin-bottom: 6px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
+  .header .sub { font-size: 12px; color: var(--text-dim); margin-top: 4px; letter-spacing: 1px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 10px; padding: 18px; margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 11px; color: var(--accent); text-transform: uppercase;
+    letter-spacing: 3px; margin-bottom: 12px; font-weight: 700;
+  }
+  .card h2 { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .card p { font-size: 14px; color: var(--text-mid); margin-bottom: 10px; }
+  .card p:last-child { margin-bottom: 0; }
+
+  /* Science callout */
+  .science-callout {
+    background: var(--blue-dim); border-left: 3px solid var(--blue);
+    padding: 12px 14px; border-radius: 0 8px 8px 0; margin: 12px 0;
+  }
+  .science-callout .label { font-size: 10px; color: var(--blue); text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 4px; }
+  .science-callout p { font-size: 13px; color: var(--text); margin: 0; }
+
+  /* Conversion banner */
+  .conversion {
+    text-align: center; padding: 20px;
+    background: linear-gradient(135deg, var(--accent-dim), #2a2010);
+    border: 2px solid var(--accent);
+  }
+  .conversion .big { font-size: 36px; font-weight: 800; color: var(--accent); }
+  .conversion .explain { font-size: 13px; color: var(--text-mid); margin-top: 4px; }
+
+  /* Earning table */
+  .earn-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  .earn-table th {
+    text-align: left; font-size: 10px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px; padding: 8px 6px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .earn-table td {
+    padding: 10px 6px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .earn-table .pts { color: var(--accent); font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .earn-table .cash { color: var(--green); font-weight: 600; white-space: nowrap; }
+  .earn-table .action-name { color: var(--text); }
+  .earn-table .note { font-size: 11px; color: var(--text-dim); display: block; margin-top: 2px; }
+
+  /* Streak section */
+  .streak-row {
+    display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+  }
+  .streak-badge {
+    flex: 1; min-width: 90px; text-align: center; padding: 12px 8px;
+    border-radius: 8px; border: 1px solid var(--card-border);
+  }
+  .streak-badge .days { font-size: 22px; font-weight: 800; }
+  .streak-badge .label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  .streak-badge .reward { font-size: 12px; font-weight: 700; margin-top: 6px; }
+  .streak-badge.s7 { background: var(--green-dim); }
+  .streak-badge.s7 .days { color: var(--green); }
+  .streak-badge.s7 .reward { color: var(--green); }
+  .streak-badge.s14 { background: var(--blue-dim); }
+  .streak-badge.s14 .days { color: var(--blue); }
+  .streak-badge.s14 .reward { color: var(--blue); }
+  .streak-badge.s30 { background: var(--orange-dim); }
+  .streak-badge.s30 .days { color: var(--orange); }
+  .streak-badge.s30 .reward { color: var(--orange); }
+
+  /* Comparison */
+  .comparison { display: flex; gap: 10px; margin-top: 12px; }
+  .compare-col {
+    flex: 1; padding: 14px; border-radius: 8px; text-align: center;
+  }
+  .compare-col.good { background: var(--green-dim); border: 1px solid var(--green); }
+  .compare-col.bad { background: rgba(248,113,113,0.08); border: 1px solid var(--red); }
+  .compare-col .comp-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 8px; }
+  .compare-col.good .comp-label { color: var(--green); }
+  .compare-col.bad .comp-label { color: var(--red); }
+  .compare-col .comp-schedule { font-size: 12px; color: var(--text-mid); margin-bottom: 8px; }
+  .compare-col .comp-amount { font-size: 28px; font-weight: 800; }
+  .compare-col.good .comp-amount { color: var(--green); }
+  .compare-col.bad .comp-amount { color: var(--red); }
+  .compare-col .comp-per { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+  .compare-col .comp-note { font-size: 11px; color: var(--text-mid); margin-top: 6px; font-style: italic; }
+
+  /* Weekly projections */
+  .proj-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .proj-row:last-child { border-bottom: none; }
+  .proj-label { font-size: 13px; color: var(--text); flex: 1; }
+  .proj-label .detail { font-size: 11px; color: var(--text-dim); display: block; }
+  .proj-pts { font-size: 14px; color: var(--accent); font-weight: 700; min-width: 55px; text-align: right; }
+  .proj-cash { font-size: 14px; color: var(--green); font-weight: 700; min-width: 60px; text-align: right; }
+
+  /* FAQ */
+  .faq-item { margin-bottom: 14px; }
+  .faq-q { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+  .faq-a { font-size: 13px; color: var(--text-mid); }
+
+  /* Back button */
+  .back-link {
+    display: block; text-align: center; padding: 14px;
+    color: var(--text-dim); font-size: 12px; text-decoration: none;
+    border: 1px solid var(--card-border); border-radius: 8px;
+    margin-top: 8px; letter-spacing: 1px;
+  }
+  .back-link:active { opacity: 0.6; }
+
+  /* Key number highlight */
+  .key-num { color: var(--accent); font-weight: 700; }
+
+  /* Responsive */
+  @media (max-width: 380px) {
+    .comparison { flex-direction: column; }
+    .streak-row { flex-direction: column; }
+    .streak-badge { min-width: unset; }
+  }
+  @media (min-width: 600px) {
+    body { max-width: 600px; margin: 0 auto; padding: 24px 24px 60px; }
+  }
+  @media (min-width: 900px) {
+    body { max-width: 700px; }
+    .card { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="icon">&#128176;</div>
+  <h1>How Points Work</h1>
+  <div class="sub">Your earning guide</div>
+</div>
+
+<!-- CONVERSION -->
+<div class="card conversion">
+  <div class="big">3 pts = $1.00</div>
+  <div class="explain">Points add up forever. Dad pays out every Sunday via Apple Pay.</div>
+</div>
+
+<!-- WHY DAILY -->
+<div class="card">
+  <div class="card-title">Why Every Day Matters</div>
+  <h2>Your brain learns better in small daily doses</h2>
+  <p>Scientists have studied how memory works for over 100 years, and the results are clear: <strong>short daily sessions beat long cramming sessions every time.</strong></p>
+
+  <div class="science-callout">
+    <div class="label">The Spacing Effect</div>
+    <p>Reviewing material across multiple days creates <strong>2-3x stronger memories</strong> than studying the same amount in one sitting. Your brain literally builds stronger connections while you sleep after each session.</p>
+  </div>
+
+  <div class="science-callout">
+    <div class="label">The Forgetting Curve</div>
+    <p>After learning something new, you forget <strong>70% within 24 hours</strong> unless you review it. Daily Anki reviews catch knowledge right before it fades, locking it in permanently.</p>
+  </div>
+
+  <div class="science-callout">
+    <div class="label">Reading &amp; Comprehension</div>
+    <p>Reading 20 minutes a day exposes you to <strong>1.8 million words per year</strong>. That amount of input builds vocabulary, critical thinking, and test performance in ways that can't be crammed.</p>
+  </div>
+
+  <p>The points system is designed around this science. <strong>Daily consistency earns dramatically more than cramming.</strong> Here's the proof:</p>
+</div>
+
+<!-- THE COMPARISON -->
+<div class="card">
+  <div class="card-title">Daily vs. Cramming</div>
+  <h2>Same amount of time, very different payoff</h2>
+
+  <div class="comparison">
+    <div class="compare-col good">
+      <div class="comp-label">Daily Habit</div>
+      <div class="comp-schedule">45 min/day, 7 days</div>
+      <div class="comp-amount">$30+</div>
+      <div class="comp-per">per week</div>
+      <div class="comp-note">+ streak bonuses keep growing</div>
+    </div>
+    <div class="compare-col bad">
+      <div class="comp-label">Weekend Cram</div>
+      <div class="comp-schedule">Same total time, 2 days</div>
+      <div class="comp-amount">$7</div>
+      <div class="comp-per">per week</div>
+      <div class="comp-note">no streaks, no weekly bonus</div>
+    </div>
+  </div>
+
+  <p style="margin-top: 14px; font-size: 13px; color: var(--text-dim); text-align: center;">That's a <span class="key-num">4x difference</span> in earnings for the same work &mdash; plus the daily habit actually sticks in your brain.</p>
+</div>
+
+<!-- DAILY EARNING TABLE -->
+<div class="card">
+  <div class="card-title">Daily Earning</div>
+  <h2>What each task is worth</h2>
+
+  <table class="earn-table">
+    <thead>
+      <tr><th>Action</th><th>Points</th><th>Cash</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="action-name">Anki review<span class="note">~10 minutes</span></td>
+        <td class="pts">2 pts</td>
+        <td class="cash">$0.67</td>
+      </tr>
+      <tr>
+        <td class="action-name">Khan Academy<span class="note">15-20 minutes</span></td>
+        <td class="pts">2 pts</td>
+        <td class="cash">$0.67</td>
+      </tr>
+      <tr>
+        <td class="action-name">Reading<span class="note">20 minutes</span></td>
+        <td class="pts">2 pts</td>
+        <td class="cash">$0.67</td>
+      </tr>
+      <tr style="background: rgba(240,192,64,0.06);">
+        <td class="action-name"><strong>All 3 tasks in one day</strong><span class="note">Completion bonus: +4 pts</span></td>
+        <td class="pts">10 pts</td>
+        <td class="cash">$3.33</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top: 10px; font-size: 12px;">Doing 1 or 2 tasks earns <span class="key-num">2 pts each</span>. Completing all 3 unlocks a <span class="key-num">+4 bonus</span>, making the day worth <span class="key-num">10 pts ($3.33)</span>.</p>
+</div>
+
+<!-- BONUS EARNING -->
+<div class="card">
+  <div class="card-title">Bonus Earning</div>
+  <h2>Want to earn more? Do more.</h2>
+
+  <table class="earn-table">
+    <thead>
+      <tr><th>Bonus Action</th><th>Points</th><th>Cash</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="action-name">Extra Anki session<span class="note">After completing today's review</span></td>
+        <td class="pts">+2 pts</td>
+        <td class="cash">$0.67</td>
+      </tr>
+      <tr>
+        <td class="action-name">Extra Khan session<span class="note">After completing today's lesson</span></td>
+        <td class="pts">+2 pts</td>
+        <td class="cash">$0.67</td>
+      </tr>
+      <tr>
+        <td class="action-name">Bonus reading time<span class="note">Each extra 20 min after baseline</span></td>
+        <td class="pts">+2 pts</td>
+        <td class="cash">$0.67</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top: 10px; font-size: 12px;">Bonus buttons appear on your dashboard after you check off the base task. No cap on bonus sessions &mdash; the more you do, the more you earn.</p>
+</div>
+
+<!-- STREAKS -->
+<div class="card">
+  <div class="card-title">Streak Bonuses</div>
+  <h2>Consistency pays &mdash; literally</h2>
+  <p>Complete all 3 tasks every day in a row to build your streak. The longer you go, the bigger the bonus:</p>
+
+  <div class="streak-row">
+    <div class="streak-badge s7">
+      <div class="days">7</div>
+      <div class="label">Day Streak</div>
+      <div class="reward">+15 pts ($5.00)</div>
+    </div>
+    <div class="streak-badge s14">
+      <div class="days">14</div>
+      <div class="label">Day Streak</div>
+      <div class="reward">+30 pts ($10.00)</div>
+    </div>
+    <div class="streak-badge s30">
+      <div class="days">30</div>
+      <div class="label">Day Streak</div>
+      <div class="reward">+75 pts ($25.00)</div>
+    </div>
+  </div>
+
+  <p style="margin-top: 12px; font-size: 12px;">Only the highest streak bonus counts (they don't stack). A 14-day streak earns you the 14-day bonus, not 7+14. <strong>Miss one day and the streak resets to zero.</strong></p>
+
+  <div class="science-callout">
+    <div class="label">Why Streaks Matter</div>
+    <p>Research shows it takes roughly <strong>21-66 days</strong> to form a habit. The streak bonuses are designed to push you past that threshold. By day 30, the daily routine will feel automatic.</p>
+  </div>
+</div>
+
+<!-- PERFECT WEEK -->
+<div class="card">
+  <div class="card-title">Weekly Bonus</div>
+  <h2>Perfect Week: 21/21 credits</h2>
+  <p>Hit 21 credits in a week (3 tasks &times; 7 days) and earn a <span class="key-num">+20 pt bonus ($6.67)</span>.</p>
+  <p>Missed a day? Bonus sessions can fill the gap. Each bonus session counts as an extra credit toward the 21.</p>
+</div>
+
+<!-- WEEKLY PROJECTIONS -->
+<div class="card">
+  <div class="card-title">Weekly Projections</div>
+  <h2>What you could earn each week</h2>
+
+  <div class="proj-row">
+    <div class="proj-label">Minimal week<span class="detail">1 task, 3 days</span></div>
+    <div class="proj-pts">6 pts</div>
+    <div class="proj-cash">$2.00</div>
+  </div>
+  <div class="proj-row">
+    <div class="proj-label">Okay week<span class="detail">2 of 3 tasks, most days</span></div>
+    <div class="proj-pts">~28 pts</div>
+    <div class="proj-cash">$9.33</div>
+  </div>
+  <div class="proj-row">
+    <div class="proj-label">Good week<span class="detail">All 3 tasks, 5 of 7 days</span></div>
+    <div class="proj-pts">50 pts</div>
+    <div class="proj-cash">$16.67</div>
+  </div>
+  <div class="proj-row" style="background: rgba(74,222,128,0.06); border-radius: 6px;">
+    <div class="proj-label"><strong>Perfect week</strong><span class="detail">All 3 tasks, 7 days</span></div>
+    <div class="proj-pts">90 pts</div>
+    <div class="proj-cash">$30.00</div>
+  </div>
+  <div class="proj-row" style="background: rgba(96,165,250,0.06); border-radius: 6px;">
+    <div class="proj-label"><strong>Perfect + 7-day streak</strong><span class="detail">First full week</span></div>
+    <div class="proj-pts">105 pts</div>
+    <div class="proj-cash">$35.00</div>
+  </div>
+  <div class="proj-row" style="background: rgba(251,146,60,0.06); border-radius: 6px;">
+    <div class="proj-label"><strong>Perfect + 30-day streak</strong><span class="detail">One month strong</span></div>
+    <div class="proj-pts">165 pts</div>
+    <div class="proj-cash">$55.00</div>
+  </div>
+
+  <p style="margin-top: 12px; font-size: 12px; text-align: center; color: var(--text-dim);">These numbers don't even include bonus sessions. The ceiling is as high as your effort.</p>
+</div>
+
+<!-- MONTHLY POTENTIAL -->
+<div class="card">
+  <div class="card-title">Monthly Potential</div>
+  <h2>What a full month looks like</h2>
+  <p>A perfect month (30 consecutive days, all 3 tasks daily, perfect week bonuses) earns approximately:</p>
+  <div style="text-align: center; margin: 16px 0;">
+    <div style="font-size: 42px; font-weight: 800; color: var(--green);">$150+</div>
+    <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">per month at peak consistency</div>
+  </div>
+  <p style="font-size: 13px;">That's real money you control. Games, gear, snacks, movies with friends &mdash; you decide how to spend it. The only catch: <strong>you have to earn it every day.</strong></p>
+</div>
+
+<!-- WHO PAYS -->
+<div class="card">
+  <div class="card-title">Your Support Team</div>
+  <h2>Multiple people are investing in your success</h2>
+  <p>Your hard work doesn't just earn from Dad. Other people who care about your future can contribute too:</p>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0;">
+    <div style="background: var(--accent-dim); border: 1px solid rgba(240,192,64,0.3); border-radius: 8px; padding: 14px; text-align: center;">
+      <div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px;">Dad</div>
+      <div style="font-size: 18px; font-weight: 700; color: var(--accent); margin-top: 4px;">3 pts = $1.00</div>
+      <div style="font-size: 11px; color: var(--text-mid); margin-top: 4px;">Paid via Apple Pay</div>
+    </div>
+    <div style="background: var(--green-dim); border: 1px solid rgba(74,222,128,0.3); border-radius: 8px; padding: 14px; text-align: center;">
+      <div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px;">Mom</div>
+      <div style="font-size: 18px; font-weight: 700; color: var(--green); margin-top: 4px;">Their rate</div>
+      <div style="font-size: 11px; color: var(--text-mid); margin-top: 4px;">Paid directly to you</div>
+    </div>
+    <div style="background: var(--blue-dim); border: 1px solid rgba(96,165,250,0.3); border-radius: 8px; padding: 14px; text-align: center;">
+      <div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px;">Gaga &amp; Papa</div>
+      <div style="font-size: 18px; font-weight: 700; color: var(--blue); margin-top: 4px;">Their rate</div>
+      <div style="font-size: 11px; color: var(--text-mid); margin-top: 4px;">Paid directly to you</div>
+    </div>
+    <div style="background: var(--orange-dim); border: 1px solid rgba(251,146,60,0.3); border-radius: 8px; padding: 14px; text-align: center;">
+      <div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px;">Gigi &amp; Pa</div>
+      <div style="font-size: 18px; font-weight: 700; color: var(--orange); margin-top: 4px;">Their rate</div>
+      <div style="font-size: 11px; color: var(--text-mid); margin-top: 4px;">Paid directly to you</div>
+    </div>
+  </div>
+
+  <p style="font-size: 13px;">Each person chooses their own contribution rate &mdash; some might match Dad dollar-for-dollar, others might contribute a different amount. <strong>Every payment goes directly from them to you</strong> &mdash; nobody's money passes through anyone else. Check your dashboard to see what each person owes you and your full payout history.</p>
+</div>
+
+<!-- HOW PAYOUTS WORK -->
+<div class="card">
+  <div class="card-title">Payout Schedule</div>
+  <h2>How and when you get paid</h2>
+
+  <p><strong>Dad</strong> checks your dashboard every Sunday evening, calculates your dollar balance, and sends it via Apple Pay. Other contributors may pay on the same schedule or their own &mdash; but every payout gets logged on your dashboard so you always know exactly what you've earned and what you're owed.</p>
+
+  <p style="font-size: 13px;">Your dashboard tracks:</p>
+  <div style="margin: 10px 0; font-size: 13px; color: var(--text-mid); line-height: 2;">
+    <div>&bull; What each person currently owes you</div>
+    <div>&bull; A full history of every payout (who paid, how much, when)</div>
+    <div>&bull; Your lifetime total &mdash; how much money your learning has earned you since day one</div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="card">
+  <div class="card-title">Questions</div>
+
+  <div class="faq-item">
+    <div class="faq-q">When do I get paid?</div>
+    <div class="faq-a">Dad pays every Sunday evening via Apple Pay. Other contributors pay on their own schedule, but every payout is tracked on your dashboard.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">Do my points go away after payout?</div>
+    <div class="faq-a">No. Points are your lifetime score &mdash; they never go down. Only the dollar balance resets after you're paid.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">What if I miss a day?</div>
+    <div class="faq-a">You lose your streak, which means no streak bonus until you build it back up. But you can still do bonus sessions on other days to hit your 21/21 weekly target.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">Can I do bonus sessions to make up for missed days?</div>
+    <div class="faq-a">Bonus sessions count toward your weekly credits (21/21), so they can save your Perfect Week bonus. But they can't save a broken streak &mdash; that requires consecutive days.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">Is there a maximum I can earn?</div>
+    <div class="faq-a">No hard cap. The more you do, the more you earn. Bonus sessions are unlimited. A great month could earn $120-$150+ from Dad alone &mdash; plus whatever other contributors add.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">What do I buy with my money?</div>
+    <div class="faq-a">Anything you used to ask Dad to buy: game skins, in-app purchases, snacks, movies, stuff on Amazon. Dad still covers school supplies, clothes, haircuts, sports, and family meals.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">Does money pass through Dad from other contributors?</div>
+    <div class="faq-a">No. Each person pays you directly &mdash; Apple Pay, Venmo, cash, however they choose. Dad doesn't handle anyone else's contributions. It goes straight from them to you.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">Why does daily earn so much more than cramming?</div>
+    <div class="faq-a">Because your brain actually learns better in small daily doses. The reward system matches the science: daily practice builds real knowledge AND earns real money. Cramming does neither well.</div>
+  </div>
+</div>
+
+<a class="back-link" href="javascript:history.back();">&#8592; Back to Dashboard</a>
+
+</body>
+</html>
