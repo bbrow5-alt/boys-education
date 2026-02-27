@@ -657,8 +657,7 @@ async function fetchDailyTrackingFromSheet() {
   try {
     const url = `${SYNC_CONFIG.appsScriptUrl}?action=getDailyTracking&student=${encodeURIComponent(SYNC_CONFIG.studentName)}`;
     const response = await fetch(url, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
+      method: 'GET'
     });
 
     if (!response.ok) {
@@ -669,7 +668,6 @@ async function fetchDailyTrackingFromSheet() {
     return data;
   } catch (err) {
     console.error('Failed to fetch daily tracking from sheet:', err);
-    syncState.isOnline = false;
     updateSyncIndicator(false);
     throw err;
   }
@@ -786,8 +784,8 @@ async function postToSheet(payload) {
     return true;
   } catch (err) {
     console.error('Failed to sync to sheet:', err);
-    syncState.isOnline = false;
     updateSyncIndicator(false);
+    // Don't set isOnline=false on transient errors; let the online/offline events handle that
     return false;
   }
 }
