@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Dashboard - Ben</title>
+    <style>
+        :root {
+            --bg: #111827;
+            --card: #1f2937;
+            --text: #f3f4f6;
+            --text-secondary: #d1d5db;
+            --border: #374151;
+            --jacob-blue: #4fc3f7;
+            --chase-orange: #ff8a65;
+            --success: #4ade80;
+            --warning: #facc15;
+            --danger: #ef4444;
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .last-updated {
+            color: var(--text-secondary);
+        }
+
+        .refresh-btn {
+            background-color: var(--jacob-blue);
+            color: var(--bg);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        .refresh-btn:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        .refresh-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: var(--text);
+            border-bottom-color: var(--jacob-blue);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .privacy-notice {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 2px solid var(--danger);
+            padding: 16px;
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: #fca5a5;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background-color: var(--jacob-blue);
+            border-radius: 2px;
+        }
+
+        .chase .section-title::before {
+            background-color: var(--chase-orange);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--jacob-blue);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+            background-color: rgba(107, 114, 128, 0.1);
+            border-radius: var(--radius);
+            border: 1px dashed var(--border);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .stat-box {
+            background-color: rgba(107, 114, 128, 0.1);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .color-green { color: var(--success); }
+        .color-yellow { color: var(--warning); }
+        .color-red { color: var(--danger); }
+
+        .section-scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .score-card {
+            background-color: rgba(107, 114, 128, 0.05);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .score-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .estimated-test {
+            background-color: rgba(107, 114, 128, 0.08);
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid var(--jacob-blue);
+            margin-bottom: 16px;
+        }
+
+        .estimated-test.chase {
+            border-left-color: var(--chase-orange);
+        }
+
+        .test-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .test-scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .test-score {
+            background-color: var(--card);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .test-score-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .test-score-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .composite-score {
+            background-color: var(--border);
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .composite-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .composite-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .percentile-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+
+        .percentile-item {
+            background-color: var(--card);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .percentile-label {
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .percentile-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--jacob-blue);
+        }
+
+        .chase .percentile-value {
+            color: var(--chase-orange);
+        }
+
+        .gap-analysis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .gap-item {
+            background-color: rgba(107, 114, 128, 0.05);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .gap-section {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .gap-accuracy {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .gap-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            font-weight: 600;
+            background-color: rgba(74, 222, 128, 0.2);
+            color: var(--success);
+        }
+
+        .gap-status.warning {
+            background-color: rgba(250, 204, 21, 0.2);
+            color: var(--warning);
+        }
+
+        .gap-status.critical {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .recommendations {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .recommendation-item {
+            background-color: rgba(107, 114, 128, 0.05);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--jacob-blue);
+        }
+
+        .recommendation-item.high-priority {
+            border-left-color: var(--danger);
+            background-color: rgba(239, 68, 68, 0.05);
+        }
+
+        .recommendation-item.success {
+            border-left-color: var(--success);
+            background-color: rgba(74, 222, 128, 0.05);
+        }
+
+        .chase .recommendation-item {
+            border-left-color: var(--chase-orange);
+        }
+
+        .recommendation-title {
+            font-weight: 700;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .recommendation-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        th {
+            background-color: var(--border);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        tr:hover {
+            background-color: rgba(107, 114, 128, 0.1);
+        }
+
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .quick-links {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .quick-links-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .link-btn {
+            display: inline-block;
+            padding: 12px 16px;
+            background-color: var(--border);
+            color: var(--text);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .link-btn:hover {
+            background-color: var(--jacob-blue);
+        }
+
+        .effort-stat {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 12px;
+        }
+
+        .effort-stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .effort-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .error-box {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            padding: 16px;
+            border-radius: var(--radius);
+            color: #fca5a5;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .compare-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .header-right {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .section-scores, .test-scores {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .gap-analysis {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>📊 Parent Dashboard - Ben</h1>
+                <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Academic Enrichment Progress Tracker</div>
+            </div>
+            <div class="header-right">
+                <div class="last-updated">
+                    Last updated: <span id="lastUpdated">Never</span>
+                </div>
+                <button class="refresh-btn" id="refreshBtn">🔄 Refresh</button>
+            </div>
+        </header>
+
+        <div class="tab-container">
+            <button class="tab-btn active" data-tab="jacob-tab">Jacob (6th Grade)</button>
+            <button class="tab-btn" data-tab="chase-tab">Chase (5th Grade)</button>
+            <button class="tab-btn" data-tab="compare-tab">Compare</button>
+        </div>
+
+        <div id="jacob-tab" class="tab-content active jacob">
+            <div id="jacobContent" class="loading">
+                <div class="spinner"></div>
+                Loading Jacob's data...
+            </div>
+        </div>
+
+        <div id="chase-tab" class="tab-content chase">
+            <div id="chaseContent" class="loading">
+                <div class="spinner"></div>
+                Loading Chase's data...
+            </div>
+        </div>
+
+        <div id="compare-tab" class="tab-content">
+            <div class="privacy-notice">
+                🔒 FOR BEN'S EYES ONLY - Confidential
+            </div>
+            <div id="compareContent" class="loading">
+                <div class="spinner"></div>
+                Loading comparison data...
+            </div>
+        </div>
+
+        <div class="quick-links">
+            <div class="quick-links-title">Quick Links</div>
+            <div class="links-grid">
+                <a href="https://docs.google.com/spreadsheets/d/1MVope5iXn6indmGOmMUDjvphLWziffc0CRH3igY1WvY/edit" target="_blank" class="link-btn">📑 Google Sheet</a>
+                <a href="https://www.khanacademy.org/family-dashboard" target="_blank" class="link-btn">📚 Khan Academy</a>
+                <a href="https://ankiweb.net/" target="_blank" class="link-btn">🎯 AnkiWeb</a>
+                <a href="https://account.microsoft.com/family/" target="_blank" class="link-btn">👨‍👩‍👦 Microsoft Family</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            jacobData: null,
+            chaseData: null,
+            assessmentsData: null,
+            readingData: null,
+            lastUpdated: null
+        };
+
+        const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzmGxQqDwwdskUczUyaWHHejaAKF3aB1emll8cHQXZrM8fWH_O4Z7YVUIdruT0iQDhDVg/exec';
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const tabName = e.target.dataset.tab;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+            });
+        });
+
+        // Refresh button
+        document.getElementById('refreshBtn').addEventListener('click', loadAllData);
+
+        // Fetch data
+        async function fetchData(action, student = null) {
+            try {
+                let url = `${API_ENDPOINT}?action=${action}`;
+                if (student) url += `&student=${student}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching ${action}:`, error);
+                return null;
+            }
+        }
+
+        // Load all data
+        async function loadAllData() {
+            const btn = document.getElementById('refreshBtn');
+            btn.disabled = true;
+
+            try {
+                state.jacobData = await fetchData('all', 'Jacob');
+                state.chaseData = await fetchData('all', 'Chase');
+                state.assessmentsData = await fetchData('assessments');
+                state.readingData = await fetchData('reading');
+                state.lastUpdated = new Date().toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                document.getElementById('lastUpdated').textContent = state.lastUpdated;
+                renderJacobTab();
+                renderChaseTab();
+                renderCompareTab();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('jacobContent').innerHTML = '<div class="error-box">Failed to load data. Please refresh.</div>';
+                document.getElementById('chaseContent').innerHTML = '<div class="error-box">Failed to load data. Please refresh.</div>';
+                document.getElementById('compareContent').innerHTML = '<div class="error-box">Failed to load data. Please refresh.</div>';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // Utility functions
+        function getColorClass(acc) {
+            if (acc >= 80) return 'color-green';
+            if (acc >= 60) return 'color-yellow';
+            return 'color-red';
+        }
+
+        function getGapStatus(acc) {
+            if (acc < 50) return { status: 'CRITICAL GAP', class: 'critical' };
+            if (acc < 70) return { status: 'NEEDS ATTENTION', class: 'warning' };
+            return { status: 'ON TRACK', class: 'success' };
+        }
+
+        function estimateHSPTScore(acc) {
+            return Math.round(200 + (acc / 100) * 600);
+        }
+
+        function estimatePSATScore(acc) {
+            return Math.round(120 + (acc / 100) * 600);
+        }
+
+        function getHSPTPercentile(score) {
+            if (score >= 700) return 95;
+            if (score >= 600) return 75;
+            if (score >= 500) return 50;
+            if (score >= 400) return 25;
+            return 10;
+        }
+
+        function getGradeOffset(grade) {
+            if (grade === 6) return 10;
+            if (grade === 5) return 20;
+            return 0;
+        }
+
+        function getSectionAccuracies(student) {
+            const result = { 'Verbal': 0, 'Quantitative': 0, 'Reading': 0, 'Math': 0, 'Language': 0 };
+            if (!state.assessmentsData || !Array.isArray(state.assessmentsData)) return result;
+
+            // Map section names from diagnostic tests to dashboard keys
+            const sectionMap = {
+                'Verbal Skills': 'Verbal',
+                'Verbal': 'Verbal',
+                'Quantitative Skills': 'Quantitative',
+                'Quantitative': 'Quantitative',
+                'Reading Comprehension': 'Reading',
+                'Reading': 'Reading',
+                'Mathematics': 'Math',
+                'Math': 'Math',
+                'Language & Writing': 'Language',
+                'Language': 'Language'
+            };
+
+            const studentAssessments = state.assessmentsData.filter(a => a.student === student);
+            const groupedByKey = {};
+
+            studentAssessments.forEach(a => {
+                const key = sectionMap[a.section] || a.section;
+                if (!groupedByKey[key]) groupedByKey[key] = [];
+                groupedByKey[key].push(a);
+            });
+
+            Object.keys(groupedByKey).forEach(key => {
+                const sorted = groupedByKey[key].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                const acc = parseFloat(sorted[0].accuracy__) || 0;
+                if (result.hasOwnProperty(key)) result[key] = acc;
+            });
+
+            return result;
+        }
+
+        function getStudentReadingData(student) {
+            if (!state.readingData || !Array.isArray(state.readingData)) return [];
+            return state.readingData.filter(r => r.student === student).sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        function generateRecommendations(sections) {
+            const recommendations = [];
+
+            if ((sections['Reading'] || 0) < 70) {
+                recommendations.push({
+                    title: 'Reading Enhancement',
+                    text: 'Increase daily reading beyond 20 minutes. Consider 30+ minutes of varied genres.',
+                    priority: (sections['Reading'] || 0) < 50 ? 'high-priority' : ''
+                });
+            }
+
+            if ((sections['Math'] || 0) < 70) {
+                recommendations.push({
+                    title: 'Mathematics Support',
+                    text: 'Add extra Khan Academy math practice. Focus on foundational number sense.',
+                    priority: (sections['Math'] || 0) < 50 ? 'high-priority' : ''
+                });
+            }
+
+            if ((sections['Verbal'] || 0) < 70) {
+                recommendations.push({
+                    title: 'Verbal Skills Development',
+                    text: 'Add vocabulary Anki deck (10-15 minutes daily). Engage with diverse reading materials.',
+                    priority: (sections['Verbal'] || 0) < 50 ? 'high-priority' : ''
+                });
+            }
+
+            if ((sections['Language'] || 0) < 70) {
+                recommendations.push({
+                    title: 'Grammar & Language Arts',
+                    text: 'Add grammar practice in Khan Academy. Focus on sentence structure and punctuation.',
+                    priority: (sections['Language'] || 0) < 50 ? 'high-priority' : ''
+                });
+            }
+
+            if ((sections['Quantitative'] || 0) < 70) {
+                recommendations.push({
+                    title: 'Quantitative Reasoning',
+                    text: 'Add number sense practice. Try Khan Academy puzzles and logic games.',
+                    priority: (sections['Quantitative'] || 0) < 50 ? 'high-priority' : ''
+                });
+            }
+
+            if (Object.values(sections).every(v => (v || 0) >= 80)) {
+                recommendations.push({
+                    title: 'Excellent Progress!',
+                    text: 'Excellent baseline across all subjects! Maintain current routine. Consider adding challenge-level content.',
+                    priority: 'success'
+                });
+            }
+
+            return recommendations;
+        }
+
+        function renderStudentTab(student, grade) {
+            if (!state.assessmentsData || !Array.isArray(state.assessmentsData)) {
+                return '<div class="no-data">No diagnostic data yet — send ' + student + ' a diagnostic test to begin tracking</div>';
+            }
+
+            const sections = getSectionAccuracies(student);
+            if (Object.values(sections).every(v => v === 0)) {
+                return '<div class="no-data">📊 No diagnostic data yet — send ' + student + ' a diagnostic test to begin tracking</div>';
+            }
+
+            const hsptScores = {
+                verbal: estimateHSPTScore(sections['Verbal']),
+                quantitative: estimateHSPTScore(sections['Quantitative']),
+                reading: estimateHSPTScore(sections['Reading']),
+                math: estimateHSPTScore(sections['Math']),
+                language: estimateHSPTScore(sections['Language'])
+            };
+
+            const hsptComposite = Math.round(Object.values(hsptScores).reduce((a, b) => a + b, 0) / 5);
+            const hsptPercentile = getHSPTPercentile(hsptComposite);
+            const peerPercentile = Math.min(hsptPercentile + getGradeOffset(grade), 99);
+
+            const psatRWScore = estimatePSATScore((sections['Reading'] + sections['Language']) / 2);
+            const psatMathScore = estimatePSATScore((sections['Math'] + sections['Quantitative']) / 2);
+            const psatComposite = psatRWScore + psatMathScore;
+
+            const recommendations = generateRecommendations(sections);
+            const readingData = getStudentReadingData(student);
+
+            const thisWeek = readingData.filter(r => {
+                const date = new Date(r.date);
+                const now = new Date();
+                const daysDiff = (now - date) / (1000 * 60 * 60 * 24);
+                return daysDiff <= 7;
+            });
+
+            const totalPagesThisWeek = thisWeek.reduce((sum, r) => sum + (r.pages_read || 0), 0);
+            const totalMinutesThisWeek = thisWeek.reduce((sum, r) => sum + (r.minutes_read || 0), 0);
+
+            const studentAssessments = state.assessmentsData.filter(a => a.student === student);
+            const groupedByTest = {};
+            studentAssessments.forEach(a => {
+                const testId = a.test_id || 'unknown';
+                if (!groupedByTest[testId]) groupedByTest[testId] = [];
+                groupedByTest[testId].push(a);
+            });
+
+            const latestByTest = Object.keys(groupedByTest).map(testId => {
+                const tests = groupedByTest[testId];
+                return tests.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+            });
+
+            return `
+                <div class="section">
+                    <div class="section-title">Effort Overview</div>
+                    <div style="color: var(--text-secondary); font-style: italic;">Effort data will be populated when available from localStorage or effort tracking system.</div>
+                    <div style="margin-top: 16px;">
+                        <div class="effort-stat"><div class="effort-stat-label">Current Streak</div><div class="effort-stat-value">—</div></div>
+                        <div class="effort-stat"><div class="effort-stat-label">Weekly Credits</div><div class="effort-stat-value">—</div></div>
+                        <div class="effort-stat"><div class="effort-stat-label">Week %</div><div class="effort-stat-value">—</div></div>
+                        <div class="effort-stat"><div class="effort-stat-label">Total Days</div><div class="effort-stat-value">—</div></div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Latest Diagnostic Results</div>
+                    <div class="section-scores">
+                        <div class="score-card">
+                            <div class="score-label">Verbal Skills</div>
+                            <div class="score-value ${getColorClass(sections['Verbal'])}">${Math.round(sections['Verbal'])}%</div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${sections['Verbal']}%; background-color: ${sections['Verbal'] >= 80 ? 'var(--success)' : sections['Verbal'] >= 60 ? 'var(--warning)' : 'var(--danger)'}"></div></div>
+                        </div>
+                        <div class="score-card">
+                            <div class="score-label">Quantitative</div>
+                            <div class="score-value ${getColorClass(sections['Quantitative'])}">${Math.round(sections['Quantitative'])}%</div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${sections['Quantitative']}%; background-color: ${sections['Quantitative'] >= 80 ? 'var(--success)' : sections['Quantitative'] >= 60 ? 'var(--warning)' : 'var(--danger)'}"></div></div>
+                        </div>
+                        <div class="score-card">
+                            <div class="score-label">Reading</div>
+                            <div class="score-value ${getColorClass(sections['Reading'])}">${Math.round(sections['Reading'])}%</div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${sections['Reading']}%; background-color: ${sections['Reading'] >= 80 ? 'var(--success)' : sections['Reading'] >= 60 ? 'var(--warning)' : 'var(--danger)'}"></div></div>
+                        </div>
+                        <div class="score-card">
+                            <div class="score-label">Math</div>
+                            <div class="score-value ${getColorClass(sections['Math'])}">${Math.round(sections['Math'])}%</div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${sections['Math']}%; background-color: ${sections['Math'] >= 80 ? 'var(--success)' : sections['Math'] >= 60 ? 'var(--warning)' : 'var(--danger)'}"></div></div>
+                        </div>
+                        <div class="score-card">
+                            <div class="score-label">Language</div>
+                            <div class="score-value ${getColorClass(sections['Language'])}">${Math.round(sections['Language'])}%</div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${sections['Language']}%; background-color: ${sections['Language'] >= 80 ? 'var(--success)' : sections['Language'] >= 60 ? 'var(--warning)' : 'var(--danger)'}"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Estimated Test Scores</div>
+                    <div class="estimated-test">
+                        <div class="test-name">HSPT Estimated Score</div>
+                        <div class="test-scores">
+                            <div class="test-score"><div class="test-score-label">Verbal</div><div class="test-score-value">${hsptScores.verbal}</div></div>
+                            <div class="test-score"><div class="test-score-label">Quant</div><div class="test-score-value">${hsptScores.quantitative}</div></div>
+                            <div class="test-score"><div class="test-score-label">Reading</div><div class="test-score-value">${hsptScores.reading}</div></div>
+                            <div class="test-score"><div class="test-score-label">Math</div><div class="test-score-value">${hsptScores.math}</div></div>
+                            <div class="test-score"><div class="test-score-label">Language</div><div class="test-score-value">${hsptScores.language}</div></div>
+                        </div>
+                        <div class="composite-score">
+                            <div class="composite-label">Composite Score (Average of 5 Subtests)</div>
+                            <div class="composite-value">${hsptComposite}</div>
+                        </div>
+                        <div class="percentile-info">
+                            <div class="percentile-item"><div class="percentile-label">National Percentile</div><div class="percentile-value">${hsptPercentile}th</div></div>
+                            <div class="percentile-item"><div class="percentile-label">Estimated Peer Percentile</div><div class="percentile-value">${peerPercentile}th</div></div>
+                        </div>
+                    </div>
+                    <div class="estimated-test">
+                        <div class="test-name">PSAT 8/9 Estimated Score</div>
+                        <div class="test-scores">
+                            <div class="test-score"><div class="test-score-label">Reading+Writing</div><div class="test-score-value">${psatRWScore}</div></div>
+                            <div class="test-score"><div class="test-score-label">Math</div><div class="test-score-value">${psatMathScore}</div></div>
+                        </div>
+                        <div class="composite-score">
+                            <div class="composite-label">Total Score</div>
+                            <div class="composite-value">${psatComposite}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Subject Gap Analysis</div>
+                    <div class="gap-analysis">
+                        <div class="gap-item"><div class="gap-section">Verbal Skills</div><div class="gap-accuracy ${getColorClass(sections['Verbal'])}">${Math.round(sections['Verbal'])}%</div><div class="gap-status ${getGapStatus(sections['Verbal']).class}">${getGapStatus(sections['Verbal']).status}</div></div>
+                        <div class="gap-item"><div class="gap-section">Quantitative</div><div class="gap-accuracy ${getColorClass(sections['Quantitative'])}">${Math.round(sections['Quantitative'])}%</div><div class="gap-status ${getGapStatus(sections['Quantitative']).class}">${getGapStatus(sections['Quantitative']).status}</div></div>
+                        <div class="gap-item"><div class="gap-section">Reading</div><div class="gap-accuracy ${getColorClass(sections['Reading'])}">${Math.round(sections['Reading'])}%</div><div class="gap-status ${getGapStatus(sections['Reading']).class}">${getGapStatus(sections['Reading']).status}</div></div>
+                        <div class="gap-item"><div class="gap-section">Math</div><div class="gap-accuracy ${getColorClass(sections['Math'])}">${Math.round(sections['Math'])}%</div><div class="gap-status ${getGapStatus(sections['Math']).class}">${getGapStatus(sections['Math']).status}</div></div>
+                        <div class="gap-item"><div class="gap-section">Language</div><div class="gap-accuracy ${getColorClass(sections['Language'])}">${Math.round(sections['Language'])}%</div><div class="gap-status ${getGapStatus(sections['Language']).class}">${getGapStatus(sections['Language']).status}</div></div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Enrichment Recommendations</div>
+                    <div class="recommendations">
+                        ${recommendations.map(rec => `<div class="recommendation-item ${rec.priority}"><div class="recommendation-title">${rec.title}</div><div class="recommendation-text">${rec.text}</div></div>`).join('')}
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Reading Log</div>
+                    ${readingData.length === 0 ? '<div class="no-data">No reading log entries yet</div>' : `
+                        <div class="grid-2">
+                            <div class="stat-box"><div class="stat-label">Pages This Week</div><div class="stat-value">${totalPagesThisWeek}</div></div>
+                            <div class="stat-box"><div class="stat-label">Minutes This Week</div><div class="stat-value">${totalMinutesThisWeek}</div></div>
+                        </div>
+                        <table>
+                            <thead><tr><th>Date</th><th>Book Title</th><th>Pages</th><th>Minutes</th><th>Completed</th><th>Notes</th></tr></thead>
+                            <tbody>
+                                ${readingData.slice(0, 10).map(r => `<tr><td>${new Date(r.date).toLocaleDateString()}</td><td>${r.book_title || '—'}</td><td>${r.pages_read || '—'}</td><td>${r.minutes_read || '—'}</td><td>${r.completed ? '✓' : '—'}</td><td>${r.notes || '—'}</td></tr>`).join('')}
+                            </tbody>
+                        </table>
+                    `}
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Assessment History</div>
+                    ${latestByTest.length === 0 ? '<div class="no-data">No assessments taken yet</div>' : `
+                        <table>
+                            <thead><tr><th>Date</th><th>Test</th><th>Section</th><th>Accuracy</th><th>Score</th></tr></thead>
+                            <tbody>
+                                ${latestByTest.slice(0, 20).map(a => `<tr><td>${new Date(a.timestamp).toLocaleDateString()}</td><td>${a.test_label || a.test_id || '—'}</td><td>${a.section || '—'}</td><td><span class="${getColorClass(a.accuracy__ || 0)}">${Math.round(a.accuracy__ || 0)}%</span></td><td>${a.correct || 0}/${a.total || 0}</td></tr>`).join('')}
+                            </tbody>
+                        </table>
+                    `}
+                </div>
+            `;
+        }
+
+        function renderJacobTab() {
+            document.getElementById('jacobContent').innerHTML = renderStudentTab('Jacob', 6);
+        }
+
+        function renderChaseTab() {
+            document.getElementById('chaseContent').innerHTML = renderStudentTab('Chase', 5);
+        }
+
+        function renderCompareTab() {
+            if (!state.assessmentsData || !Array.isArray(state.assessmentsData)) {
+                document.getElementById('compareContent').innerHTML = '<div class="no-data">Unable to load comparison data</div>';
+                return;
+            }
+
+            const jacobSections = getSectionAccuracies('Jacob');
+            const chaseSections = getSectionAccuracies('Chase');
+
+            if (Object.values(jacobSections).every(v => v === 0) || Object.values(chaseSections).every(v => v === 0)) {
+                document.getElementById('compareContent').innerHTML = '<div class="no-data">Diagnostic data needed for both students to enable comparison</div>';
+                return;
+            }
+
+            const jacobHSPTComposite = Math.round((estimateHSPTScore(jacobSections['Verbal']) + estimateHSPTScore(jacobSections['Quantitative']) + estimateHSPTScore(jacobSections['Reading']) + estimateHSPTScore(jacobSections['Math']) + estimateHSPTScore(jacobSections['Language'])) / 5);
+            const chaseHSPTComposite = Math.round((estimateHSPTScore(chaseSections['Verbal']) + estimateHSPTScore(chaseSections['Quantitative']) + estimateHSPTScore(chaseSections['Reading']) + estimateHSPTScore(chaseSections['Math']) + estimateHSPTScore(chaseSections['Language'])) / 5);
+
+            const jacobPSATComposite = estimatePSATScore((jacobSections['Reading'] + jacobSections['Language']) / 2) + estimatePSATScore((jacobSections['Math'] + jacobSections['Quantitative']) / 2);
+            const chasePSATComposite = estimatePSATScore((chaseSections['Reading'] + chaseSections['Language']) / 2) + estimatePSATScore((chaseSections['Math'] + chaseSections['Quantitative']) / 2);
+
+            const html = `
+                <div class="section">
+                    <div class="section-title">Subject Accuracy Comparison</div>
+                    <div class="compare-grid">
+                        <div><h3 style="margin-bottom: 16px; color: var(--jacob-blue);">Jacob (6th Grade)</h3>
+                            <div class="gap-analysis">
+                                <div class="gap-item"><div class="gap-section">Verbal</div><div class="gap-accuracy">${Math.round(jacobSections['Verbal'])}%</div></div>
+                                <div class="gap-item"><div class="gap-section">Quantitative</div><div class="gap-accuracy">${Math.round(jacobSections['Quantitative'])}%</div></div>
+                                <div class="gap-item"><div class="gap-section">Reading</div><div class="gap-accuracy">${Math.round(jacobSections['Reading'])}%</div></div>
+                                <div class="gap-item"><div class="gap-section">Math</div><div class="gap-accuracy">${Math.round(jacobSections['Math'])}%</div></div>
+                                <div class="gap-item"><div class="gap-section">Language</div><div class="gap-accuracy">${Math.round(jacobSections['Language'])}%</div></div>
+                            </div>
+                        </div>
+                        <div><h3 style="margin-bottom: 16px; color: var(--chase-orange);">Chase (5th Grade)</h3>
+                            <div class="gap-analysis">
+                                <div class="gap-item"><div class="gap-section">Verbal</div><div class="gap-accuracy">${Math.round(chaseSections['Verbal'])}%</div></div>
+                                <div class="gap-item"><div class="gap-section">Quantitative</div><div class="gap-accuracy">${Math.round(chaseSections['Quantitative'])}%</div></div>
+                                <div class="gap-item"><div class="gap-section">Reading</div><div class="gap-accuracy">${Math.round(chaseSections['Reading'])}%</div></div>
+                                <div class="gap-item"><div class="gap-section">Math</div><div class="gap-accuracy">${Math.round(chaseSections['Math'])}%</div></div>
+                                <div class="gap-item"><div class="gap-section">Language</div><div class="gap-accuracy">${Math.round(chaseSections['Language'])}%</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Estimated Test Score Comparison</div>
+                    <div class="compare-grid">
+                        <div><h3 style="margin-bottom: 16px; color: var(--jacob-blue);">Jacob's Estimated Scores</h3>
+                            <div class="estimated-test"><div class="test-name">HSPT Composite</div><div class="composite-score"><div class="composite-value">${jacobHSPTComposite}</div></div></div>
+                            <div class="estimated-test"><div class="test-name">PSAT 8/9 Total</div><div class="composite-score"><div class="composite-value">${jacobPSATComposite}</div></div></div>
+                        </div>
+                        <div><h3 style="margin-bottom: 16px; color: var(--chase-orange);">Chase's Estimated Scores</h3>
+                            <div class="estimated-test chase"><div class="test-name">HSPT Composite</div><div class="composite-score"><div class="composite-value">${chaseHSPTComposite}</div></div></div>
+                            <div class="estimated-test chase"><div class="test-name">PSAT 8/9 Total</div><div class="composite-score"><div class="composite-value">${chasePSATComposite}</div></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Combined Enrichment Recommendations</div>
+                    <div class="compare-grid">
+                        <div><h3 style="margin-bottom: 16px; color: var(--jacob-blue);">For Jacob</h3>
+                            <div class="recommendations">
+                                ${generateRecommendations(jacobSections).map(rec => `<div class="recommendation-item ${rec.priority}"><div class="recommendation-title">${rec.title}</div><div class="recommendation-text">${rec.text}</div></div>`).join('')}
+                            </div>
+                        </div>
+                        <div><h3 style="margin-bottom: 16px; color: var(--chase-orange);">For Chase</h3>
+                            <div class="recommendations">
+                                ${generateRecommendations(chaseSections).map(rec => `<div class="recommendation-item ${rec.priority}"><div class="recommendation-title">${rec.title}</div><div class="recommendation-text">${rec.text}</div></div>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('compareContent').innerHTML = html;
+        }
+
+        // Initialize
+        loadAllData();
+    </script>
+</body>
+</html>
