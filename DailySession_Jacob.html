@@ -1781,8 +1781,8 @@
                 comprehensionBonus = 1;
             }
 
-            document.getElementById('comprehensionLabel').textContent = `Comprehension Questions (${correctAnswers}/${totalQuestions})`;
-            document.getElementById('comprehensionScore').textContent = `+${3 + comprehensionBonus} pts`;
+            document.getElementById('comprehensionLabel').textContent = `Comprehension Bonus (${correctAnswers}/${totalQuestions})`;
+            document.getElementById('comprehensionScore').textContent = `+${comprehensionBonus} pts`;
 
             // Show/hide writing section
             const writingItem = document.getElementById('writingSummaryItem');

@@ -1216,9 +1216,10 @@ function render() {
   // Weekly Completion Meter
   const weekDates = getWeekDates();
   let weekCredits = 0;
+  const todayStr = today; // YYYY-MM-DD string from getToday()
   weekDates.forEach(date => {
     const ds = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-    if (date <= todayDate) weekCredits += dayTotalCredits(ds);
+    if (ds <= todayStr) weekCredits += dayTotalCredits(ds);
   });
 
   document.getElementById('meterCredits').textContent = weekCredits;
