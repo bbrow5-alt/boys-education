@@ -1422,17 +1422,65 @@
         // ============================================================================
 
         async function fetchPassageChoices() {
+            // Show 3 topic choices: 2 random fallback topics + attempt 1 AI-generated topic
+            const shuffled = [...FALLBACK_PASSAGES].sort(() => 0.5 - Math.random());
+            const fallbackChoices = shuffled.slice(0, 3);
+
+            // Try to get an AI-generated topic as the first choice
             try {
-                // For now, use fallback passages
-                const shuffled = [...FALLBACK_PASSAGES].sort(() => 0.5 - Math.random());
-                const choices = shuffled.slice(0, 3);
-                displayTopics(choices);
+                const topicIdeas = [
+                    'Roman engineering and architecture',
+                    'Medieval castle design and defense',
+                    'How ancient cities were planned',
+                    'Famous buildings and the architects behind them',
+                    'The history of bridges and how they evolved',
+                    'Ancient Egyptian monuments and construction',
+                    'How the Great Wall of China was built',
+                    'Renaissance art and architecture in Florence',
+                    'Underground cities and hidden architecture',
+                    'How skyscrapers changed modern cities'
+                ];
+                const randomTopic = topicIdeas[Math.floor(Math.random() * topicIdeas.length)];
+
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'generatePassage',
+                        student: 'jacob',
+                        topic: randomTopic
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.passage && data.questions && !data.error) {
+                    // Convert API response to match fallback format
+                    const aiTopic = {
+                        id: 'ai-' + Date.now(),
+                        category: 'AI Generated',
+                        icon: '🏛️',
+                        title: data.title || randomTopic,
+                        description: 'A fresh passage created just for you by AI',
+                        passage: data.passage,
+                        questions: data.questions.map(q => ({
+                            text: q.question,
+                            options: q.options.map(opt => opt.replace(/^[A-D]\)\s*/, '')),
+                            correct: q.correctAnswer,
+                            explanation: q.explanation
+                        })),
+                        writingPrompt: 'Write about what you found most interesting in this passage and explain why it matters.',
+                        source: 'ai'
+                    };
+
+                    // Replace first fallback with AI topic
+                    fallbackChoices[0] = aiTopic;
+                }
             } catch (error) {
-                console.error('Error fetching passages:', error);
-                const shuffled = [...FALLBACK_PASSAGES].sort(() => 0.5 - Math.random());
-                const choices = shuffled.slice(0, 3);
-                displayTopics(choices);
+                console.log('AI passage generation failed, using all fallbacks:', error.message);
             }
+
+            displayTopics(fallbackChoices);
         }
 
         function displayTopics(topics) {
@@ -1451,6 +1499,8 @@
                 card.querySelector('button').addEventListener('click', () => selectTopic(topic));
                 grid.appendChild(card);
             });
+
+            showPhase(1);
         }
 
         function selectTopic(topic) {

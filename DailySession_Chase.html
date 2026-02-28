@@ -1488,10 +1488,63 @@ Every bridge is designed for specific conditions in its location. A bridge in an
         // PHASE 1: TOPIC SELECTION
         // ============================================================================
 
-        function initPhase1() {
+        async function initPhase1() {
             const topicsGrid = document.getElementById('topicsGrid');
             topicsGrid.innerHTML = '';
-            const passages = getPassages();
+            const allPassages = getPassages();
+            const shuffled = [...allPassages].sort(() => 0.5 - Math.random());
+            const passages = shuffled.slice(0, 3);
+
+            // Try to get an AI-generated topic as the first choice
+            try {
+                const topicIdeas = [
+                    'How rockets escape Earth gravity',
+                    'The science behind roller coasters',
+                    'How robots learn to walk and balance',
+                    'Inside the International Space Station',
+                    'How 3D printers build objects layer by layer',
+                    'The engineering of suspension bridges',
+                    'How Mars rovers explore another planet',
+                    'The science of sound and how speakers work',
+                    'How submarines dive and surface',
+                    'The engineering behind electric cars'
+                ];
+                const randomTopic = topicIdeas[Math.floor(Math.random() * topicIdeas.length)];
+
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'generatePassage',
+                        student: 'chase',
+                        topic: randomTopic
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.passage && data.questions && !data.error) {
+                    const aiTopic = {
+                        id: 'ai-' + Date.now(),
+                        category: 'AI Generated',
+                        icon: '🚀',
+                        title: data.title || randomTopic,
+                        description: 'A fresh mission briefing created just for you by AI',
+                        passage: data.passage,
+                        questions: data.questions.map(q => ({
+                            text: q.question,
+                            options: q.options.map(opt => opt.replace(/^[A-D]\)\s*/, '')),
+                            correct: q.correctAnswer,
+                            explanation: q.explanation
+                        })),
+                        writingPrompt: 'Write about what you found most interesting in this passage and explain why it matters.',
+                        source: 'ai'
+                    };
+                    passages[0] = aiTopic;
+                }
+            } catch (error) {
+                console.log('AI passage generation failed, using all fallbacks:', error.message);
+            }
 
             passages.forEach(passage => {
                 const card = document.createElement('div');
