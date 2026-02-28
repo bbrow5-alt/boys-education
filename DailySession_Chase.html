@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Session — Mission Briefing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+New:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            background-color: #0a0e13;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header & Navigation */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            gap: 15px;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            color: #00ff41;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, color 0.2s ease;
+            border-radius: 8px;
+        }
+
+        .back-button:hover {
+            transform: scale(1.1);
+            color: #c8d8e8;
+        }
+
+        .progress-dots {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #1e2d3d;
+            transition: background-color 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background-color: #00ff41;
+        }
+
+        .progress-dot.completed {
+            background-color: #00ff41;
+        }
+
+        /* Phase Container */
+        .phase {
+            display: none;
+            animation: fadeIn 0.4s ease;
+            flex: 1;
+        }
+
+        .phase.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Phase 0: Loading */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            gap: 30px;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #1e2d3d;
+            border-top: 3px solid #00ff41;
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            color: #00ff41;
+            text-align: center;
+        }
+
+        /* Phase 1: Topic Selection */
+        .topic-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .topic-header h1 {
+            font-size: 32px;
+            color: #00ff41;
+            margin-bottom: 10px;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+
+        .topic-header p {
+            color: #5a6a7a;
+            font-size: 14px;
+        }
+
+        .topics-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .topic-card {
+            background-color: #111820;
+            border: 2px solid #1e2d3d;
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .topic-card:hover {
+            border-color: #00ff41;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 255, 65, 0.1);
+        }
+
+        .topic-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .topic-title {
+            font-size: 18px;
+            color: #00ff41;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .topic-description {
+            font-size: 14px;
+            color: #5a6a7a;
+            margin-bottom: 12px;
+            min-height: 40px;
+        }
+
+        .topic-select-btn {
+            background-color: #00ff41;
+            color: #0a0e13;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: flex-start;
+            letter-spacing: 0.5px;
+        }
+
+        .topic-select-btn:hover {
+            background-color: #c8d8e8;
+            transform: scale(1.05);
+        }
+
+        .topic-select-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Phase 2: Reading */
+        .reading-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reading-header {
+            margin-bottom: 20px;
+        }
+
+        .reading-title {
+            font-size: 24px;
+            color: #00ff41;
+            margin-bottom: 12px;
+            font-weight: 400;
+        }
+
+        .reading-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            color: #5a6a7a;
+        }
+
+        .reading-content {
+            background-color: #111820;
+            border: 2px solid #1e2d3d;
+            border-radius: 12px;
+            padding: 24px;
+            line-height: 1.8;
+            margin-bottom: 24px;
+            flex: 1;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .reading-content p {
+            margin-bottom: 16px;
+            text-align: justify;
+        }
+
+        .reading-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .finish-reading-btn {
+            background-color: #00ff41;
+            color: #0a0e13;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 0.5px;
+        }
+
+        .finish-reading-btn:hover:not(:disabled) {
+            background-color: #c8d8e8;
+            transform: translateY(-2px);
+        }
+
+        .finish-reading-btn:disabled {
+            background-color: #1e2d3d;
+            color: #5a6a7a;
+            cursor: not-allowed;
+        }
+
+        .timer-message {
+            font-size: 13px;
+            color: #5a6a7a;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Phase 3: Comprehension */
+        .comprehension-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-header {
+            margin-bottom: 20px;
+        }
+
+        .question-number {
+            font-size: 13px;
+            color: #5a6a7a;
+            margin-bottom: 8px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            color: #c8d8e8;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .option {
+            background-color: #111820;
+            border: 2px solid #1e2d3d;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option:hover:not(.disabled) {
+            border-color: #00ff41;
+            background-color: #0f1619;
+        }
+
+        .option.selected {
+            border-color: #00ff41;
+            background-color: #0f1619;
+        }
+
+        .option.correct {
+            border-color: #00ff41;
+            background-color: rgba(0, 255, 65, 0.1);
+        }
+
+        .option.incorrect {
+            border-color: #ff4444;
+            background-color: rgba(255, 68, 68, 0.1);
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+        }
+
+        .option-letter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background-color: #1e2d3d;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 14px;
+            color: #00ff41;
+            flex-shrink: 0;
+        }
+
+        .option.selected .option-letter {
+            background-color: #00ff41;
+            color: #0a0e13;
+        }
+
+        .option.correct .option-letter {
+            background-color: #00ff41;
+            color: #0a0e13;
+        }
+
+        .option.incorrect .option-letter {
+            background-color: #ff4444;
+            color: white;
+        }
+
+        .option-text {
+            flex: 1;
+            color: #c8d8e8;
+        }
+
+        .feedback-box {
+            background-color: #111820;
+            border: 2px solid #1e2d3d;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .feedback-box.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback-box.correct {
+            border-color: #00ff41;
+        }
+
+        .feedback-box.incorrect {
+            border-color: #ff4444;
+        }
+
+        .feedback-label {
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .feedback-box.correct .feedback-label {
+            color: #00ff41;
+        }
+
+        .feedback-box.incorrect .feedback-label {
+            color: #ff4444;
+        }
+
+        .feedback-text {
+            font-size: 14px;
+            color: #5a6a7a;
+            line-height: 1.6;
+        }
+
+        .next-question-btn {
+            background-color: #4fc3f7;
+            color: #0a0e13;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 0.5px;
+        }
+
+        .next-question-btn:hover {
+            background-color: #67d5eb;
+            transform: translateY(-2px);
+        }
+
+        .next-question-btn:active {
+            transform: scale(0.98);
+        }
+
+        .score-summary {
+            background-color: #111820;
+            border: 2px solid #1e2d3d;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .score-summary h2 {
+            font-size: 20px;
+            color: #00ff41;
+            margin-bottom: 12px;
+            font-weight: 400;
+        }
+
+        .score-display {
+            font-size: 48px;
+            color: #00ff41;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .score-feedback {
+            font-size: 14px;
+            color: #5a6a7a;
+        }
+
+        /* Phase 4: Writing (Wednesday only) */
+        .writing-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .writing-header {
+            margin-bottom: 20px;
+        }
+
+        .writing-header h2 {
+            font-size: 20px;
+            color: #00ff41;
+            margin-bottom: 8px;
+            font-weight: 400;
+        }
+
+        .writing-prompt {
+            background-color: #111820;
+            border: 2px solid #1e2d3d;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #5a6a7a;
+            line-height: 1.6;
+        }
+
+        .writing-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .textarea-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .writing-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 16px;
+            border: 2px solid #1e2d3d;
+            border-radius: 8px;
+            background-color: #111820;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .writing-textarea:focus {
+            outline: none;
+            border-color: #00ff41;
+        }
+
+        .writing-textarea::placeholder {
+            color: #3a4a5a;
+        }
+
+        .word-counter {
+            font-size: 12px;
+            color: #5a6a7a;
+            margin-top: 8px;
+        }
+
+        .word-counter.warning {
+            color: #ff4444;
+        }
+
+        .submit-writing-btn {
+            background-color: #00ff41;
+            color: #0a0e13;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 0.5px;
+        }
+
+        .submit-writing-btn:hover:not(:disabled) {
+            background-color: #c8d8e8;
+            transform: translateY(-2px);
+        }
+
+        .submit-writing-btn:disabled {
+            background-color: #1e2d3d;
+            color: #5a6a7a;
+            cursor: not-allowed;
+        }
+
+        .writing-feedback {
+            background-color: #111820;
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .writing-feedback.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .feedback-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .feedback-title {
+            font-weight: 700;
+            color: #00ff41;
+            margin-bottom: 8px;
+        }
+
+        .feedback-message {
+            font-size: 14px;
+            color: #5a6a7a;
+            line-height: 1.6;
+        }
+
+        /* Phase 5: Summary */
+        .summary-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .summary-title {
+            text-align: center;
+            font-size: 24px;
+            color: #00ff41;
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
+
+        .summary-card {
+            background-color: #111820;
+            border: 2px solid #1e2d3d;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #1e2d3d;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-icon {
+            font-size: 20px;
+            min-width: 24px;
+        }
+
+        .summary-label {
+            flex: 1;
+            color: #5a6a7a;
+            font-size: 14px;
+        }
+
+        .summary-value {
+            color: #00ff41;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .summary-value.bonus {
+            color: #4fc3f7;
+        }
+
+        .summary-total {
+            background-color: rgba(0, 255, 65, 0.05);
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .summary-total-label {
+            font-size: 12px;
+            color: #5a6a7a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .summary-total-value {
+            font-size: 36px;
+            color: #00ff41;
+            font-weight: 700;
+        }
+
+        .summary-total-value .points-label {
+            font-size: 14px;
+            margin-left: 4px;
+        }
+
+        .khan-card {
+            background: linear-gradient(135deg, rgba(79, 195, 247, 0.1) 0%, rgba(0, 255, 65, 0.05) 100%);
+            border: 2px solid #4fc3f7;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .khan-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .khan-title {
+            font-size: 14px;
+            color: #4fc3f7;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .khan-content {
+            margin-bottom: 12px;
+        }
+
+        .khan-topic {
+            font-size: 16px;
+            color: #c8d8e8;
+            margin-bottom: 4px;
+        }
+
+        .khan-note {
+            font-size: 12px;
+            color: #5a6a7a;
+        }
+
+        .khan-link {
+            display: inline-block;
+            background-color: #4fc3f7;
+            color: #0a0e13;
+            padding: 10px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .khan-link:hover {
+            background-color: #67d5eb;
+            transform: translateY(-2px);
+        }
+
+        .return-btn {
+            background-color: #00ff41;
+            color: #0a0e13;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 0.5px;
+        }
+
+        .return-btn:hover {
+            background-color: #c8d8e8;
+            transform: translateY(-2px);
+        }
+
+        /* Modal for exit confirmation */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #111820;
+            border: 2px solid #1e2d3d;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            color: #00ff41;
+            margin-bottom: 12px;
+            font-weight: 400;
+        }
+
+        .modal-text {
+            color: #5a6a7a;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.confirm {
+            background-color: #ff4444;
+            color: white;
+        }
+
+        .modal-btn.confirm:hover {
+            background-color: #ff6666;
+        }
+
+        .modal-btn.cancel {
+            background-color: #1e2d3d;
+            color: #00ff41;
+        }
+
+        .modal-btn.cancel:hover {
+            background-color: #2a3d4d;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+
+            .reading-title {
+                font-size: 20px;
+            }
+
+            .topic-header h1 {
+                font-size: 28px;
+            }
+
+            .summary-total-value {
+                font-size: 32px;
+            }
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header & Navigation -->
+        <div class="header">
+            <button class="back-button" id="backBtn" title="Return to Dashboard">←</button>
+            <div class="progress-dots" id="progressDots"></div>
+            <div style="width: 32px;"></div>
+        </div>
+
+        <!-- Phase 0: Loading -->
+        <div class="phase" id="phase0">
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Initializing mission...</div>
+            </div>
+        </div>
+
+        <!-- Phase 1: Topic Selection -->
+        <div class="phase" id="phase1">
+            <div class="topic-header">
+                <h1>SELECT YOUR MISSION</h1>
+                <p>Choose a topic to explore</p>
+            </div>
+            <div class="topics-grid" id="topicsGrid"></div>
+        </div>
+
+        <!-- Phase 2: Reading -->
+        <div class="phase" id="phase2">
+            <div class="reading-container">
+                <div class="reading-header">
+                    <h2 class="reading-title" id="readingTitle"></h2>
+                    <div class="reading-meta">
+                        <span><strong id="wordCount">0</strong> words</span>
+                        <span>~<strong id="readTime">0</strong> min read</span>
+                    </div>
+                </div>
+                <div class="reading-content" id="readingContent"></div>
+                <div class="timer-message" id="timerMessage"></div>
+                <button class="finish-reading-btn" id="finishReadingBtn" disabled>Complete Reading</button>
+            </div>
+        </div>
+
+        <!-- Phase 3: Comprehension -->
+        <div class="phase" id="phase3">
+            <div class="comprehension-container">
+                <div class="question-header">
+                    <div class="question-number" id="questionNumber"></div>
+                    <div class="question-text" id="questionText"></div>
+                </div>
+                <div class="options-list" id="optionsList"></div>
+                <div class="feedback-box" id="feedbackBox">
+                    <div class="feedback-label" id="feedbackLabel"></div>
+                    <div class="feedback-text" id="feedbackText"></div>
+                </div>
+                <button class="next-question-btn" id="nextQuestionBtn" style="display: none;">Next Question</button>
+            </div>
+        </div>
+
+        <!-- Phase 4: Writing (Conditional) -->
+        <div class="phase" id="phase4">
+            <div class="writing-container">
+                <div class="writing-header">
+                    <h2>Mission Log Entry</h2>
+                    <p style="color: #5a6a7a; font-size: 13px; margin-top: 4px;">Available on Wednesdays</p>
+                </div>
+                <div class="writing-prompt" id="writingPrompt"></div>
+                <div class="writing-form">
+                    <div class="textarea-wrapper">
+                        <textarea class="writing-textarea" id="writingTextarea" placeholder="Enter your response here..."></textarea>
+                        <div class="word-counter" id="wordCounter">0 words (50 minimum)</div>
+                    </div>
+                    <button class="submit-writing-btn" id="submitWritingBtn" disabled>Submit Entry</button>
+                </div>
+                <div class="writing-feedback" id="writingFeedback">
+                    <div class="feedback-icon">✓</div>
+                    <div class="feedback-title">Entry Logged</div>
+                    <div class="feedback-message">Your mission log entry has been recorded! Your instructor will review it and provide feedback soon.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 5: Summary -->
+        <div class="phase" id="phase5">
+            <div class="summary-container">
+                <h2 class="summary-title">MISSION COMPLETE</h2>
+
+                <div class="summary-card">
+                    <div class="summary-item">
+                        <span class="summary-icon" id="readingIcon">✓</span>
+                        <span class="summary-label">Reading Passage</span>
+                        <span class="summary-value">+3 pts</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-icon" id="comprehensionIcon">✓</span>
+                        <span class="summary-label" id="comprehensionLabel">Comprehension Questions</span>
+                        <span class="summary-value" id="comprehensionScore">+2 pts</span>
+                    </div>
+                    <div class="summary-item" id="writingSummaryItem" style="display: none;">
+                        <span class="summary-icon" id="writingIcon">✓</span>
+                        <span class="summary-label">Mission Log Entry</span>
+                        <span class="summary-value">+3 pts</span>
+                    </div>
+                    <div class="summary-total">
+                        <div class="summary-total-label">Total Mission Points</div>
+                        <div class="summary-total-value"><span id="totalPointsValue">6</span><span class="points-label">pts</span></div>
+                    </div>
+                </div>
+
+                <div class="khan-card">
+                    <div class="khan-icon">🔧</div>
+                    <div class="khan-title">Recommended Learning Path</div>
+                    <div class="khan-content">
+                        <div class="khan-topic" id="khantopic">5th Grade Math: Fractions & Decimals</div>
+                        <div class="khan-note">Based on your diagnostic data</div>
+                    </div>
+                    <a href="https://www.khanacademy.org/math/cc-5th-grade-math" class="khan-link" target="_blank">Explore on Khan Academy →</a>
+                </div>
+
+                <button class="return-btn" id="returnBtn">Return to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exit Confirmation Modal -->
+    <div class="modal" id="exitModal">
+        <div class="modal-content">
+            <div class="modal-title">Abort Mission?</div>
+            <div class="modal-text">You have an active mission in progress. Are you sure you want to leave?</div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="cancelExitBtn">Stay</button>
+                <button class="modal-btn confirm" id="confirmExitBtn">Leave</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // CONFIGURATION & STATE
+        // ============================================================================
+
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
+        const SESSION_KEY = 'chase_session_v1';
+        const SIGNAL_KEY = 'chase_session_signal';
+        const TODAY = new Date().toISOString().split('T')[0];
+        const IS_WEDNESDAY = new Date().getDay() === 3;
+
+        let currentPhase = 0;
+        let currentTopic = null;
+        let currentQuestionIndex = 0;
+        let correctAnswers = 0;
+        let sessionStartTime = Date.now();
+        let readingFinishedTime = null;
+        let writingCompleted = false;
+        let totalPointsEarned = 0;
+
+        // ============================================================================
+        // FALLBACK PASSAGE LIBRARY (Chase - Engineering/Innovation/Robotics)
+        // ============================================================================
+
+        const FALLBACK_PASSAGES = [
+            {
+                id: 'robots-walk',
+                category: 'Robotics & AI',
+                icon: '🤖',
+                title: 'How Robots Learn to Walk',
+                description: 'Discover how engineers teach robots to move using trial and error',
+                passage: `When you were a baby, you learned to walk by falling down a lot. You tried different ways of moving your legs until one day, your brain figured out the right combination of movements to keep you balanced. Robots learn to walk in a surprisingly similar way! Engineers use a process called "machine learning" to help robots discover how to move on their own.
+
+A walking robot is like a puzzle. It has joints (like your knees and hips), motors (like your muscles), and sensors (like your eyes and inner ear) that help it know where it is in space. But when a robot is first turned on, it doesn't know how to use all these parts together. The robot might wave one leg in the air randomly, or fall flat on its face. That's where artificial intelligence comes in.
+
+Engineers write computer programs that let robots try thousands of different movements automatically. Each time a robot tries a movement, it records what happens. Did it fall over? Did it move forward even a tiny bit? The program measures success and failure. Then, the robot tries a slightly different combination of movements. Over time, the robot starts to figure out which leg movements work best for moving forward, which movements help it balance, and how to coordinate all four legs (or however many it has) to walk smoothly.
+
+This is similar to how you learn to ride a bike. You wobble back and forth, trying to find your balance. Eventually, your brain learns the exact angle you need to lean, how much to turn the handlebars, and how fast to pedal. Your brain doesn't do this with thinking—it learns through experience. Robots learn the same way, but instead of using their brains, they use computer algorithms that measure and improve with each attempt.
+
+Some robots learn to walk in simulation first. Engineers create a fake world inside the computer, like a video game, where the robot tries out millions of movements without breaking anything in real life. This speeds up the learning process. Then, when the robot finally tries walking in the real world, it already knows roughly what to do. But real-world walking is harder than simulated walking, so the robot still has to practice and fine-tune its movements.
+
+Real robots face challenges that video game robots don't face. The ground might be slippery or uneven. The robot might be carrying something heavy. The battery might be running low, so the robot has to be more energy-efficient. Each of these challenges forces the robot to keep learning and adapting.
+
+The most impressive part is that different types of robots can learn different ways of walking. A robot with two legs learns to walk like a human. A robot with four legs learns to walk like a dog. A robot with six legs learns to walk like an ant. The learning algorithm figures out the best way to use the legs available to it.
+
+This technology is already being used in real robots today. Some robots can now navigate rocky terrain, climb stairs, and even walk through snow. These robots are helping scientists explore dangerous places like volcanoes and arctic regions where it would be too risky for humans to go. As engineers improve the learning algorithms, robots will become even better at moving around the world on their own.`,
+                questions: [
+                    {
+                        text: 'How do robots learn to walk using the trial-and-error method?',
+                        options: [
+                            'Engineers manually program every single movement',
+                            'Robots try thousands of different movements, measure what works and what doesn\'t, then gradually improve',
+                            'Robots copy the way other robots walk without making any mistakes',
+                            'Engineers teach robots by moving their legs for them'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! Robots try many different movements, record the results, and use that feedback to learn which movements work best for walking. This is like how you learned to walk by trying different combinations until you found what worked.'
+                    },
+                    {
+                        text: 'Why do engineers sometimes have robots learn to walk in a simulation first?',
+                        options: [
+                            'Because real robots are not allowed to practice outside',
+                            'To save time by having robots try millions of movements in a computer, without the risk of breaking them in real life',
+                            'Because robots can only learn in video games',
+                            'To make the robot learning process harder and more realistic'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! Simulations allow robots to practice walking millions of times in a safe computer environment without damaging expensive real robots. Once they learn in simulation, they transfer that knowledge to the real world and fine-tune it.'
+                    },
+                    {
+                        text: 'What does the word "algorithm" mean in this passage?',
+                        options: [
+                            'A type of robot that walks very fast',
+                            'A step-by-step procedure or set of rules that a computer follows to solve a problem or learn something',
+                            'The metal parts inside a robot\'s legs',
+                            'A mistake that robots make when learning to walk'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! An algorithm is a set of instructions that guides how the computer learns. The learning algorithm helps the robot figure out which movements work best.'
+                    },
+                    {
+                        text: 'Based on the passage, what evidence shows that robots can adapt to different challenges?',
+                        options: [
+                            'The passage says robots are perfect at walking the first time',
+                            'The passage mentions that robots can be two-legged, four-legged, or six-legged and learn to walk differently, and they can handle slippery ground, uneven terrain, and heavy loads by adapting their movements',
+                            'The passage says all robots learn exactly the same way',
+                            'There is no evidence in the passage'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage provides multiple pieces of evidence: different robots learn different types of walking based on how many legs they have, and robots continue to learn to handle different real-world challenges like uneven terrain and heavy loads.'
+                    }
+                ],
+                writingPrompt: 'If you could build a robot that walks like any animal, which animal would you choose and why? What challenges do you think that robot would face in the real world?'
+            },
+            {
+                id: 'space-station',
+                category: 'Space Exploration',
+                icon: '🛰️',
+                title: 'The International Space Station',
+                description: 'Living and working in space: engineering challenges in orbit',
+                passage: `Imagine living in a house where the floor and ceiling are the same thing, where you float instead of walk, and where sunrises and sunsets happen every 45 minutes. This is what life is like aboard the International Space Station, or ISS. It's one of the greatest engineering achievements in human history.
+
+The ISS is a laboratory that orbits Earth about 250 kilometers (155 miles) above the ground. It's about as long as a soccer field and weighs as much as 420 cars. Amazingly, six astronauts live and work there at a time, sharing a space about the size of five connected houses. The station took over 10 years and contributions from 15 different countries to build, and it's still being improved today.
+
+The biggest challenge of living in space is gravity—or rather, the lack of it. When the ISS orbits Earth, the astronauts and everything inside are falling, but they're falling in a circular path that matches Earth's curve. This creates the sensation of weightlessness. While this sounds fun, it's actually quite difficult. Your bones and muscles get weaker without gravity pulling on them. Astronauts have to exercise for two hours every day just to keep their bodies healthy. Without exercise, their muscles would shrink by about 20% in just one week!
+
+Water behaves very differently in space. Without gravity, water doesn't flow down pipes—it floats in blobs. Astronauts have to suck water out of special bags using straws. They can't take regular baths or showers because the water would float away in drops. Instead, they use special washcloths and no-rinse shampoo. The ISS even has a complicated toilet system that uses air suction to pull waste away so it doesn't float around the cabin.
+
+Keeping the station at the right temperature is another huge challenge. One side of the ISS faces the sun and gets scorching hot (about 120 degrees Celsius), while the other side faces the cold of space and drops to -160 degrees Celsius. The station has enormous radiators—like a giant car radiator—to release heat into space. Inside the station, computers carefully control the temperature in different areas where scientists are working.
+
+The station also has to be protected from space debris. Small pieces of space junk, including parts of old satellites and rockets, travel around Earth at extremely high speeds. A piece of debris the size of a marble could damage a spaceship. The ISS has special shields made of layers of material designed to protect it from impacts. And the whole station can be maneuvered away from large pieces of debris if they're detected heading toward it.
+
+Getting supplies to the ISS is expensive and complicated. Cargo spacecraft carry food, water, equipment, and scientific materials to the station. Astronauts have to repair many things using the tools available inside the station. There's no way to call a repair person, and getting a replacement part from Earth takes months. So engineers design everything on the ISS to be repairable, and astronauts are highly trained to fix nearly anything that breaks.
+
+Living on the ISS helps scientists understand how to send people to the moon and Mars. By studying how plants grow in space, how bones change without gravity, and how people react to isolation, scientists learn how to keep future space explorers healthy. The ISS is not just a space laboratory—it's a training ground for human space exploration.`,
+                questions: [
+                    {
+                        text: 'What causes the sensation of weightlessness inside the ISS?',
+                        options: [
+                            'There is no gravity in space',
+                            'The gravity is turned off by the astronauts',
+                            'The ISS and everything inside it are falling in a circular path that matches Earth\'s curve',
+                            'The astronauts wear special suits that cancel gravity'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! The ISS orbits Earth in a continuous fall around the planet. The astronauts and the station are falling together, which makes them feel weightless even though gravity is still pulling them toward Earth.'
+                    },
+                    {
+                        text: 'Based on the passage, why do astronauts need to exercise for two hours every day?',
+                        options: [
+                            'To stay entertained and pass the time',
+                            'Because gravity is pulling on their bodies very strongly in space',
+                            'To prevent their bones and muscles from getting weaker in weightlessness',
+                            'To prepare for walking on the moon'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! Without gravity pulling on them, astronauts\' muscles and bones get weaker. The passage says muscles would shrink by 20% in one week without exercise, so daily workouts keep their bodies healthy.'
+                    },
+                    {
+                        text: 'What does "radiator" mean in the context of this passage?',
+                        options: [
+                            'A tool for measuring how hot something is',
+                            'A device that releases heat into space to cool the ISS',
+                            'A part of the space station that creates light',
+                            'Equipment that collects heat from the sun'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! In this passage, radiators are large panels that release excess heat from the station into space. This is similar to a car\'s radiator, which releases heat from an engine.'
+                    },
+                    {
+                        text: 'What evidence from the passage shows that the ISS has to be designed for durability and repair?',
+                        options: [
+                            'Astronauts have to exercise every day',
+                            'The ISS orbits Earth 250 kilometers above the ground',
+                            'There\'s no way to call a repair person from space, and getting replacement parts takes months, so everything must be designed to be repairable and astronauts are trained to fix nearly anything',
+                            'The ISS faces extreme temperatures on different sides'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! The passage explains that since astronauts can\'t call for help and replacements take months to arrive, everything on the ISS must be built to last and be fixable using available tools.'
+                    }
+                ],
+                writingPrompt: 'If you spent six months on the International Space Station, what would you miss most about Earth? What would you do with the weightlessness to conduct a scientific experiment?'
+            },
+            {
+                id: '3d-printing',
+                category: 'Technology & Manufacturing',
+                icon: '🖨️',
+                title: '3D Printing: Building the Future',
+                description: 'How additive manufacturing is changing what we can create',
+                passage: `Imagine a factory where a machine can build almost anything you can think of. It starts with nothing but a blueprint on a computer, and instead of cutting away material, it adds material layer by layer until the final product is complete. This is 3D printing, also called additive manufacturing. It's one of the most powerful tools that engineers and inventors have today.
+
+Regular manufacturing usually works by subtraction. A sculptor starts with a block of marble and chisels away the parts they don't need. A factory might take a piece of plastic and drill, cut, and shape it until it becomes the final product. But with 3D printing, you add material gradually. A printer reads a digital design file (like a blueprint) and builds the object by laying down thin layers of material—usually plastic, metal, or sometimes even food—one layer at a time.
+
+The most common type of 3D printer uses melted plastic. The plastic is heated until it's soft like peanut butter, then squeezed through a tiny nozzle like a hot glue gun. The nozzle moves back and forth, creating thin lines of plastic. When one layer is complete, the platform lowers slightly, and the printer creates another layer on top. After thousands of layers, you have a finished 3D object. The whole process is controlled by a computer that carefully follows the design blueprint.
+
+One of the biggest advantages of 3D printing is that you can make almost any shape. With traditional manufacturing, complex shapes are expensive and difficult to create. But with 3D printing, a complicated shape is just as easy to print as a simple shape—it just takes longer. This means engineers can create designs that would have been impossible to manufacture before.
+
+3D printing is already changing many industries. In medicine, doctors are using 3D printing to create custom prosthetics (artificial body parts) that fit perfectly for each patient. Instead of giving everyone the same generic artificial leg or hand, doctors can print one designed specifically for your body. In construction, engineers are testing building-sized 3D printers that can construct houses by spraying concrete in layers. Some houses have already been built this way in less than 24 hours!
+
+In space exploration, NASA is 3D printing parts for spacecraft. They can print parts in space using materials available there, which means future astronauts won't need to carry everything they need from Earth. Food companies are even using 3D printers to create unusual products. You can print food layer by layer, creating dishes that look amazing and taste delicious.
+
+But 3D printing isn't perfect yet. Different materials have different strengths and weaknesses. A plastic 3D printer can't make something as strong as steel. Most printers are still quite slow—it might take hours or days to print a large object. The printers are also expensive, and the materials can be costly. However, prices keep dropping, and technology keeps improving. In the future, every school and home might have a 3D printer.
+
+The most exciting part about 3D printing is that it's giving people the power to make things themselves. A kid with a great invention idea can design it on a computer and print it at school. An engineer with a creative solution can turn it into a real object in hours instead of months. 3D printing is making the tools of manufacturing available to everyone.`,
+                questions: [
+                    {
+                        text: 'What is the main difference between how traditional manufacturing and 3D printing work?',
+                        options: [
+                            'Traditional manufacturing uses computers, but 3D printing doesn\'t',
+                            'Traditional manufacturing removes material from something larger, while 3D printing adds material layer by layer',
+                            '3D printing can only make plastic objects, while traditional manufacturing can make metal objects',
+                            'Traditional manufacturing is faster than 3D printing'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! Traditional manufacturing is subtractive (removing material), while 3D printing is additive (building up material). This is the key difference between the two approaches.'
+                    },
+                    {
+                        text: 'Why would 3D printing be especially useful for making artificial body parts like prosthetics?',
+                        options: [
+                            'Because artificial body parts don\'t need to be strong',
+                            'Because 3D printers are cheaper than other manufacturing methods',
+                            'Because each person\'s body is different, and 3D printing can create custom-designed parts for each individual patient',
+                            'Because prosthetics are always very simple shapes'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! Every person\'s body is unique. 3D printing allows doctors to design and create prosthetics that fit each specific patient perfectly, rather than giving everyone a generic artificial limb.'
+                    },
+                    {
+                        text: 'What does "additive" mean in the term "additive manufacturing"?',
+                        options: [
+                            'Something that is extra or optional',
+                            'The process of building something by adding material layer by layer',
+                            'A type of plastic used in 3D printing',
+                            'A way to make something smaller'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! "Additive" means you\'re adding. Additive manufacturing adds material in layers, unlike traditional manufacturing which removes material.'
+                    },
+                    {
+                        text: 'What evidence from the passage shows that 3D printing technology is still improving and becoming more accessible?',
+                        options: [
+                            '3D printing is used for food',
+                            'Some houses have been built using 3D printing',
+                            'The passage states that prices keep dropping, technology keeps improving, and in the future, schools and homes might have 3D printers',
+                            '3D printing can create complicated shapes'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! The passage directly states that "prices keep dropping, and technology keeps improving" and mentions that "in the future, every school and home might have a 3D printer," showing the technology is becoming more accessible.'
+                    }
+                ],
+                writingPrompt: 'Describe an invention or object that you\'d like to 3D print if you could. Why would 3D printing be the best way to make it instead of traditional manufacturing?'
+            },
+            {
+                id: 'roller-coasters',
+                category: 'Physics & Engineering',
+                icon: '🎢',
+                title: 'The Science of Roller Coasters',
+                description: 'Understanding gravity, speed, and forces that make thrilling rides',
+                passage: `When you sit down on a roller coaster, you're about to experience an amazing lesson in physics. Every twist, turn, and loop is carefully designed using the laws of motion and energy. Roller coaster engineers use science to create experiences that are both thrilling and safe.
+
+The very first roller coasters didn't use motors to push the cars up the track. Instead, they relied on gravity. Engineers would build a large hill at the start, and they'd push the roller coaster car to the top by hand or with a horse. Once at the top, gravity would pull the car down, and the car would roll along the track, speeding up and slowing down as it went through hills and curves.
+
+Modern roller coasters use the same basic principle. A motor pulls the car up to the highest point. Then gravity takes over. As the car falls, it gains speed. At the bottom of the drop, it's going very fast. Then the car climbs the next hill, which slows it down because it has to fight against gravity. By carefully designing the height of each hill, engineers control how fast the car moves.
+
+One of the most impressive tricks in roller coaster design is the loop. A loop is a circular track that goes upside down. When you ride through a loop, you're upside down at the top, but you don't fall out of your seat. Why? It's because of the centripetal force and your momentum. The track is curved, and as you go around the curve very fast, you're constantly being pushed outward. The track pushes inward on you, keeping you in your seat. You stay pressed against your seat by the same force that makes water stay inside a bucket when you spin it around your head.
+
+Friction is another important part of roller coaster design. Friction is the force that slows things down when they rub together. Without friction between the wheels and the track, a roller coaster car would keep rolling forever. But with just the right amount of friction, engineers can make the car slow down gradually as it goes through the ride, so it doesn't go too fast at the end.
+
+Different roller coasters use gravity and friction differently. A wooden roller coaster has less friction, so it stays fast throughout the ride. A steel roller coaster has more friction, which means engineers have to give it more height at the start. Some roller coasters use special brakes that are hydraulic—they're pushed open by fluid, creating extra friction to slow the car down. These brakes let the ride last longer without losing all its speed.
+
+Height and mass also affect how fast a roller coaster goes. A taller starting hill means more potential energy that can be converted to speed. A heavier car experiences more gravity pulling it down, but it also has more mass that resists being moved by that gravity. Engineers calculate all of these factors carefully to make sure the ride reaches the right speeds at every point on the track.
+
+Modern roller coasters can have multiple hills, loops, corkscrews, and inversions (places where you're upside down). The biggest and fastest roller coasters in the world push physics to the limit. Some go over 200 kilometers per hour, which is faster than most cars drive on highways. But no matter how extreme, every roller coaster is working with the same basic forces: gravity, friction, and momentum. Understanding these forces is the key to building thrilling rides that are safe.`,
+                questions: [
+                    {
+                        text: 'How do modern roller coasters initially move a car up the first hill?',
+                        options: [
+                            'By pushing it with a stick at the bottom',
+                            'Using a motor to pull the car up',
+                            'By having workers pull it with ropes',
+                            'The car naturally rolls uphill because it\'s supposed to'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! Modern roller coasters use motors to pull the car up the initial hill. Once the car is at the top, gravity takes over and pulls it down, giving it speed.'
+                    },
+                    {
+                        text: 'Why don\'t you fall out of your seat when going upside down through a loop?',
+                        options: [
+                            'The seat holds you very tightly with belts',
+                            'You don\'t go fast enough to fall',
+                            'The curved track moving fast creates centripetal force and momentum that pushes you outward against your seat',
+                            'Gravity is weaker at the top of the loop'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! When you go fast through a curved track, centripetal force pushes you outward (away from the center). This pushes you against your seat even when you\'re upside down, similar to how water stays in a spinning bucket.'
+                    },
+                    {
+                        text: 'What does the word "friction" mean in this passage?',
+                        options: [
+                            'The height of the roller coaster hills',
+                            'The force that slows things down when they rub together',
+                            'The loop at the top of the roller coaster',
+                            'The speed at which the car travels'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! Friction is the force that resists motion. In roller coasters, friction between the wheels and track helps slow the car down gradually throughout the ride.'
+                    },
+                    {
+                        text: 'What evidence does the passage provide that different types of roller coasters are designed differently?',
+                        options: [
+                            'All roller coasters have loops',
+                            'Wooden roller coasters have less friction and stay fast, while steel roller coasters have more friction so they need more height, and some use hydraulic brakes for extra slowing',
+                            'Modern roller coasters use motors but old ones didn\'t',
+                            'Every roller coaster must go faster than 200 kilometers per hour'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage explains that wooden and steel roller coasters are designed differently based on friction. It also mentions that hydraulic brakes allow some roller coasters to last longer without losing speed.'
+                    }
+                ],
+                writingPrompt: 'Design your own roller coaster and describe it. What hills, loops, or special features would it have? What safety features would you include, and how would you use gravity and friction to control the speed?'
+            },
+            {
+                id: 'bridge-engineering',
+                category: 'Structural Engineering',
+                icon: '🌉',
+                title: 'How Bridges Hold Up Cars',
+                description: 'Exploring the forces and designs that make strong bridges',
+                passage: `Every day, millions of cars drive across bridges without thinking about the incredible engineering that keeps them safe. A bridge has to hold up the weight of hundreds of cars, trucks, and buses, plus its own weight, all while experiencing wind, earthquakes, and changing temperatures. Different types of bridges handle these forces in different ways.
+
+The oldest and simplest type of bridge is called a beam bridge. Imagine a plank of wood stretched across a stream. You can walk on the plank, and as long as the plank is strong enough, you won't fall into the water. A beam bridge works the same way. A strong horizontal beam sits on supports at each end called piers. The beam bends slightly under weight, with the top part being compressed (pushed together) and the bottom part being stretched. This is why bridges need to be made of strong materials like steel or reinforced concrete that can handle both compression and tension.
+
+Arch bridges are a different design that's been used for thousands of years. The Romans built magnificent arch bridges that are still standing today. An arch bridge is curved upward, and this curve is very clever. When a car drives across an arch bridge, the weight pushes down, but the arch shape redirects the force sideways and downward toward the bridge's supports. The arch essentially pushes the load away. This means an arch bridge doesn't need to be as thick as a beam bridge because the arch shape is naturally strong. Arch bridges are excellent at handling heavy loads.
+
+The most common type of bridge in the modern world is the suspension bridge. These bridges are held up by cables hanging from tall towers. You've probably seen pictures of famous suspension bridges like the Golden Gate Bridge. The cables are under tremendous tension (they're being stretched), and they hang from towers that experience compression (they're being squeezed). Long cables can carry enormous amounts of weight while using relatively little material compared to a beam bridge.
+
+But suspension bridges have a weakness: they can sway. If too many people walk in step on a suspension bridge at the same time, the bridge can start bouncing up and down. To prevent this, suspension bridges have devices called dampers that absorb the motion and keep the bridge stable. Some newer suspension bridges also use wind tunnels to test their design before they're built, so engineers can discover potential problems like swaying before the bridge exists.
+
+Suspension bridges are also affected by temperature changes. In hot weather, the steel cables expand (get bigger), and in cold weather, they contract (get smaller). The bridge has to have expansion joints that allow the structure to move without cracking. Engineers have to account for many factors when designing a bridge.
+
+Cable-stayed bridges are a newer type that combines some advantages of suspension bridges and arch bridges. Instead of cables hanging in a curve from high towers, cables go straight from towers down to the deck of the bridge. This design is strong, efficient with materials, and often requires less maintenance than other bridge types.
+
+Every bridge is designed for specific conditions in its location. A bridge in an earthquake region needs different features than a bridge in a hurricane area. A bridge that carries trains has to be stronger than a bridge that carries cars because trains are heavier. Engineers study the forces and conditions, then choose or design the right bridge type. The job of a bridge engineer is to understand how forces move through a structure and to design something that's safe, economical, and can last for many decades.`,
+                questions: [
+                    {
+                        text: 'How does an arch bridge handle the weight of traffic differently than a beam bridge?',
+                        options: [
+                            'An arch bridge absorbs all the weight in the middle',
+                            'The arch shape redirects weight sideways and downward toward the supports, rather than just bending under pressure like a beam',
+                            'Arch bridges can hold more weight because they\'re made of stronger material',
+                            'Arch bridges don\'t have to hold up any weight'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The curved shape of an arch bridge is mechanically clever—it redirects force toward the supports instead of just bearing weight directly like a beam does. This is why arch bridges can be thinner and still very strong.'
+                    },
+                    {
+                        text: 'Based on the passage, why might a bridge in an earthquake region be designed differently from a bridge in a calm area?',
+                        options: [
+                            'All bridges are designed exactly the same way',
+                            'Earthquakes need to be studied, but they don\'t affect bridge design',
+                            'Different locations have different conditions that the bridge must handle. An earthquake region needs features that other regions don\'t.',
+                            'Earthquake regions shouldn\'t have bridges'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! The passage states that "Every bridge is designed for specific conditions in its location." A bridge in an earthquake region needs different features to handle seismic forces than a bridge in a calm area.'
+                    },
+                    {
+                        text: 'What does "tension" mean in the context of bridge engineering?',
+                        options: [
+                            'Nervousness about the bridge',
+                            'The force of pushing together (compression)',
+                            'The force of being stretched or pulled',
+                            'The angle of the bridge cables'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! Tension is the force of being stretched or pulled apart. In suspension bridges, the cables are under tension as they hold up the weight of the bridge deck.'
+                    },
+                    {
+                        text: 'What evidence shows that suspension bridge engineers have to account for movement and changes in their designs?',
+                        options: [
+                            'Suspension bridges are made of steel',
+                            'Suspension bridges have dampers to prevent swaying, expansion joints to allow for temperature changes, and wind tunnel testing to find problems',
+                            'The cables hang from tall towers',
+                            'There is no evidence in the passage'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage provides specific evidence: dampers absorb motion from bouncing, expansion joints allow cables to expand and contract with temperature changes, and engineers use wind tunnels to test for problems like swaying.'
+                    }
+                ],
+                writingPrompt: 'Design a bridge that needs to cross a river in a mountainous area with occasional earthquakes and heavy winds. Which type of bridge would you choose (beam, arch, suspension, or cable-stayed) and why? What safety features would you include?'
+            }
+        ];
+
+        // ============================================================================
+        // UTILITY FUNCTIONS
+        // ============================================================================
+
+        function calculateReadTime(wordCount) {
+            const wordsPerMinute = 200;
+            return Math.ceil(wordCount / wordsPerMinute);
+        }
+
+        function countWords(text) {
+            return text.trim().split(/\s+/).length;
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function loadPassages() {
+            let stored = localStorage.getItem('chase_passages');
+            if (stored) {
+                try {
+                    return JSON.parse(stored);
+                } catch (e) {
+                    console.error('Error parsing stored passages:', e);
+                    return FALLBACK_PASSAGES;
+                }
+            }
+            return FALLBACK_PASSAGES;
+        }
+
+        function getPassages() {
+            return loadPassages();
+        }
+
+        // ============================================================================
+        // PHASE MANAGEMENT
+        // ============================================================================
+
+        function showPhase(phase) {
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            document.getElementById('phase' + phase).classList.add('active');
+            updateProgressDots();
+            currentPhase = phase;
+        }
+
+        function updateProgressDots() {
+            const dots = document.querySelectorAll('.progress-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.remove('active', 'completed');
+                if (index < currentPhase) {
+                    dot.classList.add('completed');
+                } else if (index === currentPhase) {
+                    dot.classList.add('active');
+                }
+            });
+        }
+
+        function initializeProgressDots() {
+            const progressDots = document.getElementById('progressDots');
+            progressDots.innerHTML = '';
+            const totalPhases = IS_WEDNESDAY ? 6 : 5;
+            for (let i = 0; i < totalPhases; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot';
+                progressDots.appendChild(dot);
+            }
+            updateProgressDots();
+        }
+
+        // ============================================================================
+        // PHASE 1: TOPIC SELECTION
+        // ============================================================================
+
+        function initPhase1() {
+            const topicsGrid = document.getElementById('topicsGrid');
+            topicsGrid.innerHTML = '';
+            const passages = getPassages();
+
+            passages.forEach(passage => {
+                const card = document.createElement('div');
+                card.className = 'topic-card';
+                card.innerHTML = `
+                    <div class="topic-icon">${passage.icon}</div>
+                    <div class="topic-title">${passage.title}</div>
+                    <div class="topic-description">${passage.description}</div>
+                    <button class="topic-select-btn">Select Mission</button>
+                `;
+                card.querySelector('.topic-select-btn').addEventListener('click', () => {
+                    selectTopic(passage);
+                });
+                topicsGrid.appendChild(card);
+            });
+
+            showPhase(1);
+        }
+
+        function selectTopic(passage) {
+            currentTopic = passage;
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            sessionStartTime = Date.now();
+            initPhase2();
+        }
+
+        // ============================================================================
+        // PHASE 2: READING
+        // ============================================================================
+
+        function initPhase2() {
+            const readingTitle = document.getElementById('readingTitle');
+            const readingContent = document.getElementById('readingContent');
+            const wordCountElem = document.getElementById('wordCount');
+            const readTimeElem = document.getElementById('readTime');
+            const finishReadingBtn = document.getElementById('finishReadingBtn');
+
+            readingTitle.textContent = currentTopic.title;
+            readingContent.innerHTML = currentTopic.passage.split('\n').map(p => p.trim() ? `<p>${p}</p>` : '').join('');
+
+            const wordCount = countWords(currentTopic.passage);
+            wordCountElem.textContent = wordCount;
+            readTimeElem.textContent = calculateReadTime(wordCount);
+
+            finishReadingBtn.disabled = true;
+            const timerMessage = document.getElementById('timerMessage');
+            timerMessage.textContent = '';
+
+            setTimeout(() => {
+                finishReadingBtn.disabled = false;
+                timerMessage.textContent = 'Reading time complete. You can now proceed to comprehension questions.';
+            }, 60000); // 1 minute
+
+            finishReadingBtn.onclick = () => {
+                readingFinishedTime = Date.now();
+                initPhase3();
+            };
+
+            showPhase(2);
+        }
+
+        // ============================================================================
+        // PHASE 3: COMPREHENSION
+        // ============================================================================
+
+        function initPhase3() {
+            showPhase(3);
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const questions = currentTopic.questions;
+            const question = questions[currentQuestionIndex];
+
+            document.getElementById('questionNumber').textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+            document.getElementById('questionText').textContent = question.text;
+
+            const optionsList = document.getElementById('optionsList');
+            optionsList.innerHTML = '';
+
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.innerHTML = `
+                    <div class="option-letter">${String.fromCharCode(65 + index)}</div>
+                    <div class="option-text">${option}</div>
+                `;
+                optionDiv.addEventListener('click', () => selectAnswer(index, question.correct, question.explanation));
+                optionsList.appendChild(optionDiv);
+            });
+
+            document.getElementById('feedbackBox').classList.remove('show', 'correct', 'incorrect');
+            document.getElementById('nextQuestionBtn').style.display = 'none';
+        }
+
+        function selectAnswer(selected, correct, explanation) {
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.add('disabled'));
+
+            const feedbackBox = document.getElementById('feedbackBox');
+            const feedbackLabel = document.getElementById('feedbackLabel');
+            const feedbackText = document.getElementById('feedbackText');
+
+            if (selected === correct) {
+                correctAnswers++;
+                options[selected].classList.add('correct');
+                feedbackBox.classList.add('correct');
+                feedbackLabel.textContent = 'Correct!';
+            } else {
+                options[selected].classList.add('incorrect');
+                options[correct].classList.add('correct');
+                feedbackBox.classList.add('incorrect');
+                feedbackLabel.textContent = 'Not quite!';
+            }
+
+            feedbackText.textContent = explanation;
+            feedbackBox.classList.add('show');
+
+            if (currentQuestionIndex < currentTopic.questions.length - 1) {
+                document.getElementById('nextQuestionBtn').style.display = 'block';
+                document.getElementById('nextQuestionBtn').onclick = () => {
+                    currentQuestionIndex++;
+                    displayQuestion();
+                };
+            } else {
+                document.getElementById('nextQuestionBtn').style.display = 'block';
+                document.getElementById('nextQuestionBtn').textContent = 'Continue to Summary';
+                document.getElementById('nextQuestionBtn').onclick = () => {
+                    proceedToPhase4or5();
+                };
+            }
+        }
+
+        function proceedToPhase4or5() {
+            if (IS_WEDNESDAY) {
+                initPhase4();
+            } else {
+                initPhase5();
+            }
+        }
+
+        // ============================================================================
+        // PHASE 4: WRITING (WEDNESDAY ONLY)
+        // ============================================================================
+
+        function initPhase4() {
+            const writingPrompt = document.getElementById('writingPrompt');
+            writingPrompt.textContent = currentTopic.writingPrompt;
+
+            const writingTextarea = document.getElementById('writingTextarea');
+            const wordCounter = document.getElementById('wordCounter');
+            const submitWritingBtn = document.getElementById('submitWritingBtn');
+
+            writingTextarea.value = '';
+            submitWritingBtn.disabled = true;
+
+            writingTextarea.addEventListener('input', () => {
+                const words = countWords(writingTextarea.value);
+                wordCounter.textContent = `${words} words (50 minimum)`;
+                if (words >= 50) {
+                    wordCounter.classList.remove('warning');
+                    submitWritingBtn.disabled = false;
+                } else {
+                    wordCounter.classList.add('warning');
+                    submitWritingBtn.disabled = true;
+                }
+            });
+
+            submitWritingBtn.onclick = () => {
+                writingCompleted = true;
+                document.getElementById('writingFeedback').classList.add('show');
+                setTimeout(() => {
+                    initPhase5();
+                }, 2000);
+            };
+
+            showPhase(4);
+        }
+
+        // ============================================================================
+        // PHASE 5: SUMMARY
+        // ============================================================================
+
+        function initPhase5() {
+            // Calculate points
+            const readingPoints = 3;
+            const comprehensionBonus = Math.min(correctAnswers, 2); // max 2 bonus points
+            const writingPoints = writingCompleted ? 3 : 0;
+            totalPointsEarned = readingPoints + comprehensionBonus + writingPoints;
+
+            // Update summary display
+            document.getElementById('comprehensionScore').textContent = `+${comprehensionBonus} pts`;
+            document.getElementById('comprehensionLabel').textContent = `Comprehension Questions (${correctAnswers}/${currentTopic.questions.length} correct)`;
+            document.getElementById('totalPointsValue').textContent = totalPointsEarned;
+
+            if (writingCompleted) {
+                document.getElementById('writingSummaryItem').style.display = 'flex';
+            } else {
+                document.getElementById('writingSummaryItem').style.display = 'none';
+            }
+
+            // Save session data and signal dashboard
+            saveSession();
+            syncSession();
+
+            document.getElementById('returnBtn').onclick = () => {
+                window.location.href = 'Chase_Dashboard.html';
+            };
+
+            showPhase(5);
+        }
+
+        // ============================================================================
+        // DATA PERSISTENCE
+        // ============================================================================
+
+        function saveSession() {
+            const sessionData = {
+                [TODAY]: {
+                    completed: true,
+                    passageId: currentTopic.id,
+                    score: correctAnswers,
+                    totalQuestions: currentTopic.questions.length,
+                    writingCompleted: writingCompleted,
+                    pointsEarned: totalPointsEarned
+                }
+            };
+
+            let sessions = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+            sessions = { ...sessions, ...sessionData };
+            localStorage.setItem(SESSION_KEY, JSON.stringify(sessions));
+
+            // Signal to dashboard
+            localStorage.setItem('chase_session_signal', JSON.stringify({
+                date: TODAY,
+                completed: true,
+                pointsEarned: totalPointsEarned
+            }));
+        }
+
+        async function syncSession() {
+            if (!currentTopic) return;
+
+            const sessionData = {
+                date: TODAY,
+                passageId: currentTopic.id,
+                score: correctAnswers,
+                totalQuestions: currentTopic.questions.length,
+                writingCompleted: writingCompleted,
+                pointsEarned: totalPointsEarned
+            };
+
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'saveSession',
+                        student: 'Chase',
+                        ...sessionData
+                    })
+                });
+            } catch (error) {
+                console.log('Sync to Apps Script failed, data saved locally');
+            }
+        }
+
+        // ============================================================================
+        // EXIT HANDLING
+        // ============================================================================
+
+        function showExitModal() {
+            const confirmBtn = document.getElementById('confirmExitBtn');
+            const cancelBtn = document.getElementById('cancelExitBtn');
+            const exitModal = document.getElementById('exitModal');
+
+            confirmBtn.onclick = () => {
+                window.location.href = 'Chase_Dashboard.html';
+            };
+
+            cancelBtn.onclick = () => {
+                exitModal.classList.remove('show');
+            };
+
+            exitModal.classList.add('show');
+        }
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            if (currentPhase > 0) {
+                if (currentPhase === 1) {
+                    showExitModal();
+                } else {
+                    showExitModal();
+                }
+            }
+        });
+
+        // ============================================================================
+        // INITIALIZATION
+        // ============================================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeProgressDots();
+            showPhase(0); // Show loading phase
+
+            // Simulate loading
+            setTimeout(() => {
+                initPhase1();
+            }, 800);
+        });
+
+        // Save session state
+        window.addEventListener('beforeunload', () => {
+            const sessionData = {
+                phase: currentPhase,
+                topic: currentTopic ? currentTopic.id : null,
+                questionIndex: currentQuestionIndex,
+                correctAnswers: correctAnswers,
+                writingCompleted: writingCompleted
+            };
+            localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+        });
+    </script>
+</body>
+</html>

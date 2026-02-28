@@ -372,6 +372,60 @@
     white-space: nowrap; font-size: 8px; color: var(--text-dim); font-style: italic;
   }
 
+  /* COUNTDOWN DROPDOWN */
+  .countdown-toggle {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 10px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    margin-top: 6px;
+  }
+  .countdown-toggle:active { opacity: 0.7; }
+  .countdown-toggle-label {
+    font-size: 11px; color: var(--accent); letter-spacing: 3px;
+    text-transform: uppercase; font-family: 'Georgia', serif;
+  }
+  .countdown-arrow {
+    font-size: 10px; color: var(--accent); transition: transform 0.3s ease;
+    display: inline-block;
+  }
+  .countdown-arrow.open { transform: rotate(180deg); }
+  .countdown-list {
+    max-height: 0; overflow: hidden; transition: max-height 0.4s ease;
+    margin-top: 0;
+  }
+  .countdown-list.visible { max-height: 800px; }
+  .countdown-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 12px; border-bottom: 1px solid rgba(201,168,76,0.08);
+  }
+  .countdown-item:last-child { border-bottom: none; }
+  .countdown-item-left {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .countdown-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .countdown-dot.urgent { background: var(--miss); box-shadow: 0 0 6px rgba(196,69,54,0.5); }
+  .countdown-dot.soon { background: var(--accent); box-shadow: 0 0 6px rgba(201,168,76,0.4); }
+  .countdown-dot.ahead { background: var(--card-border); border: 1px solid var(--text-dim); }
+  .countdown-dot.done { background: var(--success); }
+  .countdown-name {
+    font-size: 13px; color: var(--text); letter-spacing: 1px;
+    font-family: 'Georgia', serif;
+  }
+  .countdown-weeks {
+    font-size: 14px; font-weight: 600; font-family: 'Georgia', serif;
+    white-space: nowrap;
+  }
+  .countdown-weeks.urgent { color: var(--miss); }
+  .countdown-weeks.soon { color: var(--accent); }
+  .countdown-weeks.ahead { color: var(--text-dim); }
+  .countdown-weeks.done { color: var(--success); }
+  .countdown-subtext {
+    font-size: 9px; color: var(--text-dim); font-style: italic;
+    text-align: right; margin-top: 1px;
+  }
+
   /* POINTS LINK */
   .points-link {
     display: block; text-align: center; margin-top: 10px; padding: 8px 16px;
@@ -474,18 +528,14 @@
 
 <div class="daily-stack">
   <div class="section-title">— Today's Foundation —</div>
-  <div class="task-item" id="task-anki" onclick="toggleTask('anki')">
-    <span class="task-icon">&#127994;</span>
+  <div class="task-item" id="task-session" onclick="startSession()">
+    <span class="task-icon">&#128214;</span>
     <div class="task-check"></div>
     <div class="task-info">
-      <div class="task-name">Memory Stone</div>
-      <div class="task-detail">Anki Review — ~10 minutes</div>
-      <a class="task-launch" href="anki://" onclick="event.stopPropagation();">Open Anki</a>
+      <div class="task-name">The Archive</div>
+      <div class="task-detail">Today's Session — Reading, Questions & Writing</div>
+      <a class="task-launch" href="DailySession_Jacob.html" onclick="event.stopPropagation();">Start Session</a>
     </div>
-  </div>
-  <div class="bonus-row" id="bonus-anki">
-    <button class="bonus-btn" onclick="event.stopPropagation(); addBonus('anki')">+ Extra Session</button>
-    <span class="bonus-count" id="bonus-anki-count"></span>
   </div>
   <div class="task-item" id="task-khan" onclick="toggleTask('khan')">
     <span class="task-icon">&#128208;</span>
@@ -588,6 +638,11 @@
 <div class="timeline-section">
   <div class="section-title">— The Road Ahead —</div>
   <div class="timeline-track" id="timelineTrack"></div>
+  <div class="countdown-toggle" onclick="toggleCountdown()">
+    <span class="countdown-toggle-label">Weeks Until...</span>
+    <span class="countdown-arrow" id="countdownArrow">▼</span>
+  </div>
+  <div class="countdown-list" id="countdownList"></div>
 </div>
 
 <div class="quote-box">
@@ -717,10 +772,10 @@ function mergeSheetDataIntoLocalStorage(sheetRows) {
     }
 
     const sheetDay = currentData.days[date];
-    if (row.Anki !== undefined && row.Anki !== null) sheetDay.anki = row.Anki === true || row.Anki === 'TRUE' || row.Anki === 1;
+    if (row.Session !== undefined && row.Session !== null) sheetDay.session = row.Session === true || row.Session === 'TRUE' || row.Session === 1;
     if (row.Khan !== undefined && row.Khan !== null) sheetDay.khan = row.Khan === true || row.Khan === 'TRUE' || row.Khan === 1;
     if (row.Reading !== undefined && row.Reading !== null) sheetDay.reading = row.Reading === true || row.Reading === 'TRUE' || row.Reading === 1;
-    if (row.AnkiBonusSessions !== undefined && row.AnkiBonusSessions !== null) sheetDay.ankiBonus = parseInt(row.AnkiBonusSessions) || 0;
+    if (row.SessionBonusSessions !== undefined && row.SessionBonusSessions !== null) sheetDay.sessionBonus = parseInt(row.SessionBonusSessions) || 0;
     if (row.KhanBonusSessions !== undefined && row.KhanBonusSessions !== null) sheetDay.khanBonus = parseInt(row.KhanBonusSessions) || 0;
 
     if (!currentTimerData[date]) {
@@ -745,10 +800,10 @@ async function syncDailyTracking(date, dayData) {
     action: 'saveDailyTracking',
     student: SYNC_CONFIG.studentName,
     date: date,
-    anki: dayData.anki || false,
+    session: dayData.session || false,
     khan: dayData.khan || false,
     reading: dayData.reading || false,
-    ankiBonusSessions: dayData.ankiBonus || 0,
+    sessionBonusSessions: dayData.sessionBonus || 0,
     khanBonusSessions: dayData.khanBonus || 0,
     readingBaseMinutes: 0,
     readingBonusMinutes: 0
@@ -1016,7 +1071,7 @@ function toggleTimer() {
           dayData.reading = true;
           setDayData(today, dayData);
           render();
-          if (dayData.anki && dayData.khan && dayData.reading) celebrateCompletion();
+          if (dayData.session && dayData.khan && dayData.reading) celebrateCompletion();
           // Update button style for bonus mode
           startBtn.classList.add('bonus-style');
         }
@@ -1067,18 +1122,18 @@ function loadData() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY))
 function saveData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 function getDayData(date) {
   const raw = loadData().days[date];
-  return raw || { anki: false, khan: false, reading: false, ankiBonus: 0, khanBonus: 0 };
+  return raw || { session: false, khan: false, reading: false, sessionBonus: 0, khanBonus: 0 };
 }
 function setDayData(date, dayData) { const data = loadData(); data.days[date] = dayData; saveData(data); }
-function isDayComplete(date) { const d = getDayData(date); return d.anki && d.khan && d.reading; }
+function isDayComplete(date) { const d = getDayData(date); return d.session && d.khan && d.reading; }
 function dayTaskCount(date) {
   const d = getDayData(date);
-  return (d.anki ? 1 : 0) + (d.khan ? 1 : 0) + (d.reading ? 1 : 0);
+  return (d.session ? 1 : 0) + (d.khan ? 1 : 0) + (d.reading ? 1 : 0);
 }
 function dayTotalCredits(date) {
   const d = getDayData(date);
-  const base = (d.anki ? 1 : 0) + (d.khan ? 1 : 0) + (d.reading ? 1 : 0);
-  const bonus = (d.ankiBonus || 0) + (d.khanBonus || 0);
+  const base = (d.session ? 1 : 0) + (d.khan ? 1 : 0) + (d.reading ? 1 : 0);
+  const bonus = (d.sessionBonus || 0) + (d.khanBonus || 0);
   // Bonus reading from timer
   const td = loadTimerDataForDate(date);
   const readingBonus = td.bonusMinutes >= 20 ? Math.floor(td.bonusMinutes / 20) : 0;
@@ -1095,7 +1150,7 @@ function toggleTask(task) {
   const today = getToday(); const dayData = getDayData(today);
   dayData[task] = !dayData[task]; setDayData(today, dayData); render();
   syncDailyTracking(today, dayData);
-  if (dayData.anki && dayData.khan && dayData.reading) celebrateCompletion();
+  if (dayData.session && dayData.khan && dayData.reading) celebrateCompletion();
 }
 
 function addBonus(task) {
@@ -1109,7 +1164,7 @@ function addBonus(task) {
 
 function resetToday() {
   const today = getToday();
-  const emptyData = { anki: false, khan: false, reading: false, ankiBonus: 0, khanBonus: 0 };
+  const emptyData = { session: false, khan: false, reading: false, sessionBonus: 0, khanBonus: 0 };
   setDayData(today, emptyData);
   // Reset timer data for today
   try {
@@ -1144,21 +1199,26 @@ function render() {
   const dayData = getDayData(today);
 
   // Tasks
-  ['anki','khan','reading'].forEach(task => {
+  ['session','khan','reading'].forEach(task => {
     const el = document.getElementById(`task-${task}`);
-    el.classList.toggle('done', dayData[task]);
-    el.querySelector('.task-check').textContent = dayData[task] ? '\u2713' : '';
+    if (el) {
+      el.classList.toggle('done', dayData[task]);
+      el.querySelector('.task-check').textContent = dayData[task] ? '\u2713' : '';
+    }
   });
 
   // Bonus rows visibility
-  ['anki','khan'].forEach(task => {
+  ['session','khan'].forEach(task => {
     const bonusRow = document.getElementById(`bonus-${task}`);
-    if (dayData[task]) {
-      bonusRow.classList.add('visible');
-      const count = dayData[task + 'Bonus'] || 0;
-      document.getElementById(`bonus-${task}-count`).textContent = count > 0 ? `+${count} extra session${count > 1 ? 's' : ''}` : '';
-    } else {
-      bonusRow.classList.remove('visible');
+    if (bonusRow) {
+      if (dayData[task]) {
+        bonusRow.classList.add('visible');
+        const count = dayData[task + 'Bonus'] || 0;
+        const countEl = document.getElementById(`bonus-${task}-count`);
+        if (countEl) countEl.textContent = count > 0 ? `+${count} extra session${count > 1 ? 's' : ''}` : '';
+      } else {
+        bonusRow.classList.remove('visible');
+      }
     }
   });
 
@@ -1394,10 +1454,18 @@ function calculatePoints() {
 
   Object.entries(allData.days).forEach(([date, d]) => {
     let dayPts = 0;
-    const tasks = (d.anki ? 1 : 0) + (d.khan ? 1 : 0) + (d.reading ? 1 : 0);
-    dayPts += tasks * 2;
-    if (tasks === 3) dayPts += 4;
-    dayPts += (d.ankiBonus || 0) * 2;
+    // New points: Session=3 base, Khan=2, Reading=2, All-complete=+3
+    // Comprehension bonus from session: 0-2 pts (stored in sessionBonus)
+    const sessionPts = d.session ? 3 : 0;
+    const khanPts = d.khan ? 2 : 0;
+    const readingPts = d.reading ? 2 : 0;
+    dayPts += sessionPts + khanPts + readingPts;
+    // All-complete bonus
+    const tasks = (d.session ? 1 : 0) + (d.khan ? 1 : 0) + (d.reading ? 1 : 0);
+    if (tasks === 3) dayPts += 3;
+    // Session comprehension bonus (0-2 pts from session page)
+    dayPts += (d.sessionBonus || 0);
+    // Khan bonus sessions
     dayPts += (d.khanBonus || 0) * 2;
     const td = loadTimerDataForDate(date);
     dayPts += (td.bonusMinutes >= 20 ? Math.floor(td.bonusMinutes / 20) : 0) * 2;
@@ -1473,11 +1541,14 @@ function renderTimeline() {
 
   const milestones = [
     { date: '2026-02-27', label: 'JACOB', type: 'now', above: 'You are here' },
-    { date: '2026-04-15', label: 'LEAP', type: 'upcoming', above: 'Spring 2026' },
-    { date: '2027-01-15', label: 'HSPT', type: 'upcoming', above: 'Jan 2027' },
+    { date: '2026-04-15', label: 'LEAP 6th', type: 'upcoming', above: 'Spring 2026' },
+    { date: '2026-12-01', label: 'HSPT', type: 'upcoming', above: 'Dec 2026' },
+    { date: '2027-01-10', label: 'ASSESSMENT', type: 'upcoming', above: 'St. Paul\'s' },
     { date: '2027-08-15', label: 'ST. PAUL\'S', type: 'future', above: '8th Grade' },
+    { date: '2027-10-15', label: 'PreACT 8/9', type: 'future', above: 'Fall 2027' },
     { date: '2028-10-15', label: 'PSAT 8/9', type: 'future', above: 'Fall 2028' },
-    { date: '2029-10-15', label: 'PSAT 10', type: 'future', above: 'Fall 2029' },
+    { date: '2029-10-15', label: 'PreACT 10', type: 'future', above: 'Fall 2029' },
+    { date: '2029-10-20', label: 'PSAT 10', type: 'future', above: '' },
     { date: '2030-10-15', label: 'PSAT/NMSQT', type: 'future', above: 'Fall 2030' },
     { date: '2031-03-15', label: 'SAT/ACT', type: 'future', above: 'Spring 2031' },
     { date: '2032-05-20', label: 'GRADUATION', type: 'future', above: 'May 2032' },
@@ -1518,6 +1589,80 @@ function renderTimeline() {
   });
 }
 
+// --- COUNTDOWN DROPDOWN ---
+function toggleCountdown() {
+  const list = document.getElementById('countdownList');
+  const arrow = document.getElementById('countdownArrow');
+  list.classList.toggle('visible');
+  arrow.classList.toggle('open');
+}
+
+function renderCountdown() {
+  const container = document.getElementById('countdownList');
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  const milestones = [
+    { date: '2026-04-15', label: 'LEAP 6th Grade', icon: '📝' },
+    { date: '2026-12-01', label: 'HSPT', icon: '📋' },
+    { date: '2027-01-10', label: 'St. Paul\'s Assessment', icon: '🏫' },
+    { date: '2027-08-15', label: '8th Grade — St. Paul\'s', icon: '🎒' },
+    { date: '2027-10-15', label: 'PreACT 8/9', icon: '📝' },
+    { date: '2028-10-15', label: 'PSAT 8/9', icon: '📝' },
+    { date: '2029-10-15', label: 'PreACT 10', icon: '📝' },
+    { date: '2029-10-20', label: 'PSAT 10', icon: '📝' },
+    { date: '2030-10-15', label: 'PSAT/NMSQT', icon: '📝' },
+    { date: '2031-03-15', label: 'SAT / ACT', icon: '🎯' },
+    { date: '2032-05-20', label: 'GRADUATION', icon: '🎓' },
+  ];
+
+  let html = '';
+  milestones.forEach(m => {
+    const target = new Date(m.date + 'T00:00:00');
+    const diffMs = target - now;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.ceil(diffDays / 7);
+
+    let dotClass, weeksClass, weeksText, subtext;
+    if (diffDays <= 0) {
+      dotClass = 'done';
+      weeksClass = 'done';
+      weeksText = '✓ Done';
+      subtext = '';
+    } else if (diffWeeks <= 8) {
+      dotClass = 'urgent';
+      weeksClass = 'urgent';
+      weeksText = diffWeeks + (diffWeeks === 1 ? ' week' : ' weeks');
+      subtext = diffDays + ' days';
+    } else if (diffWeeks <= 26) {
+      dotClass = 'soon';
+      weeksClass = 'soon';
+      weeksText = diffWeeks + ' weeks';
+      const months = Math.round(diffDays / 30.44);
+      subtext = '~' + months + (months === 1 ? ' month' : ' months');
+    } else {
+      dotClass = 'ahead';
+      weeksClass = 'ahead';
+      weeksText = diffWeeks + ' weeks';
+      const months = Math.round(diffDays / 30.44);
+      subtext = '~' + months + ' months';
+    }
+
+    html += `<div class="countdown-item">
+      <div class="countdown-item-left">
+        <div class="countdown-dot ${dotClass}"></div>
+        <span class="countdown-name">${m.icon} ${m.label}</span>
+      </div>
+      <div style="text-align:right;">
+        <div class="countdown-weeks ${weeksClass}">${weeksText}</div>
+        ${subtext ? `<div class="countdown-subtext">${subtext}</div>` : ''}
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
 // --- BOOK TOGGLE ---
 function toggleBooks() {
   const toggle = document.getElementById('booksToggle');
@@ -1532,6 +1677,7 @@ render = function() {
   _originalRender();
   renderPoints();
   renderTimeline();
+  renderCountdown();
 };
 
 // --- DIAGNOSTIC TEST NOTIFICATION SYSTEM ---
@@ -1646,14 +1792,57 @@ function renderDiagnosticSection() {
   `;
 }
 
+// --- SESSION INTEGRATION ---
+function startSession() {
+  window.location.href = 'DailySession_Jacob.html';
+}
+
+function checkSessionReturn() {
+  try {
+    const signal = JSON.parse(localStorage.getItem('jacob_session_signal'));
+    if (!signal || !signal.completed) return;
+    const today = getToday();
+    if (signal.date !== today) return; // Only process today's signal
+
+    const dayData = getDayData(today);
+    if (dayData.session) return; // Already marked
+
+    // Mark session complete
+    dayData.session = true;
+    // Store comprehension bonus from session (0-2 pts)
+    if (signal.pointsEarned) {
+      // Session page gives 3 base + 0-2 comprehension + 3 writing
+      // We store the comprehension bonus (0-2) in sessionBonus
+      const basePts = 3;
+      const writingPts = signal.writingCompleted ? 3 : 0;
+      const comprehensionBonus = Math.max(0, (signal.pointsEarned || 0) - basePts - writingPts);
+      dayData.sessionBonus = Math.min(2, comprehensionBonus);
+    }
+    setDayData(today, dayData);
+    syncDailyTracking(today, dayData);
+
+    // Check if all tasks complete
+    if (dayData.session && dayData.khan && dayData.reading) {
+      celebrateCompletion();
+    }
+
+    // Clear the signal so we don't re-process
+    localStorage.removeItem('jacob_session_signal');
+  } catch (e) {
+    console.warn('Error checking session return:', e);
+  }
+}
+
 // Initialize sync, then render
 initializeSync().then(() => {
   return loadContributorData();
 }).then(() => {
   return loadDiagnosticTests();
 }).then(() => {
+  checkSessionReturn();
   render();
 }).catch(() => {
+  checkSessionReturn();
   render();
 });
 </script>
