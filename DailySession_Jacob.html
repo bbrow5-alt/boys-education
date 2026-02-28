@@ -921,7 +921,7 @@
         <div class="phase" id="phase0">
             <div class="loading-container">
                 <div class="loading-spinner"></div>
-                <div class="loading-text">Preparing your session...</div>
+                <div class="loading-text">Gary is preparing your session...</div>
             </div>
         </div>
 
@@ -984,7 +984,7 @@
                 <div class="writing-feedback" id="writingFeedback">
                     <div class="feedback-icon">✓</div>
                     <div class="feedback-title">Response Saved</div>
-                    <div class="feedback-message">Your response has been saved! Your tutor will review it and provide detailed feedback soon.</div>
+                    <div class="feedback-message">Your response has been saved! Gary will review it and provide detailed feedback soon.</div>
                 </div>
             </div>
         </div>
@@ -1458,10 +1458,10 @@
                     // Convert API response to match fallback format
                     const aiTopic = {
                         id: 'ai-' + Date.now(),
-                        category: 'AI Generated',
+                        category: 'Gary\'s Pick',
                         icon: '🏛️',
                         title: data.title || randomTopic,
-                        description: 'A fresh passage created just for you by AI',
+                        description: 'Gary put this one together just for you',
                         passage: data.passage,
                         questions: data.questions.map(q => ({
                             text: q.question,

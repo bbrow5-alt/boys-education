@@ -921,7 +921,7 @@
         <div class="phase" id="phase0">
             <div class="loading-container">
                 <div class="loading-spinner"></div>
-                <div class="loading-text">Initializing mission...</div>
+                <div class="loading-text">Doug is preparing your session...</div>
             </div>
         </div>
 
@@ -984,7 +984,7 @@
                 <div class="writing-feedback" id="writingFeedback">
                     <div class="feedback-icon">✓</div>
                     <div class="feedback-title">Entry Logged</div>
-                    <div class="feedback-message">Your mission log entry has been recorded! Your instructor will review it and provide feedback soon.</div>
+                    <div class="feedback-message">Your mission log entry has been recorded! Doug will review it and provide feedback soon.</div>
                 </div>
             </div>
         </div>
@@ -1526,10 +1526,10 @@ Every bridge is designed for specific conditions in its location. A bridge in an
                 if (data.passage && data.questions && !data.error) {
                     const aiTopic = {
                         id: 'ai-' + Date.now(),
-                        category: 'AI Generated',
+                        category: 'Doug\'s Pick',
                         icon: '🚀',
                         title: data.title || randomTopic,
-                        description: 'A fresh mission briefing created just for you by AI',
+                        description: 'Doug put this one together just for you',
                         passage: data.passage,
                         questions: data.questions.map(q => ({
                             text: q.question,
