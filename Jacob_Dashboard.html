@@ -126,6 +126,49 @@
   }
   .task-launch:active { opacity: 0.6; }
 
+  /* DIAGNOSTIC TEST NOTIFICATION */
+  .diagnostic-banner {
+    background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05));
+    border: 2px solid var(--accent);
+    padding: 16px; margin-bottom: 16px; text-align: center;
+    animation: diagnosticPulse 3s ease-in-out infinite;
+  }
+  @keyframes diagnosticPulse {
+    0%, 100% { border-color: var(--accent); }
+    50% { border-color: rgba(201,168,76,0.4); }
+  }
+  .diagnostic-banner.completed {
+    border-color: #7fb069; background: linear-gradient(135deg, rgba(127,176,105,0.15), rgba(127,176,105,0.05));
+    animation: none;
+  }
+  .diagnostic-banner.expired {
+    border-color: var(--text-dim); background: rgba(100,100,100,0.1);
+    animation: none; opacity: 0.6;
+  }
+  .diagnostic-title {
+    font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 8px; font-family: 'Georgia', serif;
+  }
+  .diagnostic-banner.completed .diagnostic-title { color: #7fb069; }
+  .diagnostic-label { font-size: 15px; font-weight: 400; margin-bottom: 10px; color: var(--text); }
+  .diagnostic-countdown { font-size: 11px; color: var(--text-dim); margin-bottom: 12px; font-style: italic; }
+  .diagnostic-btn {
+    display: inline-block; padding: 10px 24px; background: var(--accent); color: var(--bg);
+    text-decoration: none; font-family: 'Georgia', serif; font-size: 13px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase; border: none; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .diagnostic-btn:hover { opacity: 0.85; }
+  .diagnostic-btn:active { opacity: 0.7; }
+  .diagnostic-completed-badge {
+    display: inline-block; padding: 8px 20px; background: rgba(127,176,105,0.2);
+    color: #7fb069; font-size: 13px; font-weight: 600; letter-spacing: 2px;
+    font-family: 'Georgia', serif; border: 1px solid rgba(127,176,105,0.4);
+  }
+  .diagnostic-points { font-size: 12px; color: var(--accent); margin-top: 8px; font-weight: 600; }
+  .diagnostic-banner.completed .diagnostic-points { color: #7fb069; }
+  .diagnostic-history { font-size: 10px; color: var(--text-dim); margin-top: 6px; }
+
   /* BONUS BUTTONS */
   .bonus-row {
     display: none; padding: 8px 8px 8px 50px;
@@ -425,6 +468,9 @@
   </div>
   <div class="meter-note" id="meterNote"></div>
 </div>
+
+<!-- Diagnostic Test Notification -->
+<div id="diagnosticSection" style="display:none;"></div>
 
 <div class="daily-stack">
   <div class="section-title">— Today's Foundation —</div>
@@ -1488,9 +1534,123 @@ render = function() {
   renderTimeline();
 };
 
+// --- DIAGNOSTIC TEST NOTIFICATION SYSTEM ---
+let diagnosticTests = [];
+
+async function loadDiagnosticTests() {
+  try {
+    const baseUrl = syncState.webAppUrl || 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
+    const studentParam = 'student=Jacob';
+    const res = await fetch(`${baseUrl}?action=getDiagnosticTests&${studentParam}`);
+    if (res.ok) {
+      diagnosticTests = await res.json();
+    }
+  } catch (err) {
+    console.warn('Failed to load diagnostic tests:', err);
+  }
+  renderDiagnosticSection();
+}
+
+function renderDiagnosticSection() {
+  const container = document.getElementById('diagnosticSection');
+  if (!diagnosticTests || diagnosticTests.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+
+  // Find the most recent test (active or recently completed)
+  const activeTest = diagnosticTests.find(t => {
+    const available = t.AvailableDate || '';
+    const due = t.DueDate || '';
+    const completed = t.Completed === true || t.Completed === 'TRUE';
+    // Show if: within window and not completed, OR completed within last 7 days
+    if (!completed && available <= today && (!due || due >= today)) return true;
+    if (completed) {
+      const completedDate = t.CompletedDate || '';
+      const daysSince = (new Date(today) - new Date(completedDate)) / (1000*60*60*24);
+      if (daysSince <= 7) return true;
+    }
+    return false;
+  });
+
+  // Also check for upcoming tests (available within 3 days)
+  const upcomingTest = !activeTest ? diagnosticTests.find(t => {
+    const available = t.AvailableDate || '';
+    const completed = t.Completed === true || t.Completed === 'TRUE';
+    if (completed) return false;
+    const daysUntil = (new Date(available) - new Date(today)) / (1000*60*60*24);
+    return daysUntil > 0 && daysUntil <= 3;
+  }) : null;
+
+  const test = activeTest || upcomingTest;
+  if (!test) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+  const completed = test.Completed === true || test.Completed === 'TRUE';
+  const available = test.AvailableDate || '';
+  const due = test.DueDate || '';
+  const isUpcoming = available > today;
+  const isExpired = due && due < today && !completed;
+
+  let bannerClass = 'diagnostic-banner';
+  if (completed) bannerClass += ' completed';
+  else if (isExpired) bannerClass += ' expired';
+
+  let countdownText = '';
+  if (!completed && !isExpired && due) {
+    const daysLeft = Math.ceil((new Date(due) - new Date(today)) / (1000*60*60*24));
+    if (daysLeft === 0) countdownText = 'Due today!';
+    else if (daysLeft === 1) countdownText = '1 day remaining';
+    else countdownText = `${daysLeft} days remaining`;
+  } else if (isUpcoming) {
+    const daysUntil = Math.ceil((new Date(available) - new Date(today)) / (1000*60*60*24));
+    countdownText = `Available in ${daysUntil} day${daysUntil > 1 ? 's' : ''}`;
+  }
+
+  let actionHtml = '';
+  if (completed) {
+    const pts = test.PointsAwarded || 15;
+    actionHtml = `
+      <div class="diagnostic-completed-badge">&#10003; COMPLETED</div>
+      <div class="diagnostic-points">${pts} points earned</div>
+    `;
+  } else if (isExpired) {
+    actionHtml = '<div style="font-size:12px; color:var(--text-dim);">Window expired — ask Dad for an extension</div>';
+  } else if (isUpcoming) {
+    actionHtml = '<div style="font-size:12px; color:var(--text-dim);">Coming soon...</div>';
+  } else {
+    actionHtml = `<a class="diagnostic-btn" href="${test.TestURL}" target="_blank">Begin Diagnostic</a>
+      <div class="diagnostic-points">Worth 15 points — replaces today's full stack!</div>`;
+  }
+
+  // Show last completed test date for history
+  const lastCompleted = diagnosticTests.find(t => t.Completed === true || t.Completed === 'TRUE');
+  let historyHtml = '';
+  if (lastCompleted && lastCompleted !== test) {
+    historyHtml = `<div class="diagnostic-history">Last test: ${lastCompleted.TestLabel || lastCompleted.Month} (${lastCompleted.CompletedDate})</div>`;
+  }
+
+  container.innerHTML = `
+    <div class="${bannerClass}">
+      <div class="diagnostic-title">${completed ? '&#9734; Monthly Diagnostic Complete' : '&#9733; Monthly Diagnostic Test'}</div>
+      <div class="diagnostic-label">${test.TestLabel || test.Month || 'Diagnostic Test'}</div>
+      ${countdownText ? `<div class="diagnostic-countdown">${countdownText}</div>` : ''}
+      ${actionHtml}
+      ${historyHtml}
+    </div>
+  `;
+}
+
 // Initialize sync, then render
 initializeSync().then(() => {
   return loadContributorData();
+}).then(() => {
+  return loadDiagnosticTests();
 }).then(() => {
   render();
 }).catch(() => {

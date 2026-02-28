@@ -131,6 +131,49 @@
   .task-item:not(.done) .task-status { background: var(--miss-dim); color: var(--miss); }
   .task-item.done .task-status { background: var(--success-dim); color: var(--success); }
 
+  /* DIAGNOSTIC TEST NOTIFICATION */
+  .diagnostic-banner {
+    background: linear-gradient(135deg, rgba(0,255,136,0.1), rgba(0,255,136,0.02));
+    border: 1px solid var(--accent); border-radius: 4px;
+    padding: 16px; margin-bottom: 16px; text-align: center; position: relative;
+    animation: diagnosticPulse 3s ease-in-out infinite;
+  }
+  @keyframes diagnosticPulse {
+    0%, 100% { border-color: var(--accent); box-shadow: 0 0 10px rgba(0,255,136,0.1); }
+    50% { border-color: rgba(0,255,136,0.3); box-shadow: 0 0 20px rgba(0,255,136,0.2); }
+  }
+  .diagnostic-banner.completed {
+    border-color: var(--success); background: linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,255,136,0.02));
+    animation: none;
+  }
+  .diagnostic-banner.expired {
+    border-color: var(--text-dim); background: rgba(100,100,100,0.1);
+    animation: none; opacity: 0.5;
+  }
+  .diagnostic-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent2); margin-bottom: 8px; font-family: monospace;
+  }
+  .diagnostic-banner.completed .diagnostic-title { color: var(--success); }
+  .diagnostic-label { font-size: 14px; font-weight: 500; margin-bottom: 10px; color: var(--text); font-family: monospace; }
+  .diagnostic-countdown { font-size: 11px; color: var(--text-dim); margin-bottom: 12px; font-family: monospace; letter-spacing: 1px; }
+  .diagnostic-btn {
+    display: inline-block; padding: 10px 24px; background: var(--accent); color: var(--bg);
+    text-decoration: none; font-family: monospace; font-size: 12px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase; border: none; cursor: pointer;
+    border-radius: 2px; transition: all 0.2s;
+  }
+  .diagnostic-btn:hover { box-shadow: 0 0 15px rgba(0,255,136,0.4); }
+  .diagnostic-btn:active { opacity: 0.7; }
+  .diagnostic-completed-badge {
+    display: inline-block; padding: 8px 20px; background: rgba(0,255,136,0.1);
+    color: var(--success); font-size: 12px; font-weight: 700; letter-spacing: 3px;
+    font-family: monospace; border: 1px solid rgba(0,255,136,0.3); border-radius: 2px;
+  }
+  .diagnostic-points { font-size: 11px; color: var(--accent); margin-top: 8px; font-weight: 600; font-family: monospace; letter-spacing: 1px; }
+  .diagnostic-banner.completed .diagnostic-points { color: var(--success); }
+  .diagnostic-history { font-size: 10px; color: var(--text-dim); margin-top: 6px; font-family: monospace; }
+
   /* BONUS BUTTONS */
   .bonus-row { display: none; padding: 8px 8px 8px 50px; border-bottom: 1px solid rgba(0,255,136,0.08); }
   .bonus-row.visible { display: flex; align-items: center; gap: 10px; }
@@ -444,6 +487,9 @@
   </div>
   <div class="meter-note" id="meterNote"></div>
 </div>
+
+<!-- Diagnostic Test Notification -->
+<div id="diagnosticSection" style="display:none;"></div>
 
 <div class="daily-stack">
   <div class="task-item" id="task-anki" onclick="toggleTask('anki')" style="margin-top:8px;">
@@ -1462,9 +1508,119 @@ render = function() {
   renderTimeline();
 };
 
+// --- DIAGNOSTIC TEST NOTIFICATION SYSTEM ---
+let diagnosticTests = [];
+
+async function loadDiagnosticTests() {
+  try {
+    const baseUrl = syncState.webAppUrl || 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
+    const studentParam = 'student=Chase';
+    const res = await fetch(`${baseUrl}?action=getDiagnosticTests&${studentParam}`);
+    if (res.ok) {
+      diagnosticTests = await res.json();
+    }
+  } catch (err) {
+    console.warn('Failed to load diagnostic tests:', err);
+  }
+  renderDiagnosticSection();
+}
+
+function renderDiagnosticSection() {
+  const container = document.getElementById('diagnosticSection');
+  if (!diagnosticTests || diagnosticTests.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const activeTest = diagnosticTests.find(t => {
+    const available = t.AvailableDate || '';
+    const due = t.DueDate || '';
+    const completed = t.Completed === true || t.Completed === 'TRUE';
+    if (!completed && available <= today && (!due || due >= today)) return true;
+    if (completed) {
+      const completedDate = t.CompletedDate || '';
+      const daysSince = (new Date(today) - new Date(completedDate)) / (1000*60*60*24);
+      if (daysSince <= 7) return true;
+    }
+    return false;
+  });
+
+  const upcomingTest = !activeTest ? diagnosticTests.find(t => {
+    const available = t.AvailableDate || '';
+    const completed = t.Completed === true || t.Completed === 'TRUE';
+    if (completed) return false;
+    const daysUntil = (new Date(available) - new Date(today)) / (1000*60*60*24);
+    return daysUntil > 0 && daysUntil <= 3;
+  }) : null;
+
+  const test = activeTest || upcomingTest;
+  if (!test) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+  const completed = test.Completed === true || test.Completed === 'TRUE';
+  const available = test.AvailableDate || '';
+  const due = test.DueDate || '';
+  const isUpcoming = available > today;
+  const isExpired = due && due < today && !completed;
+
+  let bannerClass = 'diagnostic-banner';
+  if (completed) bannerClass += ' completed';
+  else if (isExpired) bannerClass += ' expired';
+
+  let countdownText = '';
+  if (!completed && !isExpired && due) {
+    const daysLeft = Math.ceil((new Date(due) - new Date(today)) / (1000*60*60*24));
+    if (daysLeft === 0) countdownText = 'DUE TODAY';
+    else if (daysLeft === 1) countdownText = 'T-MINUS 1 DAY';
+    else countdownText = `T-MINUS ${daysLeft} DAYS`;
+  } else if (isUpcoming) {
+    const daysUntil = Math.ceil((new Date(available) - new Date(today)) / (1000*60*60*24));
+    countdownText = `INCOMING IN ${daysUntil} DAY${daysUntil > 1 ? 'S' : ''}`;
+  }
+
+  let actionHtml = '';
+  if (completed) {
+    const pts = test.PointsAwarded || 15;
+    actionHtml = `
+      <div class="diagnostic-completed-badge">&#10003; MISSION COMPLETE</div>
+      <div class="diagnostic-points">+${pts} PTS EARNED</div>
+    `;
+  } else if (isExpired) {
+    actionHtml = '<div style="font-size:11px; color:var(--text-dim); font-family:monospace;">WINDOW EXPIRED — ASK DAD FOR EXTENSION</div>';
+  } else if (isUpcoming) {
+    actionHtml = '<div style="font-size:11px; color:var(--text-dim); font-family:monospace;">STANDBY...</div>';
+  } else {
+    actionHtml = `<a class="diagnostic-btn" href="${test.TestURL}" target="_blank">&#9654; LAUNCH DIAGNOSTIC</a>
+      <div class="diagnostic-points">WORTH 15 PTS — REPLACES FULL DAILY STACK</div>`;
+  }
+
+  const lastCompleted = diagnosticTests.find(t => t.Completed === true || t.Completed === 'TRUE');
+  let historyHtml = '';
+  if (lastCompleted && lastCompleted !== test) {
+    historyHtml = `<div class="diagnostic-history">LAST SCAN: ${lastCompleted.TestLabel || lastCompleted.Month} (${lastCompleted.CompletedDate})</div>`;
+  }
+
+  container.innerHTML = `
+    <div class="${bannerClass}">
+      <div class="diagnostic-title">${completed ? '&#9733; DIAGNOSTIC COMPLETE' : '&#9733; MONTHLY DIAGNOSTIC'}</div>
+      <div class="diagnostic-label">${test.TestLabel || test.Month || 'Diagnostic Test'}</div>
+      ${countdownText ? `<div class="diagnostic-countdown">${countdownText}</div>` : ''}
+      ${actionHtml}
+      ${historyHtml}
+    </div>
+  `;
+}
+
 // Initialize sync, then render
 initializeSync().then(() => {
   return loadContributorData();
+}).then(() => {
+  return loadDiagnosticTests();
 }).then(() => {
   render();
 }).catch(() => {

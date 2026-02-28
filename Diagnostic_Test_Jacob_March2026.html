@@ -698,8 +698,10 @@ async function submitResults() {
     });
     const result = await response.json();
     if (result.success) {
-      statusEl.textContent = '✓ Results submitted successfully!';
+      statusEl.textContent = '✓ Results submitted! Crediting points...';
       statusEl.style.color = '#7fb069';
+      // Now trigger diagnostic completion to auto-credit daily tasks + bonus points
+      await creditDiagnosticPoints();
     } else {
       statusEl.textContent = 'Results saved locally. Ask your dad to sync later.';
       console.error('Submit error:', result);
@@ -711,6 +713,41 @@ async function submitResults() {
     try {
       localStorage.setItem('pending_assessment_' + CONFIG.testId, JSON.stringify(payload));
     } catch(e) {}
+  }
+}
+
+async function creditDiagnosticPoints() {
+  const statusEl = document.getElementById('submitStatus');
+  try {
+    const completionPayload = {
+      action: 'completeDiagnosticTest',
+      student: CONFIG.student,
+      testId: CONFIG.testId
+    };
+    const res = await fetch(CONFIG.webAppUrl, {
+      method: "POST",
+      body: JSON.stringify(completionPayload),
+      headers: { "Content-Type": "text/plain" }
+    });
+    const result = await res.json();
+    if (result.success && !result.alreadyCompleted) {
+      statusEl.innerHTML = `&#10003; ${result.message || 'You earned 15 points today!'}`;
+      statusEl.style.color = '#7fb069';
+      statusEl.style.fontSize = '16px';
+      statusEl.style.fontWeight = '700';
+      // Show celebration
+      const celebDiv = document.createElement('div');
+      celebDiv.style.cssText = 'text-align:center; margin-top:16px; font-size:24px; animation: celebPulse 1s ease-in-out infinite;';
+      celebDiv.innerHTML = '&#127942; 15 POINTS EARNED &#127942;<br><span style="font-size:13px; color:#7fb069;">All daily tasks auto-completed + 5 bonus points!</span>';
+      statusEl.parentNode.appendChild(celebDiv);
+    } else if (result.alreadyCompleted) {
+      statusEl.textContent = '✓ Results saved (test was already credited)';
+      statusEl.style.color = '#7fb069';
+    }
+  } catch (err) {
+    console.warn('Could not credit diagnostic points:', err);
+    statusEl.textContent = '✓ Results submitted! Points will sync when your dashboard loads.';
+    statusEl.style.color = '#7fb069';
   }
 }
 </script>
