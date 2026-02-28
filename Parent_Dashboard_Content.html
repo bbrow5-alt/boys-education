@@ -359,6 +359,7 @@
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 40px;
+            overflow: visible;
         }
 
         .weekly-grid-wrapper {
@@ -385,15 +386,18 @@
         .weekly-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 12px;
+            gap: 8px;
+            min-width: 0;
         }
 
         .day-cell {
             background-color: #111827;
             border: 1px solid #374151;
             border-radius: 8px;
-            padding: 12px;
+            padding: 10px 6px;
             text-align: center;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .day-label {
@@ -801,8 +805,10 @@
 
                 // Calculate stats
                 const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
                 const weekStart = new Date(today);
                 weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                const weekStartStr = weekStart.toISOString().split('T')[0];
 
                 let weekSessions = 0;
                 let totalPoints = 0;
@@ -810,12 +816,13 @@
                 let comprehensionCount = 0;
 
                 sessions.forEach(session => {
-                    const sessionDate = new Date(session.Date);
-                    if (sessionDate >= weekStart) {
+                    const sDate = typeof session.Date === 'string' ? session.Date.split('T')[0] : '';
+                    if (sDate >= weekStartStr && sDate <= todayStr) {
                         weekSessions++;
-                        totalPoints += session.PointsEarned || 0;
-                        if (session.ComprehensionPct !== null && session.ComprehensionPct !== undefined) {
-                            totalComprehension += session.ComprehensionPct;
+                        totalPoints += Number(session.PointsEarned) || 0;
+                        const pct = Number(session.ComprehensionPct);
+                        if (!isNaN(pct)) {
+                            totalComprehension += pct;
                             comprehensionCount++;
                         }
                     }
@@ -823,14 +830,31 @@
 
                 const avgComprehension = comprehensionCount > 0 ? Math.round(totalComprehension / comprehensionCount) : 0;
 
+                // Calculate weekly credits (matches dashboard logic: base + bonuses)
+                // Each task = 1 base credit, plus sessionBonus/khanBonus from dailyTracking
+                let weeklyCredits = 0;
+                const weekDates = [];
+                for (let d = 0; d < 7; d++) {
+                    const wd = new Date(weekStart);
+                    wd.setDate(wd.getDate() + d);
+                    const ds = wd.toISOString().split('T')[0];
+                    if (ds <= todayStr) weekDates.push(ds);
+                }
+                weekDates.forEach(ds => {
+                    const dd = daily[ds] || {};
+                    const base = (dd.session ? 1 : 0) + (dd.khan ? 1 : 0) + (dd.reading ? 1 : 0);
+                    const bonus = (dd.sessionBonus || 0) + (dd.khanBonus || 0);
+                    weeklyCredits += base + bonus;
+                });
+
                 // Calculate streak (consecutive days with sessions)
                 let streak = 0;
                 const sortedDates = Object.keys(daily).sort().reverse();
                 for (let i = 0; i < sortedDates.length; i++) {
-                    const date = new Date(sortedDates[i]);
                     const expectedDate = new Date();
                     expectedDate.setDate(expectedDate.getDate() - i);
-                    if (Math.abs(date - expectedDate) < 86400000 && daily[sortedDates[i]].session) {
+                    const expectedStr = expectedDate.toISOString().split('T')[0];
+                    if (sortedDates[i] === expectedStr && daily[sortedDates[i]].session) {
                         streak++;
                     } else {
                         break;
@@ -851,7 +875,7 @@
                             </div>
                             <div class="stat-item">
                                 <div class="stat-item-label">Weekly Credits</div>
-                                <div class="stat-item-value">${weekSessions}/21</div>
+                                <div class="stat-item-value">${weeklyCredits}/21</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-item-label">Sessions This Week</div>
