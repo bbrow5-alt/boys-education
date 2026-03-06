@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostic Test - Chase Brown</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0a0a0f;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.6;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Glow effect utility */
+        .glow {
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .glow-box {
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3), inset 0 0 15px rgba(0, 255, 136, 0.1);
+        }
+
+        /* Progress Bar */
+        #progressBar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, #00ff88, #00cc6f);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+            transition: width 0.3s ease;
+            z-index: 100;
+        }
+
+        /* Timer Bar */
+        #timerBar {
+            position: fixed;
+            top: 4px;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.9);
+            border-bottom: 2px solid #00ff88;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 99;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2);
+        }
+
+        #timerText {
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        #sectionTitle {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            flex: 1;
+            letter-spacing: 1px;
+        }
+
+        #timerCountdown {
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        #timerCountdown.warning {
+            color: #ff6b6b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Main Content */
+        #contentContainer {
+            position: fixed;
+            top: 54px;
+            left: 0;
+            right: 0;
+            bottom: 60px;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 40px;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Welcome Screen */
+        #welcomeScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            margin-bottom: 30px;
+            color: #888;
+            line-height: 1.8;
+        }
+
+        .mission-badge {
+            font-size: 48px;
+            margin: 30px 0;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Section Intro */
+        #sectionIntroScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .section-intro-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+        }
+
+        .section-intro-desc {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+
+        .section-intro-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        /* Question Screen */
+        #questionScreen {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .question-container {
+            margin-bottom: 30px;
+        }
+
+        .question-number {
+            font-size: 12px;
+            color: #666;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .passage {
+            background: rgba(0, 255, 136, 0.05);
+            border-left: 3px solid #00ff88;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #aaa;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            padding: 15px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .option:hover {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: #00ff88;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: rgba(0, 255, 136, 0.25);
+            border-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+        }
+
+        .option input {
+            margin-right: 10px;
+        }
+
+        /* Writing Input */
+        .writing-section {
+            margin-top: 20px;
+        }
+
+        .writing-prompt {
+            background: rgba(0, 255, 136, 0.05);
+            border-left: 3px solid #00ff88;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 4px;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.2s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        /* Completion Screen */
+        #completionScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .completion-icon {
+            font-size: 72px;
+            margin-bottom: 30px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .completion-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+        }
+
+        .completion-message {
+            font-size: 14px;
+            color: #888;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+
+        .effort-score {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 20px;
+            border-radius: 4px;
+            border: 2px solid #00ff88;
+        }
+
+        .submission-status {
+            font-size: 12px;
+            color: #666;
+            margin-top: 30px;
+            letter-spacing: 1px;
+        }
+
+        /* Navigation Bar */
+        #navBar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.95);
+            border-top: 2px solid #00ff88;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            z-index: 99;
+            box-shadow: 0 -4px 15px rgba(0, 255, 136, 0.2);
+        }
+
+        button {
+            padding: 12px 20px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        button:hover:not(:disabled) {
+            background: rgba(0, 255, 136, 0.25);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+            transform: scale(1.05);
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .nav-info {
+            font-size: 12px;
+            color: #666;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                font-size: 14px;
+            }
+
+            .welcome-title {
+                font-size: 24px;
+            }
+
+            .section-intro-title {
+                font-size: 22px;
+            }
+
+            .question-text {
+                font-size: 14px;
+            }
+
+            .option {
+                padding: 12px;
+                font-size: 13px;
+            }
+
+            #timerBar {
+                padding: 0 10px;
+            }
+
+            #contentContainer {
+                padding: 15px;
+            }
+        }
+
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-top: 3px solid #00ff88;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="progressBar"></div>
+    <div id="timerBar">
+        <span id="timerText">DIAGNOSTIC TEST</span>
+        <span id="sectionTitle"></span>
+        <span id="timerCountdown">00:00</span>
+    </div>
+
+    <div id="contentContainer">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="screen active">
+            <div class="mission-badge">🚀</div>
+            <h1 class="welcome-title glow">MISSION BRIEFING</h1>
+            <h2 style="font-size: 20px; margin-bottom: 30px;">Welcome, Chase</h2>
+            <p class="welcome-subtitle">
+                You're about to launch on a diagnostic mission.<br>
+                This assessment will help identify your learning strengths<br>
+                and areas for growth.
+            </p>
+            <p class="welcome-subtitle" style="color: #00ff88; font-size: 14px; margin-top: 40px;">
+                ✓ Read each question carefully<br>
+                ✓ Take your best shot—there are no wrong answers<br>
+                ✓ Time limits help keep you focused<br>
+                ✓ Your effort matters most
+            </p>
+        </div>
+
+        <!-- Section Intro Screen -->
+        <div id="sectionIntroScreen" class="screen">
+            <div class="section-intro-title glow" id="sectionIntroTitle"></div>
+            <p class="section-intro-desc" id="sectionIntroDesc"></p>
+            <p class="section-intro-meta" id="sectionIntroMeta"></p>
+        </div>
+
+        <!-- Question Screen -->
+        <div id="questionScreen" class="screen">
+            <div id="questionContainer"></div>
+        </div>
+
+        <!-- Completion Screen -->
+        <div id="completionScreen" class="screen">
+            <div class="completion-icon">🚀</div>
+            <h1 class="completion-title glow">MISSION COMPLETE</h1>
+            <p class="completion-message">Great work finishing the assessment! Your effort and focus are what matter most. Your dad will review the results to plan your learning path.</p>
+            <div class="effort-score">
+                Effort Score: <span id="effortScore">0%</span>
+            </div>
+            <p class="submission-status" id="submissionStatus">Preparing to transmit results...</p>
+        </div>
+    </div>
+
+    <div id="navBar">
+        <button id="backBtn" onclick="previousQuestion()">← BACK</button>
+        <span class="nav-info" id="navInfo"></span>
+        <button id="nextBtn" onclick="nextQuestion()">NEXT →</button>
+    </div>
+
+    <script>
+        const CONFIG = {
+            student: "Chase",
+            grade: 5,
+            testId: "targeted_diagnostic_20260306",
+            testLabel: "Targeted Diagnostic — March 2026",
+            webAppUrl: "https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec"
+        };
+
+        // Test Structure
+        const SECTIONS = [
+            {
+                id: "reading",
+                title: "Reading Comprehension",
+                timeLimit: 1200,
+                description: "Deep comprehension, inference, and analysis of unfamiliar passages",
+                intro: "Test your ability to understand complex texts, find main ideas, and make inferences.",
+                questionCount: 10
+            },
+            {
+                id: "math",
+                title: "Mathematics",
+                timeLimit: 1200,
+                description: "Multi-step problems, fractions, decimals, geometry, and reasoning",
+                intro: "Solve grade 5+ word problems that require multiple steps and mathematical reasoning.",
+                questionCount: 10
+            },
+            {
+                id: "quantitative",
+                title: "Quantitative Reasoning",
+                timeLimit: 900,
+                description: "Patterns, sequences, logic, estimation, and mental math",
+                intro: "Find patterns, work with sequences, and use logical reasoning to solve problems.",
+                questionCount: 10
+            },
+            {
+                id: "language",
+                title: "Language & Writing Skills",
+                timeLimit: 1050,
+                description: "Grammar, vocabulary, sentence structure, and writing",
+                intro: "Demonstrate your command of English grammar, word choice, and written expression.",
+                questionCount: 10
+            },
+            {
+                id: "verbal",
+                title: "Verbal Reasoning",
+                timeLimit: 900,
+                description: "Synonyms, antonyms, analogies, and word relationships",
+                intro: "Work with word relationships and analogies to strengthen your vocabulary and thinking.",
+                questionCount: 10
+            }
+        ];
+
+        const QUESTIONS = {
+            reading: [
+                {
+                    type: "mc",
+                    passage: "The artist stood before the massive canvas, brush trembling in her hand. She had spent months preparing for this moment—studying color theory, experimenting with technique, consulting with mentors. Yet now, facing the blank white surface, doubt crept in. What if she wasn't ready? What if her vision couldn't translate to paint? She closed her eyes and remembered why she started: not to be perfect, but to express something true. She dipped her brush.",
+                    question: "What is the main conflict in this passage?",
+                    options: [
+                        "A) The artist lacks the proper materials to complete her work.",
+                        "B) The artist struggles with self-doubt despite her preparation.",
+                        "C) The artist is unable to find mentors to guide her.",
+                        "D) The artist has forgotten her artistic training."
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "Based on the passage, what does the artist's decision to close her eyes and remember her purpose suggest?",
+                    options: [
+                        "A) She is giving up and will not paint.",
+                        "B) She uses reflection to overcome her doubts and move forward.",
+                        "C) She is tired and needs to rest before continuing.",
+                        "D) She realizes she should have studied more before starting."
+                    ],
+                    correct: 1
+                },
+                {
+                    passage: "Ancient Roman buildings still stand after nearly two thousand years. How is this possible? The answer lies in their engineering. Romans developed concrete by mixing volcanic ash, lime, and seawater. This mixture was far superior to simple stone or clay. The concrete got stronger over time as it reacted with carbon dioxide in the air. Many Roman structures were built with a thick outer wall and an inner core of this special concrete, distributing weight effectively. Additionally, the Romans designed their buildings with drainage systems that prevented water damage—a critical factor in longevity.",
+                    type: "mc",
+                    question: "Why does Roman concrete become stronger after it is first made?",
+                    options: [
+                        "A) The volcanic ash continues to compress under pressure.",
+                        "B) It reacts with carbon dioxide in the air over time.",
+                        "C) The seawater evaporates and crystallizes.",
+                        "D) The lime absorbs moisture from the environment."
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "Which structural feature did the Romans use to help their buildings last longer?",
+                    options: [
+                        "A) Thick outer walls with concrete cores and drainage systems",
+                        "B) Multiple separate buildings instead of one large structure",
+                        "C) Periodic replacement of damaged sections",
+                        "D) Separation of stone and concrete into different layers"
+                    ],
+                    correct: 0
+                },
+                {
+                    passage: "The Northern Lights, or Aurora Borealis, have captivated people for centuries. Many ancient cultures developed myths to explain this natural phenomenon. Some Scandinavian peoples believed the lights were reflections of the armor of warrior women. Indigenous peoples in North America thought they were spirits dancing across the sky. From a scientific perspective, auroras occur when charged particles from the sun collide with gases in Earth's upper atmosphere. The solar wind carries these particles toward the poles, where Earth's magnetic field is strongest. The collision ionizes nitrogen and oxygen, creating the characteristic green, red, and purple colors. Understanding the science behind auroras doesn't diminish their beauty—many people find that knowing the 'why' deepens their appreciation.",
+                    type: "mc",
+                    question: "How do ancient myths about the Northern Lights differ from the scientific explanation?",
+                    options: [
+                        "A) Myths are older and therefore more accurate.",
+                        "B) Myths attribute the lights to supernatural causes, while science explains physical processes.",
+                        "C) Myths only exist in Scandinavian cultures.",
+                        "D) Science cannot explain why colors appear the way they do."
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "What does the author suggest in the final sentence about understanding scientific explanations?",
+                    options: [
+                        "A) Scientific knowledge makes natural phenomena less impressive.",
+                        "B) Myths are better than science at explaining the Northern Lights.",
+                        "C) Understanding the science can actually increase appreciation of nature.",
+                        "D) Only scientists can truly appreciate the Northern Lights."
+                    ],
+                    correct: 2
+                },
+                {
+                    passage: "Marine biologists recently discovered that octopuses possess a remarkable ability: they can taste with their arms. Unlike humans, whose taste receptors are located only in the mouth, octopuses have chemoreceptors throughout their eight arms. This allows them to 'taste' their surroundings as they explore the ocean floor. When an octopus encounters a crevice in rocks or wraps an arm around a potential food source, it's simultaneously gathering chemical information. Scientists believe this adaptation provides a significant survival advantage in dark, murky waters where vision is limited. The octopus doesn't need to bring something to its mouth to determine whether it's food or not. This sensory capability demonstrates how different organisms have evolved unique solutions to navigating their environments.",
+                    type: "mc",
+                    question: "What is the primary purpose of an octopus having taste receptors on its arms?",
+                    options: [
+                        "A) To make tasting food more enjoyable",
+                        "B) To gather chemical information about their surroundings while exploring",
+                        "C) To prevent damage to their mouth when eating",
+                        "D) To help them communicate with other octopuses"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "Based on the passage, why might having taste receptors on their arms be particularly useful for octopuses in dark ocean waters?",
+                    options: [
+                        "A) It allows them to taste colors in the dark.",
+                        "B) It compensates for limited vision by providing chemical sensory information.",
+                        "C) It prevents them from getting lost.",
+                        "D) It helps them swim faster through darkness."
+                    ],
+                    correct: 1
+                },
+                {
+                    passage: "Mountain ecosystems are fragile and vulnerable to climate change. As temperatures rise, plants and animals that thrive in cooler conditions are forced to migrate upward in elevation, seeking the cooler temperatures of higher altitudes. However, mountains have limits—eventually, there is nowhere higher to go. Species that cannot adapt or migrate face extinction. Additionally, glaciers that provide water to billions of people are melting at accelerating rates. Changes in snowfall patterns affect water availability for both wildlife and human populations downstream. Conservation efforts in mountain regions are critical, but they face challenges from competing human interests like mining, logging, and tourism development.",
+                    type: "mc",
+                    question: "What does the passage suggest is the main threat to mountain ecosystems from climate change?",
+                    options: [
+                        "A) Increased tourism and development in mountain regions",
+                        "B) Lack of conservation programs",
+                        "C) Species cannot find suitable habitats as temperatures rise and resources become scarce",
+                        "D) Mining and logging operations"
+                    ],
+                    correct: 2
+                },
+                {
+                    type: "mc",
+                    question: "Why are melting glaciers a concern beyond the mountain environment itself?",
+                    options: [
+                        "A) They cause avalanches that damage cities.",
+                        "B) They impact water availability for populations far downstream from mountains.",
+                        "C) They attract too many tourists to fragile areas.",
+                        "D) They reduce the elevation of mountains over time."
+                    ],
+                    correct: 1
+                }
+            ],
+            math: [
+                {
+                    type: "mc",
+                    question: "A bakery sells cookies in boxes. Each box contains 24 cookies. On Monday, they sold 8 boxes. On Tuesday, they sold 12 boxes. How many cookies were sold over both days?",
+                    options: [
+                        "A) 32 cookies",
+                        "B) 288 cookies",
+                        "C) 480 cookies",
+                        "D) 384 cookies"
+                    ],
+                    correct: 3
+                },
+                {
+                    type: "mc",
+                    question: "Maria has 3/4 cup of flour. She needs 1/2 cup for a recipe. How much flour will she have left after making the recipe?",
+                    options: [
+                        "A) 1/4 cup",
+                        "B) 5/8 cup",
+                        "C) 3/8 cup",
+                        "D) 1/8 cup"
+                    ],
+                    correct: 0
+                },
+                {
+                    type: "mc",
+                    question: "A rectangle has a length of 12 cm and a width of 8 cm. What is its area?",
+                    options: [
+                        "A) 20 cm²",
+                        "B) 96 cm²",
+                        "C) 40 cm²",
+                        "D) 104 cm²"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "James is making smoothies. He uses 2.5 cups of strawberries and 1.75 cups of yogurt in each smoothie. How many total cups of ingredients does he use per smoothie?",
+                    options: [
+                        "A) 4.25 cups",
+                        "B) 4.0 cups",
+                        "C) 3.75 cups",
+                        "D) 4.5 cups"
+                    ],
+                    correct: 0
+                },
+                {
+                    type: "mc",
+                    question: "Look at this pattern: 3, 6, 12, 24, ?, 96. What is the missing number?",
+                    options: [
+                        "A) 48",
+                        "B) 36",
+                        "C) 60",
+                        "D) 42"
+                    ],
+                    correct: 0
+                },
+                {
+                    type: "mc",
+                    question: "A tank contains 450 liters of water. If 125 liters are used on Monday and 175 liters are used on Tuesday, how much water remains?",
+                    options: [
+                        "A) 150 liters",
+                        "B) 225 liters",
+                        "C) 300 liters",
+                        "D) 250 liters"
+                    ],
+                    correct: 0
+                },
+                {
+                    type: "mc",
+                    question: "A rope is 15 meters long. If you cut it into pieces that are 2.5 meters each, how many whole pieces will you get?",
+                    options: [
+                        "A) 5 pieces",
+                        "B) 6 pieces",
+                        "C) 7 pieces",
+                        "D) 8 pieces"
+                    ],
+                    correct: 0
+                },
+                {
+                    type: "mc",
+                    question: "What is 2/3 × 3/4?",
+                    options: [
+                        "A) 6/12",
+                        "B) 6/7",
+                        "C) 1/2",
+                        "D) 5/7"
+                    ],
+                    correct: 2
+                },
+                {
+                    type: "mc",
+                    question: "A square has a perimeter of 36 cm. What is the length of one side?",
+                    options: [
+                        "A) 6 cm",
+                        "B) 9 cm",
+                        "C) 12 cm",
+                        "D) 18 cm"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "A train travels at 60 miles per hour. How far will it travel in 2.5 hours?",
+                    options: [
+                        "A) 120 miles",
+                        "B) 150 miles",
+                        "C) 175 miles",
+                        "D) 200 miles"
+                    ],
+                    correct: 1
+                }
+            ],
+            quantitative: [
+                {
+                    type: "mc",
+                    question: "What comes next in this sequence? 2, 5, 10, 17, 26, ?",
+                    options: [
+                        "A) 35",
+                        "B) 37",
+                        "C) 36",
+                        "D) 40"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "If 5 notebooks cost $15, how much will 8 notebooks cost?",
+                    options: [
+                        "A) $24",
+                        "B) $20",
+                        "C) $30",
+                        "D) $40"
+                    ],
+                    correct: 0
+                },
+                {
+                    type: "mc",
+                    question: "Which number is closest to 47 × 52 without calculating the exact answer?",
+                    options: [
+                        "A) 2,000",
+                        "B) 2,400",
+                        "C) 2,600",
+                        "D) 3,000"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "A book is 280 pages. Sarah has read 3/4 of the book. Approximately how many pages has she read?",
+                    options: [
+                        "A) 140 pages",
+                        "B) 190 pages",
+                        "C) 210 pages",
+                        "D) 250 pages"
+                    ],
+                    correct: 2
+                },
+                {
+                    type: "mc",
+                    question: "What is 15% of 200?",
+                    options: [
+                        "A) 20",
+                        "B) 25",
+                        "C) 30",
+                        "D) 40"
+                    ],
+                    correct: 2
+                },
+                {
+                    type: "mc",
+                    question: "Look at this sequence: 1, 1, 2, 3, 5, 8, 13, ?. What is the next number?",
+                    options: [
+                        "A) 18",
+                        "B) 20",
+                        "C) 21",
+                        "D) 26"
+                    ],
+                    correct: 2
+                },
+                {
+                    type: "mc",
+                    question: "If a recipe serves 4 people and calls for 2 cups of flour, how much flour is needed to serve 10 people?",
+                    options: [
+                        "A) 4 cups",
+                        "B) 5 cups",
+                        "C) 6 cups",
+                        "D) 8 cups"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "Which of these is the best estimate for 89 ÷ 9?",
+                    options: [
+                        "A) 8",
+                        "B) 10",
+                        "C) 12",
+                        "D) 15"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "A number is multiplied by 5 and then 10 is subtracted. The result is 40. What is the original number?",
+                    options: [
+                        "A) 10",
+                        "B) 15",
+                        "C) 20",
+                        "D) 25"
+                    ],
+                    correct: 0
+                },
+                {
+                    type: "mc",
+                    question: "If you roll a standard die (numbered 1-6), what is the probability of rolling an even number?",
+                    options: [
+                        "A) 1/6",
+                        "B) 1/3",
+                        "C) 1/2",
+                        "D) 2/3"
+                    ],
+                    correct: 2
+                }
+            ],
+            language: [
+                {
+                    type: "mc",
+                    question: "Which sentence is punctuated correctly?",
+                    options: [
+                        "A) The dog chased the cat into the garden, and up the tree.",
+                        "B) The dog chased the cat into the garden and up the tree.",
+                        "C) The dog chased the cat, into the garden and up the tree.",
+                        "D) The dog chased, the cat into the garden and up the tree."
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "Which word best completes the sentence? 'Despite the rain, the team was _____ to finish the game.'",
+                    options: [
+                        "A) determined",
+                        "B) determine",
+                        "C) determining",
+                        "D) determines"
+                    ],
+                    correct: 0
+                },
+                {
+                    type: "mc",
+                    question: "What does 'pragmatic' mean?",
+                    options: [
+                        "A) Dealing with things in a practical, realistic way",
+                        "B) Very detailed and complex",
+                        "C) Theoretical and abstract",
+                        "D) Informal and casual"
+                    ],
+                    correct: 0
+                },
+                {
+                    type: "mc",
+                    question: "Which sentence uses an analogy?",
+                    options: [
+                        "A) The cat sat on the mat and purred softly.",
+                        "B) Her mind was like a computer, processing information quickly.",
+                        "C) The storm caused damage to the neighborhood.",
+                        "D) He walked to school every morning."
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "Which capitalization is correct?",
+                    options: [
+                        "A) I went to the store on Main Street.",
+                        "B) I went to the Store on main street.",
+                        "C) I went to the store on main Street.",
+                        "D) i went to the Store on Main Street."
+                    ],
+                    correct: 0
+                },
+                {
+                    type: "mc",
+                    question: "What is a synonym for 'abundant'?",
+                    options: [
+                        "A) Scarce",
+                        "B) Plentiful",
+                        "C) Limited",
+                        "D) Rare"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "Which sentence has the clearest structure?",
+                    options: [
+                        "A) The book, which was on the table, and I was reading it, is interesting.",
+                        "B) I am reading the interesting book that is on the table.",
+                        "C) On the table, the book I read is interesting, and it's something.",
+                        "D) The interesting book on the table, I am reading it, is what I'm doing."
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "Which word correctly completes this sentence? 'She _____ her homework yesterday.'",
+                    options: [
+                        "A) finish",
+                        "B) finished",
+                        "C) finishing",
+                        "D) finishes"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "What does 'diligent' mean?",
+                    options: [
+                        "A) Lazy and careless",
+                        "B) Working hard and carefully",
+                        "C) Friendly and outgoing",
+                        "D) Intelligent and clever"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "writing",
+                    question: "Imagine you're designing a new gadget or invention. Write a paragraph (at least 4 sentences) explaining what your invention does, how it works, and why it would be useful. Let your imagination flow—it can be practical or fantastical!",
+                    acceptAny: true
+                }
+            ],
+            verbal: [
+                {
+                    type: "mc",
+                    question: "What is the relationship between 'cat' and 'mammal'?",
+                    options: [
+                        "A) Cat is a type of mammal",
+                        "B) Mammal is a type of cat",
+                        "C) They are unrelated",
+                        "D) They are opposites"
+                    ],
+                    correct: 0
+                },
+                {
+                    type: "mc",
+                    question: "FAST is to SLOW as BRIGHT is to _____.",
+                    options: [
+                        "A) Dark",
+                        "B) Light",
+                        "C) Dim",
+                        "D) Shiny"
+                    ],
+                    correct: 2
+                },
+                {
+                    type: "mc",
+                    question: "What is an antonym for 'generous'?",
+                    options: [
+                        "A) Wealthy",
+                        "B) Selfish",
+                        "C) Kind",
+                        "D) Brave"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "What is a synonym for 'benevolent'?",
+                    options: [
+                        "A) Harmful",
+                        "B) Suspicious",
+                        "C) Helpful and kind",
+                        "D) Weak"
+                    ],
+                    correct: 2
+                },
+                {
+                    type: "mc",
+                    question: "BOOK is to LIBRARY as SONG is to _____.",
+                    options: [
+                        "A) School",
+                        "B) Radio",
+                        "C) Playlist",
+                        "D) Instrument"
+                    ],
+                    correct: 2
+                },
+                {
+                    type: "mc",
+                    question: "What is the relationship between 'child' and 'parent'?",
+                    options: [
+                        "A) They are family members with a specific generational relationship",
+                        "B) They do the same activities",
+                        "C) They are the same age",
+                        "D) They are unrelated"
+                    ],
+                    correct: 0
+                },
+                {
+                    type: "mc",
+                    question: "SUMMER is to HEAT as WINTER is to _____.",
+                    options: [
+                        "A) Snow",
+                        "B) Cold",
+                        "C) Holidays",
+                        "D) Darkness"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "What is an antonym for 'timid'?",
+                    options: [
+                        "A) Nervous",
+                        "B) Confident",
+                        "C) Quiet",
+                        "D) Worried"
+                    ],
+                    correct: 1
+                },
+                {
+                    type: "mc",
+                    question: "HAMMER is to NAIL as BRUSH is to _____.",
+                    options: [
+                        "A) Paint",
+                        "B) Hair",
+                        "C) Canvas",
+                        "D) Wall"
+                    ],
+                    correct: 2
+                },
+                {
+                    type: "mc",
+                    question: "What is a synonym for 'meticulous'?",
+                    options: [
+                        "A) Careless",
+                        "B) Lazy",
+                        "C) Careful and detailed",
+                        "D) Quick"
+                    ],
+                    correct: 2
+                }
+            ]
+        };
+
+        // Global State
+        let currentState = {
+            screen: "welcome",
+            sectionIndex: 0,
+            questionIndex: 0,
+            answers: {},
+            timeRemaining: 0,
+            timerInterval: null,
+            startTime: null
+        };
+
+        // Initialize
+        function init() {
+            updateUI();
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            currentState.screen = screenName;
+
+            switch (screenName) {
+                case 'welcome':
+                    document.getElementById('welcomeScreen').classList.add('active');
+                    document.getElementById('timerBar').style.display = 'none';
+                    document.getElementById('navBar').style.display = 'none';
+                    break;
+                case 'sectionIntro':
+                    showSectionIntro();
+                    document.getElementById('navBar').style.display = 'flex';
+                    break;
+                case 'question':
+                    showQuestion();
+                    document.getElementById('navBar').style.display = 'flex';
+                    break;
+                case 'completion':
+                    showCompletion();
+                    document.getElementById('navBar').style.display = 'none';
+                    break;
+            }
+
+            updateUI();
+        }
+
+        function showSectionIntro() {
+            document.getElementById('sectionIntroScreen').classList.add('active');
+            const section = SECTIONS[currentState.sectionIndex];
+            document.getElementById('sectionIntroTitle').textContent = section.title.toUpperCase();
+            document.getElementById('sectionIntroDesc').textContent = section.intro;
+            document.getElementById('sectionIntroMeta').textContent = `${section.questionCount} questions • ${Math.floor(section.timeLimit / 60)} minutes`;
+
+            document.getElementById('timerBar').style.display = 'flex';
+            startSectionTimer();
+        }
+
+        function showQuestion() {
+            document.getElementById('questionScreen').classList.add('active');
+            const section = SECTIONS[currentState.sectionIndex];
+            const question = QUESTIONS[section.id][currentState.questionIndex];
+            const container = document.getElementById('questionContainer');
+            container.innerHTML = '';
+
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question-container';
+
+            const questionNum = document.createElement('div');
+            questionNum.className = 'question-number';
+            questionNum.textContent = `QUESTION ${currentState.questionIndex + 1} OF ${section.questionCount}`;
+            questionDiv.appendChild(questionNum);
+
+            if (question.passage) {
+                const passage = document.createElement('div');
+                passage.className = 'passage';
+                passage.textContent = question.passage;
+                questionDiv.appendChild(passage);
+            }
+
+            const questionText = document.createElement('div');
+            questionText.className = 'question-text';
+            questionText.textContent = question.question;
+            questionDiv.appendChild(questionText);
+
+            if (question.type === 'mc') {
+                const options = document.createElement('div');
+                options.className = 'options';
+
+                question.options.forEach((option, idx) => {
+                    const label = document.createElement('label');
+                    label.className = 'option';
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = `q${currentState.sectionIndex}_${currentState.questionIndex}`;
+                    input.value = idx;
+
+                    const answerKey = `${section.id}_${currentState.questionIndex}`;
+                    if (currentState.answers[answerKey] === idx) {
+                        input.checked = true;
+                        label.classList.add('selected');
+                    }
+
+                    input.addEventListener('change', (e) => {
+                        document.querySelectorAll(`input[name="${input.name}"]`).forEach(radio => {
+                            radio.parentElement.classList.remove('selected');
+                        });
+                        label.classList.add('selected');
+                        currentState.answers[answerKey] = idx;
+                    });
+
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(option));
+                    options.appendChild(label);
+                });
+
+                questionDiv.appendChild(options);
+            } else if (question.type === 'writing') {
+                const writingDiv = document.createElement('div');
+                writingDiv.className = 'writing-section';
+
+                const prompt = document.createElement('div');
+                prompt.className = 'writing-prompt';
+                prompt.textContent = question.question;
+                writingDiv.appendChild(prompt);
+
+                const textarea = document.createElement('textarea');
+                textarea.id = 'writingInput';
+                const answerKey = `${section.id}_${currentState.questionIndex}`;
+                if (currentState.answers[answerKey]) {
+                    textarea.value = currentState.answers[answerKey];
+                }
+                textarea.addEventListener('input', (e) => {
+                    currentState.answers[answerKey] = e.target.value;
+                });
+                writingDiv.appendChild(textarea);
+                questionDiv.appendChild(writingDiv);
+            }
+
+            container.appendChild(questionDiv);
+        }
+
+        function showCompletion() {
+            document.getElementById('completionScreen').classList.add('active');
+            document.getElementById('timerBar').style.display = 'none';
+
+            const totalQuestions = SECTIONS.reduce((sum, s) => sum + s.questionCount, 0);
+            const answered = Object.keys(currentState.answers).length;
+            const effort = Math.round((answered / totalQuestions) * 100);
+
+            document.getElementById('effortScore').textContent = effort + '%';
+            document.getElementById('submissionStatus').textContent = 'Submitting results...';
+
+            submitResults(effort);
+        }
+
+        function startSectionTimer() {
+            if (currentState.timerInterval) clearInterval(currentState.timerInterval);
+
+            const section = SECTIONS[currentState.sectionIndex];
+            currentState.timeRemaining = section.timeLimit;
+            currentState.startTime = Date.now();
+
+            updateTimerDisplay();
+
+            currentState.timerInterval = setInterval(() => {
+                currentState.timeRemaining = Math.max(0, section.timeLimit - Math.floor((Date.now() - currentState.startTime) / 1000));
+                updateTimerDisplay();
+
+                if (currentState.timeRemaining <= 0) {
+                    clearInterval(currentState.timerInterval);
+                    nextQuestion();
+                }
+            }, 100);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(currentState.timeRemaining / 60);
+            const seconds = currentState.timeRemaining % 60;
+            const display = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('timerCountdown').textContent = display;
+
+            const countdown = document.getElementById('timerCountdown');
+            if (currentState.timeRemaining <= 30) {
+                countdown.classList.add('warning');
+            } else {
+                countdown.classList.remove('warning');
+            }
+        }
+
+        function updateUI() {
+            const progress = calculateProgress();
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            const section = SECTIONS[currentState.sectionIndex];
+            document.getElementById('sectionTitle').textContent = section.title;
+
+            if (currentState.screen === 'question') {
+                const questionNum = currentState.questionIndex + 1;
+                document.getElementById('navInfo').textContent = `${questionNum} / ${section.questionCount}`;
+                document.getElementById('backBtn').disabled = currentState.questionIndex === 0 && currentState.sectionIndex === 0;
+                document.getElementById('nextBtn').textContent = currentState.questionIndex === section.questionCount - 1 ? 'SUBMIT' : 'NEXT →';
+            }
+        }
+
+        function calculateProgress() {
+            let totalQuestions = 0;
+            let answeredQuestions = 0;
+
+            SECTIONS.forEach((section, sIdx) => {
+                for (let qIdx = 0; qIdx < section.questionCount; qIdx++) {
+                    totalQuestions++;
+                    const key = `${section.id}_${qIdx}`;
+                    if (currentState.answers[key] !== undefined) {
+                        answeredQuestions++;
+                    }
+                }
+            });
+
+            return Math.round((answeredQuestions / totalQuestions) * 100);
+        }
+
+        function nextQuestion() {
+            const section = SECTIONS[currentState.sectionIndex];
+
+            if (currentState.screen === 'welcome') {
+                currentState.sectionIndex = 0;
+                currentState.questionIndex = 0;
+                showScreen('sectionIntro');
+            } else if (currentState.screen === 'sectionIntro') {
+                currentState.questionIndex = 0;
+                showScreen('question');
+            } else if (currentState.screen === 'question') {
+                if (currentState.questionIndex < section.questionCount - 1) {
+                    currentState.questionIndex++;
+                    showScreen('question');
+                } else if (currentState.sectionIndex < SECTIONS.length - 1) {
+                    currentState.sectionIndex++;
+                    currentState.questionIndex = 0;
+                    showScreen('sectionIntro');
+                } else {
+                    showScreen('completion');
+                }
+            }
+
+            updateUI();
+        }
+
+        function previousQuestion() {
+            const section = SECTIONS[currentState.sectionIndex];
+
+            if (currentState.screen === 'sectionIntro' && currentState.sectionIndex > 0) {
+                currentState.sectionIndex--;
+                currentState.questionIndex = SECTIONS[currentState.sectionIndex].questionCount - 1;
+                showScreen('question');
+            } else if (currentState.screen === 'question') {
+                if (currentState.questionIndex > 0) {
+                    currentState.questionIndex--;
+                    showScreen('question');
+                } else if (currentState.sectionIndex > 0) {
+                    currentState.sectionIndex--;
+                    currentState.questionIndex = SECTIONS[currentState.sectionIndex].questionCount - 1;
+                    showScreen('question');
+                }
+            }
+
+            updateUI();
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextQuestion();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                previousQuestion();
+            }
+        }
+
+        function submitResults(effort) {
+            const payload = {
+                student: CONFIG.student,
+                grade: CONFIG.grade,
+                testId: CONFIG.testId,
+                testLabel: CONFIG.testLabel,
+                timestamp: new Date().toISOString(),
+                effortScore: effort,
+                totalQuestionsAttempted: Object.keys(currentState.answers).length,
+                totalQuestions: 50,
+                sectionResults: {},
+                answers: currentState.answers,
+                credits: 15
+            };
+
+            // Calculate section-level stats
+            SECTIONS.forEach(section => {
+                let sectionAttempted = 0;
+                for (let i = 0; i < section.questionCount; i++) {
+                    if (currentState.answers[`${section.id}_${i}`] !== undefined) {
+                        sectionAttempted++;
+                    }
+                }
+                payload.sectionResults[section.title] = {
+                    attempted: sectionAttempted,
+                    total: section.questionCount
+                };
+            });
+
+            // Attempt to POST to Google Apps Script
+            fetch(CONFIG.webAppUrl, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => {
+                    document.getElementById('submissionStatus').textContent = '✓ Results transmitted successfully';
+                    saveLocalBackup(payload);
+                })
+                .catch(error => {
+                    console.error('Submission error:', error);
+                    document.getElementById('submissionStatus').textContent = '✓ Results saved locally (offline mode)';
+                    saveLocalBackup(payload);
+                });
+        }
+
+        function saveLocalBackup(data) {
+            const backup = {
+                ...data,
+                savedAt: new Date().toISOString(),
+                backupId: 'local_' + Date.now()
+            };
+            localStorage.setItem('diagnosticTestResults', JSON.stringify(backup));
+        }
+
+        // Start the application
+        init();
+        showScreen('welcome');
+    </script>
+</body>
+</html>
