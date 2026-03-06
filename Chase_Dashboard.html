@@ -1667,7 +1667,47 @@ async function loadDiagnosticTests() {
   } catch (err) {
     console.warn('Failed to load diagnostic tests:', err);
   }
+
+  // FALLBACK: If API returns nothing, check for hardcoded March 2026 diagnostic
+  if (!diagnosticTests || diagnosticTests.length === 0) {
+    const signal = JSON.parse(localStorage.getItem('chase_diagnostic_signal') || 'null');
+    const isCompleted = signal && signal.completed && signal.testId === 'targeted_diagnostic_20260306';
+    diagnosticTests = [{
+      TestLabel: 'Targeted Diagnostic — March 2026',
+      Month: 'March 2026',
+      TestURL: 'Diagnostic_Test_Chase_March2026.html',
+      AvailableDate: '2026-03-06',
+      DueDate: '2026-03-09',
+      Completed: isCompleted ? 'TRUE' : 'FALSE',
+      CompletedDate: isCompleted ? signal.date : '',
+      PointsAwarded: 15
+    }];
+  }
+
+  // Check for diagnostic completion signal and credit points
+  checkDiagnosticReturn();
   renderDiagnosticSection();
+}
+
+function checkDiagnosticReturn() {
+  try {
+    const signal = JSON.parse(localStorage.getItem('chase_diagnostic_signal') || 'null');
+    if (!signal || !signal.completed) return;
+    const today = new Date().toISOString().split('T')[0];
+    if (signal.date !== today) return;
+
+    // Mark today's tasks as complete (diagnostic replaces daily stack)
+    const dayData = data.days && data.days[today];
+    if (dayData && !dayData.diagnosticComplete) {
+      dayData.session = true;
+      dayData.khan = true;
+      dayData.reading = true;
+      dayData.diagnosticComplete = true;
+      dayData.diagnosticPoints = 15;
+      save();
+      renderTasks();
+    }
+  } catch(e) { console.warn('Diagnostic signal check failed:', e); }
 }
 
 function renderDiagnosticSection() {
