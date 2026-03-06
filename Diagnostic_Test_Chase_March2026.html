@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Diagnostic Test">
+    <title>Diagnostic Test — Chase</title>
+    <style>
+        :root {
+            --primary: #0a0a0f;
+            --accent: #00ff88;
+            --secondary: #00ccff;
+            --warning: #ffaa00;
+            --success: #00ff88;
+            --error: #ff4444;
+            --glow: 0 0 20px rgba(0,255,136,0.1);
+            --glow-strong: 0 0 30px rgba(0,255,136,0.3);
+            --text-primary: #ffffff;
+            --text-secondary: #00ff88;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            color: var(--text-primary);
+            font-family: Courier New, monospace;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, var(--accent), var(--secondary));
+            z-index: 1000;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .timer-bar {
+            position: fixed;
+            top: 8px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: rgba(0,255,136,0.2);
+            z-index: 999;
+        }
+
+        .timer-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            width: 100%;
+            transition: width 0.1s linear;
+        }
+
+        .timer-warning {
+            background-color: var(--warning) !important;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-top: 20px;
+            padding-bottom: 120px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .screen {
+            display: none;
+            padding: 20px;
+            min-height: 100%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .welcome-header {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            box-shadow: var(--glow);
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        .welcome-columns {
+            font-size: 11px;
+            color: var(--accent);
+            margin-bottom: 10px;
+            word-spacing: 4px;
+            letter-spacing: 1px;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 40px;
+            text-shadow: 0 0 20px rgba(0,255,136,0.5);
+        }
+
+        .welcome-subtitle {
+            font-size: 18px;
+            color: var(--secondary);
+            margin-bottom: 50px;
+        }
+
+        .start-button {
+            padding: 15px 40px;
+            font-size: 16px;
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            color: var(--primary);
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: Courier New, monospace;
+            font-weight: bold;
+            box-shadow: var(--glow-strong);
+            transition: all 0.3s ease;
+        }
+
+        .start-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 40px rgba(0,255,136,0.5);
+        }
+
+        /* Section Intro */
+        .section-intro {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 28px;
+            color: var(--accent);
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(0,255,136,0.5);
+            box-shadow: var(--glow);
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        .section-info {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .section-info-line {
+            margin-bottom: 10px;
+        }
+
+        .proceed-button {
+            margin-top: 30px;
+            padding: 12px 30px;
+            font-size: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            color: var(--primary);
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: Courier New, monospace;
+            font-weight: bold;
+            box-shadow: var(--glow-strong);
+            transition: all 0.3s ease;
+        }
+
+        .proceed-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 40px rgba(0,255,136,0.5);
+        }
+
+        /* Questions */
+        .question-container {
+            margin-bottom: 25px;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: var(--accent);
+        }
+
+        .question-number {
+            font-weight: bold;
+        }
+
+        .question-text {
+            font-size: 15px;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            line-height: 1.5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .passage {
+            background-color: rgba(0,255,136,0.05);
+            border-left: 3px solid var(--accent);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .passage-label {
+            font-size: 12px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .option {
+            padding: 12px 15px;
+            background-color: transparent;
+            border: 2px solid rgba(0,255,136,0.3);
+            color: var(--text-primary);
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .option:active {
+            background-color: rgba(0,255,136,0.2);
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+        }
+
+        .option.selected {
+            background-color: rgba(0,255,136,0.3);
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+            color: var(--accent);
+        }
+
+        .option.correct {
+            background-color: rgba(0,255,136,0.4);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .option.incorrect {
+            background-color: rgba(255,68,68,0.2);
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        /* Writing Input */
+        .writing-input {
+            width: 100%;
+            padding: 12px;
+            background-color: rgba(0,255,136,0.05);
+            border: 2px solid rgba(0,255,136,0.3);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .writing-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+            background-color: rgba(0,255,136,0.1);
+        }
+
+        /* Navigation */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background-color: var(--primary);
+            border-top: 2px solid rgba(0,255,136,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
+        }
+
+        .nav-button {
+            padding: 10px 20px;
+            font-size: 14px;
+            background: transparent;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: Courier New, monospace;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:active {
+            background-color: rgba(0,255,136,0.2);
+            box-shadow: var(--glow);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .nav-info {
+            font-size: 12px;
+            color: var(--accent);
+            text-align: center;
+        }
+
+        /* Completion Screen */
+        .completion-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .completion-header {
+            font-size: 28px;
+            color: var(--accent);
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(0,255,136,0.5);
+        }
+
+        .rocket {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .effort-score {
+            font-size: 18px;
+            color: var(--secondary);
+            margin: 30px 0;
+            box-shadow: var(--glow);
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        .completion-message {
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .completion-button {
+            padding: 12px 30px;
+            font-size: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            color: var(--primary);
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: Courier New, monospace;
+            font-weight: bold;
+            box-shadow: var(--glow-strong);
+        }
+
+        .completion-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Scrollbar Styling */
+        .content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: rgba(0,255,136,0.3);
+            border-radius: 3px;
+        }
+
+        .content::-webkit-scrollbar-thumb:active {
+            background: rgba(0,255,136,0.6);
+        }
+
+        /* Utility */
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar"></div>
+    <div class="timer-bar">
+        <div class="timer-bar-fill"></div>
+    </div>
+
+    <div class="content">
+        <!-- Welcome Screen -->
+        <div class="screen welcome-screen active">
+            <div class="welcome-header">
+                <div class="welcome-columns">▸▸▸▸▸▸▸▸</div>
+                <div style="margin-top: 10px;">SYSTEM ONLINE</div>
+            </div>
+            <div class="welcome-title">Welcome, Chase</div>
+            <div class="welcome-subtitle">DIAGNOSTIC TEST READY</div>
+            <button class="start-button" onclick="startTest()">BEGIN TEST</button>
+        </div>
+
+        <!-- Section 1 Intro -->
+        <div class="screen section-intro">
+            <div class="section-title">SECTION 1</div>
+            <div class="section-info">
+                <div class="section-info-line">READING COMPREHENSION</div>
+                <div class="section-info-line" style="font-size: 12px; color: var(--secondary);">10 Questions • 12 Minutes</div>
+            </div>
+            <button class="proceed-button" onclick="proceedToSection(0)">BEGIN</button>
+        </div>
+
+        <!-- Section 1 Questions -->
+        <div class="screen" id="section-0"></div>
+
+        <!-- Section 2 Intro -->
+        <div class="screen section-intro">
+            <div class="section-title">SECTION 2</div>
+            <div class="section-info">
+                <div class="section-info-line">MATHEMATICS</div>
+                <div class="section-info-line" style="font-size: 12px; color: var(--secondary);">10 Questions • 12 Minutes</div>
+            </div>
+            <button class="proceed-button" onclick="proceedToSection(1)">BEGIN</button>
+        </div>
+
+        <!-- Section 2 Questions -->
+        <div class="screen" id="section-1"></div>
+
+        <!-- Section 3 Intro -->
+        <div class="screen section-intro">
+            <div class="section-title">SECTION 3</div>
+            <div class="section-info">
+                <div class="section-info-line">QUANTITATIVE REASONING</div>
+                <div class="section-info-line" style="font-size: 12px; color: var(--secondary);">10 Questions • 8 Minutes</div>
+            </div>
+            <button class="proceed-button" onclick="proceedToSection(2)">BEGIN</button>
+        </div>
+
+        <!-- Section 3 Questions -->
+        <div class="screen" id="section-2"></div>
+
+        <!-- Section 4 Intro -->
+        <div class="screen section-intro">
+            <div class="section-title">SECTION 4</div>
+            <div class="section-info">
+                <div class="section-info-line">LANGUAGE & WRITING</div>
+                <div class="section-info-line" style="font-size: 12px; color: var(--secondary);">10 Questions • 10 Minutes</div>
+            </div>
+            <button class="proceed-button" onclick="proceedToSection(3)">BEGIN</button>
+        </div>
+
+        <!-- Section 4 Questions -->
+        <div class="screen" id="section-3"></div>
+
+        <!-- Section 5 Intro -->
+        <div class="screen section-intro">
+            <div class="section-title">SECTION 5</div>
+            <div class="section-info">
+                <div class="section-info-line">VERBAL REASONING</div>
+                <div class="section-info-line" style="font-size: 12px; color: var(--secondary);">10 Questions • 8 Minutes</div>
+            </div>
+            <button class="proceed-button" onclick="proceedToSection(4)">BEGIN</button>
+        </div>
+
+        <!-- Section 5 Questions -->
+        <div class="screen" id="section-4"></div>
+
+        <!-- Completion Screen -->
+        <div class="screen completion-screen">
+            <div class="rocket">🚀</div>
+            <div class="completion-header">TEST COMPLETE</div>
+            <div class="completion-message">Mission accomplished, Chase!</div>
+            <div class="effort-score">
+                EFFORT SCORE: <span id="effortScore">0</span>%
+            </div>
+            <div class="completion-message" style="font-size: 14px;">
+                Your responses have been submitted for analysis.
+            </div>
+            <button class="completion-button" onclick="exitTest()">EXIT</button>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <button class="nav-button" id="backBtn" onclick="previousQuestion()" disabled>← BACK</button>
+        <div class="nav-info">
+            <span id="questionIndicator">Q1 / 50</span>
+        </div>
+        <button class="nav-button" id="nextBtn" onclick="nextQuestion()">NEXT →</button>
+    </div>
+
+    <script>
+        const CONFIG = {
+            student: "Chase",
+            grade: 5,
+            testId: "targeted_diagnostic_20260306",
+            testLabel: "Targeted Diagnostic — March 2026",
+            webAppUrl: "https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec"
+        };
+
+        const SECTIONS = [
+            {
+                name: "Reading Comprehension",
+                timeLimit: 12,
+                questions: [
+                    {
+                        passage: {
+                            label: "PASSAGE 1: Solar Energy",
+                            text: "Solar panels are devices that convert sunlight directly into electricity. Inside each panel are millions of small cells made from silicon, a material found in sand. When sunlight hits these cells, it causes electrons to move, creating an electrical current. This process is called the photovoltaic effect. Solar panels don't produce pollution and can work for decades, making them an excellent renewable energy source."
+                        },
+                        text: "What is the main purpose of this passage?",
+                        options: [
+                            "To explain how solar panels convert sunlight into electricity",
+                            "To argue that solar panels are better than coal",
+                            "To describe the history of solar panel development",
+                            "To list all the materials used in solar panels"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        text: "Based on the passage, what causes electrons to move in solar cells?",
+                        options: [
+                            "Pollution",
+                            "Sunlight hitting the silicon cells",
+                            "Sand particles",
+                            "Electrical current from a battery"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "What does the word 'renewable' mean as used in the passage?",
+                        options: [
+                            "Something that is very expensive",
+                            "Something that can be repeated or used again",
+                            "Something that is dangerous",
+                            "Something that is old-fashioned"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        passage: {
+                            label: "PASSAGE 2: The Failed Prototype",
+                            text: "Marcus was an inventor who spent three years designing a robot that could fold laundry. He tested it over and over, but it kept tearing the clothes. Finally, one day, his machine caught fire and was completely destroyed. Marcus was devastated. However, he soon realized something important: every failed test taught him something valuable about how materials work and what designs wouldn't work. He started again with new ideas and better understanding. Two years later, his successful laundry robot was ready."
+                        },
+                        text: "What can we infer about Marcus from this passage?",
+                        options: [
+                            "He gave up easily when things got hard",
+                            "He learned from failure and persisted toward his goal",
+                            "He did not understand how to build machines",
+                            "He was angry at his robot"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "Why did the original robot destroy itself?",
+                        options: [
+                            "Marcus turned it off on purpose",
+                            "It ran out of electricity",
+                            "The passage does not give a specific reason, only that it caught fire",
+                            "It was too intelligent and rebelled"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "How long did it take Marcus to develop a successful laundry robot?",
+                        options: [
+                            "Two years",
+                            "Three years",
+                            "Five years total (three failed, then two more)",
+                            "The passage does not specify"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        passage: {
+                            label: "PASSAGE 3: Egyptian Engineering",
+                            text: "The ancient Egyptians were master engineers who built enormous structures like the Great Pyramid of Giza. To build these monuments, they used ramps, levers, and pulley systems to move huge stone blocks weighing many tons. Workers carefully planned each structure using mathematics and geometry. They understood how to distribute weight so buildings would stand for thousands of years. Modern engineers study these techniques because they were so effective and efficient for their time."
+                        },
+                        text: "What was the author's main purpose in writing this passage?",
+                        options: [
+                            "To persuade readers to visit Egypt",
+                            "To explain the engineering methods ancient Egyptians used",
+                            "To prove that Egyptians were smarter than other civilizations",
+                            "To teach readers how to build pyramids today"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "According to the passage, what did ancient Egyptians use to move heavy stone blocks?",
+                        options: [
+                            "Wheels and carts",
+                            "Horses and oxen",
+                            "Ramps, levers, and pulley systems",
+                            "Magic and supernatural powers"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "Why do modern engineers study ancient Egyptian building techniques?",
+                        options: [
+                            "Because Egyptians invented electricity",
+                            "Because they were effective, efficient, and buildings still stand after thousands of years",
+                            "Because modern techniques don't work",
+                            "Because modern engineers are confused about how to build"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "Which statement best describes why the Egyptian buildings have lasted so long?",
+                        options: [
+                            "They were built in a place with no earthquakes",
+                            "The Egyptians used magic to preserve them",
+                            "They understood mathematics and how to distribute weight properly",
+                            "They were not actually very old"
+                        ],
+                        correct: 2
+                    }
+                ]
+            },
+            {
+                name: "Mathematics",
+                timeLimit: 12,
+                questions: [
+                    {
+                        text: "Add these fractions: 1/3 + 2/5 = ?",
+                        options: [
+                            "3/8",
+                            "3/15",
+                            "11/15",
+                            "5/8"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "What is 3/4 of 20?",
+                        options: [
+                            "15",
+                            "18",
+                            "12",
+                            "16"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        text: "Sarah has 24 stickers. She gives 1/3 of them to her friend and then buys 8 more. How many stickers does she have now?",
+                        options: [
+                            "32",
+                            "24",
+                            "16",
+                            "40"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        text: "A baker makes 5 trays of cookies. Each tray has 12 rows with 8 cookies in each row. How many cookies did the baker make?",
+                        options: [
+                            "480",
+                            "420",
+                            "96",
+                            "60"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        text: "What is 6.5 × 4?",
+                        options: [
+                            "24",
+                            "26",
+                            "28",
+                            "20"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "What is 72 ÷ 2.5?",
+                        options: [
+                            "28.8",
+                            "29.2",
+                            "30",
+                            "32"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        text: "A rectangle has a length of 12 cm and a width of 5 cm. What is its area?",
+                        options: [
+                            "60 cm²",
+                            "34 cm²",
+                            "17 cm²",
+                            "120 cm²"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        text: "A rectangular prism has a length of 4 inches, width of 3 inches, and height of 5 inches. What is its volume?",
+                        options: [
+                            "12 cubic inches",
+                            "60 cubic inches",
+                            "20 cubic inches",
+                            "40 cubic inches"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "Look at this pattern: 2, 6, 18, 54. What is the next number?",
+                        options: [
+                            "108",
+                            "158",
+                            "162",
+                            "72"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "What is the value of: 3 + 4 × 2?",
+                        options: [
+                            "14",
+                            "11",
+                            "10",
+                            "7"
+                        ],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                name: "Quantitative Reasoning",
+                timeLimit: 8,
+                questions: [
+                    {
+                        text: "Look at the sequence: 3, 6, 12, 24. What is the next number?",
+                        options: [
+                            "36",
+                            "48",
+                            "50",
+                            "30"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "If you skip count by 7 starting at 7, what would the 5th number be?",
+                        options: [
+                            "28",
+                            "35",
+                            "42",
+                            "49"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "A book costs $12. About how much would 6 books cost?",
+                        options: [
+                            "About $50",
+                            "About $72",
+                            "About $100",
+                            "About $30"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "Look at this pattern: 1, 4, 9, 16. These are square numbers. What is the next square number?",
+                        options: [
+                            "20",
+                            "24",
+                            "25",
+                            "30"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "If A = 2 and B = 5, what is A × B + A?",
+                        options: [
+                            "12",
+                            "10",
+                            "7",
+                            "15"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        text: "Look at this sequence: 100, 50, 25. What is the pattern?",
+                        options: [
+                            "Subtract 50 each time",
+                            "Divide by 2 each time",
+                            "Subtract 25 each time",
+                            "Multiply by 2 each time"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "Which number is closest to 48?",
+                        options: [
+                            "40",
+                            "45",
+                            "50",
+                            "60"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "If a box contains 3 red balls and 2 blue balls, and you pick one without looking, which is more likely?",
+                        options: [
+                            "Red ball",
+                            "Blue ball",
+                            "They are equally likely",
+                            "Cannot determine"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        text: "Look at this pattern: 2, 4, 8, 16. What is the next number?",
+                        options: [
+                            "24",
+                            "32",
+                            "20",
+                            "28"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "What is 25% of 80?",
+                        options: [
+                            "20",
+                            "25",
+                            "30",
+                            "40"
+                        ],
+                        correct: 0
+                    }
+                ]
+            },
+            {
+                name: "Language & Writing",
+                timeLimit: 10,
+                questions: [
+                    {
+                        text: "Which sentence is correct?",
+                        options: [
+                            "The dogs runs fast.",
+                            "The dog run fast.",
+                            "The dog runs fast.",
+                            "The dog are running fast."
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "Which pronoun should replace the underlined word? 'Sarah and **Michael** went to the store.'",
+                        options: [
+                            "he",
+                            "she",
+                            "they",
+                            "it"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        text: "Where should the comma go? 'I like apples oranges and bananas.'",
+                        options: [
+                            "After 'apples' only",
+                            "After 'apples' and 'oranges'",
+                            "After 'bananas'",
+                            "No comma is needed"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "Which pair of sentences combines them best? 'The sky was dark. It started to rain.'",
+                        options: [
+                            "The sky was dark, and it started to rain.",
+                            "The sky was dark; rain started.",
+                            "The dark sky rained.",
+                            "It rained and the sky was dark."
+                        ],
+                        correct: 0
+                    },
+                    {
+                        text: "Which sentence uses a metaphor?",
+                        options: [
+                            "The cat ran quickly.",
+                            "Her smile was sunshine.",
+                            "The dog barked loudly.",
+                            "I like ice cream."
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "Which word is spelled correctly?",
+                        options: [
+                            "occassion",
+                            "ocassion",
+                            "occasion",
+                            "ocasion"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "Where is the apostrophe used correctly? 'The cat's toys are in the corner.'",
+                        options: [
+                            "The apostrophe is in the wrong place",
+                            "The apostrophe is used correctly",
+                            "An apostrophe is not needed",
+                            "Two apostrophes are needed"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "Which word is the homophone for 'their'?",
+                        options: [
+                            "there",
+                            "they're",
+                            "them",
+                            "these"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        text: "Which sentence has the main idea of this paragraph? 'Plants need sunlight, water, and soil to grow. Without these things, plants cannot survive. Every plant has different needs, but all need light and water.'",
+                        options: [
+                            "Plants need water.",
+                            "Every plant has different needs.",
+                            "Plants need sunlight, water, and soil to grow.",
+                            "Plants cannot survive without water."
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "If you could build any machine or invention, what would it do? Describe it in 3-5 sentences.",
+                        type: "writing"
+                    }
+                ]
+            },
+            {
+                name: "Verbal Reasoning",
+                timeLimit: 8,
+                questions: [
+                    {
+                        text: "What is a synonym for 'happy'?",
+                        options: [
+                            "sad",
+                            "joyful",
+                            "angry",
+                            "confused"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "What is an antonym for 'big'?",
+                        options: [
+                            "large",
+                            "huge",
+                            "small",
+                            "tall"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "Cat is to kitten as dog is to...",
+                        options: [
+                            "puppy",
+                            "pet",
+                            "bark",
+                            "wolf"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        text: "Which word does NOT belong in this group? Apple, banana, carrot, orange",
+                        options: [
+                            "Apple",
+                            "Banana",
+                            "Carrot",
+                            "Orange"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "If all cats are animals and Fluffy is a cat, then Fluffy must be...",
+                        options: [
+                            "a bird",
+                            "an animal",
+                            "white",
+                            "fast"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "What is a synonym for 'beautiful'?",
+                        options: [
+                            "ugly",
+                            "pretty",
+                            "noisy",
+                            "slow"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "Hat is to head as shoe is to...",
+                        options: [
+                            "sock",
+                            "foot",
+                            "hand",
+                            "leg"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "Which group contains only items you would wear?",
+                        options: [
+                            "Shoes, hat, spoon, gloves",
+                            "Pants, shirt, socks, jacket",
+                            "Chair, desk, pencil, book",
+                            "Plate, cup, fork, napkin"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        text: "What is an antonym for 'fast'?",
+                        options: [
+                            "quick",
+                            "rapid",
+                            "slow",
+                            "speedy"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        text: "Square is to four-sided as triangle is to...",
+                        options: [
+                            "circle",
+                            "three-sided",
+                            "rectangular",
+                            "pointed"
+                        ],
+                        correct: 1
+                    }
+                ]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let currentSection = -1;
+        let testStarted = false;
+        let sectionStartTimes = {};
+        let answers = {};
+        let sectionTimeRemaining = {};
+        let currentSectionStartTime = null;
+        let currentSectionTimeLimit = 0;
+        let timerInterval = null;
+
+        function startTest() {
+            testStarted = true;
+            currentQuestion = 0;
+            currentSection = -1;
+            answers = {};
+            sectionTimeRemaining = {};
+            showScreen('section-intro-0');
+        }
+
+        function showScreen(screenId) {
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(screen => screen.classList.remove('active'));
+
+            if (screenId === 'section-intro-0') {
+                document.querySelectorAll('.screen')[1].classList.add('active');
+            } else if (screenId.startsWith('section-intro-')) {
+                const sectionNum = parseInt(screenId.split('-')[2]);
+                document.querySelectorAll('.screen')[2 + sectionNum * 2].classList.add('active');
+            } else if (screenId.startsWith('section-')) {
+                const sectionNum = parseInt(screenId.split('-')[1]);
+                document.querySelectorAll('.screen')[3 + sectionNum * 2].classList.add('active');
+            } else if (screenId === 'completion') {
+                document.querySelectorAll('.screen')[11].classList.add('active');
+            }
+
+            updateProgressBar();
+        }
+
+        function proceedToSection(sectionIndex) {
+            currentSection = sectionIndex;
+            currentQuestion = SECTIONS[sectionIndex].questions.length > 0 ? 0 : -1;
+            currentSectionStartTime = Date.now();
+            currentSectionTimeLimit = SECTIONS[sectionIndex].timeLimit * 60 * 1000;
+            sectionTimeRemaining[sectionIndex] = currentSectionTimeLimit;
+            renderSection(sectionIndex);
+            startSectionTimer(sectionIndex);
+            updateProgressBar();
+            updateNavigationButtons();
+        }
+
+        function renderSection(sectionIndex) {
+            const section = SECTIONS[sectionIndex];
+            const container = document.getElementById('section-' + sectionIndex);
+            container.innerHTML = '';
+
+            section.questions.forEach((q, idx) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-container';
+                questionDiv.id = 'q-' + sectionIndex + '-' + idx;
+
+                const totalQuestions = SECTIONS.reduce((sum, sec) => sum + sec.questions.length, 0);
+                const globalQuestionNumber = SECTIONS.slice(0, sectionIndex).reduce((sum, sec) => sum + sec.questions.length, 0) + idx + 1;
+
+                let html = `<div class="question-header">
+                    <span class="question-number">Q${globalQuestionNumber}</span>
+                    <span>${globalQuestionNumber} / ${totalQuestions}</span>
+                </div>`;
+
+                if (q.passage) {
+                    html += `<div class="passage">
+                        <div class="passage-label">${q.passage.label}</div>
+                        <div>${q.passage.text}</div>
+                    </div>`;
+                }
+
+                html += `<div class="question-text">${q.text}</div>`;
+
+                if (q.type === 'writing') {
+                    html += `<textarea class="writing-input" id="answer-${sectionIndex}-${idx}" placeholder="Type your answer here..."></textarea>`;
+                } else {
+                    html += `<div class="options">`;
+                    q.options.forEach((option, optIdx) => {
+                        html += `<button class="option" onclick="selectAnswer(${sectionIndex}, ${idx}, ${optIdx})" id="opt-${sectionIndex}-${idx}-${optIdx}">
+                            ${option}
+                        </button>`;
+                    });
+                    html += `</div>`;
+                }
+
+                questionDiv.innerHTML = html;
+                container.appendChild(questionDiv);
+
+                if (answers[sectionIndex] && answers[sectionIndex][idx] !== undefined) {
+                    const answerVal = answers[sectionIndex][idx];
+                    if (q.type === 'writing') {
+                        document.getElementById('answer-' + sectionIndex + '-' + idx).value = answerVal;
+                    } else {
+                        document.getElementById('opt-' + sectionIndex + '-' + idx + '-' + answerVal).classList.add('selected');
+                    }
+                }
+            });
+
+            const screenDiv = document.getElementById('section-' + sectionIndex);
+            screenDiv.parentElement.querySelector('.screen#section-' + sectionIndex).classList.add('active');
+        }
+
+        function selectAnswer(sectionIndex, questionIndex, optionIndex) {
+            if (!answers[sectionIndex]) {
+                answers[sectionIndex] = {};
+            }
+            answers[sectionIndex][questionIndex] = optionIndex;
+
+            const prevSelected = document.querySelector(`#opt-${sectionIndex}-${questionIndex}.selected`);
+            if (prevSelected) {
+                prevSelected.classList.remove('selected');
+            }
+            document.getElementById(`opt-${sectionIndex}-${questionIndex}-${optionIndex}`).classList.add('selected');
+        }
+
+        function nextQuestion() {
+            const section = SECTIONS[currentSection];
+
+            if (currentQuestion < section.questions.length - 1) {
+                currentQuestion++;
+                updateProgressBar();
+                updateNavigationButtons();
+                document.querySelector('.content').scrollTop = 0;
+            } else if (currentSection < SECTIONS.length - 1) {
+                currentSection++;
+                currentQuestion = 0;
+                stopSectionTimer(currentSection - 1);
+                renderSection(currentSection);
+                startSectionTimer(currentSection);
+                updateProgressBar();
+                updateNavigationButtons();
+                document.querySelector('.content').scrollTop = 0;
+            } else {
+                completeTest();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                updateProgressBar();
+                updateNavigationButtons();
+                document.querySelector('.content').scrollTop = 0;
+            }
+        }
+
+        function startSectionTimer(sectionIndex) {
+            clearInterval(timerInterval);
+            const section = SECTIONS[sectionIndex];
+            const startTime = Date.now();
+
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, section.timeLimit * 60 * 1000 - elapsed);
+                const percent = (remaining / (section.timeLimit * 60 * 1000)) * 100;
+
+                document.querySelector('.timer-bar-fill').style.width = percent + '%';
+
+                if (remaining === 0) {
+                    clearInterval(timerInterval);
+                    if (currentSection === sectionIndex && currentQuestion === section.questions.length - 1) {
+                        nextQuestion();
+                    }
+                }
+            }, 100);
+        }
+
+        function stopSectionTimer(sectionIndex) {
+            clearInterval(timerInterval);
+        }
+
+        function updateProgressBar() {
+            const totalQuestions = SECTIONS.reduce((sum, sec) => sum + sec.questions.length, 0);
+            const completedQuestions = SECTIONS.slice(0, currentSection).reduce((sum, sec) => sum + sec.questions.length, 0) + currentQuestion;
+            const percent = (completedQuestions / totalQuestions) * 100;
+            document.querySelector('.progress-bar').style.transform = `scaleX(${percent / 100})`;
+            document.getElementById('questionIndicator').textContent = `Q${completedQuestions + 1} / ${totalQuestions}`;
+        }
+
+        function updateNavigationButtons() {
+            const totalQuestions = SECTIONS.reduce((sum, sec) => sum + sec.questions.length, 0);
+            const completedQuestions = SECTIONS.slice(0, currentSection).reduce((sum, sec) => sum + sec.questions.length, 0) + currentQuestion;
+
+            document.getElementById('backBtn').disabled = completedQuestions === 0;
+
+            if (completedQuestions === totalQuestions - 1) {
+                document.getElementById('nextBtn').textContent = 'FINISH →';
+            } else {
+                document.getElementById('nextBtn').textContent = 'NEXT →';
+            }
+        }
+
+        function completeTest() {
+            clearInterval(timerInterval);
+
+            const totalQuestions = SECTIONS.reduce((sum, sec) => sum + sec.questions.length, 0);
+            let answeredCount = 0;
+
+            SECTIONS.forEach((section, sIdx) => {
+                if (answers[sIdx]) {
+                    answeredCount += Object.keys(answers[sIdx]).length;
+                }
+            });
+
+            const effortScore = Math.round((answeredCount / totalQuestions) * 100);
+            document.getElementById('effortScore').textContent = effortScore;
+
+            submitResults(effortScore);
+            showScreen('completion');
+        }
+
+        function submitResults(effortScore) {
+            const resultsData = {
+                student: CONFIG.student,
+                grade: CONFIG.grade,
+                testId: CONFIG.testId,
+                testLabel: CONFIG.testLabel,
+                timestamp: new Date().toISOString(),
+                effortScore: effortScore,
+                totalQuestions: SECTIONS.reduce((sum, sec) => sum + sec.questions.length, 0),
+                answers: answers,
+                sections: SECTIONS.map(s => s.name)
+            };
+
+            localStorage.setItem('diagnosticResults_' + CONFIG.testId, JSON.stringify(resultsData));
+
+            creditDiagnosticPoints(effortScore);
+
+            fetch(CONFIG.webAppUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(resultsData)
+            }).catch(err => {
+                console.log('Results saved locally. Online submission failed.');
+            });
+        }
+
+        function creditDiagnosticPoints(effortScore) {
+            // Write localStorage signal for dashboard to detect
+            const today = new Date().toISOString().split('T')[0];
+            const signal = {
+                completed: true,
+                timestamp: new Date().toISOString(),
+                date: today,
+                testId: CONFIG.testId,
+                testLabel: CONFIG.testLabel,
+                points: 15,
+                effortScore: effortScore
+            };
+            localStorage.setItem('chase_diagnostic_signal', JSON.stringify(signal));
+
+            // Also mark daily tasks complete for today (diagnostic replaces daily stack)
+            const dashKey = 'chase_dashboard_v3';
+            try {
+                const dashData = JSON.parse(localStorage.getItem(dashKey) || '{}');
+                if (!dashData.days) dashData.days = {};
+                if (!dashData.days[today]) dashData.days[today] = {};
+                dashData.days[today].session = true;
+                dashData.days[today].khan = true;
+                dashData.days[today].reading = true;
+                dashData.days[today].diagnosticComplete = true;
+                dashData.days[today].diagnosticPoints = 15;
+                localStorage.setItem(dashKey, JSON.stringify(dashData));
+            } catch(e) { console.log('Could not update dashboard data'); }
+
+            // POST completeDiagnosticTest to Apps Script
+            try {
+                fetch(CONFIG.webAppUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        action: 'completeDiagnosticTest',
+                        student: CONFIG.student,
+                        testId: CONFIG.testId,
+                        date: today,
+                        points: 15
+                    })
+                });
+            } catch(e) { console.log('Points POST failed'); }
+
+            // Show completion message and redirect
+            if (confirm(`Nice work, Chase! Diagnostic scan complete.\n\n+15 PTS credited!\n\nTap OK to return to Mission Control.`)) {
+                window.location.href = 'Chase_Dashboard.html';
+            }
+        }
+
+        function exitTest() {
+            window.close();
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            updateProgressBar();
+        });
+    </script>
+</body>
+</html>
