@@ -562,7 +562,7 @@ async function submitResults() {
     const result=await r.json();
     if(result.success){
       statusEl.textContent='✓ Results mapped! Crediting your progress...';
-      statusEl.style.color=var(--accent);
+      statusEl.style.color='#2eaaaa';
       await creditDiagnosticPoints();
     }
     else{statusEl.textContent='Saved locally. Ask your parent to sync.';console.error(result);}
