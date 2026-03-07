@@ -1603,6 +1603,23 @@
             });
         }
 
+        // Test-taking strategy tips — shown on wrong answers to build exam skills
+        const STRATEGY_TIPS = [
+            "Strategy tip: When you don't know a word, look at the answer choices. If three options mean something similar and one is different, the different one is usually correct.",
+            "Strategy tip: Before picking an answer, try to eliminate choices you KNOW are wrong. Even removing one bad option doubles your odds.",
+            "Strategy tip: Re-read the question carefully. Sometimes the answer is right in the passage — look for keywords from the question.",
+            "Strategy tip: Watch for 'absolute' words like 'always', 'never', or 'only' in answer choices. These extremes are often wrong.",
+            "Strategy tip: If two answer choices seem opposite, one of them is usually correct. Focus your thinking on those two.",
+            "Strategy tip: Trust your first instinct, but verify it. If you can explain WHY an answer is right, you're probably correct.",
+            "Strategy tip: Don't overthink it. The simplest answer supported by the text is usually the right one.",
+            "Strategy tip: For vocabulary questions, plug each answer choice back into the sentence. Which one makes the most sense in context?",
+            "Strategy tip: Read ALL four options before choosing. The first good-looking answer isn't always the BEST answer.",
+            "Strategy tip: If you're stuck, skip and come back. Fresh eyes on a tricky question can make the answer obvious.",
+            "Strategy tip: Look for clue words in the passage like 'however', 'therefore', 'because' — they signal the author's main point.",
+            "Strategy tip: On tests, manage your time. Don't spend 3 minutes on one question when you could answer two easier ones instead."
+        ];
+        let tipIndex = Math.floor(Math.random() * STRATEGY_TIPS.length);
+
         function handleAnswerSelect(selectedIndex, optionElement) {
             const question = currentTopic.questions[currentQuestionIndex];
             const isCorrect = selectedIndex === question.correct;
@@ -1626,7 +1643,10 @@
                 const correctOption = document.querySelectorAll('.option')[question.correct];
                 correctOption.classList.add('correct');
                 feedbackLabel.textContent = 'Not Quite';
-                feedbackText.textContent = question.explanation;
+                // Add a test-taking strategy tip after the explanation
+                const tip = STRATEGY_TIPS[tipIndex % STRATEGY_TIPS.length];
+                tipIndex++;
+                feedbackText.innerHTML = question.explanation + '<br><br><span style="color:var(--accent); font-style:italic; font-size:12px;">' + tip + '</span>';
                 feedbackBox.classList.add('incorrect');
             }
 
