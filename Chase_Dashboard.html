@@ -1814,14 +1814,9 @@ function renderDiagnosticSection() {
   let actionHtml = '';
   if (completed) {
     const pts = test.PointsAwarded || 15;
-    // Check if Chase still needs to finish remaining questions
-    const continueKey = 'diagnosticResults_targeted_diagnostic_20260306';
-    const hasFullResults = (() => { try { const r = JSON.parse(localStorage.getItem(continueKey)); return r && r.answers && r.answers[4] && Object.keys(r.answers[4]).length >= 8; } catch(e) { return false; } })();
-    const continueHtml = !hasFullResults ? `<a class="diagnostic-btn" href="Chase_Diagnostic_Continue.html" style="margin-top:6px; background:var(--secondary); font-size:12px; padding:8px 16px;">Finish Last 10 Questions &#8594;</a>` : '';
     actionHtml = `
       <div class="diagnostic-completed-badge">&#10003; EXPEDITION COMPLETE</div>
       <div class="diagnostic-points">+${pts} PTS EARNED</div>
-      ${continueHtml}
       <a class="diagnostic-btn" href="Diagnostic_Review_Chase.html" style="margin-top:10px; background:linear-gradient(135deg, #2eaaaa, #d4a843); color:#1a1208; font-size:15px; padding:14px 28px; border-radius:8px; box-shadow: 0 4px 15px rgba(46,170,170,0.4); text-shadow: none; display:inline-block;">Review with Doug &#8594;</a>
     `;
   } else if (isExpired) {
