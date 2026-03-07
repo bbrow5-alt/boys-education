@@ -428,362 +428,138 @@
     </div>
 
     <script>
-        // All questions data (50 questions across 5 sections)
+        // Exact SECTIONS array from Diagnostic_Test_Chase_March2026.html
         const SECTIONS = [
-            {
-                name: "Reading Comprehension",
-                timeLimit: 12,
-                questions: [
-                    {
-                        passage: {
-                            label: "PASSAGE 1: Solar Energy",
-                            text: "Solar panels are devices that convert sunlight directly into electricity. Inside each panel are millions of small cells made from silicon, a material found in sand. When sunlight hits these cells, it causes electrons to move, creating an electrical current. This process is called the photovoltaic effect. Solar panels don't produce pollution and can work for decades, making them an excellent renewable energy source."
-                        },
-                        text: "What is the main purpose of this passage?",
-                        options: [
-                            "To explain how solar panels convert sunlight into electricity",
-                            "To argue that solar panels are better than coal",
-                            "To describe the history of solar panel development",
-                            "To list all the materials used in solar panels"
-                        ],
-                        correct: 0
-                    },
-                    {
-                        text: "Based on the passage, what causes electrons to move in solar cells?",
-                        options: [
-                            "Pollution",
-                            "Sunlight hitting the silicon cells",
-                            "Sand particles",
-                            "Electrical current from a battery"
-                        ],
-                        correct: 1,
-                        passageRef: 0
-                    },
-                    {
-                        text: "What does the word 'renewable' mean as used in the passage?",
-                        options: [
-                            "Something that is very expensive",
-                            "Something that can be repeated or used again",
-                            "Something that is dangerous",
-                            "Something that is old-fashioned"
-                        ],
-                        correct: 1,
-                        passageRef: 0
-                    },
-                    {
-                        passage: {
-                            label: "PASSAGE 2: The Failed Prototype",
-                            text: "Marcus was an inventor who spent three years designing a robot that could fold laundry. He tested it over and over, but it kept tearing the clothes. Finally, one day, his machine caught fire and was completely destroyed. Marcus was devastated. However, he soon realized something important: every failed test taught him something valuable about how materials work and what designs wouldn't work. He started again with new ideas and better understanding. Two years later, his successful laundry robot was ready."
-                        },
-                        text: "What can we infer about Marcus from this passage?",
-                        options: [
-                            "He gave up easily when things got hard",
-                            "He learned from failure and persisted toward his goal",
-                            "He did not understand how to build machines",
-                            "He was angry at his robot"
-                        ],
-                        correct: 1
-                    },
-                    {
-                        text: "Why did the original robot destroy itself?",
-                        options: [
-                            "Marcus turned it off on purpose",
-                            "It ran out of electricity",
-                            "The passage does not give a specific reason, only that it caught fire",
-                            "It was too intelligent and rebelled"
-                        ],
-                        correct: 2,
-                        passageRef: 1
-                    },
-                    {
-                        text: "How long did it take Marcus to develop a successful laundry robot?",
-                        options: [
-                            "Two years",
-                            "Three years",
-                            "Five years total (three failed, then two more)",
-                            "The passage does not specify"
-                        ],
-                        correct: 2,
-                        passageRef: 1
-                    },
-                    {
-                        passage: {
-                            label: "PASSAGE 3: Egyptian Engineering",
-                            text: "The ancient Egyptians were master engineers who built enormous structures like the Great Pyramid of Giza. To build these monuments, they used ramps, levers, and pulley systems to move huge stone blocks weighing many tons. Workers carefully planned each structure using mathematics and geometry. They understood how to distribute weight so buildings would stand for thousands of years. Modern engineers study these techniques because they were so effective and efficient for their time."
-                        },
-                        text: "What was the author's main purpose in writing this passage?",
-                        options: [
-                            "To persuade readers to visit Egypt",
-                            "To explain the engineering methods ancient Egyptians used",
-                            "To prove that Egyptians were smarter than other civilizations",
-                            "To teach readers how to build pyramids today"
-                        ],
-                        correct: 1
-                    },
-                    {
-                        text: "According to the passage, what did ancient Egyptians use to move heavy stone blocks?",
-                        options: [
-                            "Wheels and carts",
-                            "Horses and oxen",
-                            "Ramps, levers, and pulley systems",
-                            "Magic and supernatural powers"
-                        ],
-                        correct: 2,
-                        passageRef: 2
-                    },
-                    {
-                        text: "Why do modern engineers study ancient Egyptian building techniques?",
-                        options: [
-                            "Because Egyptians invented electricity",
-                            "Because they were effective, efficient, and buildings still stand after thousands of years",
-                            "Because modern techniques don't work",
-                            "Because modern engineers are confused about how to build"
-                        ],
-                        correct: 1,
-                        passageRef: 2
-                    },
-                    {
-                        text: "Which statement best describes why the Egyptian buildings have lasted so long?",
-                        options: [
-                            "They were built in a place with no earthquakes",
-                            "The Egyptians used magic to preserve them",
-                            "They understood mathematics and how to distribute weight properly",
-                            "They were not actually very old"
-                        ],
-                        correct: 2,
-                        passageRef: 2
-                    }
-                ]
-            },
-            {
-                name: "Mathematics",
-                timeLimit: 12,
-                questions: [
-                    {
-                        text: "Add these fractions: 1/3 + 2/5 = ?",
-                        options: ["3/8", "3/15", "11/15", "5/8"],
-                        correct: 2
-                    },
-                    {
-                        text: "What is 3/4 of 20?",
-                        options: ["15", "18", "12", "16"],
-                        correct: 0
-                    },
-                    {
-                        text: "Sarah has 24 stickers. She gives 1/3 of them to her friend and then buys 8 more. How many stickers does she have now?",
-                        options: ["32", "24", "16", "40"],
-                        correct: 0
-                    },
-                    {
-                        text: "A baker makes 5 trays of cookies. Each tray has 12 rows with 8 cookies in each row. How many cookies did the baker make?",
-                        options: ["480", "420", "96", "60"],
-                        correct: 0
-                    },
-                    {
-                        text: "What is 6.5 × 4?",
-                        options: ["24", "26", "28", "20"],
-                        correct: 2
-                    },
-                    {
-                        text: "What is 72 ÷ 2.5?",
-                        options: ["28.8", "29.2", "30", "32"],
-                        correct: 0
-                    },
-                    {
-                        text: "A rectangle has a length of 12 cm and a width of 5 cm. What is its area?",
-                        options: ["60 cm²", "34 cm²", "17 cm²", "120 cm²"],
-                        correct: 0
-                    },
-                    {
-                        text: "A rectangular prism has a length of 4 inches, width of 3 inches, and height of 5 inches. What is its volume?",
-                        options: ["12 cubic inches", "60 cubic inches", "20 cubic inches", "40 cubic inches"],
-                        correct: 1
-                    },
-                    {
-                        text: "Look at this pattern: 2, 6, 18, 54. What is the next number?",
-                        options: ["108", "158", "162", "72"],
-                        correct: 2
-                    },
-                    {
-                        text: "What is the value of: 3 + 4 × 2?",
-                        options: ["14", "11", "10", "7"],
-                        correct: 1
-                    }
-                ]
-            },
-            {
-                name: "Quantitative Reasoning",
-                timeLimit: 8,
-                questions: [
-                    {
-                        text: "Look at the sequence: 3, 6, 12, 24. What is the next number?",
-                        options: ["36", "48", "50", "30"],
-                        correct: 1
-                    },
-                    {
-                        text: "If you skip count by 7 starting at 7, what would the 5th number be?",
-                        options: ["28", "35", "42", "49"],
-                        correct: 2
-                    },
-                    {
-                        text: "A book costs $12. About how much would 6 books cost?",
-                        options: ["About $50", "About $72", "About $100", "About $30"],
-                        correct: 1
-                    },
-                    {
-                        text: "Look at this pattern: 1, 4, 9, 16. These are square numbers. What is the next square number?",
-                        options: ["20", "24", "25", "30"],
-                        correct: 2
-                    },
-                    {
-                        text: "If A = 2 and B = 5, what is A × B + A?",
-                        options: ["12", "10", "7", "15"],
-                        correct: 0
-                    },
-                    {
-                        text: "Look at this sequence: 100, 50, 25. What is the pattern?",
-                        options: ["Subtract 50 each time", "Divide by 2 each time", "Subtract 25 each time", "Multiply by 2 each time"],
-                        correct: 1
-                    },
-                    {
-                        text: "Which number is closest to 48?",
-                        options: ["40", "45", "50", "60"],
-                        correct: 2
-                    },
-                    {
-                        text: "If a box contains 3 red balls and 2 blue balls, and you pick one without looking, which is more likely?",
-                        options: ["Red ball", "Blue ball", "They are equally likely", "Cannot determine"],
-                        correct: 0
-                    },
-                    {
-                        text: "Look at this pattern: 2, 4, 8, 16. What is the next number?",
-                        options: ["24", "32", "20", "28"],
-                        correct: 1
-                    },
-                    {
-                        text: "What is 25% of 80?",
-                        options: ["20", "25", "30", "40"],
-                        correct: 0
-                    }
-                ]
-            },
-            {
-                name: "Language & Writing",
-                timeLimit: 10,
-                questions: [
-                    {
-                        text: "Which sentence is correct?",
-                        options: ["The dogs runs fast.", "The dog run fast.", "The dog runs fast.", "The dog are running fast."],
-                        correct: 2
-                    },
-                    {
-                        text: "Which pronoun should replace the underlined word? 'Sarah and Michael went to the store.'",
-                        options: ["he", "she", "they", "it"],
-                        correct: 0
-                    },
-                    {
-                        text: "Where should the comma go? 'I like apples oranges and bananas.'",
-                        options: ["After 'apples' only", "After 'apples' and 'oranges'", "After 'bananas'", "No comma is needed"],
-                        correct: 1
-                    },
-                    {
-                        text: "Which pair of sentences combines them best? 'The sky was dark. It started to rain.'",
-                        options: ["The sky was dark, and it started to rain.", "The sky was dark; rain started.", "The dark sky rained.", "It rained and the sky was dark."],
-                        correct: 0
-                    },
-                    {
-                        text: "Which sentence uses a metaphor?",
-                        options: ["The cat ran quickly.", "Her smile was sunshine.", "The dog barked loudly.", "I like ice cream."],
-                        correct: 1
-                    },
-                    {
-                        text: "Which word is spelled correctly?",
-                        options: ["occassion", "ocassion", "occasion", "ocasion"],
-                        correct: 2
-                    },
-                    {
-                        text: "Where is the apostrophe used correctly? 'The cat's toys are in the corner.'",
-                        options: ["The apostrophe is in the wrong place", "The apostrophe is used correctly", "An apostrophe is not needed", "Two apostrophes are needed"],
-                        correct: 1
-                    },
-                    {
-                        text: "Which word is the homophone for 'their'?",
-                        options: ["there", "they're", "them", "these"],
-                        correct: 0
-                    },
-                    {
-                        text: "Which sentence has the main idea of this paragraph? 'Plants need sunlight, water, and soil to grow. Without these things, plants cannot survive. Every plant has different needs, but all need light and water.'",
-                        options: ["Plants need water.", "Every plant has different needs.", "Plants need sunlight, water, and soil to grow.", "Plants cannot survive without water."],
-                        correct: 2
-                    },
-                    {
-                        text: "If you could build any machine or invention, what would it do? Describe it in 3-5 sentences.",
-                        type: "writing"
-                    }
-                ]
-            },
-            {
-                name: "Verbal Reasoning",
-                timeLimit: 8,
-                questions: [
-                    {
-                        text: "What is a synonym for 'happy'?",
-                        options: ["sad", "joyful", "angry", "confused"],
-                        correct: 1
-                    },
-                    {
-                        text: "What is an antonym for 'big'?",
-                        options: ["large", "huge", "small", "tall"],
-                        correct: 2
-                    },
-                    {
-                        text: "Cat is to kitten as dog is to...",
-                        options: ["puppy", "pet", "bark", "wolf"],
-                        correct: 0
-                    },
-                    {
-                        text: "Which word does NOT belong in this group? Apple, banana, carrot, orange",
-                        options: ["Apple", "Banana", "Carrot", "Orange"],
-                        correct: 2
-                    },
-                    {
-                        text: "If all cats are animals and Fluffy is a cat, then Fluffy must be...",
-                        options: ["a bird", "an animal", "white", "fast"],
-                        correct: 1
-                    },
-                    {
-                        text: "What is a synonym for 'beautiful'?",
-                        options: ["ugly", "pretty", "noisy", "slow"],
-                        correct: 1
-                    },
-                    {
-                        text: "Hat is to head as shoe is to...",
-                        options: ["sock", "foot", "hand", "leg"],
-                        correct: 1
-                    },
-                    {
-                        text: "Which group contains only items you would wear?",
-                        options: ["Shoes, hat, spoon, gloves", "Pants, shirt, socks, jacket", "Chair, desk, pencil, book", "Plate, cup, fork, napkin"],
-                        correct: 1
-                    },
-                    {
-                        text: "What is an antonym for 'fast'?",
-                        options: ["quick", "rapid", "slow", "speedy"],
-                        correct: 2
-                    },
-                    {
-                        text: "Square is to four-sided as triangle is to...",
-                        options: ["circle", "three-sided", "rectangular", "pointed"],
-                        correct: 1
-                    }
-                ]
-            }
+          {
+            name: "Verbal Skills",
+            description: "Synonyms, antonyms, analogies, and verbal logic. Choose the best answer.",
+            timeLimit: 480,
+            questions: [
+              { text: "Which word means the same as <strong>brave</strong>?", options: ["Scared","Courageous","Careful","Quiet"], correct: 1 },
+              { text: "Which word is the OPPOSITE of <strong>generous</strong>?", options: ["Kind","Wealthy","Selfish","Friendly"], correct: 2 },
+              { text: "<strong>Wheel</strong> is to <strong>bicycle</strong> as <strong>wing</strong> is to:", options: ["Bird","Feather","Nest","Sky"], correct: 0 },
+              { text: "Which word means the same as <strong>enormous</strong>?", options: ["Tiny","Huge","Average","Round"], correct: 1 },
+              { text: "Which word is the OPPOSITE of <strong>shallow</strong>?", options: ["Wide","Narrow","Deep","Empty"], correct: 2 },
+              { text: "<strong>Electricity</strong> is to <strong>wire</strong> as <strong>water</strong> is to:", options: ["Ocean","Pipe","Rain","Ice"], correct: 1 },
+              { text: "Which word means the same as <strong>repair</strong>?", options: ["Break","Fix","Build","Destroy"], correct: 1 },
+              { text: "Choose the word that does NOT belong:", options: ["Motor","Engine","Battery","Sandwich"], correct: 3 },
+              { text: "<strong>Chef</strong> is to <strong>kitchen</strong> as <strong>pilot</strong> is to:", options: ["Airport","Cockpit","Runway","Sky"], correct: 1 },
+              { text: "If all dogs are animals, and all animals need water, then:", options: ["All water is for dogs","All dogs need water","Some dogs don't need water","Water is an animal"], correct: 1 }
+            ]
+          },
+          {
+            name: "Quantitative Skills",
+            description: "Number patterns, sequences, and reasoning. No calculator allowed.",
+            timeLimit: 480,
+            questions: [
+              { text: "What comes next? <strong>5, 10, 15, 20, ___</strong>", options: ["22","24","25","30"], correct: 2 },
+              { text: "What comes next? <strong>2, 4, 8, 16, ___</strong>", options: ["24","28","32","20"], correct: 2 },
+              { text: "If 4 × N = 36, what is N?", options: ["7","8","9","10"], correct: 2 },
+              { text: "What comes next? <strong>50, 45, 40, 35, ___</strong>", options: ["25","28","30","32"], correct: 2 },
+              { text: "Which is bigger: <strong>1/2</strong> or <strong>2/5</strong>?", options: ["1/2","2/5","They are equal","Cannot tell"], correct: 0 },
+              { text: "A square has a perimeter of 20 inches. How long is each side?", options: ["4 inches","5 inches","10 inches","20 inches"], correct: 1 },
+              { text: "What comes next? <strong>1, 3, 6, 10, 15, ___</strong>", options: ["18","20","21","25"], correct: 2 },
+              { text: "50% of 60 is:", options: ["20","25","30","35"], correct: 2 },
+              { text: "How many minutes are in 2.5 hours?", options: ["120","130","140","150"], correct: 3 },
+              { text: "What is 7 × 8?", options: ["54","56","58","63"], correct: 1 }
+            ]
+          },
+          {
+            name: "Reading Comprehension",
+            description: "Read each passage carefully, then answer the questions.",
+            timeLimit: 600,
+            questions: [
+              { text: '<div class="passage">Electric motors work by using magnets and electricity together. When electricity flows through a coil of wire, it creates a magnetic field. This magnetic field pushes against permanent magnets nearby, causing the coil to spin. This spinning motion is what powers everything from ceiling fans to electric bikes.</div>According to the passage, what causes the coil to spin?', options: ["The permanent magnets push the electricity","The electricity heats up the wire","The magnetic field pushes against permanent magnets","The fan blows on the coil"], correct: 2 },
+              { text: '<div class="passage">Electric motors work by using magnets and electricity together. When electricity flows through a coil of wire, it creates a magnetic field. This magnetic field pushes against permanent magnets nearby, causing the coil to spin. This spinning motion is what powers everything from ceiling fans to electric bikes.</div>Which is an example of something powered by an electric motor?', options: ["A campfire","A candle","An electric bike","A paper airplane"], correct: 2 },
+              { text: '<div class="passage">Electric motors work by using magnets and electricity together. When electricity flows through a coil of wire, it creates a magnetic field. This magnetic field pushes against permanent magnets nearby, causing the coil to spin. This spinning motion is what powers everything from ceiling fans to electric bikes.</div>The main purpose of this passage is to:', options: ["Convince you to buy an electric bike","Explain how electric motors work","Describe different types of magnets","Teach you how to build a motor"], correct: 1 },
+              { text: '<div class="passage">William Kamkwamba grew up in Malawi, one of the poorest countries in the world. When a terrible famine hit and his family could no longer afford school fees, 14-year-old William didn\'t give up on learning. He walked to the library and found a book about windmills. Using scrap metal, bicycle parts, and blue gum trees, he built a windmill that generated electricity for his family\'s home.</div>Why did William stop going to school?', options: ["He didn't like school","He was too old","His family couldn't afford the fees","The school closed down"], correct: 2 },
+              { text: '<div class="passage">William Kamkwamba grew up in Malawi, one of the poorest countries in the world. When a terrible famine hit and his family could no longer afford school fees, 14-year-old William didn\'t give up on learning. He walked to the library and found a book about windmills. Using scrap metal, bicycle parts, and blue gum trees, he built a windmill that generated electricity for his family\'s home.</div>What can you infer about William from this passage?', options: ["He was lazy and unmotivated","He was resourceful and determined","He had lots of money for supplies","He had help from many engineers"], correct: 1 },
+              { text: '<div class="passage">The new kid sat alone at lunch again. Jayden noticed and felt a knot in his stomach. He remembered his first week at a new school two years ago — how every lunch period felt like it lasted forever. He picked up his tray. "Hey, mind if I sit here?" The new kid looked up, surprised, then smiled. "Sure."</div>Why did Jayden decide to sit with the new kid?', options: ["His friends told him to","He remembered feeling alone himself","He wanted the new kid's dessert","The teacher made him"], correct: 1 },
+              { text: '<div class="passage">The new kid sat alone at lunch again. Jayden noticed and felt a knot in his stomach. He remembered his first week at a new school two years ago — how every lunch period felt like it lasted forever. He picked up his tray. "Hey, mind if I sit here?" The new kid looked up, surprised, then smiled. "Sure."</div>The phrase "felt a knot in his stomach" means Jayden felt:', options: ["Hungry","Sick","Uncomfortable and sympathetic","Angry"], correct: 2 },
+              { text: '<div class="passage">Honeybees communicate the location of flowers to other bees by doing a "waggle dance." The direction the bee faces while dancing tells other bees which direction to fly. The length of the dance tells them how far away the flowers are. The more excited the dance, the better the food source. Scientists have studied this dance for decades and can now decode exactly what each movement means.</div>According to the passage, how do bees show distance to flowers?', options: ["By the direction they face","By the length of the dance","By how loud they buzz","By the color of their wings"], correct: 1 },
+              { text: '<div class="passage">Honeybees communicate the location of flowers to other bees by doing a "waggle dance." The direction the bee faces while dancing tells other bees which direction to fly. The length of the dance tells them how far away the flowers are. The more excited the dance, the better the food source. Scientists have studied this dance for decades and can now decode exactly what each movement means.</div>What does a more excited dance mean?', options: ["Danger is nearby","The food source is better","The bee is tired","It's time to return to the hive"], correct: 1 },
+              { text: '<div class="passage">Honeybees communicate the location of flowers to other bees by doing a "waggle dance." The direction the bee faces while dancing tells other bees which direction to fly. The length of the dance tells them how far away the flowers are. The more excited the dance, the better the food source. Scientists have studied this dance for decades and can now decode exactly what each movement means.</div>The best title for this passage would be:', options: ["Why Bees Sting","How Bees Talk Through Dance","The Life of a Honeybee","Flowers and Their Pollinators"], correct: 1 }
+            ]
+          },
+          {
+            name: "Mathematics",
+            description: "Math concepts and problem-solving. No calculator allowed.",
+            timeLimit: 600,
+            questions: [
+              { text: "What is 1/4 + 1/4?", options: ["1/8","2/8","1/2","2/4"], correct: 2 },
+              { text: "A toy costs $15. If it's 20% off, what is the sale price?", options: ["$3","$10","$12","$13"], correct: 2 },
+              { text: "What is the area of a rectangle that is 8 cm long and 5 cm wide?", options: ["13 cm²","26 cm²","40 cm²","80 cm²"], correct: 2 },
+              { text: "What is the value of 4 × (3 + 2)?", options: ["14","18","20","24"], correct: 2 },
+              { text: "Which fraction is equal to 0.5?", options: ["1/3","1/4","1/2","1/5"], correct: 2 },
+              { text: "A pizza is cut into 8 equal slices. You eat 3 slices. What fraction is left?", options: ["3/8","5/8","3/5","5/3"], correct: 1 },
+              { text: "What is 10² (10 squared)?", options: ["20","50","100","1000"], correct: 2 },
+              { text: "If a car goes 50 miles per hour, how far does it travel in 3 hours?", options: ["53 miles","100 miles","150 miles","200 miles"], correct: 2 },
+              { text: "Which number is a prime number?", options: ["4","9","15","17"], correct: 3 },
+              { text: "What is the perimeter of a rectangle with length 7 and width 3?", options: ["10","20","21","24"], correct: 1 }
+            ]
+          },
+          {
+            name: "Language & Writing",
+            description: "Grammar, punctuation, usage, and a short writing prompt.",
+            timeLimit: 600,
+            questions: [
+              { text: "Which sentence uses a comma correctly?", options: ["I like pizza, and burgers.","Before the game we ate lunch.","After school, I rode my bike home.","The dog, barked loudly."], correct: 2 },
+              { text: "Choose the correct sentence:", options: ["The boys plays outside.","The boys play outside.","The boys playing outside.","The boys is playing outside."], correct: 1 },
+              { text: "Which sentence is correct?", options: ["Me went to the store.","Her and me went to the store.","She and I went to the store.","Me and her went to the store."], correct: 2 },
+              { text: 'Choose the correct word: "I want to go _____ the park."', options: ["too","to","two","tow"], correct: 1 },
+              { text: "Which word is spelled correctly?", options: ["Becuz","Because","Becuase","Becouse"], correct: 1 },
+              { text: "Which sentence uses an apostrophe correctly?", options: ["The cat chased it's tail.","The boy's bike is red.","The girl's are playing.","Its time to go."], correct: 1 },
+              { text: 'What type of sentence is this? "Close the door."', options: ["Declarative (statement)","Interrogative (question)","Imperative (command)","Exclamatory (exclamation)"], correct: 2 },
+              { text: "Which word is an adjective in this sentence: 'The tall building has bright lights.'", options: ["building","has","tall","lights"], correct: 2 },
+              {
+                text: '<strong>Writing Prompt:</strong> In 3–5 sentences, describe something you have built or would like to build, and explain what makes it cool.',
+                type: "writing"
+              }
+            ]
+          }
         ];
 
         const STORAGE_KEY = 'diagnosticResults_targeted_diagnostic_20260306';
         const PENDING_KEY = 'pending_assessment_comprehensive_diagnostic_20260301';
+        const PENDING_KEY_ALT = 'pending_assessment_March2026';
         const tutorName = 'Doug';
         const studentName = 'Chase';
+
+        async function loadResultsFromAPI() {
+            try {
+                const res = await fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec?action=getSessionHistory&student=Chase');
+                if (res.ok) {
+                    const sessions = await res.json();
+                    // Find the diagnostic assessment
+                    const diag = Array.isArray(sessions) && sessions.find(s =>
+                        (s.test_id || '').toLowerCase().includes('diagnostic') ||
+                        (s.test_id || '').toLowerCase().includes('march2026')
+                    );
+                    if (diag && diag.sections) {
+                        // Convert from API format to review format
+                        const answers = {};
+                        let totalQuestions = 0;
+                        diag.sections.forEach((sec, si) => {
+                            answers[si] = {};
+                            if (sec.details) {
+                                sec.details.forEach((d, qi) => {
+                                    totalQuestions++;
+                                    if (d.chosen !== null && d.chosen !== undefined) {
+                                        const q = SECTIONS[si]?.questions[qi];
+                                        if (q && q.options) {
+                                            const idx = q.options.indexOf(d.chosen);
+                                            if (idx >= 0) answers[si][qi] = idx;
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        return { answers, totalQuestions };
+                    }
+                }
+            } catch(e) { console.warn('API fallback failed:', e); }
+            return null;
+        }
 
         function loadResults() {
             // Try primary key first (diagnosticResults format)
@@ -796,6 +572,29 @@
                 const answers = {};
                 let totalQuestions = 0;
                 pending.sections.forEach((sec, si) => {
+                    answers[si] = {};
+                    if (sec.details) {
+                        sec.details.forEach((d, qi) => {
+                            totalQuestions++;
+                            if (d.chosen !== null) {
+                                const q = SECTIONS[si]?.questions[qi];
+                                if (q) {
+                                    const idx = q.options.indexOf(d.chosen);
+                                    if (idx >= 0) answers[si][qi] = idx;
+                                }
+                            }
+                        });
+                    }
+                });
+                return { answers, totalQuestions };
+            }
+
+            // Try alternative pending key
+            const pendingAlt = JSON.parse(localStorage.getItem(PENDING_KEY_ALT) || 'null');
+            if (pendingAlt && pendingAlt.sections) {
+                const answers = {};
+                let totalQuestions = 0;
+                pendingAlt.sections.forEach((sec, si) => {
                     answers[si] = {};
                     if (sec.details) {
                         sec.details.forEach((d, qi) => {
@@ -843,9 +642,11 @@
             return { answers, totalQuestions };
         }
 
-        function init() {
-            const results = loadResults();
-
+        async function init() {
+            let results = loadResults(); // try localStorage first
+            if (!results) {
+                results = await loadResultsFromAPI(); // try API
+            }
             if (!results) {
                 showNoResults();
                 return;
@@ -941,28 +742,15 @@
 
             incorrectQuestions.forEach((item, idx) => {
                 const q = item.question;
-                const passages = SECTIONS[item.sectionIndex].questions.filter(q => q.passage).map(q => q.passage);
-                const passageRef = item.question.passageRef !== undefined ? item.question.passageRef : null;
-                const passage = passageRef !== null ? passages[passageRef] :
-                               (item.question.passage ? item.question.passage : null);
 
                 html += `
                     <div class="review-item">
                         <div class="review-header">
                             <div class="review-question-num">Question ${item.globalIndex + 1} • ${item.section}</div>
-                            <div class="review-question-text">${escapeHtml(q.text)}</div>
-                `;
-
-                if (passage) {
-                    html += `
-                        <div class="passage">
-                            <div class="passage-title">${escapeHtml(passage.label)}</div>
-                            <div>${escapeHtml(passage.text)}</div>
+                            <div class="review-question-text">${q.text}</div>
                         </div>
-                    `;
-                }
-
-                html += `</div><div class="review-content">`;
+                        <div class="review-content">
+                `;
 
                 html += `
                     <div class="answer-row">
