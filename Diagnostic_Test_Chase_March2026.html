@@ -232,7 +232,7 @@
 const CONFIG = {
   student: "Chase",
   grade: 5,
-  testId: "comprehensive_diagnostic_20260301",
+  testId: "March2026",
   testLabel: "Comprehensive Diagnostic — March 2026",
   webAppUrl: "https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec"
 };
@@ -572,13 +572,14 @@ async function submitResults() {
     });
     localStorage.setItem('diagnosticResults_targeted_diagnostic_20260306',JSON.stringify({answers:na,totalQuestions:tq,student:CONFIG.student,date:new Date().toISOString()}));
   }catch(e){console.warn('Could not save review data:',e);}
+  // ALWAYS credit points and write signal — even if API POST fails
+  await creditDiagnosticPoints();
   try{
     const r=await fetch(CONFIG.webAppUrl,{method:"POST",body:JSON.stringify(payload),headers:{"Content-Type":"text/plain"}});
     const result=await r.json();
     if(result.success){
-      statusEl.textContent='✓ Results mapped! Crediting your progress...';
+      statusEl.textContent='✓ Results mapped successfully!';
       statusEl.style.color='#2eaaaa';
-      await creditDiagnosticPoints();
     }
     else{statusEl.textContent='Saved locally. Ask your parent to sync.';console.error(result);}
   }catch(e){statusEl.textContent='Saved locally. Ask your parent to sync.';console.error(e);try{localStorage.setItem('pending_assessment_'+CONFIG.testId,JSON.stringify(payload));}catch(x){}}

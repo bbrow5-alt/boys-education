@@ -282,7 +282,7 @@
 const CONFIG = {
   student: "Jacob",
   grade: 6,
-  testId: "comprehensive_diagnostic_20260301",
+  testId: "March2026",
   testLabel: "Comprehensive Diagnostic — March 2026",
   webAppUrl: "https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec"
 };
@@ -710,6 +710,10 @@ async function submitResults() {
     }));
   } catch(e) { console.warn('Could not save review data:', e); }
 
+  // ALWAYS credit points and write signal — even if API POST fails
+  // This ensures the dashboard detects completion regardless of network issues
+  await creditDiagnosticPoints();
+
   try {
     const response = await fetch(CONFIG.webAppUrl, {
       method: "POST",
@@ -718,10 +722,8 @@ async function submitResults() {
     });
     const result = await response.json();
     if (result.success) {
-      statusEl.textContent = '✓ Results submitted! Crediting points...';
+      statusEl.textContent = '✓ Results submitted successfully!';
       statusEl.style.color = '#7fb069';
-      // Now trigger diagnostic completion to auto-credit daily tasks + bonus points
-      await creditDiagnosticPoints();
     } else {
       statusEl.textContent = 'Results saved locally. Ask your dad to sync later.';
       console.error('Submit error:', result);

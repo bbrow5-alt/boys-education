@@ -1697,25 +1697,61 @@ async function loadDiagnosticTests() {
     console.warn('Failed to load diagnostic tests:', err);
   }
 
-  // FALLBACK: If API returns nothing, check for hardcoded March 2026 diagnostic
+  // ALWAYS check localStorage for completion evidence (covers old test versions that didn't write keys,
+  // API failures, and cases where API returns Completed:FALSE but test was actually taken)
+  const signal = JSON.parse(localStorage.getItem('jacob_diagnostic_signal') || 'null');
+  const hasSignal = signal && signal.completed && signal.testId === 'targeted_diagnostic_20260306';
+  const hasResults = !!localStorage.getItem('diagnosticResults_targeted_diagnostic_20260306');
+  const hasPending = !!localStorage.getItem('pending_assessment_comprehensive_diagnostic_20260301') || !!localStorage.getItem('pending_assessment_March2026');
+  const localCompleted = hasSignal || hasResults || hasPending;
+  const localCompletedDate = hasSignal ? signal.date : (localCompleted ? new Date().toISOString().split('T')[0] : '');
+
   if (!diagnosticTests || diagnosticTests.length === 0) {
-    const signal = JSON.parse(localStorage.getItem('jacob_diagnostic_signal') || 'null');
-    const hasSignal = signal && signal.completed && signal.testId === 'targeted_diagnostic_20260306';
-    // Also check if diagnosticResults exist (test was taken but signal wasn't written in old version)
-    const hasResults = !!localStorage.getItem('diagnosticResults_targeted_diagnostic_20260306');
-    const hasPending = !!localStorage.getItem('pending_assessment_comprehensive_diagnostic_20260301');
-    const isCompleted = hasSignal || hasResults || hasPending;
-    const completedDate = hasSignal ? signal.date : (isCompleted ? new Date().toISOString().split('T')[0] : '');
+    // No API data at all — use hardcoded March 2026 diagnostic
     diagnosticTests = [{
       TestLabel: 'Targeted Diagnostic — March 2026',
       Month: 'March 2026',
       TestURL: 'Diagnostic_Test_Jacob_March2026.html',
       AvailableDate: '2026-03-06',
       DueDate: '2026-03-09',
-      Completed: isCompleted ? 'TRUE' : 'FALSE',
-      CompletedDate: completedDate,
+      Completed: localCompleted ? 'TRUE' : 'FALSE',
+      CompletedDate: localCompletedDate,
       PointsAwarded: 15
     }];
+  } else {
+    // API returned data — but override Completed status if localStorage says it's done
+    if (localCompleted) {
+      diagnosticTests.forEach(t => {
+        if (t.Completed !== true && t.Completed !== 'TRUE') {
+          t.Completed = 'TRUE';
+          t.CompletedDate = t.CompletedDate || localCompletedDate;
+          t.PointsAwarded = t.PointsAwarded || 15;
+        }
+      });
+    }
+  }
+
+  // Also check Assessments sheet for evidence (the test POSTs results there even if DiagnosticTests row wasn't updated)
+  if (!localCompleted && diagnosticTests.some(t => t.Completed !== true && t.Completed !== 'TRUE')) {
+    try {
+      const baseUrl = syncState.webAppUrl || 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
+      const assessRes = await fetch(`${baseUrl}?action=getSessionHistory&student=Jacob`);
+      if (assessRes.ok) {
+        const sessions = await assessRes.json();
+        const hasDiagSession = Array.isArray(sessions) && sessions.some(s =>
+          (s.test_id || s.TestID || '').toLowerCase().includes('diagnostic')
+        );
+        if (hasDiagSession) {
+          diagnosticTests.forEach(t => {
+            if (t.Completed !== true && t.Completed !== 'TRUE') {
+              t.Completed = 'TRUE';
+              t.CompletedDate = t.CompletedDate || new Date().toISOString().split('T')[0];
+              t.PointsAwarded = t.PointsAwarded || 15;
+            }
+          });
+        }
+      }
+    } catch(e) { console.warn('Assessment check failed:', e); }
   }
 
   // Check for diagnostic completion signal and credit points
