@@ -146,6 +146,13 @@
   }
 
   .questions-container { padding-bottom: 20px; }
+  .finish-section-btn {
+    display: block; width: 100%; margin: 24px 0 16px; padding: 16px;
+    background: var(--accent); color: var(--bg); border: none; border-radius: 10px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    font-family: 'Georgia', 'Palatino', serif; letter-spacing: 1px;
+  }
+  .finish-section-btn:active { transform: scale(0.98); }
   body.show-sections { padding-top: 76px; }
 </style>
 </head>
@@ -383,6 +390,14 @@ function renderAllQuestions() {
     card.innerHTML = html;
     container.appendChild(card);
   });
+
+  // Add "Finish Section" button at the bottom
+  const finishBtn = document.createElement('button');
+  finishBtn.className = 'finish-section-btn';
+  const isLast = currentSection >= SECTIONS.length - 1;
+  finishBtn.textContent = isLast ? 'Finish Assessment ✓' : 'Done — Next Section →';
+  finishBtn.onclick = function() { finishSection(); };
+  container.appendChild(finishBtn);
 
   updateProgressDisplay();
 }
