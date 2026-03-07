@@ -1673,7 +1673,12 @@ async function loadDiagnosticTests() {
   // FALLBACK: If API returns nothing, check for hardcoded March 2026 diagnostic
   if (!diagnosticTests || diagnosticTests.length === 0) {
     const signal = JSON.parse(localStorage.getItem('chase_diagnostic_signal') || 'null');
-    const isCompleted = signal && signal.completed && signal.testId === 'targeted_diagnostic_20260306';
+    const hasSignal = signal && signal.completed && signal.testId === 'targeted_diagnostic_20260306';
+    // Also check if diagnosticResults exist (test was taken but signal wasn't written in old version)
+    const hasResults = !!localStorage.getItem('diagnosticResults_targeted_diagnostic_20260306');
+    const hasPending = !!localStorage.getItem('pending_assessment_comprehensive_diagnostic_20260301');
+    const isCompleted = hasSignal || hasResults || hasPending;
+    const completedDate = hasSignal ? signal.date : (isCompleted ? new Date().toISOString().split('T')[0] : '');
     diagnosticTests = [{
       TestLabel: 'Targeted Diagnostic — March 2026',
       Month: 'March 2026',
@@ -1681,7 +1686,7 @@ async function loadDiagnosticTests() {
       AvailableDate: '2026-03-06',
       DueDate: '2026-03-09',
       Completed: isCompleted ? 'TRUE' : 'FALSE',
-      CompletedDate: isCompleted ? signal.date : '',
+      CompletedDate: completedDate,
       PointsAwarded: 15
     }];
   }
@@ -1773,17 +1778,23 @@ function renderDiagnosticSection() {
   let actionHtml = '';
   if (completed) {
     const pts = test.PointsAwarded || 15;
+    // Check if Chase still needs to finish remaining questions
+    const continueKey = 'diagnosticResults_targeted_diagnostic_20260306';
+    const hasFullResults = (() => { try { const r = JSON.parse(localStorage.getItem(continueKey)); return r && r.answers && r.answers[4] && Object.keys(r.answers[4]).length >= 8; } catch(e) { return false; } })();
+    const continueHtml = !hasFullResults ? `<a class="diagnostic-btn" href="Chase_Diagnostic_Continue.html" style="margin-top:6px; background:var(--secondary); font-size:12px; padding:8px 16px;">Finish Last 10 Questions &#8594;</a>` : '';
     actionHtml = `
       <div class="diagnostic-completed-badge">&#10003; EXPEDITION COMPLETE</div>
       <div class="diagnostic-points">+${pts} PTS EARNED</div>
+      ${continueHtml}
+      <a class="diagnostic-btn" href="Diagnostic_Review_Chase.html" style="margin-top:6px; background:var(--secondary); font-size:12px; padding:8px 16px;">Review with Doug &#8594;</a>
     `;
   } else if (isExpired) {
-    actionHtml = '<div style="font-size:11px; color:var(--text-dim); font-family:monospace;">WINDOW EXPIRED — ASK DAD FOR EXTENSION</div>';
+    actionHtml = '<div style="font-size:12px; color:var(--text-dim);">Window expired — ask Dad for an extension</div>';
   } else if (isUpcoming) {
-    actionHtml = '<div style="font-size:11px; color:var(--text-dim); font-family:monospace;">STANDBY...</div>';
+    actionHtml = '<div style="font-size:12px; color:var(--text-dim);">Coming soon...</div>';
   } else {
-    actionHtml = `<a class="diagnostic-btn" href="${test.TestURL}" target="_blank">&#9654; BEGIN ASSESSMENT</a>
-      <div class="diagnostic-points">WORTH 15 PTS — REPLACES FULL DAILY STACK</div>`;
+    actionHtml = `<a class="diagnostic-btn" href="${test.TestURL}" target="_blank">Begin Assessment</a>
+      <div class="diagnostic-points">Worth 15 points — replaces today's full stack!</div>`;
   }
 
   const lastCompleted = diagnosticTests.find(t => t.Completed === true || t.Completed === 'TRUE');

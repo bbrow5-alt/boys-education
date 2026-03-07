@@ -1700,7 +1700,12 @@ async function loadDiagnosticTests() {
   // FALLBACK: If API returns nothing, check for hardcoded March 2026 diagnostic
   if (!diagnosticTests || diagnosticTests.length === 0) {
     const signal = JSON.parse(localStorage.getItem('jacob_diagnostic_signal') || 'null');
-    const isCompleted = signal && signal.completed && signal.testId === 'targeted_diagnostic_20260306';
+    const hasSignal = signal && signal.completed && signal.testId === 'targeted_diagnostic_20260306';
+    // Also check if diagnosticResults exist (test was taken but signal wasn't written in old version)
+    const hasResults = !!localStorage.getItem('diagnosticResults_targeted_diagnostic_20260306');
+    const hasPending = !!localStorage.getItem('pending_assessment_comprehensive_diagnostic_20260301');
+    const isCompleted = hasSignal || hasResults || hasPending;
+    const completedDate = hasSignal ? signal.date : (isCompleted ? new Date().toISOString().split('T')[0] : '');
     diagnosticTests = [{
       TestLabel: 'Targeted Diagnostic — March 2026',
       Month: 'March 2026',
@@ -1708,7 +1713,7 @@ async function loadDiagnosticTests() {
       AvailableDate: '2026-03-06',
       DueDate: '2026-03-09',
       Completed: isCompleted ? 'TRUE' : 'FALSE',
-      CompletedDate: isCompleted ? signal.date : '',
+      CompletedDate: completedDate,
       PointsAwarded: 15
     }];
   }
@@ -1806,6 +1811,7 @@ function renderDiagnosticSection() {
     actionHtml = `
       <div class="diagnostic-completed-badge">&#10003; COMPLETED</div>
       <div class="diagnostic-points">${pts} points earned</div>
+      <a class="diagnostic-btn" href="Diagnostic_Review_Jacob.html" style="margin-top:8px; background:var(--secondary); font-size:12px; padding:8px 16px;">Review with Gary &#8594;</a>
     `;
   } else if (isExpired) {
     actionHtml = '<div style="font-size:12px; color:var(--text-dim);">Window expired — ask Dad for an extension</div>';
