@@ -529,19 +529,19 @@
 
         async function loadResultsFromAPI() {
             try {
-                const res = await fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec?action=getSessionHistory&student=Jacob');
+                // Primary: read from Assessments sheet via getAssessments
+                const res = await fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec?action=getAssessments&student=Jacob');
                 if (res.ok) {
-                    const sessions = await res.json();
-                    // Find the diagnostic assessment
-                    const diag = Array.isArray(sessions) && sessions.find(s =>
-                        (s.test_id || '').toLowerCase().includes('diagnostic') ||
-                        (s.test_id || '').toLowerCase().includes('march2026')
+                    const assessments = await res.json();
+                    // Find the diagnostic assessment (Sections is already parsed by API)
+                    const diag = Array.isArray(assessments) && assessments.find(s =>
+                        (s.TestID || '').toLowerCase().includes('diagnostic') ||
+                        (s.TestID || '').toLowerCase().includes('march2026')
                     );
-                    if (diag && diag.sections) {
-                        // Convert from API format to review format
+                    if (diag && diag.Sections && Array.isArray(diag.Sections)) {
                         const answers = {};
                         let totalQuestions = 0;
-                        diag.sections.forEach((sec, si) => {
+                        diag.Sections.forEach((sec, si) => {
                             answers[si] = {};
                             if (sec.details) {
                                 sec.details.forEach((d, qi) => {
