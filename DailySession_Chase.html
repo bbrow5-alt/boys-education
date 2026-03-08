@@ -1063,6 +1063,14 @@
         let writingCompleted = false;
         let totalPointsEarned = 0;
 
+        // Adaptive loop state
+        let roundNumber = 0;
+        let roundScores = []; // [{passageId, score, total, bonusPoints}]
+        let allTopicsUsed = [];
+        const TARGET_MINUTES = 15;
+        const MAX_MINUTES = 25;
+        const MAX_ROUNDS = 5;
+
         // ============================================================================
         // FALLBACK PASSAGE LIBRARY (Chase - Engineering/Innovation/Robotics)
         // ============================================================================
@@ -1507,7 +1515,10 @@ Every bridge is designed for specific conditions in its location. A bridge in an
                     'How Mars rovers explore another planet',
                     'The science of sound and how speakers work',
                     'How submarines dive and surface',
-                    'The engineering behind electric cars'
+                    'The engineering behind electric cars',
+                    'Gregor Mendel and the discovery of genetics',
+                    'Georges Lemaitre and the Big Bang theory',
+                    'How Catholic monks invented brewing and winemaking science'
                 ];
                 const randomTopic = topicIdeas[Math.floor(Math.random() * topicIdeas.length)];
 
@@ -1597,7 +1608,7 @@ Every bridge is designed for specific conditions in its location. A bridge in an
             setTimeout(() => {
                 finishReadingBtn.disabled = false;
                 timerMessage.textContent = 'Reading time complete. You can now proceed to comprehension questions.';
-            }, 60000); // 1 minute
+            }, 30000); // 30 seconds — don't block fast readers
 
             finishReadingBtn.onclick = () => {
                 readingFinishedTime = Date.now();
@@ -1641,23 +1652,6 @@ Every bridge is designed for specific conditions in its location. A bridge in an
             document.getElementById('nextQuestionBtn').style.display = 'none';
         }
 
-        // Test-taking strategy tips — shown on wrong answers to build exam skills
-        const STRATEGY_TIPS = [
-            "Strategy tip: When you don't know a word, look at the answer choices. If three options mean something similar and one is different, the different one is usually correct.",
-            "Strategy tip: Before picking an answer, try to eliminate choices you KNOW are wrong. Even removing one bad option doubles your odds.",
-            "Strategy tip: Re-read the question carefully. Sometimes the answer is right in the passage — look for keywords from the question.",
-            "Strategy tip: Watch for 'absolute' words like 'always', 'never', or 'only' in answer choices. These extremes are often wrong.",
-            "Strategy tip: If two answer choices seem opposite, one of them is usually correct. Focus your thinking on those two.",
-            "Strategy tip: Trust your first instinct, but verify it. If you can explain WHY an answer is right, you're probably correct.",
-            "Strategy tip: Don't overthink it. The simplest answer supported by the text is usually the right one.",
-            "Strategy tip: For vocabulary questions, plug each answer choice back into the sentence. Which one makes the most sense in context?",
-            "Strategy tip: Read ALL four options before choosing. The first good-looking answer isn't always the BEST answer.",
-            "Strategy tip: If you're stuck, skip and come back. Fresh eyes on a tricky question can make the answer obvious.",
-            "Strategy tip: Look for clue words in the passage like 'however', 'therefore', 'because' — they signal the author's main point.",
-            "Strategy tip: On tests, manage your time. Don't spend 3 minutes on one question when you could answer two easier ones instead."
-        ];
-        let tipIndex = Math.floor(Math.random() * STRATEGY_TIPS.length);
-
         function selectAnswer(selected, correct, explanation) {
             const options = document.querySelectorAll('.option');
             options.forEach(opt => opt.classList.add('disabled'));
@@ -1676,13 +1670,9 @@ Every bridge is designed for specific conditions in its location. A bridge in an
                 options[correct].classList.add('correct');
                 feedbackBox.classList.add('incorrect');
                 feedbackLabel.textContent = 'Not quite!';
-                // Add a test-taking strategy tip after the explanation
-                const tip = STRATEGY_TIPS[tipIndex % STRATEGY_TIPS.length];
-                tipIndex++;
-                feedbackText.innerHTML = explanation + '<br><br><span style="color:var(--accent); font-style:italic; font-size:12px;">' + tip + '</span>';
             }
 
-            if (selected === correct) { feedbackText.textContent = explanation; }
+            feedbackText.textContent = explanation;
             feedbackBox.classList.add('show');
 
             if (currentQuestionIndex < currentTopic.questions.length - 1) {
@@ -1701,9 +1691,178 @@ Every bridge is designed for specific conditions in its location. A bridge in an
         }
 
         function proceedToPhase4or5() {
-            if (IS_WEDNESDAY) {
-                initPhase4();
+            const totalQuestions = currentTopic.questions.length;
+            const percentage = (correctAnswers / totalQuestions) * 100;
+
+            // Calculate bonus points for this round
+            let bonusPoints = 0;
+            if (percentage === 100) {
+                bonusPoints = 2;
+            } else if (percentage >= 75) {
+                bonusPoints = 1;
+            }
+
+            // Track this round
+            roundNumber++;
+            roundScores.push({
+                passageId: currentTopic.id,
+                title: currentTopic.title || 'Passage',
+                score: correctAnswers,
+                total: totalQuestions,
+                bonusPoints: bonusPoints
+            });
+            allTopicsUsed.push(currentTopic.category || currentTopic.id);
+
+            // Show round results
+            const comprehensionContainer = document.querySelector('.comprehension-container');
+            comprehensionContainer.innerHTML = `
+                <div class="score-summary">
+                    <h2>Round ${roundNumber} Results</h2>
+                    <div class="score-display">${correctAnswers}/${totalQuestions}</div>
+                    <div class="score-feedback">
+                        ${percentage === 100 ? 'Perfect! You understood every detail.' : ''}
+                        ${percentage >= 75 && percentage < 100 ? 'Excellent! Great understanding of the material.' : ''}
+                        ${percentage >= 50 && percentage < 75 ? 'Good effort! Review the passage for more details.' : ''}
+                        ${percentage < 50 ? 'Keep practicing! Read more carefully next time.' : ''}
+                    </div>
+                </div>
+            `;
+
+            // Check elapsed time for adaptive loop
+            const elapsedMin = (Date.now() - sessionStartTime) / 60000;
+
+            if (elapsedMin < TARGET_MINUTES && roundNumber < MAX_ROUNDS && elapsedMin < MAX_MINUTES) {
+                // Show round transition, then loop back for another passage
+                setTimeout(() => {
+                    showRoundTransition(elapsedMin);
+                }, 1500);
             } else {
+                // Session complete — proceed to writing or summary
+                setTimeout(() => {
+                    if (IS_WEDNESDAY) {
+                        initPhase4();
+                    } else {
+                        initPhase5();
+                    }
+                }, 1500);
+            }
+        }
+
+        function showRoundTransition(elapsedMin) {
+            const comprehensionContainer = document.querySelector('.comprehension-container');
+            const remaining = Math.max(0, TARGET_MINUTES - elapsedMin);
+            const messages = [
+                "Good work. Doug's got another mission brief for you — stay sharp.",
+                "Nice job. Ready for the next one? Each round builds your edge.",
+                "Solid round. One more passage to sharpen the mind.",
+                "Well done. Let's keep the momentum going."
+            ];
+            const msg = messages[Math.min(roundNumber - 1, messages.length - 1)];
+
+            comprehensionContainer.innerHTML = `
+                <div class="score-summary" style="text-align:center;">
+                    <h2 style="margin-bottom:16px;">Round ${roundNumber} Complete</h2>
+                    <div style="font-size:14px; color:#5a6a7a; margin-bottom:12px;">
+                        Session time: ${Math.floor(elapsedMin)}:${String(Math.floor((elapsedMin % 1) * 60)).padStart(2, '0')}
+                    </div>
+                    <div style="background:#1e2d3d; border-radius:8px; height:8px; margin:12px 0; overflow:hidden;">
+                        <div style="height:100%; background:#00ff41; border-radius:8px; width:${Math.min(100, (elapsedMin / TARGET_MINUTES) * 100)}%; transition:width 0.6s;"></div>
+                    </div>
+                    <div style="font-size:12px; color:#5a6a7a; margin-bottom:20px;">${Math.ceil(remaining)} min to target</div>
+                    <p style="font-size:16px; color:#00ff41; margin-bottom:24px;">${msg}</p>
+                    <div style="font-size:13px; color:#5a6a7a;">Next mission brief loading...</div>
+                </div>
+            `;
+
+            // Auto-advance to next round after 3 seconds
+            setTimeout(() => {
+                startNextRound();
+            }, 3000);
+        }
+
+        async function startNextRound() {
+            // Reset per-round state
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            currentTopic = null;
+
+            // For rounds 2+, auto-generate via API (no topic selection screen)
+            showPhase(0); // Show loading
+            const loadingText = document.querySelector('.loading-text');
+            if (loadingText) loadingText.textContent = 'Doug is preparing your next mission brief...';
+
+            try {
+                const topicIdeas = [
+                    'How robots are built and programmed',
+                    'Space station engineering and life support systems',
+                    'How bridges are designed to handle weight and wind',
+                    'The science behind roller coasters and amusement rides',
+                    'How electric cars and batteries work',
+                    'Rocket science and propulsion systems',
+                    'Underwater robots and deep ocean exploration',
+                    'How 3D printers create real objects layer by layer',
+                    'The engineering of tunnels and underground transit',
+                    'How drones fly and navigate autonomously',
+                    'Solar panels and renewable energy engineering',
+                    'How jet engines produce thrust',
+                    'Mars rovers and space exploration technology',
+                    'Building earthquake-resistant structures',
+                    'Gregor Mendel and the discovery of genetics',
+                    'Georges Lemaitre and how a priest discovered the Big Bang'
+                ];
+                // Filter out already-used topics
+                const available = topicIdeas.filter(t => !allTopicsUsed.includes(t));
+                const randomTopic = available.length > 0
+                    ? available[Math.floor(Math.random() * available.length)]
+                    : topicIdeas[Math.floor(Math.random() * topicIdeas.length)];
+
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'generatePassage',
+                        student: 'chase',
+                        topic: randomTopic
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.passage && data.questions && !data.error) {
+                    currentTopic = {
+                        id: 'ai-round' + roundNumber + '-' + Date.now(),
+                        category: randomTopic,
+                        icon: '🔧',
+                        title: data.title || randomTopic,
+                        description: '',
+                        passage: data.passage,
+                        questions: data.questions.map(q => ({
+                            text: q.question,
+                            options: q.options.map(opt => opt.replace(/^[A-D]\)\s*/, '')),
+                            correct: q.correctAnswer,
+                            explanation: q.explanation
+                        })),
+                        writingPrompt: 'Write about what you found most interesting in this passage.',
+                        source: 'ai'
+                    };
+
+                    // Skip topic selection, go straight to reading
+                    showPhase(2);
+                    displayPassage();
+                    return;
+                }
+            } catch (error) {
+                console.log('AI generation failed for round ' + (roundNumber + 1) + ':', error.message);
+            }
+
+            // Fallback: pick an unused fallback passage
+            const unused = FALLBACK_PASSAGES.filter(p => !allTopicsUsed.includes(p.category) && !allTopicsUsed.includes(p.id));
+            if (unused.length > 0) {
+                currentTopic = unused[Math.floor(Math.random() * unused.length)];
+                showPhase(2);
+                displayPassage();
+            } else {
+                // No more passages available, end session
                 initPhase5();
             }
         }
@@ -1751,22 +1910,62 @@ Every bridge is designed for specific conditions in its location. A bridge in an
         // ============================================================================
 
         function initPhase5() {
-            // Calculate points
-            const readingPoints = 3;
-            const comprehensionBonus = Math.min(correctAnswers, 2); // max 2 bonus points
-            const writingPoints = writingCompleted ? 3 : 0;
-            totalPointsEarned = readingPoints + comprehensionBonus + writingPoints;
+            // Multi-round: 3 base pts per round + comprehension bonus per round
+            totalPointsEarned = 0;
+            roundScores.forEach(round => {
+                totalPointsEarned += 3; // Base per round
+                totalPointsEarned += round.bonusPoints; // Comprehension bonus per round
+            });
 
-            // Update summary display
-            document.getElementById('comprehensionScore').textContent = `+${comprehensionBonus} pts`;
-            document.getElementById('comprehensionLabel').textContent = `Comprehension Bonus (${correctAnswers}/${currentTopic.questions.length})`;
-            document.getElementById('totalPointsValue').textContent = totalPointsEarned;
+            // Writing bonus (if Wednesday)
+            if (IS_WEDNESDAY && writingCompleted) {
+                totalPointsEarned += 3;
+            }
 
+            // Build multi-round summary
+            const totalCorrect = roundScores.reduce((s, r) => s + r.score, 0);
+            const totalQ = roundScores.reduce((s, r) => s + r.total, 0);
+            const totalBonus = roundScores.reduce((s, r) => s + r.bonusPoints, 0);
+            const sessionDuration = Math.round((Date.now() - sessionStartTime) / 60000);
+
+            // Update comprehension summary
+            const compLabel = document.getElementById('comprehensionLabel');
+            const compScore = document.getElementById('comprehensionScore');
+            if (roundScores.length > 1) {
+                compLabel.textContent = `Comprehension (${roundScores.length} rounds: ${totalCorrect}/${totalQ})`;
+            } else {
+                compLabel.textContent = `Comprehension Bonus (${totalCorrect}/${totalQ})`;
+            }
+            compScore.textContent = `+${totalBonus} pts`;
+
+            // Show/hide writing section
             if (writingCompleted) {
                 document.getElementById('writingSummaryItem').style.display = 'flex';
             } else {
                 document.getElementById('writingSummaryItem').style.display = 'none';
             }
+
+            // Add rounds detail before total if multiple rounds
+            if (roundScores.length > 1) {
+                const summaryContainer = document.querySelector('.points-summary');
+                if (summaryContainer) {
+                    const roundsDetail = document.createElement('div');
+                    roundsDetail.style.cssText = 'margin-bottom:16px; padding:12px; background:#111820; border-radius:8px; font-size:13px; color:#5a6a7a;';
+                    roundsDetail.innerHTML = `
+                        <div style="font-weight:700; color:#00ff41; margin-bottom:8px;">Session Breakdown (${sessionDuration} min, ${roundScores.length} rounds)</div>
+                        ${roundScores.map((r, i) => `
+                            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #1e2d3d;">
+                                <span>Round ${i+1}: ${r.title}</span>
+                                <span>${r.score}/${r.total} (+${3 + r.bonusPoints} pts)</span>
+                            </div>
+                        `).join('')}
+                    `;
+                    summaryContainer.insertBefore(roundsDetail, summaryContainer.firstChild);
+                }
+            }
+
+            // Update total
+            document.getElementById('totalPointsValue').textContent = totalPointsEarned;
 
             // Save session data and signal dashboard
             saveSession();
@@ -1784,14 +1983,20 @@ Every bridge is designed for specific conditions in its location. A bridge in an
         // ============================================================================
 
         function saveSession() {
+            const sessionDurationMin = Math.round((Date.now() - sessionStartTime) / 60000 * 10) / 10;
+            const totalCorrect = roundScores.reduce((s, r) => s + r.score, 0);
+            const totalQ = roundScores.reduce((s, r) => s + r.total, 0);
             const sessionData = {
                 [TODAY]: {
                     completed: true,
-                    passageId: currentTopic.id,
-                    score: correctAnswers,
-                    totalQuestions: currentTopic.questions.length,
+                    rounds: roundNumber,
+                    roundScores: roundScores,
+                    passageId: roundScores.length > 0 ? roundScores[0].passageId : (currentTopic ? currentTopic.id : ''),
+                    score: totalCorrect,
+                    totalQuestions: totalQ,
                     writingCompleted: writingCompleted,
-                    pointsEarned: totalPointsEarned
+                    pointsEarned: totalPointsEarned,
+                    durationMinutes: sessionDurationMin
                 }
             };
 
@@ -1808,15 +2013,22 @@ Every bridge is designed for specific conditions in its location. A bridge in an
         }
 
         async function syncSession() {
-            if (!currentTopic) return;
+            const sessionDurationMin = Math.round((Date.now() - sessionStartTime) / 60000 * 10) / 10;
+            const totalCorrect = roundScores.reduce((s, r) => s + r.score, 0);
+            const totalQ = roundScores.reduce((s, r) => s + r.total, 0);
 
             const sessionData = {
                 date: TODAY,
-                passageId: currentTopic.id,
-                score: correctAnswers,
-                totalQuestions: currentTopic.questions.length,
+                topic: roundScores.map(r => r.title).join('; '),
+                title: roundScores.length > 1 ? `${roundScores.length} passages` : (roundScores[0] ? roundScores[0].title : ''),
+                source: 'adaptive',
+                questionsCorrect: totalCorrect,
+                questionsTotal: totalQ,
+                comprehensionPct: totalQ > 0 ? Math.round((totalCorrect / totalQ) * 100) : 0,
                 writingCompleted: writingCompleted,
-                pointsEarned: totalPointsEarned
+                writingScore: 0,
+                pointsEarned: totalPointsEarned,
+                duration: sessionDurationMin
             };
 
             try {
@@ -1827,6 +2039,20 @@ Every bridge is designed for specific conditions in its location. A bridge in an
                         action: 'saveSession',
                         student: 'Chase',
                         ...sessionData
+                    })
+                });
+
+                // Also update daily tracking
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'saveDailyTracking',
+                        date: TODAY,
+                        student: 'Chase',
+                        session: true,
+                        comprehensionPct: sessionData.comprehensionPct,
+                        sessionBonus: roundScores.reduce((s, r) => s + r.bonusPoints, 0)
                     })
                 });
             } catch (error) {

@@ -537,14 +537,21 @@
       <a class="task-launch" href="DailySession_Jacob.html" onclick="event.stopPropagation();">Start Session</a>
     </div>
   </div>
-  <div class="task-item" id="task-khan" onclick="toggleTask('khan')">
+  <div class="task-item" id="task-khan">
     <span class="task-icon">&#128208;</span>
-    <div class="task-check"></div>
+    <div class="task-check" onclick="event.stopPropagation(); toggleTask('khan')"></div>
     <div class="task-info">
       <div class="task-name">The Forge</div>
-      <div class="task-detail">Khan Academy — 15-20 minutes</div>
+      <div class="task-detail" id="khan-mission-subject" style="color:var(--accent); font-weight:700;">Loading mission...</div>
+      <div class="task-detail" id="khan-mission-msg" style="font-size:11px; color:var(--text-dim); margin-top:2px; font-style:italic;"></div>
+      <div id="khan-timer-display" style="display:none; margin-top:8px; padding:8px 12px; background:var(--accent-dim); border-radius:8px; font-size:18px; font-weight:700; color:var(--accent); text-align:center; letter-spacing:2px;">
+        <span id="khan-timer-text">20:00</span>
+      </div>
+      <div id="khan-complete-msg" style="display:none; margin-top:8px; padding:8px 12px; background:var(--success-dim); border-radius:8px; font-size:14px; font-weight:700; color:var(--success); text-align:center;">
+        &#10003; Khan Complete! +3 pts
+      </div>
       <div class="task-detail" style="margin-top:4px; color:var(--accent2); font-size:10px; letter-spacing:1px;">Username: <strong style="color:var(--text);">IronFox88</strong> &nbsp;|&nbsp; Password: <strong style="color:var(--text);">Dadlovesyou!</strong></div>
-      <a class="task-launch" href="https://www.khanacademy.org" onclick="event.stopPropagation();" target="_blank">Open Khan</a>
+      <a class="task-launch" id="khan-launch-btn" href="#" onclick="event.stopPropagation(); startKhanMission(); return false;">Start Today's Mission</a>
     </div>
   </div>
   <div class="bonus-row" id="bonus-khan">
@@ -556,7 +563,7 @@
     <div class="task-check"></div>
     <div class="task-info">
       <div class="task-name">The Scroll</div>
-      <div class="task-detail">Reading — 20 minutes before bed</div>
+      <div class="task-detail">Reading — 20 minutes daily</div>
     </div>
   </div>
 </div>
@@ -1697,61 +1704,20 @@ async function loadDiagnosticTests() {
     console.warn('Failed to load diagnostic tests:', err);
   }
 
-  // ALWAYS check localStorage for completion evidence (covers old test versions that didn't write keys,
-  // API failures, and cases where API returns Completed:FALSE but test was actually taken)
-  const signal = JSON.parse(localStorage.getItem('jacob_diagnostic_signal') || 'null');
-  const hasSignal = signal && signal.completed && signal.testId === 'targeted_diagnostic_20260306';
-  const hasResults = !!localStorage.getItem('diagnosticResults_targeted_diagnostic_20260306');
-  const hasPending = !!localStorage.getItem('pending_assessment_comprehensive_diagnostic_20260301') || !!localStorage.getItem('pending_assessment_March2026');
-  const localCompleted = hasSignal || hasResults || hasPending;
-  const localCompletedDate = hasSignal ? signal.date : (localCompleted ? new Date().toISOString().split('T')[0] : '');
-
+  // FALLBACK: If API returns nothing, check for hardcoded March 2026 diagnostic
   if (!diagnosticTests || diagnosticTests.length === 0) {
-    // No API data at all — use hardcoded March 2026 diagnostic
+    const signal = JSON.parse(localStorage.getItem('jacob_diagnostic_signal') || 'null');
+    const isCompleted = signal && signal.completed && signal.testId === 'targeted_diagnostic_20260306';
     diagnosticTests = [{
       TestLabel: 'Targeted Diagnostic — March 2026',
       Month: 'March 2026',
       TestURL: 'Diagnostic_Test_Jacob_March2026.html',
       AvailableDate: '2026-03-06',
       DueDate: '2026-03-09',
-      Completed: localCompleted ? 'TRUE' : 'FALSE',
-      CompletedDate: localCompletedDate,
+      Completed: isCompleted ? 'TRUE' : 'FALSE',
+      CompletedDate: isCompleted ? signal.date : '',
       PointsAwarded: 15
     }];
-  } else {
-    // API returned data — but override Completed status if localStorage says it's done
-    if (localCompleted) {
-      diagnosticTests.forEach(t => {
-        if (t.Completed !== true && t.Completed !== 'TRUE') {
-          t.Completed = 'TRUE';
-          t.CompletedDate = t.CompletedDate || localCompletedDate;
-          t.PointsAwarded = t.PointsAwarded || 15;
-        }
-      });
-    }
-  }
-
-  // Also check Assessments sheet for evidence (the test POSTs results there even if DiagnosticTests row wasn't updated)
-  if (!localCompleted && diagnosticTests.some(t => t.Completed !== true && t.Completed !== 'TRUE')) {
-    try {
-      const baseUrl = syncState.webAppUrl || 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
-      const assessRes = await fetch(`${baseUrl}?action=getSessionHistory&student=Jacob`);
-      if (assessRes.ok) {
-        const sessions = await assessRes.json();
-        const hasDiagSession = Array.isArray(sessions) && sessions.some(s =>
-          (s.test_id || s.TestID || '').toLowerCase().includes('diagnostic')
-        );
-        if (hasDiagSession) {
-          diagnosticTests.forEach(t => {
-            if (t.Completed !== true && t.Completed !== 'TRUE') {
-              t.Completed = 'TRUE';
-              t.CompletedDate = t.CompletedDate || new Date().toISOString().split('T')[0];
-              t.PointsAwarded = t.PointsAwarded || 15;
-            }
-          });
-        }
-      }
-    } catch(e) { console.warn('Assessment check failed:', e); }
   }
 
   // Check for diagnostic completion signal and credit points
@@ -1847,7 +1813,7 @@ function renderDiagnosticSection() {
     actionHtml = `
       <div class="diagnostic-completed-badge">&#10003; COMPLETED</div>
       <div class="diagnostic-points">${pts} points earned</div>
-      <a class="diagnostic-btn" href="Diagnostic_Review_Jacob.html" style="margin-top:10px; background:linear-gradient(135deg, #c9a84c, #8b7355); color:#1a1510; font-size:15px; padding:14px 28px; border-radius:8px; box-shadow: 0 4px 15px rgba(201,168,76,0.4); text-shadow: none; display:inline-block;">Review with Gary &#8594;</a>
+      <a class="diagnostic-btn" href="Diagnostic_Review_Jacob.html" style="margin-top:8px; background:var(--secondary); font-size:12px; padding:8px 16px;">Review with Gary &#8594;</a>
     `;
   } else if (isExpired) {
     actionHtml = '<div style="font-size:12px; color:var(--text-dim);">Window expired — ask Dad for an extension</div>';
@@ -1917,6 +1883,135 @@ function checkSessionReturn() {
   }
 }
 
+// ============================================================================
+// KHAN ACADEMY MISSION SYSTEM + 20-MIN TIMER
+// ============================================================================
+const KHAN_TARGET_MS = 20 * 60 * 1000;
+const KHAN_TIMER_KEY = 'jacob_khan_timer';
+
+const JACOB_KHAN_MATH = [
+  { unit: 'Ratios & Proportional Relationships', url: 'https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-ratios-prop-topic' },
+  { unit: 'Expressions & Equations', url: 'https://www.khanacademy.org/math/cc-sixth-grade-math' },
+  { unit: 'Number System (negatives)', url: 'https://www.khanacademy.org/math/cc-sixth-grade-math' },
+  { unit: 'Geometry (area/volume)', url: 'https://www.khanacademy.org/math/cc-sixth-grade-math' },
+  { unit: 'Statistics & Data', url: 'https://www.khanacademy.org/math/cc-sixth-grade-math' },
+  { unit: 'Full 6th Grade Math', url: 'https://www.khanacademy.org/math/cc-sixth-grade-math' },
+  { unit: 'Full 6th Grade Math', url: 'https://www.khanacademy.org/math/cc-sixth-grade-math' }
+];
+const JACOB_KHAN_ELA = [
+  { unit: 'Reading & Vocabulary', url: 'https://www.khanacademy.org/ela/5th-grade-reading-and-vocab' },
+  { unit: 'Reading & Vocabulary', url: 'https://www.khanacademy.org/ela/5th-grade-reading-and-vocab' },
+  { unit: 'Reading & Vocabulary', url: 'https://www.khanacademy.org/ela/5th-grade-reading-and-vocab' },
+  { unit: 'Reading & Vocabulary', url: 'https://www.khanacademy.org/ela/5th-grade-reading-and-vocab' },
+  { unit: 'Reading & Vocabulary', url: 'https://www.khanacademy.org/ela/5th-grade-reading-and-vocab' },
+  { unit: 'Reading & Vocabulary', url: 'https://www.khanacademy.org/ela/5th-grade-reading-and-vocab' },
+  { unit: 'Reading & Vocabulary', url: 'https://www.khanacademy.org/ela/5th-grade-reading-and-vocab' }
+];
+
+// Jacob diagnostic rotation: math, ela, math, science, math, socialstudies, math+ela, ela+science
+const JACOB_ROTATION = ['math','ela','math','ela','math','ela','math','ela'];
+
+function getJacobKhanMission() {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const startDate = new Date(2026, 2, 8);
+  const diffDays = Math.floor((today - startDate) / (24*60*60*1000));
+  const weekNum = Math.max(0, Math.floor(diffDays / 7));
+  const focus = JACOB_ROTATION[weekNum % JACOB_ROTATION.length];
+
+  const missions = focus === 'math' ? JACOB_KHAN_MATH : JACOB_KHAN_ELA;
+  const mission = missions[dayOfWeek % missions.length];
+
+  let msg = '';
+  if (focus === 'math') {
+    msg = "Math is the one area keeping you from all-Advanced on LEAP. 20 minutes here moves the needle. \u2014 Gary";
+  } else {
+    msg = "Reading builds everything. 20 minutes of focused practice sharpens the mind. \u2014 Gary";
+  }
+
+  return { subject: (focus === 'math' ? 'Math' : 'ELA') + ' Focus', unit: mission.unit, url: mission.url, msg: msg };
+}
+
+let khanTimerInterval = null;
+
+function initKhanMission() {
+  const mission = getJacobKhanMission();
+  document.getElementById('khan-mission-subject').textContent = 'Today: ' + mission.unit;
+  document.getElementById('khan-mission-msg').textContent = mission.msg;
+
+  const saved = localStorage.getItem(KHAN_TIMER_KEY);
+  if (saved) {
+    try {
+      const td = JSON.parse(saved);
+      if (td.date === getToday()) {
+        if (td.completed) { showKhanComplete(); return; }
+        if (td.startTime) { resumeKhanTimer(td.startTime); return; }
+      }
+    } catch(e) {}
+  }
+}
+
+function startKhanMission() {
+  const mission = getJacobKhanMission();
+  const saved = localStorage.getItem(KHAN_TIMER_KEY);
+  if (saved) {
+    try {
+      const td = JSON.parse(saved);
+      if (td.date === getToday() && td.completed) { window.open(mission.url, '_blank'); return; }
+    } catch(e) {}
+  }
+
+  const startTime = Date.now();
+  localStorage.setItem(KHAN_TIMER_KEY, JSON.stringify({ date: getToday(), startTime: startTime, completed: false }));
+  window.open(mission.url, '_blank');
+  document.getElementById('khan-timer-display').style.display = 'block';
+  document.getElementById('khan-launch-btn').textContent = 'Timer Running...';
+  document.getElementById('khan-launch-btn').style.opacity = '0.6';
+  runKhanTimer(startTime);
+}
+
+function resumeKhanTimer(startTime) {
+  document.getElementById('khan-timer-display').style.display = 'block';
+  document.getElementById('khan-launch-btn').textContent = 'Timer Running...';
+  document.getElementById('khan-launch-btn').style.opacity = '0.6';
+  runKhanTimer(startTime);
+}
+
+function runKhanTimer(startTime) {
+  if (khanTimerInterval) clearInterval(khanTimerInterval);
+  khanTimerInterval = setInterval(() => {
+    const remaining = Math.max(0, KHAN_TARGET_MS - (Date.now() - startTime));
+    if (remaining <= 0) { clearInterval(khanTimerInterval); completeKhanSession(); return; }
+    const min = Math.floor(remaining / 60000);
+    const sec = Math.floor((remaining % 60000) / 1000);
+    document.getElementById('khan-timer-text').textContent = min + ':' + sec.toString().padStart(2, '0');
+  }, 1000);
+}
+
+function completeKhanSession() {
+  localStorage.setItem(KHAN_TIMER_KEY, JSON.stringify({ date: getToday(), startTime: null, completed: true }));
+  showKhanComplete();
+  try { toggleTask('khan'); } catch(e) {}
+  try {
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'saveDailyTracking', date: getToday(), student: 'Jacob', khan: true, khanMinutes: 20 })
+    });
+  } catch(e) { console.log('Khan sync failed'); }
+}
+
+function showKhanComplete() {
+  document.getElementById('khan-timer-display').style.display = 'none';
+  document.getElementById('khan-complete-msg').style.display = 'block';
+  const mission = getJacobKhanMission();
+  const btn = document.getElementById('khan-launch-btn');
+  btn.textContent = 'Open Khan (Completed)';
+  btn.style.opacity = '1';
+  btn.href = mission.url;
+  btn.setAttribute('target', '_blank');
+  btn.onclick = function(e) { e.stopPropagation(); };
+}
+
 // Initialize sync, then render
 initializeSync().then(() => {
   return loadContributorData();
@@ -1925,9 +2020,11 @@ initializeSync().then(() => {
 }).then(() => {
   checkSessionReturn();
   render();
+  initKhanMission();
 }).catch(() => {
   checkSessionReturn();
   render();
+  initKhanMission();
 });
 </script>
 </body>
