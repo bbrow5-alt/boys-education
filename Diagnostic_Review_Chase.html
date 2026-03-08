@@ -373,6 +373,194 @@
             line-height: 1.6;
         }
 
+        /* === PERCENTILE REPORT STYLES === */
+        .percentile-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .percentile-trigger-btn {
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            color: var(--bg);
+            border: none;
+            padding: 18px 40px;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(46, 170, 170, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        .percentile-trigger-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(46, 170, 170, 0.5);
+        }
+
+        .percentile-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 35px 25px;
+            margin-top: 20px;
+            text-align: center;
+            animation: fadeSlideIn 0.6s ease-out;
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .percentile-card h3 {
+            font-size: 22px;
+            color: var(--secondary);
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+
+        .percentile-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 4px 20px rgba(46, 170, 170, 0.3);
+        }
+
+        .percentile-number {
+            font-size: 42px;
+            font-weight: bold;
+            color: var(--bg);
+            line-height: 1;
+        }
+
+        .percentile-suffix {
+            font-size: 16px;
+            color: var(--bg);
+            opacity: 0.9;
+        }
+
+        .percentile-meaning {
+            color: var(--text);
+            font-size: 16px;
+            margin: 15px 0 30px;
+            line-height: 1.5;
+        }
+
+        .section-breakdown {
+            text-align: left;
+            margin: 25px 0;
+        }
+
+        .section-breakdown h4 {
+            font-size: 16px;
+            color: var(--secondary);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .section-bar-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+
+        .section-bar-name {
+            min-width: 130px;
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 24px;
+            background-color: rgba(46, 170, 170, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--bg);
+            transition: width 0.8s ease-out;
+            min-width: 40px;
+        }
+
+        .bar-fill.high { background: linear-gradient(90deg, var(--correct), #2dd870); }
+        .bar-fill.medium { background: linear-gradient(90deg, var(--accent), var(--secondary)); }
+        .bar-fill.low { background: linear-gradient(90deg, #f59e0b, var(--incorrect)); }
+
+        .strength-badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-strength {
+            background-color: rgba(74, 222, 128, 0.2);
+            color: var(--correct);
+            border: 1px solid var(--correct);
+        }
+
+        .badge-growth {
+            background-color: rgba(248, 113, 113, 0.15);
+            color: var(--incorrect);
+            border: 1px solid rgba(248, 113, 113, 0.4);
+        }
+
+        .percentile-tutor-summary {
+            background-color: rgba(46, 170, 170, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            margin-top: 25px;
+            border-radius: 6px;
+            text-align: left;
+        }
+
+        .percentile-tutor-summary .tutor-label {
+            font-size: 12px;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .percentile-tutor-summary .tutor-message {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--text);
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 22px;
@@ -408,6 +596,26 @@
 
             .btn {
                 width: 100%;
+            }
+
+            .section-bar-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
+            .section-bar-name {
+                text-align: left;
+                min-width: auto;
+            }
+
+            .percentile-circle {
+                width: 120px;
+                height: 120px;
+            }
+
+            .percentile-number {
+                font-size: 34px;
             }
         }
     </style>
@@ -654,13 +862,19 @@
 
             const { answers, totalQuestions } = results;
             const incorrectQuestions = findIncorrectQuestions(answers);
+            const sectionScores = getSectionScores(answers);
+            const correctCount = totalQuestions - incorrectQuestions.length;
+
+            globalSectionScores = sectionScores;
+            globalCorrectCount = correctCount;
+            globalTotalCount = totalQuestions;
 
             if (incorrectQuestions.length === 0) {
-                showPerfectScore();
+                showPerfectScore(sectionScores, totalQuestions);
                 return;
             }
 
-            renderReview(incorrectQuestions, totalQuestions);
+            renderReview(incorrectQuestions, totalQuestions, sectionScores);
         }
 
         function findIncorrectQuestions(answers) {
@@ -702,12 +916,18 @@
             `;
         }
 
-        function showPerfectScore() {
+        function showPerfectScore(sectionScores, totalQuestions) {
             const content = document.getElementById('content');
             content.innerHTML = `
                 <div class="summary">
                     <h2>Perfect Score!</h2>
                     <p class="summary-text">You got every question right on your diagnostic test. Excellent work, adventurer!</p>
+                </div>
+                <div class="percentile-section" id="percentileSection">
+                    <button class="percentile-trigger-btn" id="percentileTriggerBtn"
+                        onclick="showPercentileReport(${totalQuestions || 48}, ${totalQuestions || 48}, globalSectionScores)">
+                        See How I Did
+                    </button>
                 </div>
                 <div class="completion-message">
                     <h3>🏆 All Systems Go!</h3>
@@ -717,7 +937,7 @@
             `;
         }
 
-        function renderReview(incorrectQuestions, totalQuestions) {
+        function renderReview(incorrectQuestions, totalQuestions, sectionScores) {
             const correct = totalQuestions - incorrectQuestions.length;
             const content = document.getElementById('content');
 
@@ -783,6 +1003,17 @@
 
             html += `</div>`;
 
+            // Add percentile report section
+            html += `
+                <div class="percentile-section" id="percentileSection">
+                    <p style="color:var(--text-muted); margin-bottom:15px; font-size:14px;">Done reviewing? See how you compare.</p>
+                    <button class="percentile-trigger-btn" id="percentileTriggerBtn"
+                        onclick="showPercentileReport(${correct}, ${totalQuestions}, globalSectionScores)">
+                        See How I Did
+                    </button>
+                </div>
+            `;
+
             content.innerHTML = html;
             document.getElementById('skipBtn').style.display = 'block';
         }
@@ -828,8 +1059,138 @@ Explain in a friendly, adventurous tone why the correct answer is right. If ther
             document.getElementById(`askBtn${index}`).focus();
         }
 
+        // === PERCENTILE CALCULATION ===
+        function normalCDF(x) {
+            const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+            const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+            const sign = x < 0 ? -1 : 1;
+            x = Math.abs(x) / Math.sqrt(2);
+            const t = 1.0 / (1.0 + p * x);
+            const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+            return 0.5 * (1.0 + sign * y);
+        }
+
+        function calculatePercentile(pctCorrect) {
+            const mean = 65, sd = 15;
+            const z = (pctCorrect - mean) / sd;
+            let percentile = Math.round(normalCDF(z) * 100);
+            return Math.max(5, Math.min(99, percentile));
+        }
+
+        function getSectionScores(answers) {
+            return SECTIONS.map((section, si) => {
+                let correct = 0, total = 0;
+                section.questions.forEach((q, qi) => {
+                    if (q.type !== 'writing') {
+                        total++;
+                        if (answers[si]?.[qi] === q.correct) correct++;
+                    }
+                });
+                const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+                return { name: section.name, correct, total, pct };
+            });
+        }
+
+        function getOrdinalSuffix(n) {
+            const s = ['th','st','nd','rd'];
+            const v = n % 100;
+            return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        }
+
+        function showPercentileReport(correct, total, sectionScores) {
+            const btn = document.getElementById('percentileTriggerBtn');
+            if (btn) btn.style.display = 'none';
+
+            const pctCorrect = Math.round((correct / total) * 100);
+            const percentile = calculatePercentile(pctCorrect);
+            const ordinal = getOrdinalSuffix(percentile);
+
+            const sorted = [...sectionScores].sort((a, b) => b.pct - a.pct);
+            const strongest = sorted[0];
+            const weakest = sorted[sorted.length - 1];
+
+            let barsHtml = '';
+            sectionScores.forEach(sec => {
+                const level = sec.pct >= 80 ? 'high' : sec.pct >= 50 ? 'medium' : 'low';
+                barsHtml += `
+                    <div class="section-bar-row">
+                        <span class="section-bar-name">${sec.name}</span>
+                        <div class="bar-track">
+                            <div class="bar-fill ${level}" style="width:${Math.max(sec.pct, 8)}%">${sec.correct}/${sec.total}</div>
+                        </div>
+                    </div>`;
+            });
+
+            const cardHtml = `
+                <div class="percentile-card" id="percentileCard">
+                    <h3>Your Expedition Report</h3>
+                    <div class="percentile-circle">
+                        <div class="percentile-number">${ordinal}</div>
+                        <div class="percentile-suffix">percentile</div>
+                    </div>
+                    <p class="percentile-meaning">
+                        I estimate your performance is better than about <strong>${percentile}%</strong> of students at your grade level.
+                    </p>
+                    <div class="strength-badges">
+                        <span class="badge badge-strength">Strongest: ${strongest.name} (${strongest.pct}%)</span>
+                        ${weakest.name !== strongest.name ? `<span class="badge badge-growth">Keep exploring: ${weakest.name} (${weakest.pct}%)</span>` : ''}
+                    </div>
+                    <div class="section-breakdown">
+                        <h4>Section Breakdown</h4>
+                        ${barsHtml}
+                    </div>
+                    <div class="percentile-tutor-summary">
+                        <div class="tutor-label">${tutorName}'s Assessment</div>
+                        <div class="tutor-message" id="percentileTutorMsg">
+                            <span class="tutor-loading">${tutorName} is preparing your expedition report...</span>
+                        </div>
+                    </div>
+                </div>`;
+
+            document.getElementById('percentileSection').innerHTML = cardHtml;
+            requestTutorSummary(correct, total, pctCorrect, percentile, sectionScores);
+        }
+
+        function requestTutorSummary(correct, total, pctCorrect, percentile, sectionScores) {
+            const sorted = [...sectionScores].sort((a, b) => b.pct - a.pct);
+            const sectionSummary = sectionScores.map(s => `${s.name}: ${s.correct}/${s.total} (${s.pct}%)`).join(', ');
+
+            const prompt = `You are ${tutorName}, an adventurous and encouraging AI tutor for a 5th grader named ${studentName}. ${studentName} just completed reviewing a diagnostic test. Here are the results:
+
+Overall: ${correct}/${total} correct (${pctCorrect}%)
+Estimated percentile: ${percentile}th (compared to grade-level peers)
+Section scores: ${sectionSummary}
+Strongest section: ${sorted[0].name} (${sorted[0].pct}%)
+Area for growth: ${sorted[sorted.length-1].name} (${sorted[sorted.length-1].pct}%)
+
+Give ${studentName} a personalized 3-4 sentence performance summary in your adventurous, encouraging tone. Start by telling them their estimated percentile ("I estimate your performance is better than about ${percentile}% of your peers"). Praise their strongest area specifically. Give one concrete, encouraging suggestion for their weakest area. End with motivation. Keep it warm and age-appropriate for a 5th grader.`;
+
+            fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec', {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'chat',
+                    student: studentName,
+                    message: prompt
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                const msg = data.response || data.message || `Great expedition, ${studentName}! Your strongest area was ${sectionScores.sort((a,b) => b.pct - a.pct)[0].name}. Keep exploring and you'll discover even more!`;
+                document.getElementById('percentileTutorMsg').innerHTML = escapeHtml(msg);
+            })
+            .catch(err => {
+                const sorted = [...sectionScores].sort((a, b) => b.pct - a.pct);
+                document.getElementById('percentileTutorMsg').innerHTML =
+                    `Great expedition, ${studentName}! I estimate your performance is better than about ${percentile}% of your peers. Your strongest area was ${sorted[0].name} — awesome exploring there! Keep charting new territory in ${sorted[sorted.length-1].name} and you'll level up even more. Every great explorer started with a first adventure!`;
+            });
+        }
+
+        let globalSectionScores = [];
+        let globalCorrectCount = 0;
+        let globalTotalCount = 0;
+
         function scrollToCompletion() {
-            const completion = document.querySelector('.completion-message');
+            const completion = document.querySelector('.completion-message') || document.querySelector('.percentile-section');
             if (completion) {
                 completion.scrollIntoView({ behavior: 'smooth' });
             }
