@@ -908,6 +908,145 @@
             line-height: 1.5;
         }
 
+        /* Contributor / Payor Cards */
+        .contributor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .contributor-card {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contributor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .contributor-card.dad::before { background: #4fc3f7; }
+        .contributor-card.mom::before { background: #a78bfa; }
+        .contributor-card.gaga-papa::before { background: #f59e0b; }
+        .contributor-card.gigi-pa::before { background: #22c55e; }
+        .contributor-card.other::before { background: #6b7280; }
+
+        .contributor-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f3f4f6;
+            margin-bottom: 4px;
+        }
+
+        .contributor-rate {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            margin-bottom: 16px;
+        }
+
+        .contributor-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .contributor-stat {
+            background-color: #111827;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .contributor-stat-label {
+            font-size: 0.7rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .contributor-stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #4fc3f7;
+        }
+
+        .contributor-stat-value.owed {
+            color: #f59e0b;
+        }
+
+        .contributor-stat-value.paid {
+            color: #22c55e;
+        }
+
+        .contributor-stat-value.zero {
+            color: #6b7280;
+        }
+
+        .payor-summary-bar {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .payor-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .payor-bar-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .payor-bar-label {
+            min-width: 100px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #d1d5db;
+        }
+
+        .payor-bar-track {
+            flex: 1;
+            height: 20px;
+            background-color: #111827;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .payor-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .payor-bar-fill.dad { background: linear-gradient(90deg, #4fc3f7, #81d4fa); }
+        .payor-bar-fill.mom { background: linear-gradient(90deg, #a78bfa, #c4b5fd); }
+        .payor-bar-fill.gaga-papa { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .payor-bar-fill.gigi-pa { background: linear-gradient(90deg, #22c55e, #4ade80); }
+        .payor-bar-fill.other { background: linear-gradient(90deg, #6b7280, #9ca3af); }
+
+        .payor-bar-amount {
+            min-width: 70px;
+            text-align: right;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #f3f4f6;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             body {
@@ -1454,7 +1593,7 @@
             try {
                 const data = {};
                 for (const student of STUDENTS) {
-                    const [sessionHistory, dailyTracking, leapScores, schoolGrades, assessments, diagnosticResults, paymentBalance, paymentLedger, screenTime] = await Promise.all([
+                    const [sessionHistory, dailyTracking, leapScores, schoolGrades, assessments, diagnosticResults, paymentBalance, paymentLedger, screenTime, contributorRates, payoutHistory] = await Promise.all([
                         fetchData('getSessionHistory', student),
                         fetchData('getDailyTracking', student),
                         fetchData('getLeapScores', student),
@@ -1463,7 +1602,9 @@
                         fetchData('getDiagnosticResults', student),
                         fetchData('getPaymentBalance', student),
                         fetchData('getPaymentLedger', student),
-                        fetchData('getScreenTime', student)
+                        fetchData('getScreenTime', student),
+                        fetchData('getContributorRates', student),
+                        fetchData('getPayoutHistory', student)
                     ]);
 
                     data[student] = {
@@ -1475,7 +1616,9 @@
                         diagnosticResults: diagnosticResults || [],
                         paymentBalance: paymentBalance || {},
                         paymentLedger: paymentLedger || [],
-                        screenTime: screenTime || []
+                        screenTime: screenTime || [],
+                        contributorRates: contributorRates || [],
+                        payoutHistory: payoutHistory || []
                     };
                 }
 
@@ -2606,12 +2749,15 @@
             const container = document.getElementById(`${prefix}-payment-section`);
             const balance = allData[student]?.paymentBalance || {};
             const ledger = allData[student]?.paymentLedger || [];
+            const rates = allData[student]?.contributorRates || [];
+            const payouts = allData[student]?.payoutHistory || [];
 
             const totalEarned = balance.totalDollarsEarned || 0;
             const totalPaid = balance.totalPaid || 0;
             const owed = balance.balance || 0;
             const totalPoints = balance.totalPointsEarned || 0;
 
+            // Summary cards (existing)
             let html = `
                 <div class="balance-cards">
                     <div class="balance-card">
@@ -2632,8 +2778,122 @@
                     </div>
                 </div>`;
 
-            // Ledger table
+            // === Per-Payor Breakdown ===
+            // Define configured payors with display names, CSS class, and default share
+            const PAYORS = [
+                { key: 'Dad', display: 'Dad (Ben)', cssClass: 'dad', defaultShare: 50 },
+                { key: 'Mom', display: 'Mom (Stephanie)', cssClass: 'mom', defaultShare: 25 },
+                { key: 'Gaga', display: 'Gaga & Papa', cssClass: 'gaga-papa', defaultShare: 12.5, groupKeys: ['Gaga', 'Papa'] },
+                { key: 'Gigi', display: 'Gigi & Pa', cssClass: 'gigi-pa', defaultShare: 12.5, groupKeys: ['Gigi', 'Paw', 'Pa'] }
+            ];
+
+            // Build rate lookup from backend data
+            const rateMap = {};
+            if (Array.isArray(rates)) {
+                rates.forEach(r => {
+                    const contributor = r.Contributor || r.contributor || r.Payer || '';
+                    const rate = Number(r.Rate || r.rate || r.SharePercent || r.share_percent || 0);
+                    if (contributor) rateMap[contributor] = rate;
+                });
+            }
+
+            // Calculate per-payor payments from ledger
+            const payorPayments = {};
+            ledger.forEach(entry => {
+                const payer = entry.Payer || entry.payer || '';
+                const amount = Number(entry.Amount || entry.amount || 0);
+                if (payer) {
+                    payorPayments[payer] = (payorPayments[payer] || 0) + amount;
+                }
+            });
+
+            // Also factor in payout history
+            if (Array.isArray(payouts)) {
+                payouts.forEach(p => {
+                    const payer = p.Contributor || p.contributor || p.Payer || '';
+                    const amount = Number(p.Amount || p.amount || 0);
+                    if (payer) {
+                        payorPayments[payer] = (payorPayments[payer] || 0) + amount;
+                    }
+                });
+            }
+
+            html += `<h3 style="font-size: 1rem; font-weight: 600; color: #f3f4f6; margin: 20px 0 12px;">Payment & Balance by Payor</h3>`;
+
+            // Contributor cards
+            html += `<div class="contributor-grid">`;
+            let maxPaid = 0;
+
+            PAYORS.forEach(payor => {
+                // Get rate — check direct key or group keys
+                let rate = rateMap[payor.key] || 0;
+                if (!rate && payor.groupKeys) {
+                    payor.groupKeys.forEach(gk => { rate = rate || rateMap[gk] || 0; });
+                }
+                if (!rate) rate = payor.defaultShare;
+
+                // Get total paid — sum across group keys if applicable
+                let paid = payorPayments[payor.key] || 0;
+                if (payor.groupKeys) {
+                    payor.groupKeys.forEach(gk => { paid += (payorPayments[gk] || 0); });
+                }
+
+                // Calculate owed based on share of total earned
+                const shareOwed = (totalEarned * (rate / 100));
+                const balanceOwed = Math.max(0, shareOwed - paid);
+                if (paid > maxPaid) maxPaid = paid;
+
+                html += `
+                    <div class="contributor-card ${payor.cssClass}">
+                        <div class="contributor-name">${payor.display}</div>
+                        <div class="contributor-rate">${rate}% contribution rate — owes $${shareOwed.toFixed(2)} of $${totalEarned.toFixed(2)} total</div>
+                        <div class="contributor-stats">
+                            <div class="contributor-stat">
+                                <div class="contributor-stat-label">Paid</div>
+                                <div class="contributor-stat-value ${paid > 0 ? 'paid' : 'zero'}">$${paid.toFixed(2)}</div>
+                            </div>
+                            <div class="contributor-stat">
+                                <div class="contributor-stat-label">Balance</div>
+                                <div class="contributor-stat-value ${balanceOwed > 0 ? 'owed' : 'paid'}">$${balanceOwed.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            html += `</div>`;
+
+            // Payment progress bars (visual)
+            if (totalEarned > 0) {
+                html += `<div class="payor-summary-bar"><h3 style="font-size: 0.95rem; font-weight: 600; color: #f3f4f6; margin-bottom: 14px;">Payment Progress</h3>`;
+                PAYORS.forEach(payor => {
+                    let rate = rateMap[payor.key] || 0;
+                    if (!rate && payor.groupKeys) {
+                        payor.groupKeys.forEach(gk => { rate = rate || rateMap[gk] || 0; });
+                    }
+                    if (!rate) rate = payor.defaultShare;
+
+                    let paid = payorPayments[payor.key] || 0;
+                    if (payor.groupKeys) {
+                        payor.groupKeys.forEach(gk => { paid += (payorPayments[gk] || 0); });
+                    }
+
+                    const shareOwed = totalEarned * (rate / 100);
+                    const pct = shareOwed > 0 ? Math.min(100, (paid / shareOwed) * 100) : 0;
+
+                    html += `
+                        <div class="payor-bar-row">
+                            <div class="payor-bar-label">${payor.display}</div>
+                            <div class="payor-bar-track">
+                                <div class="payor-bar-fill ${payor.cssClass}" style="width: ${pct}%"></div>
+                            </div>
+                            <div class="payor-bar-amount">$${paid.toFixed(2)}/${shareOwed.toFixed(2)}</div>
+                        </div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Ledger table (existing)
             if (ledger.length > 0) {
+                html += `<h3 style="font-size: 0.95rem; font-weight: 600; color: #f3f4f6; margin: 16px 0 10px;">Transaction Ledger</h3>`;
                 html += `
                     <div class="scores-table-wrapper">
                         <table class="ledger-table">
