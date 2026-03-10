@@ -1698,8 +1698,8 @@ async function loadDiagnosticTests() {
         TestLabel: 'Week 2 Diagnostic — March 16, 2026',
         Month: 'March 2026 (Week 2)',
         TestURL: 'Diagnostic_Test_Chase_Week2_March2026.html',
-        AvailableDate: '2026-03-16',
-        DueDate: '2026-03-17',
+        AvailableDate: '2026-03-10',
+        DueDate: '2026-03-11',
         Completed: isCompleted2 ? 'TRUE' : 'FALSE',
         CompletedDate: isCompleted2 ? signal2.date : '',
         PointsAwarded: 15
@@ -1742,28 +1742,30 @@ function renderDiagnosticSection() {
 
   const today = new Date().toISOString().split('T')[0];
 
-  const activeTest = diagnosticTests.find(t => {
+  // Categorize all tests, then pick the best one to display
+  // Priority: current (available & not expired) > upcoming (within 7 days) > recently completed > expired-but-takeable
+  let currentTest = null, upcomingTest = null, recentlyCompleted = null, expiredTest = null;
+
+  diagnosticTests.forEach(t => {
     const available = t.AvailableDate || '';
     const due = t.DueDate || '';
     const completed = t.Completed === true || t.Completed === 'TRUE';
-    if (!completed && available <= today) return true;
+
     if (completed) {
       const completedDate = t.CompletedDate || '';
       const daysSince = (new Date(today) - new Date(completedDate)) / (1000*60*60*24);
-      if (daysSince <= 7) return true;
+      if (daysSince <= 7) recentlyCompleted = t;
+    } else if (available <= today && (!due || due >= today)) {
+      currentTest = t; // available now and not past due
+    } else if (available <= today && due && due < today) {
+      expiredTest = t; // past due but still takeable
+    } else {
+      const daysUntil = (new Date(available) - new Date(today)) / (1000*60*60*24);
+      if (daysUntil > 0 && daysUntil <= 7) upcomingTest = t;
     }
-    return false;
   });
 
-  const upcomingTest = !activeTest ? diagnosticTests.find(t => {
-    const available = t.AvailableDate || '';
-    const completed = t.Completed === true || t.Completed === 'TRUE';
-    if (completed) return false;
-    const daysUntil = (new Date(available) - new Date(today)) / (1000*60*60*24);
-    return daysUntil > 0 && daysUntil <= 7;
-  }) : null;
-
-  const test = activeTest || upcomingTest;
+  const test = currentTest || upcomingTest || recentlyCompleted || expiredTest;
   if (!test) {
     container.style.display = 'none';
     return;
