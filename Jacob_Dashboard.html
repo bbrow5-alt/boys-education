@@ -1693,35 +1693,23 @@ render = function() {
 let diagnosticTests = [];
 
 async function loadDiagnosticTests() {
-  try {
-    const baseUrl = syncState.webAppUrl || 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
-    const studentParam = 'student=Jacob';
-    const res = await fetch(`${baseUrl}?action=getDiagnosticTests&${studentParam}`);
-    if (res.ok) {
-      diagnosticTests = await res.json();
+  // Diagnostic tests are managed via hardcoded entries (updated each time a new test is built).
+  // The API endpoint returns stale data, so we skip it and use the local definition as source of truth.
+  // When a new diagnostic is created, replace this single entry.
+  const signal = JSON.parse(localStorage.getItem('jacob_diagnostic_week2_signal') || 'null');
+  const isCompleted = signal && signal.completed && signal.testId === 'jacob_diagnostic_week2_mar2026';
+  diagnosticTests = [
+    {
+      TestLabel: 'March 9 Diagnostic',
+      Month: 'March 2026',
+      TestURL: 'Diagnostic_Test_Jacob_Week2_March2026.html',
+      AvailableDate: '2026-03-10',
+      DueDate: '2026-03-11',
+      Completed: isCompleted ? 'TRUE' : 'FALSE',
+      CompletedDate: isCompleted ? signal.date : '',
+      PointsAwarded: 15
     }
-  } catch (err) {
-    console.warn('Failed to load diagnostic tests:', err);
-  }
-
-  // FALLBACK: If API returns nothing, use hardcoded diagnostic schedule
-  if (!diagnosticTests || diagnosticTests.length === 0) {
-    // Only keep the most recent diagnostic. When a new one is created, replace this entry.
-    const signal = JSON.parse(localStorage.getItem('jacob_diagnostic_week2_signal') || 'null');
-    const isCompleted = signal && signal.completed && signal.testId === 'jacob_diagnostic_week2_mar2026';
-    diagnosticTests = [
-      {
-        TestLabel: 'Diagnostic — March 10, 2026',
-        Month: 'March 2026',
-        TestURL: 'Diagnostic_Test_Jacob_Week2_March2026.html',
-        AvailableDate: '2026-03-10',
-        DueDate: '2026-03-11',
-        Completed: isCompleted ? 'TRUE' : 'FALSE',
-        CompletedDate: isCompleted ? signal.date : '',
-        PointsAwarded: 15
-      }
-    ];
-  }
+  ];
 
   // Check for diagnostic completion signal and credit points
   checkDiagnosticReturn();
