@@ -2757,7 +2757,7 @@
             const owed = balance.balance || 0;
             const totalPoints = balance.totalPointsEarned || 0;
 
-            // Summary cards (existing)
+            // Summary cards
             let html = `
                 <div class="balance-cards">
                     <div class="balance-card">
@@ -2778,120 +2778,121 @@
                     </div>
                 </div>`;
 
-            // === Per-Payor Breakdown ===
-            // Define configured payors with display names, CSS class, and default share
-            const PAYORS = [
-                { key: 'Dad', display: 'Dad (Ben)', cssClass: 'dad', defaultShare: 50 },
-                { key: 'Mom', display: 'Mom (Stephanie)', cssClass: 'mom', defaultShare: 25 },
-                { key: 'Gaga', display: 'Gaga & Papa', cssClass: 'gaga-papa', defaultShare: 12.5, groupKeys: ['Gaga', 'Papa'] },
-                { key: 'Gigi', display: 'Gigi & Pa', cssClass: 'gigi-pa', defaultShare: 12.5, groupKeys: ['Gigi', 'Paw', 'Pa'] }
-            ];
+            // === Per-Payor Breakdown — ONLY when real data exists ===
+            const PAYOR_DISPLAY = {
+                'Dad': { display: 'Dad (Ben)', cssClass: 'dad' },
+                'Ben': { display: 'Dad (Ben)', cssClass: 'dad' },
+                'Mom': { display: 'Mom (Stephanie)', cssClass: 'mom' },
+                'Stephanie': { display: 'Mom (Stephanie)', cssClass: 'mom' },
+                'Gaga': { display: 'Gaga & Papa', cssClass: 'gaga-papa' },
+                'Papa': { display: 'Gaga & Papa', cssClass: 'gaga-papa' },
+                'Gigi': { display: 'Gigi & Pa', cssClass: 'gigi-pa' },
+                'Pa': { display: 'Gigi & Pa', cssClass: 'gigi-pa' },
+                'Paw': { display: 'Gigi & Pa', cssClass: 'gigi-pa' }
+            };
 
-            // Build rate lookup from backend data
+            // Build rate lookup from backend ($/point)
             const rateMap = {};
-            if (Array.isArray(rates)) {
+            if (Array.isArray(rates) && rates.length > 0) {
                 rates.forEach(r => {
                     const contributor = r.Contributor || r.contributor || r.Payer || '';
-                    const rate = Number(r.Rate || r.rate || r.SharePercent || r.share_percent || 0);
-                    if (contributor) rateMap[contributor] = rate;
+                    const rate = Number(r.Rate || r.rate || r.DollarsPerPoint || r.dollars_per_point || 0);
+                    if (contributor && rate > 0) rateMap[contributor] = rate;
                 });
             }
 
-            // Calculate per-payor payments from ledger
+            // Calculate per-payor payments from ledger + payout history
             const payorPayments = {};
             ledger.forEach(entry => {
                 const payer = entry.Payer || entry.payer || '';
                 const amount = Number(entry.Amount || entry.amount || 0);
-                if (payer) {
-                    payorPayments[payer] = (payorPayments[payer] || 0) + amount;
-                }
+                if (payer) payorPayments[payer] = (payorPayments[payer] || 0) + amount;
             });
-
-            // Also factor in payout history
             if (Array.isArray(payouts)) {
                 payouts.forEach(p => {
                     const payer = p.Contributor || p.contributor || p.Payer || '';
                     const amount = Number(p.Amount || p.amount || 0);
-                    if (payer) {
-                        payorPayments[payer] = (payorPayments[payer] || 0) + amount;
-                    }
+                    if (payer) payorPayments[payer] = (payorPayments[payer] || 0) + amount;
                 });
             }
 
-            html += `<h3 style="font-size: 1rem; font-weight: 600; color: #f3f4f6; margin: 20px 0 12px;">Payment & Balance by Payor</h3>`;
+            const hasRates = Object.keys(rateMap).length > 0;
+            const hasPayorPayments = Object.keys(payorPayments).length > 0;
 
-            // Contributor cards
-            html += `<div class="contributor-grid">`;
-            let maxPaid = 0;
+            if (hasRates || hasPayorPayments) {
+                html += `<h3 style="font-size: 1rem; font-weight: 600; color: #f3f4f6; margin: 20px 0 12px;">Payment & Balance by Payor</h3>`;
 
-            PAYORS.forEach(payor => {
-                // Get rate — check direct key or group keys
-                let rate = rateMap[payor.key] || 0;
-                if (!rate && payor.groupKeys) {
-                    payor.groupKeys.forEach(gk => { rate = rate || rateMap[gk] || 0; });
-                }
-                if (!rate) rate = payor.defaultShare;
-
-                // Get total paid — sum across group keys if applicable
-                let paid = payorPayments[payor.key] || 0;
-                if (payor.groupKeys) {
-                    payor.groupKeys.forEach(gk => { paid += (payorPayments[gk] || 0); });
-                }
-
-                // Calculate owed based on share of total earned
-                const shareOwed = (totalEarned * (rate / 100));
-                const balanceOwed = Math.max(0, shareOwed - paid);
-                if (paid > maxPaid) maxPaid = paid;
-
-                html += `
-                    <div class="contributor-card ${payor.cssClass}">
-                        <div class="contributor-name">${payor.display}</div>
-                        <div class="contributor-rate">${rate}% contribution rate — owes $${shareOwed.toFixed(2)} of $${totalEarned.toFixed(2)} total</div>
-                        <div class="contributor-stats">
-                            <div class="contributor-stat">
-                                <div class="contributor-stat-label">Paid</div>
-                                <div class="contributor-stat-value ${paid > 0 ? 'paid' : 'zero'}">$${paid.toFixed(2)}</div>
-                            </div>
-                            <div class="contributor-stat">
-                                <div class="contributor-stat-label">Balance</div>
-                                <div class="contributor-stat-value ${balanceOwed > 0 ? 'owed' : 'paid'}">$${balanceOwed.toFixed(2)}</div>
-                            </div>
-                        </div>
-                    </div>`;
-            });
-            html += `</div>`;
-
-            // Payment progress bars (visual)
-            if (totalEarned > 0) {
-                html += `<div class="payor-summary-bar"><h3 style="font-size: 0.95rem; font-weight: 600; color: #f3f4f6; margin-bottom: 14px;">Payment Progress</h3>`;
-                PAYORS.forEach(payor => {
-                    let rate = rateMap[payor.key] || 0;
-                    if (!rate && payor.groupKeys) {
-                        payor.groupKeys.forEach(gk => { rate = rate || rateMap[gk] || 0; });
+                // Deduplicate payors (group aliases together)
+                const seenGroups = new Set();
+                const payorList = [];
+                const addPayor = (key, rate) => {
+                    const info = PAYOR_DISPLAY[key] || { display: key, cssClass: 'other' };
+                    if (!seenGroups.has(info.display)) {
+                        seenGroups.add(info.display);
+                        payorList.push({ key, display: info.display, cssClass: info.cssClass, rate: rate || 0 });
                     }
-                    if (!rate) rate = payor.defaultShare;
+                };
+                Object.entries(rateMap).forEach(([k, r]) => addPayor(k, r));
+                Object.keys(payorPayments).forEach(k => addPayor(k, 0));
 
-                    let paid = payorPayments[payor.key] || 0;
-                    if (payor.groupKeys) {
-                        payor.groupKeys.forEach(gk => { paid += (payorPayments[gk] || 0); });
-                    }
+                // Sum payments for a display-name group
+                function getGroupPaid(display) {
+                    let total = 0;
+                    Object.entries(PAYOR_DISPLAY).forEach(([alias, info]) => {
+                        if (info.display === display) total += (payorPayments[alias] || 0);
+                    });
+                    payorList.forEach(p => {
+                        if (p.display === display && !PAYOR_DISPLAY[p.key]) total += (payorPayments[p.key] || 0);
+                    });
+                    return total;
+                }
 
-                    const shareOwed = totalEarned * (rate / 100);
-                    const pct = shareOwed > 0 ? Math.min(100, (paid / shareOwed) * 100) : 0;
+                html += `<div class="contributor-grid">`;
+                payorList.forEach(payor => {
+                    const paid = getGroupPaid(payor.display);
+                    const rateLabel = payor.rate > 0 ? `$${payor.rate.toFixed(2)} / point` : 'Rate not set yet';
+                    const owedAmt = payor.rate > 0 ? Math.max(0, (totalPoints * payor.rate) - paid) : null;
 
                     html += `
-                        <div class="payor-bar-row">
-                            <div class="payor-bar-label">${payor.display}</div>
-                            <div class="payor-bar-track">
-                                <div class="payor-bar-fill ${payor.cssClass}" style="width: ${pct}%"></div>
+                        <div class="contributor-card ${payor.cssClass}">
+                            <div class="contributor-name">${payor.display}</div>
+                            <div class="contributor-rate">${rateLabel}</div>
+                            <div class="contributor-stats">
+                                <div class="contributor-stat">
+                                    <div class="contributor-stat-label">Paid</div>
+                                    <div class="contributor-stat-value ${paid > 0 ? 'paid' : 'zero'}">$${paid.toFixed(2)}</div>
+                                </div>
+                                <div class="contributor-stat">
+                                    <div class="contributor-stat-label">Owed</div>
+                                    <div class="contributor-stat-value ${owedAmt !== null && owedAmt > 0 ? 'owed' : owedAmt === 0 ? 'paid' : 'zero'}">${owedAmt !== null ? '$' + owedAmt.toFixed(2) : '--'}</div>
+                                </div>
                             </div>
-                            <div class="payor-bar-amount">$${paid.toFixed(2)}/${shareOwed.toFixed(2)}</div>
                         </div>`;
                 });
                 html += `</div>`;
+
+                // Progress bars only if rates are configured
+                if (hasRates && totalPoints > 0) {
+                    html += `<div class="payor-summary-bar"><h3 style="font-size: 0.95rem; font-weight: 600; color: #f3f4f6; margin-bottom: 14px;">Payment Progress</h3>`;
+                    payorList.forEach(payor => {
+                        if (payor.rate <= 0) return;
+                        const paid = getGroupPaid(payor.display);
+                        const shareOwed = totalPoints * payor.rate;
+                        const pct = shareOwed > 0 ? Math.min(100, (paid / shareOwed) * 100) : 0;
+                        html += `
+                            <div class="payor-bar-row">
+                                <div class="payor-bar-label">${payor.display}</div>
+                                <div class="payor-bar-track">
+                                    <div class="payor-bar-fill ${payor.cssClass}" style="width: ${pct}%"></div>
+                                </div>
+                                <div class="payor-bar-amount">$${paid.toFixed(2)} / $${shareOwed.toFixed(2)}</div>
+                            </div>`;
+                    });
+                    html += `</div>`;
+                }
             }
 
-            // Ledger table (existing)
+            // Ledger table
             if (ledger.length > 0) {
                 html += `<h3 style="font-size: 0.95rem; font-weight: 600; color: #f3f4f6; margin: 16px 0 10px;">Transaction Ledger</h3>`;
                 html += `

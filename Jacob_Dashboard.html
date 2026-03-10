@@ -1704,20 +1704,34 @@ async function loadDiagnosticTests() {
     console.warn('Failed to load diagnostic tests:', err);
   }
 
-  // FALLBACK: If API returns nothing, check for hardcoded March 2026 diagnostic
+  // FALLBACK: If API returns nothing, use hardcoded diagnostic schedule
   if (!diagnosticTests || diagnosticTests.length === 0) {
-    const signal = JSON.parse(localStorage.getItem('jacob_diagnostic_signal') || 'null');
-    const isCompleted = signal && signal.completed && signal.testId === 'targeted_diagnostic_20260306';
-    diagnosticTests = [{
-      TestLabel: 'Targeted Diagnostic — March 2026',
-      Month: 'March 2026',
-      TestURL: 'Diagnostic_Test_Jacob_March2026.html',
-      AvailableDate: '2026-03-06',
-      DueDate: '2026-03-09',
-      Completed: isCompleted ? 'TRUE' : 'FALSE',
-      CompletedDate: isCompleted ? signal.date : '',
-      PointsAwarded: 15
-    }];
+    const signal1 = JSON.parse(localStorage.getItem('jacob_diagnostic_signal') || 'null');
+    const isCompleted1 = signal1 && signal1.completed && signal1.testId === 'targeted_diagnostic_20260306';
+    const signal2 = JSON.parse(localStorage.getItem('jacob_diagnostic_week2_signal') || 'null');
+    const isCompleted2 = signal2 && signal2.completed && signal2.testId === 'jacob_diagnostic_week2_mar2026';
+    diagnosticTests = [
+      {
+        TestLabel: 'Targeted Diagnostic — March 2026',
+        Month: 'March 2026',
+        TestURL: 'Diagnostic_Test_Jacob_March2026.html',
+        AvailableDate: '2026-03-06',
+        DueDate: '2026-03-09',
+        Completed: isCompleted1 ? 'TRUE' : 'FALSE',
+        CompletedDate: isCompleted1 ? signal1.date : '',
+        PointsAwarded: 15
+      },
+      {
+        TestLabel: 'Week 2 Diagnostic — March 15, 2026',
+        Month: 'March 2026 (Week 2)',
+        TestURL: 'Diagnostic_Test_Jacob_Week2_March2026.html',
+        AvailableDate: '2026-03-15',
+        DueDate: '2026-03-16',
+        Completed: isCompleted2 ? 'TRUE' : 'FALSE',
+        CompletedDate: isCompleted2 ? signal2.date : '',
+        PointsAwarded: 15
+      }
+    ];
   }
 
   // Check for diagnostic completion signal and credit points
