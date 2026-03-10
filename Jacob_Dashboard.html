@@ -566,8 +566,9 @@
       <div class="task-name">The Forge</div>
       <div class="task-detail" id="khan-mission-subject" style="color:var(--accent); font-weight:700;">Loading mission...</div>
       <div class="task-detail" id="khan-mission-msg" style="font-size:11px; color:var(--text-dim); margin-top:2px; font-style:italic;"></div>
-      <div id="khan-timer-display" style="display:none; margin-top:8px; padding:8px 12px; background:var(--accent-dim); border-radius:8px; font-size:18px; font-weight:700; color:var(--accent); text-align:center; letter-spacing:2px;">
-        <span id="khan-timer-text">20:00</span>
+      <div id="khan-timer-display" style="display:none; margin-top:8px; padding:8px 12px; background:var(--accent-dim); border-radius:8px; text-align:center;">
+        <span id="khan-timer-text" style="font-size:18px; font-weight:700; color:var(--accent); letter-spacing:2px;">20:00</span>
+        <button id="khan-pause-btn" onclick="event.stopPropagation(); toggleKhanPause();" style="display:inline-block; margin-left:12px; padding:4px 14px; font-size:11px; background:transparent; border:1px solid var(--accent); color:var(--accent); border-radius:6px; cursor:pointer; letter-spacing:1px; font-weight:600; vertical-align:middle;">Pause</button>
       </div>
       <div id="khan-complete-msg" style="display:none; margin-top:8px; padding:8px 12px; background:var(--success-dim); border-radius:8px; font-size:14px; font-weight:700; color:var(--success); text-align:center;">
         &#10003; Khan Complete! +3 pts
@@ -1895,6 +1896,42 @@ function getJacobKhanMission() {
 }
 
 let khanTimerInterval = null;
+let khanPaused = false;
+let khanPausedRemaining = 0;
+
+function toggleKhanPause() {
+  if (!khanPaused) {
+    // Pause the timer
+    clearInterval(khanTimerInterval);
+    const saved = JSON.parse(localStorage.getItem(KHAN_TIMER_KEY) || '{}');
+    const remaining = saved.startTime ? Math.max(0, KHAN_TARGET_MS - (Date.now() - saved.startTime)) : 0;
+    khanPausedRemaining = remaining;
+    khanPaused = true;
+    localStorage.setItem(KHAN_TIMER_KEY, JSON.stringify({ date: getToday(), pausedRemaining: khanPausedRemaining, completed: false }));
+    document.getElementById('khan-pause-btn').textContent = 'Resume';
+    document.getElementById('khan-launch-btn').textContent = 'Timer Paused';
+  } else {
+    // Resume the timer
+    khanPaused = false;
+    const newStart = Date.now() - (KHAN_TARGET_MS - khanPausedRemaining);
+    localStorage.setItem(KHAN_TIMER_KEY, JSON.stringify({ date: getToday(), startTime: newStart, completed: false }));
+    document.getElementById('khan-pause-btn').textContent = 'Pause';
+    document.getElementById('khan-launch-btn').textContent = 'Timer Running...';
+    runKhanTimer(newStart);
+  }
+}
+
+function showKhanPaused(remaining) {
+  khanPaused = true;
+  khanPausedRemaining = remaining;
+  const min = Math.floor(remaining / 60000);
+  const sec = Math.floor((remaining % 60000) / 1000);
+  document.getElementById('khan-timer-text').textContent = min + ':' + sec.toString().padStart(2, '0');
+  document.getElementById('khan-timer-display').style.display = 'block';
+  document.getElementById('khan-pause-btn').textContent = 'Resume';
+  document.getElementById('khan-launch-btn').textContent = 'Timer Paused';
+  document.getElementById('khan-launch-btn').style.opacity = '0.6';
+}
 
 function initKhanMission() {
   const mission = getJacobKhanMission();
@@ -1907,6 +1944,7 @@ function initKhanMission() {
       const td = JSON.parse(saved);
       if (td.date === getToday()) {
         if (td.completed) { showKhanComplete(); return; }
+        if (td.pausedRemaining) { showKhanPaused(td.pausedRemaining); return; }
         if (td.startTime) { resumeKhanTimer(td.startTime); return; }
       }
     } catch(e) {}

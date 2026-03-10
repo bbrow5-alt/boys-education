@@ -1469,8 +1469,8 @@
                     <h3 style="font-size: 1.1rem; font-weight: 600; color: #f3f4f6;">Quick Links</h3>
                 </div>
                 <div class="links-grid">
-                    <a href="Jacob_Dashboard.html" class="link-button">Jacob's Dashboard</a>
-                    <a href="Chase_Dashboard.html" class="link-button">Chase's Dashboard</a>
+                    <a href="jacob.html" class="link-button">Jacob's Dashboard</a>
+                    <a href="chase.html" class="link-button">Chase's Dashboard</a>
                     <a href="https://docs.google.com/spreadsheets/d/1MVope5iXn6indmGOmMUDjvphLWziffc0CRH3igY1WvY/edit" target="_blank" class="link-button external">Google Sheet</a>
                     <a href="https://www.khanacademy.org/parent/dashboard" target="_blank" class="link-button external">Khan Academy</a>
                     <a href="https://account.microsoft.com/family/home" target="_blank" class="link-button external">Microsoft Family</a>
@@ -2714,21 +2714,38 @@
             const hasRates = Object.keys(rateMap).length > 0;
             const hasPayorPayments = Object.keys(payorPayments).length > 0;
 
-            if (hasRates || hasPayorPayments) {
-                html += `<h3 style="font-size: 1rem; font-weight: 600; color: #f3f4f6; margin: 20px 0 12px;">Payment & Balance by Payor</h3>`;
+            // Always show per-payor breakdown with the 4 known payors
+            {
+                html += `<h3 style="font-size: 1rem; font-weight: 600; color: #f3f4f6; margin: 20px 0 12px;">Balance Owed by Payor</h3>`;
 
-                // Deduplicate payors (group aliases together)
+                // Always include the 4 default payors
+                const DEFAULT_PAYORS = [
+                    { key: 'Dad', display: 'Dad (Ben)', cssClass: 'dad' },
+                    { key: 'Mom', display: 'Mom (Stephanie)', cssClass: 'mom' },
+                    { key: 'Gaga', display: 'Gaga & Papa', cssClass: 'gaga-papa' },
+                    { key: 'Gigi', display: 'Gigi & Pa', cssClass: 'gigi-pa' }
+                ];
+
                 const seenGroups = new Set();
                 const payorList = [];
-                const addPayor = (key, rate) => {
-                    const info = PAYOR_DISPLAY[key] || { display: key, cssClass: 'other' };
-                    if (!seenGroups.has(info.display)) {
-                        seenGroups.add(info.display);
-                        payorList.push({ key, display: info.display, cssClass: info.cssClass, rate: rate || 0 });
+                const addPayor = (key, display, cssClass, rate) => {
+                    if (!seenGroups.has(display)) {
+                        seenGroups.add(display);
+                        payorList.push({ key, display, cssClass, rate: rate || 0 });
                     }
                 };
-                Object.entries(rateMap).forEach(([k, r]) => addPayor(k, r));
-                Object.keys(payorPayments).forEach(k => addPayor(k, 0));
+
+                // Add defaults first
+                DEFAULT_PAYORS.forEach(p => addPayor(p.key, p.display, p.cssClass, rateMap[p.key] || 0));
+                // Add any additional from rates or payments
+                Object.entries(rateMap).forEach(([k, r]) => {
+                    const info = PAYOR_DISPLAY[k] || { display: k, cssClass: 'other' };
+                    addPayor(k, info.display, info.cssClass, r);
+                });
+                Object.keys(payorPayments).forEach(k => {
+                    const info = PAYOR_DISPLAY[k] || { display: k, cssClass: 'other' };
+                    addPayor(k, info.display, info.cssClass, 0);
+                });
 
                 // Sum payments for a display-name group
                 function getGroupPaid(display) {
