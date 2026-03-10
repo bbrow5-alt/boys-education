@@ -1390,63 +1390,75 @@
             <!-- ANALYTICS TAB -->
             <div id="analytics" class="tab-content">
 
-                <!-- Student selector for analytics -->
-                <div style="margin-bottom: 20px;">
-                    <button class="tab-button active" data-analytics="both" onclick="switchAnalytics('both', this)">Both</button>
-                    <button class="tab-button" data-analytics="Jacob" onclick="switchAnalytics('Jacob', this)">Jacob Only</button>
-                    <button class="tab-button" data-analytics="Chase" onclick="switchAnalytics('Chase', this)">Chase Only</button>
-                </div>
+                <!-- ========== JACOB'S SECTION ========== -->
+                <div class="section-title" style="color: #d4a843;">&#9876; Jacob's Progress</div>
 
-                <!-- LEAP Score Trends -->
-                <div class="section-title">LEAP Score Trends</div>
-                <div class="chart-card">
-                    <h3>LEAP Scores by Subject Across Grades</h3>
-                    <div class="chart-container">
-                        <canvas id="leapTrendChart"></canvas>
-                    </div>
-                </div>
+                <div class="stat-pills" id="jacob-stat-pills"></div>
 
-                <!-- Diagnostic Test Performance -->
-                <div class="section-title">Diagnostic Test Performance</div>
                 <div class="chart-row">
                     <div class="chart-card">
-                        <h3>Jacob's Diagnostic Scores</h3>
+                        <h3>LEAP Scores by Subject</h3>
+                        <div class="chart-container">
+                            <canvas id="leapTrendChartJacob"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Diagnostic Test Scores</h3>
                         <div class="chart-container">
                             <canvas id="diagChartJacob"></canvas>
                         </div>
                     </div>
+                </div>
+
+                <div class="chart-row">
                     <div class="chart-card">
-                        <h3>Chase's Diagnostic Scores</h3>
+                        <h3>Weekly Completion Rate</h3>
+                        <div class="chart-container">
+                            <canvas id="completionRateChartJacob"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Points & Streak</h3>
+                        <div class="chart-container">
+                            <canvas id="streakChartJacob"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="border-color: #374151; margin: 32px 0;">
+
+                <!-- ========== CHASE'S SECTION ========== -->
+                <div class="section-title" style="color: #4fc3f7;">&#128640; Chase's Progress</div>
+
+                <div class="stat-pills" id="chase-stat-pills"></div>
+
+                <div class="chart-row">
+                    <div class="chart-card">
+                        <h3>LEAP Scores by Subject</h3>
+                        <div class="chart-container">
+                            <canvas id="leapTrendChartChase"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Diagnostic Test Scores</h3>
                         <div class="chart-container">
                             <canvas id="diagChartChase"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <!-- Daily Task Analytics -->
-                <div class="section-title">Daily Task Analytics</div>
-
-                <div class="stat-pills" id="analytics-stat-pills"></div>
-
                 <div class="chart-row">
                     <div class="chart-card">
                         <h3>Weekly Completion Rate</h3>
                         <div class="chart-container">
-                            <canvas id="completionRateChart"></canvas>
+                            <canvas id="completionRateChartChase"></canvas>
                         </div>
                     </div>
                     <div class="chart-card">
-                        <h3>Cumulative Points Earned</h3>
+                        <h3>Points & Streak</h3>
                         <div class="chart-container">
-                            <canvas id="cumulativePointsChart"></canvas>
+                            <canvas id="streakChartChase"></canvas>
                         </div>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3>Streak History</h3>
-                    <div class="chart-container">
-                        <canvas id="streakChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -1512,7 +1524,7 @@
         const STUDENTS = ['Jacob', 'Chase'];
         let allData = {};
         let chartInstances = {};
-        let currentAnalyticsFilter = 'both';
+        // Analytics rendered per-student (no comparison mode)
 
         // Colors
         const COLORS = {
@@ -2150,11 +2162,8 @@
             renderDailyTaskAnalytics();
         }
 
-        // LEAP Trend Chart
+        // LEAP Trend Charts — one per student
         function renderLeapTrendChart() {
-            const ctx = document.getElementById('leapTrendChart').getContext('2d');
-            if (chartInstances.leapTrend) chartInstances.leapTrend.destroy();
-
             const subjectColors = {
                 'ELA': COLORS.ela,
                 'Math': COLORS.math,
@@ -2162,10 +2171,40 @@
                 'Social Studies': COLORS.socialStudies
             };
 
-            const datasets = [];
-            const studentsToShow = currentAnalyticsFilter === 'both' ? STUDENTS : [currentAnalyticsFilter];
+            const refLinesPlugin = {
+                id: 'refLines',
+                beforeDraw(chart) {
+                    const { ctx, chartArea, scales } = chart;
+                    if (!chartArea) return;
+                    const lines = [
+                        { value: 790, label: 'Advanced', color: '#22c55e' },
+                        { value: 750, label: 'Mastery', color: '#4fc3f7' },
+                        { value: 700, label: 'Basic', color: '#f59e0b' }
+                    ];
+                    lines.forEach(line => {
+                        const y = scales.y.getPixelForValue(line.value);
+                        if (y < chartArea.top || y > chartArea.bottom) return;
+                        ctx.save();
+                        ctx.strokeStyle = line.color + '66';
+                        ctx.lineWidth = 1;
+                        ctx.setLineDash([6, 4]);
+                        ctx.beginPath();
+                        ctx.moveTo(chartArea.left, y);
+                        ctx.lineTo(chartArea.right, y);
+                        ctx.stroke();
+                        ctx.fillStyle = line.color + '99';
+                        ctx.font = '10px sans-serif';
+                        ctx.fillText(line.label + ' ' + line.value, chartArea.right - 80, y - 4);
+                        ctx.restore();
+                    });
+                }
+            };
 
-            studentsToShow.forEach(student => {
+            STUDENTS.forEach(student => {
+                const canvasId = `leapTrendChart${student}`;
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
                 const scores = allData[student]?.leapScores || [];
                 if (scores.length === 0) return;
 
@@ -2173,110 +2212,64 @@
                 scores.forEach(s => {
                     const subject = s.Subject || 'Unknown';
                     if (!bySubject[subject]) bySubject[subject] = [];
-                    bySubject[subject].push({
-                        grade: Number(s.Grade),
-                        score: Number(s.Score),
-                        label: `Grade ${s.Grade}`
-                    });
+                    bySubject[subject].push({ grade: Number(s.Grade), score: Number(s.Score), label: `Grade ${s.Grade}` });
                 });
 
+                const datasets = [];
                 Object.keys(bySubject).forEach(subject => {
                     const entries = bySubject[subject].sort((a, b) => a.grade - b.grade);
-                    const prefix = studentsToShow.length > 1 ? `${student} ` : '';
                     datasets.push({
-                        label: `${prefix}${subject}`,
+                        label: subject,
                         data: entries.map(e => ({ x: e.label, y: e.score })),
                         borderColor: subjectColors[subject] || '#888',
                         backgroundColor: (subjectColors[subject] || '#888') + '33',
-                        borderWidth: student === 'Jacob' ? 3 : 2,
-                        borderDash: student === 'Chase' ? [5, 5] : [],
+                        borderWidth: 2.5,
                         pointRadius: 5,
                         pointHoverRadius: 7,
                         tension: 0.3,
                         fill: false
                     });
                 });
-            });
 
-            // Build labels from all grades present
-            const allGrades = new Set();
-            datasets.forEach(ds => ds.data.forEach(d => allGrades.add(d.x)));
-            const labels = Array.from(allGrades).sort();
+                const allGrades = new Set();
+                datasets.forEach(ds => ds.data.forEach(d => allGrades.add(d.x)));
+                const labels = Array.from(allGrades).sort();
 
-            // Flatten datasets to use label indices
-            datasets.forEach(ds => {
-                const mapped = new Array(labels.length).fill(null);
-                ds.data.forEach(d => {
-                    const idx = labels.indexOf(d.x);
-                    if (idx >= 0) mapped[idx] = d.y;
+                datasets.forEach(ds => {
+                    const mapped = new Array(labels.length).fill(null);
+                    ds.data.forEach(d => { const idx = labels.indexOf(d.x); if (idx >= 0) mapped[idx] = d.y; });
+                    ds.data = mapped;
                 });
-                ds.data = mapped;
-            });
 
-            chartInstances.leapTrend = new Chart(ctx, {
-                type: 'line',
-                data: { labels, datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { position: 'top', labels: { usePointStyle: true, padding: 16 } },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const val = context.parsed.y;
-                                    let level = 'Unsatisfactory';
-                                    if (val >= 790) level = 'Advanced';
-                                    else if (val >= 750) level = 'Mastery';
-                                    else if (val >= 700) level = 'Basic';
-                                    else if (val >= 650) level = 'Approaching Basic';
-                                    return `${context.dataset.label}: ${val} (${level})`;
+                chartInstances[canvasId] = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels, datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'top', labels: { usePointStyle: true, padding: 12 } },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const val = context.parsed.y;
+                                        let level = 'Unsatisfactory';
+                                        if (val >= 790) level = 'Advanced';
+                                        else if (val >= 750) level = 'Mastery';
+                                        else if (val >= 700) level = 'Basic';
+                                        else if (val >= 650) level = 'Approaching Basic';
+                                        return `${context.dataset.label}: ${val} (${level})`;
+                                    }
                                 }
                             }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            min: 640,
-                            max: 860,
-                            grid: { color: COLORS.grid },
-                            ticks: { stepSize: 20 }
                         },
-                        x: {
-                            grid: { color: COLORS.grid }
+                        scales: {
+                            y: { min: 640, max: 860, grid: { color: COLORS.grid }, ticks: { stepSize: 20 } },
+                            x: { grid: { color: COLORS.grid } }
                         }
                     },
-                    // Reference lines as annotations via plugin (inline)
-                    annotation: undefined
-                },
-                plugins: [{
-                    id: 'refLines',
-                    beforeDraw(chart) {
-                        const { ctx, chartArea, scales } = chart;
-                        if (!chartArea) return;
-                        const lines = [
-                            { value: 790, label: 'Advanced', color: '#22c55e' },
-                            { value: 750, label: 'Mastery', color: '#4fc3f7' },
-                            { value: 700, label: 'Basic', color: '#f59e0b' }
-                        ];
-                        lines.forEach(line => {
-                            const y = scales.y.getPixelForValue(line.value);
-                            if (y < chartArea.top || y > chartArea.bottom) return;
-                            ctx.save();
-                            ctx.strokeStyle = line.color + '66';
-                            ctx.lineWidth = 1;
-                            ctx.setLineDash([6, 4]);
-                            ctx.beginPath();
-                            ctx.moveTo(chartArea.left, y);
-                            ctx.lineTo(chartArea.right, y);
-                            ctx.stroke();
-                            ctx.fillStyle = line.color + '99';
-                            ctx.font = '10px sans-serif';
-                            ctx.fillText(line.label + ' ' + line.value, chartArea.right - 80, y - 4);
-                            ctx.restore();
-                        });
-                    }
-                }]
+                    plugins: [refLinesPlugin]
+                });
             });
         }
 
@@ -2377,29 +2370,18 @@
 
         // Daily Task Analytics
         function renderDailyTaskAnalytics() {
-            const studentsToShow = currentAnalyticsFilter === 'both' ? STUDENTS : [currentAnalyticsFilter];
-
-            // Compute stats
-            let totalDays = 0;
-            let totalComplete = 0;
-            let longestStreak = 0;
-            let totalPoints = 0;
-
-            studentsToShow.forEach(student => {
+            STUDENTS.forEach(student => {
                 const daily = allData[student]?.dailyTracking || {};
                 const sessions = allData[student]?.sessionHistory || [];
                 const dates = Object.keys(daily).sort();
 
+                let totalDays = 0, totalComplete = 0, longestStreak = 0, totalPoints = 0, currentStreak = 0;
+
                 dates.forEach(d => {
                     const dd = daily[d];
                     totalDays++;
-                    if (dd.session && dd.khan && dd.reading) totalComplete++;
-                });
-
-                // Longest streak
-                let currentStreak = 0;
-                dates.forEach(d => {
-                    if (daily[d].session && daily[d].khan && daily[d].reading) {
+                    if (dd.session && dd.khan && dd.reading) {
+                        totalComplete++;
                         currentStreak++;
                         if (currentStreak > longestStreak) longestStreak = currentStreak;
                     } else {
@@ -2408,234 +2390,141 @@
                 });
 
                 sessions.forEach(s => { totalPoints += Number(s.PointsEarned) || 0; });
-            });
 
-            const overallRate = totalDays > 0 ? Math.round((totalComplete / totalDays) * 100) : 0;
+                const overallRate = totalDays > 0 ? Math.round((totalComplete / totalDays) * 100) : 0;
 
-            // Stat pills
-            document.getElementById('analytics-stat-pills').innerHTML = `
-                <div class="stat-pill">
-                    <div class="stat-pill-label">Overall Completion</div>
-                    <div class="stat-pill-value">${overallRate}%</div>
-                </div>
-                <div class="stat-pill">
-                    <div class="stat-pill-label">Total Days Logged</div>
-                    <div class="stat-pill-value">${totalDays}</div>
-                </div>
-                <div class="stat-pill">
-                    <div class="stat-pill-label">Longest Streak</div>
-                    <div class="stat-pill-value">${longestStreak}d</div>
-                </div>
-                <div class="stat-pill">
-                    <div class="stat-pill-label">Total Points</div>
-                    <div class="stat-pill-value">${totalPoints}</div>
-                </div>
-            `;
-
-            // Weekly completion rate chart
-            renderCompletionRateChart(studentsToShow);
-            // Cumulative points chart
-            renderCumulativePointsChart(studentsToShow);
-            // Streak chart
-            renderStreakChart(studentsToShow);
-        }
-
-        function renderCompletionRateChart(students) {
-            const ctx = document.getElementById('completionRateChart').getContext('2d');
-            if (chartInstances.completionRate) chartInstances.completionRate.destroy();
-
-            const datasets = [];
-            const weekLabels = new Set();
-
-            students.forEach(student => {
-                const daily = allData[student]?.dailyTracking || {};
-                const dates = Object.keys(daily).sort();
-                if (dates.length === 0) return;
-
-                // Group by week (ISO week)
-                const weeks = {};
-                dates.forEach(d => {
-                    const dt = new Date(d + 'T00:00:00');
-                    const weekStart = new Date(dt);
-                    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-                    const weekKey = weekStart.toISOString().split('T')[0];
-                    if (!weeks[weekKey]) weeks[weekKey] = { complete: 0, total: 0 };
-                    weeks[weekKey].total++;
-                    const dd = daily[d];
-                    if (dd.session && dd.khan && dd.reading) weeks[weekKey].complete++;
-                });
-
-                Object.keys(weeks).forEach(w => weekLabels.add(w));
-
-                const sortedWeeks = Object.keys(weeks).sort();
-                const data = sortedWeeks.map(w => Math.round((weeks[w].complete / weeks[w].total) * 100));
-
-                datasets.push({
-                    label: student,
-                    data: data,
-                    borderColor: student === 'Jacob' ? COLORS.jacob : COLORS.chase,
-                    backgroundColor: (student === 'Jacob' ? COLORS.jacob : COLORS.chase) + '33',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.3,
-                    pointRadius: 3
-                });
-            });
-
-            const labels = Array.from(weekLabels).sort().map(w => 'Wk ' + formatDate(w));
-
-            // Align datasets to common labels
-            const allWeeksSorted = Array.from(weekLabels).sort();
-            datasets.forEach(ds => {
-                const student = ds.label;
-                const daily = allData[student]?.dailyTracking || {};
-                const dates = Object.keys(daily).sort();
-                const weeks = {};
-                dates.forEach(d => {
-                    const dt = new Date(d + 'T00:00:00');
-                    const weekStart = new Date(dt);
-                    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-                    const weekKey = weekStart.toISOString().split('T')[0];
-                    if (!weeks[weekKey]) weeks[weekKey] = { complete: 0, total: 0 };
-                    weeks[weekKey].total++;
-                    const dd = daily[d];
-                    if (dd.session && dd.khan && dd.reading) weeks[weekKey].complete++;
-                });
-                ds.data = allWeeksSorted.map(w => {
-                    if (weeks[w]) return Math.round((weeks[w].complete / weeks[w].total) * 100);
-                    return null;
-                });
-            });
-
-            chartInstances.completionRate = new Chart(ctx, {
-                type: 'line',
-                data: { labels: allWeeksSorted.map(w => 'Wk ' + formatDate(w)), datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: { legend: { position: 'top', labels: { usePointStyle: true } } },
-                    scales: {
-                        y: {
-                            min: 0, max: 100,
-                            grid: { color: COLORS.grid },
-                            ticks: { callback: v => v + '%' }
-                        },
-                        x: { grid: { color: COLORS.grid } }
-                    }
+                const pillsEl = document.getElementById(`${student.toLowerCase()}-stat-pills`);
+                if (pillsEl) {
+                    pillsEl.innerHTML = `
+                        <div class="stat-pill">
+                            <div class="stat-pill-label">Completion</div>
+                            <div class="stat-pill-value">${overallRate}%</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-label">Days Logged</div>
+                            <div class="stat-pill-value">${totalDays}</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-label">Best Streak</div>
+                            <div class="stat-pill-value">${longestStreak}d</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-label">Total Points</div>
+                            <div class="stat-pill-value">${totalPoints}</div>
+                        </div>
+                    `;
                 }
+
+                renderCompletionRateChart(student);
+                renderStreakAndPointsChart(student);
             });
         }
 
-        function renderCumulativePointsChart(students) {
-            const ctx = document.getElementById('cumulativePointsChart').getContext('2d');
-            if (chartInstances.cumulativePoints) chartInstances.cumulativePoints.destroy();
+        function renderCompletionRateChart(student) {
+            const canvasId = `completionRateChart${student}`;
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-            const datasets = [];
-            const allDates = new Set();
+            const color = student === 'Jacob' ? COLORS.jacob : COLORS.chase;
+            const daily = allData[student]?.dailyTracking || {};
+            const dates = Object.keys(daily).sort();
 
-            students.forEach(student => {
-                const sessions = allData[student]?.sessionHistory || [];
-                const byDate = {};
-                sessions.forEach(s => {
-                    const d = (s.Date || '').split('T')[0];
-                    if (d) {
-                        byDate[d] = (byDate[d] || 0) + (Number(s.PointsEarned) || 0);
-                        allDates.add(d);
-                    }
-                });
+            const weeks = {};
+            dates.forEach(d => {
+                const dt = new Date(d + 'T00:00:00');
+                const weekStart = new Date(dt);
+                weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                const weekKey = weekStart.toISOString().split('T')[0];
+                if (!weeks[weekKey]) weeks[weekKey] = { complete: 0, total: 0 };
+                weeks[weekKey].total++;
+                const dd = daily[d];
+                if (dd.session && dd.khan && dd.reading) weeks[weekKey].complete++;
             });
 
-            const sortedDates = Array.from(allDates).sort();
+            const sortedWeeks = Object.keys(weeks).sort();
+            const data = sortedWeeks.map(w => Math.round((weeks[w].complete / weeks[w].total) * 100));
 
-            students.forEach(student => {
-                const sessions = allData[student]?.sessionHistory || [];
-                const byDate = {};
-                sessions.forEach(s => {
-                    const d = (s.Date || '').split('T')[0];
-                    if (d) byDate[d] = (byDate[d] || 0) + (Number(s.PointsEarned) || 0);
-                });
-
-                let cumulative = 0;
-                const data = sortedDates.map(d => {
-                    cumulative += (byDate[d] || 0);
-                    return cumulative;
-                });
-
-                datasets.push({
-                    label: student,
-                    data,
-                    borderColor: student === 'Jacob' ? COLORS.jacob : COLORS.chase,
-                    backgroundColor: (student === 'Jacob' ? COLORS.jacob : COLORS.chase) + '22',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.3,
-                    pointRadius: 1
-                });
-            });
-
-            chartInstances.cumulativePoints = new Chart(ctx, {
-                type: 'line',
+            chartInstances[canvasId] = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: sortedDates.map(d => formatDate(d)),
-                    datasets
+                    labels: sortedWeeks.map(w => 'Wk ' + formatDate(w)),
+                    datasets: [{
+                        label: 'Completion %',
+                        data,
+                        backgroundColor: color + '66',
+                        borderColor: color,
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
-                    plugins: { legend: { position: 'top', labels: { usePointStyle: true } } },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: { grid: { color: COLORS.grid }, beginAtZero: true },
+                        y: { min: 0, max: 100, grid: { color: COLORS.grid }, ticks: { callback: v => v + '%' } },
                         x: { grid: { color: COLORS.grid } }
                     }
                 }
             });
         }
 
-        function renderStreakChart(students) {
-            const ctx = document.getElementById('streakChart').getContext('2d');
-            if (chartInstances.streakChart) chartInstances.streakChart.destroy();
+        function renderStreakAndPointsChart(student) {
+            const canvasId = `streakChart${student}`;
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-            const datasets = [];
-            const allDates = new Set();
+            const color = student === 'Jacob' ? COLORS.jacob : COLORS.chase;
+            const daily = allData[student]?.dailyTracking || {};
+            const sessions = allData[student]?.sessionHistory || [];
+            const dates = Object.keys(daily).sort();
 
-            students.forEach(student => {
-                const daily = allData[student]?.dailyTracking || {};
-                Object.keys(daily).forEach(d => allDates.add(d));
+            // Streak data
+            let streak = 0;
+            const streakData = dates.map(d => {
+                const dd = daily[d];
+                if (dd && dd.session && dd.khan && dd.reading) { streak++; } else { streak = 0; }
+                return streak;
             });
 
-            const sortedDates = Array.from(allDates).sort();
-
-            students.forEach(student => {
-                const daily = allData[student]?.dailyTracking || {};
-                let streak = 0;
-                const data = sortedDates.map(d => {
-                    const dd = daily[d];
-                    if (dd && dd.session && dd.khan && dd.reading) {
-                        streak++;
-                    } else {
-                        streak = 0;
-                    }
-                    return streak;
-                });
-
-                datasets.push({
-                    label: student,
-                    data,
-                    borderColor: student === 'Jacob' ? COLORS.jacob : COLORS.chase,
-                    backgroundColor: (student === 'Jacob' ? COLORS.jacob : COLORS.chase) + '33',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0,
-                    pointRadius: 0,
-                    stepped: false
-                });
+            // Cumulative points data
+            const pointsByDate = {};
+            sessions.forEach(s => {
+                const d = (s.Date || '').split('T')[0];
+                if (d) pointsByDate[d] = (pointsByDate[d] || 0) + (Number(s.PointsEarned) || 0);
             });
+            let cumPts = 0;
+            const pointsData = dates.map(d => { cumPts += (pointsByDate[d] || 0); return cumPts; });
 
-            chartInstances.streakChart = new Chart(ctx, {
+            chartInstances[canvasId] = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: sortedDates.map(d => formatDate(d)),
-                    datasets
+                    labels: dates.map(d => formatDate(d)),
+                    datasets: [
+                        {
+                            label: 'Streak',
+                            data: streakData,
+                            borderColor: color,
+                            backgroundColor: color + '33',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0,
+                            pointRadius: 2,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Cumulative Pts',
+                            data: pointsData,
+                            borderColor: '#a78bfa',
+                            backgroundColor: '#a78bfa22',
+                            borderWidth: 2,
+                            borderDash: [4, 3],
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 1,
+                            yAxisID: 'y1'
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
@@ -2646,7 +2535,13 @@
                             grid: { color: COLORS.grid },
                             beginAtZero: true,
                             ticks: { stepSize: 1 },
-                            title: { display: true, text: 'Consecutive Days', color: '#9ca3af' }
+                            title: { display: true, text: 'Streak (days)', color: '#9ca3af' }
+                        },
+                        y1: {
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            beginAtZero: true,
+                            title: { display: true, text: 'Points', color: '#a78bfa' }
                         },
                         x: { grid: { color: COLORS.grid } }
                     }
@@ -3145,12 +3040,7 @@
             }
         }
 
-        function switchAnalytics(filter, btn) {
-            currentAnalyticsFilter = filter;
-            document.querySelectorAll('[data-analytics]').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderAnalytics();
-        }
+        // switchAnalytics removed — analytics now show each boy individually
 
         function toggleAdmin(student) {
             const el = document.getElementById(`${student}-admin-insights`);
