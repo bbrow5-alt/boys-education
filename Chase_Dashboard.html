@@ -1679,29 +1679,18 @@ async function loadDiagnosticTests() {
 
   // FALLBACK: If API returns nothing, use hardcoded diagnostic schedule
   if (!diagnosticTests || diagnosticTests.length === 0) {
-    const signal1 = JSON.parse(localStorage.getItem('chase_diagnostic_signal') || 'null');
-    const isCompleted1 = signal1 && signal1.completed && signal1.testId === 'targeted_diagnostic_20260306';
-    const signal2 = JSON.parse(localStorage.getItem('chase_diagnostic_week2_signal') || 'null');
-    const isCompleted2 = signal2 && signal2.completed && signal2.testId === 'chase_diagnostic_week2_mar2026';
+    // Only keep the most recent diagnostic. When a new one is created, replace this entry.
+    const signal = JSON.parse(localStorage.getItem('chase_diagnostic_week2_signal') || 'null');
+    const isCompleted = signal && signal.completed && signal.testId === 'chase_diagnostic_week2_mar2026';
     diagnosticTests = [
       {
-        TestLabel: 'Targeted Diagnostic — March 2026',
+        TestLabel: 'Diagnostic — March 10, 2026',
         Month: 'March 2026',
-        TestURL: 'Diagnostic_Test_Chase_March2026.html',
-        AvailableDate: '2026-03-06',
-        DueDate: '2026-03-09',
-        Completed: isCompleted1 ? 'TRUE' : 'FALSE',
-        CompletedDate: isCompleted1 ? signal1.date : '',
-        PointsAwarded: 15
-      },
-      {
-        TestLabel: 'Week 2 Diagnostic — March 16, 2026',
-        Month: 'March 2026 (Week 2)',
         TestURL: 'Diagnostic_Test_Chase_Week2_March2026.html',
         AvailableDate: '2026-03-10',
         DueDate: '2026-03-11',
-        Completed: isCompleted2 ? 'TRUE' : 'FALSE',
-        CompletedDate: isCompleted2 ? signal2.date : '',
+        Completed: isCompleted ? 'TRUE' : 'FALSE',
+        CompletedDate: isCompleted ? signal.date : '',
         PointsAwarded: 15
       }
     ];
@@ -1742,30 +1731,9 @@ function renderDiagnosticSection() {
 
   const today = new Date().toISOString().split('T')[0];
 
-  // Categorize all tests, then pick the best one to display
-  // Priority: current (available & not expired) > upcoming (within 7 days) > recently completed > expired-but-takeable
-  let currentTest = null, upcomingTest = null, recentlyCompleted = null, expiredTest = null;
-
-  diagnosticTests.forEach(t => {
-    const available = t.AvailableDate || '';
-    const due = t.DueDate || '';
-    const completed = t.Completed === true || t.Completed === 'TRUE';
-
-    if (completed) {
-      const completedDate = t.CompletedDate || '';
-      const daysSince = (new Date(today) - new Date(completedDate)) / (1000*60*60*24);
-      if (daysSince <= 7) recentlyCompleted = t;
-    } else if (available <= today && (!due || due >= today)) {
-      currentTest = t; // available now and not past due
-    } else if (available <= today && due && due < today) {
-      expiredTest = t; // past due but still takeable
-    } else {
-      const daysUntil = (new Date(available) - new Date(today)) / (1000*60*60*24);
-      if (daysUntil > 0 && daysUntil <= 7) upcomingTest = t;
-    }
-  });
-
-  const test = currentTest || upcomingTest || recentlyCompleted || expiredTest;
+  // Always show the LAST test in the array (most recent). It stays on the dashboard
+  // whether completed or not, until a new test is added (which replaces it).
+  const test = diagnosticTests[diagnosticTests.length - 1];
   if (!test) {
     container.style.display = 'none';
     return;
@@ -1773,62 +1741,28 @@ function renderDiagnosticSection() {
 
   container.style.display = 'block';
   const completed = test.Completed === true || test.Completed === 'TRUE';
-  const available = test.AvailableDate || '';
-  const due = test.DueDate || '';
-  const isUpcoming = available > today;
-  const isExpired = due && due < today && !completed;
 
   let bannerClass = 'diagnostic-banner';
-  if (completed) bannerClass += ' completed';
-  else if (isExpired) bannerClass += ' expired';
-
-  let countdownText = '';
-  if (!completed && !isExpired && due) {
-    const daysLeft = Math.ceil((new Date(due) - new Date(today)) / (1000*60*60*24));
-    if (daysLeft === 0) countdownText = 'DUE TODAY';
-    else if (daysLeft === 1) countdownText = 'T-MINUS 1 DAY';
-    else countdownText = `T-MINUS ${daysLeft} DAYS`;
-  } else if (isUpcoming) {
-    const daysUntil = Math.ceil((new Date(available) - new Date(today)) / (1000*60*60*24));
-    countdownText = `INCOMING IN ${daysUntil} DAY${daysUntil > 1 ? 'S' : ''}`;
-  }
-
   let actionHtml = '';
+
   if (completed) {
+    bannerClass += ' completed';
     const pts = test.PointsAwarded || 15;
-    // Check if Chase still needs to finish remaining questions
-    const continueKey = 'diagnosticResults_targeted_diagnostic_20260306';
-    const hasFullResults = (() => { try { const r = JSON.parse(localStorage.getItem(continueKey)); return r && r.answers && r.answers[4] && Object.keys(r.answers[4]).length >= 8; } catch(e) { return false; } })();
-    const continueHtml = !hasFullResults ? `<a class="diagnostic-btn" href="Chase_Diagnostic_Continue.html" style="margin-top:6px; background:var(--secondary); font-size:12px; padding:8px 16px;">Finish Last 10 Questions &#8594;</a>` : '';
     actionHtml = `
       <div class="diagnostic-completed-badge">&#10003; EXPEDITION COMPLETE</div>
       <div class="diagnostic-points">+${pts} PTS EARNED</div>
-      ${continueHtml}
       <a class="diagnostic-btn" href="Diagnostic_Review_Chase.html" style="margin-top:6px; background:var(--secondary); font-size:12px; padding:8px 16px;">Review with Doug &#8594;</a>
     `;
-  } else if (isExpired) {
-    actionHtml = `<a class="diagnostic-btn" href="${test.TestURL}" target="_blank">Begin Assessment</a>
-      <div class="diagnostic-points">Worth 15 points — replaces today's full stack!</div>`;
-  } else if (isUpcoming) {
-    actionHtml = '<div style="font-size:12px; color:var(--text-dim);">Coming soon...</div>';
   } else {
     actionHtml = `<a class="diagnostic-btn" href="${test.TestURL}" target="_blank">Begin Assessment</a>
       <div class="diagnostic-points">Worth 15 points — replaces today's full stack!</div>`;
   }
 
-  const lastCompleted = diagnosticTests.find(t => t.Completed === true || t.Completed === 'TRUE');
-  let historyHtml = '';
-  if (lastCompleted && lastCompleted !== test) {
-    historyHtml = `<div class="diagnostic-history">LAST SCAN: ${lastCompleted.TestLabel || lastCompleted.Month} (${lastCompleted.CompletedDate})</div>`;
-  }
-
   container.innerHTML = `
     <div class="${bannerClass}">
-      <div class="diagnostic-title">${completed ? '&#9733; EXPEDITION ASSESSMENT COMPLETE' : '&#9733; MONTHLY EXPEDITION ASSESSMENT'}</div>
+      <div class="diagnostic-title">${completed ? '&#9733; EXPEDITION ASSESSMENT COMPLETE' : '&#9733; EXPEDITION ASSESSMENT'}</div>
       <div class="diagnostic-label">${test.TestLabel || test.Month || 'Diagnostic Test'}</div>
-      ${countdownText ? `<div class="diagnostic-countdown">${countdownText}</div>` : ''}
       ${actionHtml}
-      ${historyHtml}
     </div>
   `;
 }
