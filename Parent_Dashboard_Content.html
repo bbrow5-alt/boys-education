@@ -2770,11 +2770,41 @@
                     return total;
                 }
 
+                // Dad is the default payor — he owes the full remaining balance
+                // minus what any other configured payors owe.
+                // Other payors owe $0.00 until they set a rate.
+                function calcOwed(payor) {
+                    const isDad = (payor.display === 'Dad (Ben)');
+                    const paid = getGroupPaid(payor.display);
+                    if (isDad) {
+                        // Dad owes: full balance minus other payors' shares, minus what Dad has paid
+                        let othersShare = 0;
+                        payorList.forEach(p => {
+                            if (p.display !== 'Dad (Ben)' && p.rate > 0) {
+                                othersShare += (totalPoints * p.rate);
+                            }
+                        });
+                        return Math.max(0, owed - othersShare); // owed already accounts for all payments
+                    } else if (payor.rate > 0) {
+                        return Math.max(0, (totalPoints * payor.rate) - paid);
+                    } else {
+                        return 0; // not yet contributing
+                    }
+                }
+
                 html += `<div class="contributor-grid">`;
                 payorList.forEach(payor => {
                     const paid = getGroupPaid(payor.display);
-                    const rateLabel = payor.rate > 0 ? `$${payor.rate.toFixed(2)} / point` : 'Rate not set yet';
-                    const owedAmt = payor.rate > 0 ? Math.max(0, (totalPoints * payor.rate) - paid) : null;
+                    const isDad = (payor.display === 'Dad (Ben)');
+                    const owedAmt = calcOwed(payor);
+                    let rateLabel, statusLabel;
+                    if (isDad) {
+                        rateLabel = payor.rate > 0 ? `$${payor.rate.toFixed(2)} / point` : '3 pts = $1.00 (default)';
+                        statusLabel = '';
+                    } else {
+                        rateLabel = payor.rate > 0 ? `$${payor.rate.toFixed(2)} / point` : 'Not yet contributing';
+                        statusLabel = payor.rate > 0 ? '' : '';
+                    }
 
                     html += `
                         <div class="contributor-card ${payor.cssClass}">
@@ -2787,7 +2817,7 @@
                                 </div>
                                 <div class="contributor-stat">
                                     <div class="contributor-stat-label">Owed</div>
-                                    <div class="contributor-stat-value ${owedAmt !== null && owedAmt > 0 ? 'owed' : owedAmt === 0 ? 'paid' : 'zero'}">${owedAmt !== null ? '$' + owedAmt.toFixed(2) : '--'}</div>
+                                    <div class="contributor-stat-value ${owedAmt > 0 ? 'owed' : 'paid'}">$${owedAmt.toFixed(2)}</div>
                                 </div>
                             </div>
                         </div>`;
