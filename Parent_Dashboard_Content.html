@@ -127,6 +127,42 @@
             padding-bottom: 10px;
         }
 
+        .section-title.collapsible {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title.collapsible:hover {
+            color: #4fc3f7;
+        }
+
+        .section-title.collapsible::after {
+            content: '\25B2';
+            font-size: 0.7rem;
+            color: #6b7280;
+            transition: transform 0.2s ease;
+        }
+
+        .section-title.collapsible.collapsed::after {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.2s ease;
+            max-height: 600px;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-bottom: 0;
+        }
+
         /* Today's Status Card */
         .today-status {
             background-color: #1f2937;
@@ -1216,34 +1252,38 @@
                 <div class="points-grid" id="jacob-points-grid"></div>
 
                 <!-- LEAP Scores -->
-                <div class="section-title">LEAP Test Scores</div>
-                <div class="scores-table-wrapper" id="jacob-leap-wrapper">
-                    <table class="scores-table">
-                        <thead>
-                            <tr>
-                                <th>Subject</th>
-                                <th>Grade</th>
-                                <th>Score</th>
-                                <th>Level</th>
-                            </tr>
-                        </thead>
-                        <tbody id="jacob-leap-body"></tbody>
-                    </table>
+                <div class="section-title collapsible collapsed" onclick="toggleCollapse(this)">LEAP Test Scores</div>
+                <div class="collapsible-content collapsed">
+                    <div class="scores-table-wrapper" id="jacob-leap-wrapper">
+                        <table class="scores-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Grade</th>
+                                    <th>Score</th>
+                                    <th>Level</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jacob-leap-body"></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- School Grades -->
-                <div class="section-title">School Grades</div>
-                <div class="grades-table-wrapper" id="jacob-grades-wrapper">
-                    <table class="grades-table">
-                        <thead>
-                            <tr>
-                                <th>Subject</th>
-                                <th>Grade</th>
-                                <th>Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody id="jacob-grades-body"></tbody>
-                    </table>
+                <div class="section-title collapsible collapsed" onclick="toggleCollapse(this)">School Grades</div>
+                <div class="collapsible-content collapsed">
+                    <div class="grades-table-wrapper" id="jacob-grades-wrapper">
+                        <table class="grades-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Grade</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jacob-grades-body"></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Khan Academy -->
@@ -1329,34 +1369,38 @@
                 <div class="points-grid" id="chase-points-grid"></div>
 
                 <!-- LEAP Scores -->
-                <div class="section-title">LEAP Test Scores</div>
-                <div class="scores-table-wrapper" id="chase-leap-wrapper">
-                    <table class="scores-table">
-                        <thead>
-                            <tr>
-                                <th>Subject</th>
-                                <th>Grade</th>
-                                <th>Score</th>
-                                <th>Level</th>
-                            </tr>
-                        </thead>
-                        <tbody id="chase-leap-body"></tbody>
-                    </table>
+                <div class="section-title collapsible collapsed" onclick="toggleCollapse(this)">LEAP Test Scores</div>
+                <div class="collapsible-content collapsed">
+                    <div class="scores-table-wrapper" id="chase-leap-wrapper">
+                        <table class="scores-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Grade</th>
+                                    <th>Score</th>
+                                    <th>Level</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chase-leap-body"></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- School Grades -->
-                <div class="section-title">School Grades</div>
-                <div class="grades-table-wrapper" id="chase-grades-wrapper">
-                    <table class="grades-table">
-                        <thead>
-                            <tr>
-                                <th>Subject</th>
-                                <th>Grade</th>
-                                <th>Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody id="chase-grades-body"></tbody>
-                    </table>
+                <div class="section-title collapsible collapsed" onclick="toggleCollapse(this)">School Grades</div>
+                <div class="collapsible-content collapsed">
+                    <div class="grades-table-wrapper" id="chase-grades-wrapper">
+                        <table class="grades-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Grade</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chase-grades-body"></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Khan Academy -->
@@ -1531,6 +1575,14 @@
     </div>
 
     <script>
+        function toggleCollapse(el) {
+            el.classList.toggle('collapsed');
+            const content = el.nextElementSibling;
+            if (content && content.classList.contains('collapsible-content')) {
+                content.classList.toggle('collapsed');
+            }
+        }
+
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
         const STUDENTS = ['Jacob', 'Chase'];
         let allData = {};
