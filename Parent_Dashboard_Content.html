@@ -2727,7 +2727,10 @@
 
             // Always show per-payor breakdown with the 4 known payors
             {
-                html += `<h3 style="font-size: 1rem; font-weight: 600; color: #f3f4f6; margin: 20px 0 12px;">Balance Owed by Payor</h3>`;
+                html += `<div style="display:flex; align-items:center; justify-content:space-between; margin: 20px 0 12px;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f3f4f6; margin:0;">Balance Owed by Payor</h3>
+                    <a href="How_Points_Work.html" target="_blank" style="font-size: 0.8rem; padding: 6px 14px; background: rgba(79,195,247,0.15); border: 1px solid rgba(79,195,247,0.3); color: #4fc3f7; border-radius: 8px; text-decoration: none; font-weight: 600; letter-spacing: 0.5px;">How Points Work &rarr;</a>
+                </div>`;
 
                 // Always include the 4 default payors
                 const DEFAULT_PAYORS = [
