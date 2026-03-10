@@ -1770,12 +1770,13 @@ function renderDiagnosticSection() {
   const today = new Date().toISOString().split('T')[0];
 
   // Find the most recent test (active or recently completed)
+  // Note: expired-but-not-taken tests still count as active (boys shouldn't lose access over a missed due date)
   const activeTest = diagnosticTests.find(t => {
     const available = t.AvailableDate || '';
     const due = t.DueDate || '';
     const completed = t.Completed === true || t.Completed === 'TRUE';
-    // Show if: within window and not completed, OR completed within last 7 days
-    if (!completed && available <= today && (!due || due >= today)) return true;
+    // Show if: available date has passed and not completed (regardless of due date), OR completed within last 7 days
+    if (!completed && available <= today) return true;
     if (completed) {
       const completedDate = t.CompletedDate || '';
       const daysSince = (new Date(today) - new Date(completedDate)) / (1000*60*60*24);
@@ -1784,13 +1785,13 @@ function renderDiagnosticSection() {
     return false;
   });
 
-  // Also check for upcoming tests (available within 3 days)
+  // Also check for upcoming tests (available within 7 days)
   const upcomingTest = !activeTest ? diagnosticTests.find(t => {
     const available = t.AvailableDate || '';
     const completed = t.Completed === true || t.Completed === 'TRUE';
     if (completed) return false;
     const daysUntil = (new Date(available) - new Date(today)) / (1000*60*60*24);
-    return daysUntil > 0 && daysUntil <= 3;
+    return daysUntil > 0 && daysUntil <= 7;
   }) : null;
 
   const test = activeTest || upcomingTest;
@@ -1830,7 +1831,8 @@ function renderDiagnosticSection() {
       <a class="diagnostic-btn" href="Diagnostic_Review_Jacob.html" style="margin-top:8px; background:var(--secondary); font-size:12px; padding:8px 16px;">Review with Gary &#8594;</a>
     `;
   } else if (isExpired) {
-    actionHtml = '<div style="font-size:12px; color:var(--text-dim);">Window expired — ask Dad for an extension</div>';
+    actionHtml = `<a class="diagnostic-btn" href="${test.TestURL}" target="_blank">Begin Diagnostic</a>
+      <div class="diagnostic-points">Worth 15 points — replaces today's full stack!</div>`;
   } else if (isUpcoming) {
     actionHtml = '<div style="font-size:12px; color:var(--text-dim);">Coming soon...</div>';
   } else {
