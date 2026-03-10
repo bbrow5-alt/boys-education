@@ -496,6 +496,19 @@
 </head>
 <body>
 
+<!-- Loading overlay -->
+<div id="loadingOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a14;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <div style="font-size:2rem;margin-bottom:12px;">&#127963;</div>
+  <div style="color:#d4a843;font-size:1.1rem;letter-spacing:3px;text-transform:uppercase;">Loading The Architect's Log</div>
+  <div style="margin-top:16px;width:120px;height:3px;background:#333;border-radius:2px;overflow:hidden;">
+    <div style="width:100%;height:100%;background:#d4a843;animation:loadPulse 1.2s ease-in-out infinite;"></div>
+  </div>
+</div>
+<style>@keyframes loadPulse{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}</style>
+
+<!-- Last updated banner -->
+<div id="lastUpdatedBanner" style="display:none;text-align:center;padding:4px 0;font-size:0.7rem;color:#666;letter-spacing:1px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;"></div>
+
 <div class="header">
   <div class="columns">&#127963;</div>
   <h1>The Architect's Log</h1>
@@ -1953,6 +1966,17 @@ function showKhanComplete() {
 }
 
 // Initialize sync, then render
+function dismissLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) { overlay.style.opacity = '0'; overlay.style.transition = 'opacity 0.3s'; setTimeout(() => overlay.remove(), 300); }
+  const banner = document.getElementById('lastUpdatedBanner');
+  if (banner) {
+    const now = new Date();
+    banner.textContent = 'Last updated: ' + now.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+    banner.style.display = 'block';
+  }
+}
+
 initializeSync().then(() => {
   return loadContributorData();
 }).then(() => {
@@ -1961,10 +1985,12 @@ initializeSync().then(() => {
   checkSessionReturn();
   render();
   initKhanMission();
+  dismissLoading();
 }).catch(() => {
   checkSessionReturn();
   render();
   initKhanMission();
+  dismissLoading();
 });
 </script>
 </body>
