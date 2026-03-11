@@ -1601,14 +1601,9 @@ Every bridge is designed for specific conditions in its location. A bridge in an
             wordCountElem.textContent = wordCount;
             readTimeElem.textContent = calculateReadTime(wordCount);
 
-            finishReadingBtn.disabled = true;
+            finishReadingBtn.disabled = false;
             const timerMessage = document.getElementById('timerMessage');
             timerMessage.textContent = '';
-
-            setTimeout(() => {
-                finishReadingBtn.disabled = false;
-                timerMessage.textContent = 'Reading time complete. You can now proceed to comprehension questions.';
-            }, 30000); // 30 seconds — don't block fast readers
 
             finishReadingBtn.onclick = () => {
                 readingFinishedTime = Date.now();
@@ -1847,8 +1842,7 @@ Every bridge is designed for specific conditions in its location. A bridge in an
                     };
 
                     // Skip topic selection, go straight to reading
-                    showPhase(2);
-                    displayPassage();
+                    initPhase2();
                     return;
                 }
             } catch (error) {
@@ -1859,8 +1853,7 @@ Every bridge is designed for specific conditions in its location. A bridge in an
             const unused = FALLBACK_PASSAGES.filter(p => !allTopicsUsed.includes(p.category) && !allTopicsUsed.includes(p.id));
             if (unused.length > 0) {
                 currentTopic = unused[Math.floor(Math.random() * unused.length)];
-                showPhase(2);
-                displayPassage();
+                initPhase2();
             } else {
                 // No more passages available, end session
                 initPhase5();

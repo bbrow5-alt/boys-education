@@ -1548,22 +1548,8 @@
             finishBtn.disabled = true;
 
             const timerMsg = document.getElementById('timerMessage');
-            const startTime = Date.now();
-            const minReadTime = 30 * 1000; // 30 seconds — don't block fast readers
-
-            const timerInterval = setInterval(() => {
-                const elapsed = Date.now() - startTime;
-                const remaining = Math.max(0, minReadTime - elapsed);
-
-                if (remaining <= 0) {
-                    clearInterval(timerInterval);
-                    finishBtn.disabled = false;
-                    timerMsg.textContent = '';
-                } else {
-                    const seconds = Math.ceil(remaining / 1000);
-                    timerMsg.textContent = `You can proceed in ${seconds} second${seconds !== 1 ? 's' : ''}...`;
-                }
-            }, 100);
+            timerMsg.textContent = '';
+            finishBtn.disabled = false;
         }
 
         function handleFinishReading() {
@@ -1825,7 +1811,7 @@
 
                     // Skip topic selection, go straight to reading
                     showPhase(2);
-                    displayPassage();
+                    displayPassage(currentTopic);
                     return;
                 }
             } catch (error) {
@@ -1837,7 +1823,7 @@
             if (unused.length > 0) {
                 currentTopic = unused[Math.floor(Math.random() * unused.length)];
                 showPhase(2);
-                displayPassage();
+                displayPassage(currentTopic);
             } else {
                 // No more passages available, end session
                 proceedToSummary();
