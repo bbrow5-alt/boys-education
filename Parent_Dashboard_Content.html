@@ -1732,19 +1732,10 @@
         // ============================================================
         function renderTodayStatus(student) {
             const studentData = allData[student] || {};
-            const sessions = studentData.sessionHistory || [];
             const daily = studentData.dailyTracking || {};
 
             const today = new Date();
             const todayStr = today.toISOString().split('T')[0];
-
-            let todayPoints = 0;
-            sessions.forEach(session => {
-                const sDate = typeof session.Date === 'string' ? session.Date.split('T')[0] : '';
-                if (sDate === todayStr) {
-                    todayPoints += Number(session.PointsEarned) || 0;
-                }
-            });
 
             const todayData = daily[todayStr] || {};
             const sessionComplete = todayData.session === true;
@@ -1752,14 +1743,26 @@
             const readingComplete = todayData.reading === true;
             const allComplete = sessionComplete && khanComplete && readingComplete;
 
+            // Calculate today's points from dailyTracking (3 pts per completed task + bonuses)
+            let todayPoints = 0;
+            if (sessionComplete) todayPoints += 3;
+            if (khanComplete) todayPoints += 3;
+            if (readingComplete) todayPoints += 2;
+            todayPoints += (todayData.sessionBonus || 0) * 3;
+            todayPoints += (todayData.khanBonus || 0) * 3;
+
+            // Calculate streak from dailyTracking — a day counts if ALL 3 tasks are done
             let streak = 0;
-            const sortedDates = Object.keys(daily).sort().reverse();
-            for (let i = 0; i < sortedDates.length; i++) {
-                const expectedDate = new Date();
-                expectedDate.setDate(expectedDate.getDate() - i);
-                const expectedStr = expectedDate.toISOString().split('T')[0];
-                if (sortedDates[i] === expectedStr && daily[sortedDates[i]].session) {
+            for (let i = 0; i < 365; i++) {
+                const checkDate = new Date();
+                checkDate.setDate(checkDate.getDate() - i);
+                const checkStr = checkDate.toISOString().split('T')[0];
+                const dayData = daily[checkStr];
+                if (dayData && dayData.session && dayData.khan && dayData.reading) {
                     streak++;
+                } else if (i === 0) {
+                    // Today not complete yet — check from yesterday
+                    continue;
                 } else {
                     break;
                 }
@@ -1839,18 +1842,24 @@
         // ============================================================
         function renderPointsGrid(student) {
             const studentData = allData[student] || {};
-            const sessions = studentData.sessionHistory || [];
+            const daily = studentData.dailyTracking || {};
             const balance = studentData.paymentBalance || {};
 
             const today = new Date();
             const weekStart = new Date(today);
             weekStart.setDate(weekStart.getDate() - weekStart.getDay());
 
+            // Calculate this week's points from dailyTracking (same source as total points)
             let weekPoints = 0;
-            sessions.forEach(session => {
-                const points = Number(session.PointsEarned) || 0;
-                const sessionDate = new Date(session.Date + 'T00:00:00');
-                if (sessionDate >= weekStart) weekPoints += points;
+            Object.entries(daily).forEach(([dateStr, dayData]) => {
+                const dayDate = new Date(dateStr + 'T00:00:00');
+                if (dayDate >= weekStart) {
+                    if (dayData.session) weekPoints += 3;
+                    if (dayData.khan) weekPoints += 3;
+                    if (dayData.reading) weekPoints += 2;
+                    weekPoints += (dayData.sessionBonus || 0) * 3;
+                    weekPoints += (dayData.khanBonus || 0) * 3;
+                }
             });
 
             // Use server-calculated totals when available
@@ -2438,10 +2447,10 @@
         function renderDailyTaskAnalytics() {
             STUDENTS.forEach(student => {
                 const daily = allData[student]?.dailyTracking || {};
-                const sessions = allData[student]?.sessionHistory || [];
+                const balance = allData[student]?.paymentBalance || {};
                 const dates = Object.keys(daily).sort();
 
-                let totalDays = 0, totalComplete = 0, longestStreak = 0, totalPoints = 0, currentStreak = 0;
+                let totalDays = 0, totalComplete = 0, longestStreak = 0, currentStreak = 0;
 
                 dates.forEach(d => {
                     const dd = daily[d];
@@ -2455,7 +2464,8 @@
                     }
                 });
 
-                sessions.forEach(s => { totalPoints += Number(s.PointsEarned) || 0; });
+                // Use server-calculated total points (from getPaymentBalance, same source as Points & Earnings)
+                const totalPoints = balance.totalPointsEarned || 0;
 
                 const overallRate = totalDays > 0 ? Math.round((totalComplete / totalDays) * 100) : 0;
 
@@ -2542,7 +2552,6 @@
 
             const color = student === 'Jacob' ? COLORS.jacob : COLORS.chase;
             const daily = allData[student]?.dailyTracking || {};
-            const sessions = allData[student]?.sessionHistory || [];
             const dates = Object.keys(daily).sort();
 
             // Streak data
@@ -2553,14 +2562,19 @@
                 return streak;
             });
 
-            // Cumulative points data
-            const pointsByDate = {};
-            sessions.forEach(s => {
-                const d = (s.Date || '').split('T')[0];
-                if (d) pointsByDate[d] = (pointsByDate[d] || 0) + (Number(s.PointsEarned) || 0);
-            });
+            // Cumulative points data (calculated from dailyTracking, same as getPaymentBalance)
             let cumPts = 0;
-            const pointsData = dates.map(d => { cumPts += (pointsByDate[d] || 0); return cumPts; });
+            const pointsData = dates.map(d => {
+                const dd = daily[d] || {};
+                let dayPts = 0;
+                if (dd.session) dayPts += 3;
+                if (dd.khan) dayPts += 3;
+                if (dd.reading) dayPts += 2;
+                dayPts += (dd.sessionBonus || 0) * 3;
+                dayPts += (dd.khanBonus || 0) * 3;
+                cumPts += dayPts;
+                return cumPts;
+            });
 
             chartInstances[canvasId] = new Chart(ctx, {
                 type: 'line',
