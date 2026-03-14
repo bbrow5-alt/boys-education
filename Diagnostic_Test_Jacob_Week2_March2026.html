@@ -1532,22 +1532,60 @@
 
             fetch(CONFIG.webAppUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: 'data=' + encodeURIComponent(JSON.stringify(payload))
+                mode: 'no-cors',
+                body: JSON.stringify(payload)
             })
-            .then(response => response.text())
-            .then(data => {
-                console.log('Submission successful:', data);
+            .then(() => {
+                console.log('Submission sent to Apps Script');
                 localStorage.removeItem('diagnosticState');
-                // Redirect or show success message
-                alert('Your test has been submitted. Gary will review your responses.');
             })
             .catch(error => {
                 console.error('Submission error:', error);
-                alert('There was an error submitting your results. Please try again.');
             });
+
+            // Write localStorage signal for dashboard to detect completion
+            const today = new Date().toISOString().split('T')[0];
+            const signal = {
+                completed: true,
+                timestamp: new Date().toISOString(),
+                date: today,
+                testId: CONFIG.testId,
+                testLabel: CONFIG.testLabel,
+                points: 15
+            };
+            localStorage.setItem('jacob_diagnostic_week2_signal', JSON.stringify(signal));
+            localStorage.setItem('jacob_diagnostic_signal', JSON.stringify(signal));
+
+            // Also update dashboard local data so tasks show as complete
+            const dashKey = 'jacob_dashboard_v3';
+            try {
+                const dashData = JSON.parse(localStorage.getItem(dashKey) || '{}');
+                if (!dashData.days) dashData.days = {};
+                if (!dashData.days[today]) dashData.days[today] = {};
+                dashData.days[today].session = true;
+                dashData.days[today].khan = true;
+                dashData.days[today].reading = true;
+                dashData.days[today].diagnosticComplete = true;
+                dashData.days[today].diagnosticPoints = 15;
+                localStorage.setItem(dashKey, JSON.stringify(dashData));
+            } catch(e) { console.log('Could not update dashboard data'); }
+
+            // POST completeDiagnosticTest to Apps Script for points
+            try {
+                fetch(CONFIG.webAppUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        action: 'completeDiagnosticTest',
+                        student: CONFIG.student,
+                        testId: CONFIG.testId,
+                        date: today,
+                        points: 15
+                    })
+                });
+            } catch(e) { console.log('Points POST failed'); }
+
+            alert('Your test has been submitted! Gary will review your responses. Head back to your dashboard.');
         }
 
         // ==================== INITIALIZATION ====================

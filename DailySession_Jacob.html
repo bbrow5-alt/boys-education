@@ -1070,6 +1070,33 @@
         const MAX_MINUTES = 25;
         const MAX_ROUNDS = 5;
 
+        // Cross-session dedup: track which passages/topics have been used recently
+        const USED_TOPICS_KEY = 'jacob_used_topics_v1';
+        function getRecentlyUsedTopics() {
+            try {
+                const stored = JSON.parse(localStorage.getItem(USED_TOPICS_KEY) || '{}');
+                const cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days
+                const filtered = {};
+                Object.entries(stored).forEach(([topic, timestamp]) => {
+                    if (timestamp > cutoff) filtered[topic] = timestamp;
+                });
+                localStorage.setItem(USED_TOPICS_KEY, JSON.stringify(filtered));
+                return Object.keys(filtered);
+            } catch { return []; }
+        }
+        function markTopicUsed(topic) {
+            try {
+                const stored = JSON.parse(localStorage.getItem(USED_TOPICS_KEY) || '{}');
+                stored[topic] = Date.now();
+                localStorage.setItem(USED_TOPICS_KEY, JSON.stringify(stored));
+            } catch {}
+        }
+        const recentlyUsedTopics = getRecentlyUsedTopics();
+
+        // Pre-fetch: generate next passage in background while boy reads current one
+        let prefetchedPassage = null;
+        let prefetchPromise = null;
+
         // ============================================================================
         // FALLBACK PASSAGE LIBRARY
         // ============================================================================
@@ -1431,7 +1458,13 @@
 
         async function fetchPassageChoices() {
             // Show 3 topic choices: 2 random fallback topics + attempt 1 AI-generated topic
-            const shuffled = [...FALLBACK_PASSAGES].sort(() => 0.5 - Math.random());
+            // Prioritize passages not used in recent sessions
+            const allExcluded = [...allTopicsUsed, ...recentlyUsedTopics];
+            const freshPassages = FALLBACK_PASSAGES.filter(p =>
+                !allExcluded.includes(p.category) && !allExcluded.includes(p.id)
+            );
+            const pool = freshPassages.length >= 3 ? freshPassages : FALLBACK_PASSAGES;
+            const shuffled = [...pool].sort(() => 0.5 - Math.random());
             const fallbackChoices = shuffled.slice(0, 3);
 
             // Try to get an AI-generated topic as the first choice
@@ -1517,8 +1550,87 @@
 
         function selectTopic(topic) {
             currentTopic = topic;
+            markTopicUsed(topic.category || topic.id);
+            allTopicsUsed.push(topic.category || topic.id);
             showPhase(2);
             displayPassage(topic);
+            // Pre-fetch next passage while boy reads (reduces wait between rounds)
+            prefetchNextPassage();
+        }
+
+        async function prefetchNextPassage() {
+            const allExcluded = [...allTopicsUsed, ...recentlyUsedTopics];
+            const topicPool = [
+                'Roman engineering and architecture',
+                'Medieval castle design and defense',
+                'How ancient cities were planned',
+                'Famous buildings and the architects behind them',
+                'The history of bridges and how they evolved',
+                'Ancient Egyptian monuments and construction',
+                'How the Great Wall of China was built',
+                'Renaissance art and architecture in Florence',
+                'Underground cities and hidden architecture',
+                'How skyscrapers changed modern cities',
+                'The science of earthquakes and building safety',
+                'Aztec and Mayan temple engineering',
+                'How lighthouses guided ships through history',
+                'The Panama Canal and its engineering challenges',
+                'How monks preserved knowledge through the Dark Ages',
+                'The engineering genius behind Gothic cathedrals',
+                'Thomas Aquinas and the power of logical thinking',
+                'The invention of concrete and how it changed building',
+                'How the Brooklyn Bridge was built',
+                'The Colosseum and Roman entertainment engineering',
+                'How aqueducts still influence modern water systems',
+                'The science behind domes and arches in architecture',
+                'Leonardo da Vinci as an inventor and engineer',
+                'How the Hoover Dam was built',
+                'The Great Pyramid of Giza construction theories',
+                'How medieval monks created illuminated manuscripts',
+                'Gregor Mendel and the discovery of genetics',
+                'How medieval universities were founded by the Church',
+                'The physics of roller coasters and thrill rides',
+                'How submarines work and their history',
+                'The International Space Station engineering',
+                'How the Transcontinental Railroad was built',
+                'The science of flight from da Vinci to the Wright Brothers',
+                'How ancient Romans built roads that last 2000 years',
+                'The engineering of the London Underground',
+                'How wind turbines generate clean energy'
+            ];
+            const available = topicPool.filter(t => !allExcluded.includes(t));
+            const topic = available.length > 0
+                ? available[Math.floor(Math.random() * available.length)]
+                : topicPool[Math.floor(Math.random() * topicPool.length)];
+
+            prefetchPromise = fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    action: 'generatePassage',
+                    student: 'jacob',
+                    topic: topic
+                })
+            }).then(r => r.json()).then(data => {
+                if (data.passage && data.questions && !data.error) {
+                    prefetchedPassage = {
+                        id: 'ai-prefetch-' + Date.now(),
+                        category: topic,
+                        icon: '🏛️',
+                        title: data.title || topic,
+                        description: '',
+                        passage: data.passage,
+                        questions: data.questions.map(q => ({
+                            text: q.question,
+                            options: q.options.map(opt => opt.replace(/^[A-D]\)\s*/, '')),
+                            correct: q.correctAnswer,
+                            explanation: q.explanation
+                        })),
+                        writingPrompt: 'Write about what you found most interesting in this passage.',
+                        source: 'ai'
+                    };
+                }
+            }).catch(() => { prefetchedPassage = null; });
         }
 
         // ============================================================================
@@ -1748,11 +1860,32 @@
             correctAnswers = 0;
             currentTopic = null;
 
-            // For rounds 2+, auto-generate via API (no topic selection screen)
+            // For rounds 2+, use pre-fetched passage if available (much faster)
             showPhase(0); // Show loading
             const loadingText = document.querySelector('.loading-text');
             if (loadingText) loadingText.textContent = 'Gary is preparing your next passage...';
 
+            // Wait for pre-fetch if it's still in progress
+            if (prefetchPromise) {
+                try { await prefetchPromise; } catch {}
+            }
+
+            // Use pre-fetched passage if available
+            if (prefetchedPassage) {
+                currentTopic = prefetchedPassage;
+                prefetchedPassage = null;
+                prefetchPromise = null;
+                markTopicUsed(currentTopic.category || currentTopic.id);
+                allTopicsUsed.push(currentTopic.category || currentTopic.id);
+                showPhase(2);
+                displayPassage(currentTopic);
+                // Pre-fetch another one for potential next round
+                prefetchNextPassage();
+                return;
+            }
+
+            // No pre-fetched passage — generate one now
+            const allExcluded = [...allTopicsUsed, ...recentlyUsedTopics];
             try {
                 const topicIdeas = [
                     'Roman engineering and architecture',
@@ -1771,10 +1904,24 @@
                     'The Panama Canal and its engineering challenges',
                     'How monks preserved knowledge through the Dark Ages',
                     'The engineering genius behind Gothic cathedrals',
-                    'Thomas Aquinas and the power of logical thinking'
+                    'Thomas Aquinas and the power of logical thinking',
+                    'The invention of concrete and how it changed building',
+                    'How the Brooklyn Bridge was built',
+                    'The Colosseum and Roman entertainment engineering',
+                    'Leonardo da Vinci as an inventor and engineer',
+                    'How the Hoover Dam was built',
+                    'The Great Pyramid of Giza construction theories',
+                    'How medieval monks created illuminated manuscripts',
+                    'The physics of roller coasters and thrill rides',
+                    'How submarines work and their history',
+                    'The International Space Station engineering',
+                    'How the Transcontinental Railroad was built',
+                    'The science of flight from da Vinci to the Wright Brothers',
+                    'How ancient Romans built roads that last 2000 years',
+                    'The engineering of the London Underground',
+                    'How wind turbines generate clean energy'
                 ];
-                // Filter out already-used topics
-                const available = topicIdeas.filter(t => !allTopicsUsed.includes(t));
+                const available = topicIdeas.filter(t => !allExcluded.includes(t));
                 const randomTopic = available.length > 0
                     ? available[Math.floor(Math.random() * available.length)]
                     : topicIdeas[Math.floor(Math.random() * topicIdeas.length)];
@@ -1809,24 +1956,40 @@
                         source: 'ai'
                     };
 
-                    // Skip topic selection, go straight to reading
+                    markTopicUsed(randomTopic);
+                    allTopicsUsed.push(randomTopic);
                     showPhase(2);
                     displayPassage(currentTopic);
+                    prefetchNextPassage();
                     return;
                 }
             } catch (error) {
                 console.log('AI generation failed for round ' + (roundNumber + 1) + ':', error.message);
             }
 
-            // Fallback: pick an unused fallback passage
-            const unused = FALLBACK_PASSAGES.filter(p => !allTopicsUsed.includes(p.category) && !allTopicsUsed.includes(p.id));
+            // Fallback: pick an unused fallback passage (excluding cross-session used ones too)
+            const unused = FALLBACK_PASSAGES.filter(p =>
+                !allExcluded.includes(p.category) && !allExcluded.includes(p.id)
+            );
             if (unused.length > 0) {
                 currentTopic = unused[Math.floor(Math.random() * unused.length)];
+                markTopicUsed(currentTopic.category || currentTopic.id);
+                allTopicsUsed.push(currentTopic.category || currentTopic.id);
                 showPhase(2);
                 displayPassage(currentTopic);
             } else {
-                // No more passages available, end session
-                proceedToSummary();
+                // Try any unused fallback (even if used in prior sessions)
+                const sessionUnused = FALLBACK_PASSAGES.filter(p =>
+                    !allTopicsUsed.includes(p.category) && !allTopicsUsed.includes(p.id)
+                );
+                if (sessionUnused.length > 0) {
+                    currentTopic = sessionUnused[Math.floor(Math.random() * sessionUnused.length)];
+                    allTopicsUsed.push(currentTopic.category || currentTopic.id);
+                    showPhase(2);
+                    displayPassage(currentTopic);
+                } else {
+                    proceedToSummary();
+                }
             }
         }
 

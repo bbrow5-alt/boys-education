@@ -1344,6 +1344,48 @@ Fourth, homework can damage intrinsic motivation. Students naturally love learni
                 body: JSON.stringify(payload)
             }).catch(() => {});
 
+            // Write localStorage signal for dashboard to detect completion
+            const today = new Date().toISOString().split('T')[0];
+            const signal = {
+                completed: true,
+                timestamp: new Date().toISOString(),
+                date: today,
+                testId: CONFIG.testId,
+                testLabel: CONFIG.testLabel,
+                points: 15
+            };
+            localStorage.setItem('chase_diagnostic_week2_signal', JSON.stringify(signal));
+            localStorage.setItem('chase_diagnostic_signal', JSON.stringify(signal));
+
+            // Also update dashboard local data so tasks show as complete
+            const dashKey = 'chase_dashboard_v3';
+            try {
+                const dashData = JSON.parse(localStorage.getItem(dashKey) || '{}');
+                if (!dashData.days) dashData.days = {};
+                if (!dashData.days[today]) dashData.days[today] = {};
+                dashData.days[today].session = true;
+                dashData.days[today].khan = true;
+                dashData.days[today].reading = true;
+                dashData.days[today].diagnosticComplete = true;
+                dashData.days[today].diagnosticPoints = 15;
+                localStorage.setItem(dashKey, JSON.stringify(dashData));
+            } catch(e) { console.log('Could not update dashboard data'); }
+
+            // POST completeDiagnosticTest to Apps Script for points
+            try {
+                fetch(CONFIG.webAppUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        action: 'completeDiagnosticTest',
+                        student: CONFIG.student,
+                        testId: CONFIG.testId,
+                        date: today,
+                        points: 15
+                    })
+                });
+            } catch(e) { console.log('Points POST failed'); }
+
             showCompletion();
         }
 

@@ -2343,8 +2343,11 @@
                 const ctx = document.getElementById(canvasId).getContext('2d');
                 if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-                const assessments = allData[student]?.assessments || [];
-                if (assessments.length === 0) {
+                // Use diagnosticResults (where tests actually save data), falling back to assessments
+                const diagnosticData = allData[student]?.diagnosticResults || [];
+                const assessmentData = allData[student]?.assessments || [];
+                const combinedData = diagnosticData.length > 0 ? diagnosticData : assessmentData;
+                if (combinedData.length === 0) {
                     chartInstances[canvasId] = new Chart(ctx, {
                         type: 'line',
                         data: { labels: ['No data'], datasets: [{ data: [0], borderColor: '#374151' }] },
@@ -2353,8 +2356,8 @@
                     return;
                 }
 
-                // Parse assessments into scores by subject
-                const sorted = [...assessments].sort((a, b) => (a.Timestamp || '').localeCompare(b.Timestamp || ''));
+                // Parse diagnostic results into scores by subject
+                const sorted = [...combinedData].sort((a, b) => (a.Timestamp || '').localeCompare(b.Timestamp || ''));
                 const bySubject = {};
 
                 sorted.forEach(a => {
