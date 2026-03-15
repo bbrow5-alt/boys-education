@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>LEAP Diagnostic — Chase Brown — Week 2</title>
+<style>
+:root{--bg:#0a0a0f;--card:#12141a;--card-border:#2a2e38;--accent:#00ff88;--accent-dim:#0a3322;--accent2:#00ccff;--success:#00ff88;--error:#ff4444;--warning:#ffaa00;--text:#ffffff;--text-dim:#5a6a7a;--text-muted:#3a4a5a;--blue:#4488ff;--blue-dim:#1a2240;--glow:0 0 20px rgba(0,255,136,0.1)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:'Courier New',monospace;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column;overflow:hidden}
+.top-bar{background:var(--card);border-bottom:2px solid var(--accent);padding:10px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:10;box-shadow:var(--glow)}
+.top-bar .title{color:var(--accent);font-size:14px;letter-spacing:3px;text-transform:uppercase}
+.top-bar .timer{color:var(--accent2);font-size:18px;font-weight:bold;min-width:80px;text-align:right}
+.top-bar .section-name{color:var(--text-dim);font-size:11px;letter-spacing:1px}
+.navigator{background:var(--card);border-bottom:1px solid var(--card-border);padding:8px 12px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;flex-shrink:0;overflow-x:auto}
+.nav-btn{width:30px;height:30px;border:1px solid var(--card-border);border-radius:3px;background:var(--bg);color:var(--text-dim);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Courier New',monospace;transition:all .15s}
+.nav-btn:hover{border-color:var(--accent);color:var(--text)}
+.nav-btn.answered{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.nav-btn.flagged{background:#3d2800;border-color:var(--warning);color:var(--warning)}
+.nav-btn.current{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);color:var(--accent);font-weight:bold}
+.nav-sep{width:1px;height:22px;background:var(--card-border);margin:0 4px;flex-shrink:0}
+.content-area{flex:1;display:flex;overflow:hidden}
+.passage-pane{flex:1;overflow-y:auto;padding:24px;border-right:2px solid var(--card-border);background:var(--card);line-height:1.8;font-size:14px}
+.passage-pane h3{color:var(--accent);font-size:13px;margin-bottom:12px;letter-spacing:2px;text-transform:uppercase}
+.passage-pane p{margin-bottom:12px;text-indent:24px}
+.passage-pane p:first-of-type{text-indent:0}
+.question-pane{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column}
+.question-pane.full-width{flex:2}
+.q-header{margin-bottom:14px}
+.q-number{color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:2px}
+.q-standard{color:var(--accent-dim);font-size:10px;margin-top:2px;letter-spacing:1px}
+.q-diff{display:inline-block;padding:2px 8px;border-radius:3px;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.q-diff.baseline{background:#1a2a1a;color:#4ade80}.q-diff.grade-level{background:#1a2a3d;color:#5ca4e8}.q-diff.challenging{background:#3d2800;color:#ffaa00}.q-diff.ceiling{background:#2a1210;color:#ff6666}
+.q-text{font-size:15px;line-height:1.7;margin-bottom:18px;color:var(--text);white-space:pre-wrap}
+.q-options{display:flex;flex-direction:column;gap:10px;max-width:620px}
+.q-option{background:rgba(255,255,255,0.03);border:2px solid var(--card-border);border-radius:4px;padding:12px 16px;cursor:pointer;font-size:14px;line-height:1.5;transition:all .15s;display:flex;align-items:flex-start;gap:10px;font-family:'Courier New',monospace}
+.q-option:hover{border-color:var(--accent);background:var(--accent-dim)}
+.q-option.selected{border-color:var(--blue);background:var(--blue-dim);color:var(--blue)}
+.q-option .letter{flex-shrink:0;width:24px;height:24px;border-radius:50%;border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold}
+.q-option.selected .letter{border-color:var(--blue);background:var(--blue);color:var(--bg)}
+.q-textarea{width:100%;max-width:620px;min-height:120px;background:rgba(255,255,255,0.03);border:2px solid var(--card-border);border-radius:4px;color:var(--text);font-family:'Courier New',monospace;font-size:13px;padding:12px;line-height:1.6;resize:vertical}
+.q-textarea:focus{border-color:var(--accent);outline:none;box-shadow:var(--glow)}
+.q-guidance{color:var(--text-dim);font-size:12px;margin-bottom:8px}
+.q-wordcount{color:var(--text-dim);font-size:11px;margin-top:4px}
+.bottom-bar{background:var(--card);border-top:2px solid var(--card-border);padding:10px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.btn{padding:10px 20px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'Courier New',monospace;font-size:12px;cursor:pointer;border-radius:3px;transition:all .15s;letter-spacing:1px;text-transform:uppercase}
+.btn:hover{background:var(--accent);color:var(--bg);box-shadow:var(--glow)}
+.btn:disabled{opacity:.3;cursor:default}.btn:disabled:hover{background:transparent;color:var(--accent);box-shadow:none}
+.btn.flag{border-color:var(--warning);color:var(--warning)}.btn.flag:hover{background:var(--warning);color:var(--bg)}.btn.flag.active{background:var(--warning);color:var(--bg)}
+.btn.submit{border-color:var(--success);color:var(--success)}.btn.submit:hover{background:var(--success);color:var(--bg)}
+.bottom-left,.bottom-right{display:flex;gap:8px}
+.screen{display:none;flex-direction:column;height:100%}.screen.active{display:flex}
+.welcome-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px}
+.welcome-content h1{color:var(--accent);font-size:32px;margin-bottom:8px;letter-spacing:4px;text-shadow:0 0 30px rgba(0,255,136,0.3)}
+.welcome-content .sub{color:var(--accent2);font-size:14px;margin-bottom:32px;letter-spacing:2px}
+.welcome-content .info{max-width:500px;font-size:13px;line-height:1.8;color:var(--text);margin-bottom:24px}
+.welcome-content .info strong{color:var(--accent)}
+.welcome-content .start-btn{padding:16px 48px;background:transparent;border:2px solid var(--accent);color:var(--accent);font-family:'Courier New',monospace;font-size:16px;cursor:pointer;border-radius:4px;letter-spacing:3px;text-transform:uppercase;transition:all .2s}
+.welcome-content .start-btn:hover{background:var(--accent);color:var(--bg);box-shadow:0 0 30px rgba(0,255,136,0.3)}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-overlay.active{display:flex}
+.modal{background:var(--card);border:2px solid var(--accent);border-radius:6px;padding:32px;max-width:420px;width:90%;text-align:center}
+.modal h3{color:var(--accent);margin-bottom:16px;letter-spacing:2px}.modal p{color:var(--text);font-size:13px;line-height:1.6;margin-bottom:8px}.modal .warn{color:var(--warning);font-weight:bold}.modal .btn-row{display:flex;gap:12px;justify-content:center;margin-top:20px}
+.review-content{padding:24px;max-width:800px;margin:0 auto;overflow-y:auto;flex:1}
+.review-score{text-align:center;margin-bottom:24px}.review-score .big{font-size:56px;color:var(--accent);font-weight:bold;text-shadow:0 0 30px rgba(0,255,136,0.3)}.review-score .pct{font-size:16px;color:var(--text-dim)}.review-score .tutor-msg{color:var(--accent2);margin-top:8px;font-size:14px}
+.review-section{margin-bottom:24px}.review-section h3{color:var(--accent);font-size:14px;margin-bottom:12px;border-bottom:1px solid var(--card-border);padding-bottom:6px;letter-spacing:1px}
+.score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px}
+.score-card{background:var(--card);border:1px solid var(--card-border);border-radius:4px;padding:12px;text-align:center}
+.score-card .label{color:var(--text-dim);font-size:10px;text-transform:uppercase;letter-spacing:1px}
+.score-card .value{color:var(--accent);font-size:22px;font-weight:bold;margin:4px 0}
+.score-card .sub{color:var(--text-dim);font-size:10px}
+.wrong-item{background:rgba(255,255,255,0.03);border-left:3px solid var(--error);border-radius:0 4px 4px 0;padding:14px;margin-bottom:10px}
+.wrong-item .wi-q{color:var(--text-dim);font-size:11px;margin-bottom:4px}
+.wrong-item .wi-text{font-size:13px;margin-bottom:8px}
+.wrong-item .wi-yours{color:var(--error);font-size:12px;margin-bottom:4px}
+.wrong-item .wi-correct{color:var(--success);font-size:12px;margin-bottom:6px}
+.wrong-item .wi-explain{color:var(--text-dim);font-size:11px;line-height:1.5;border-top:1px solid var(--card-border);padding-top:6px}
+.wrong-item .wi-strategy{color:var(--accent-dim);font-size:10px;margin-top:4px}
+.skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.skill-item{background:var(--card);border-radius:4px;padding:10px;display:flex;justify-content:space-between;align-items:center}
+.skill-item .sk-name{font-size:11px}.skill-item .sk-score{font-size:13px;font-weight:bold}
+.skill-item .sk-score.strong{color:var(--success)}.skill-item .sk-score.weak{color:var(--error)}.skill-item .sk-score.ok{color:var(--warning)}
+.points-banner{text-align:center;padding:12px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);border-radius:6px;margin-bottom:24px}
+.points-banner .pts{color:var(--accent);font-size:18px;font-weight:bold}
+.return-btn{display:block;width:100%;padding:16px;margin-top:24px;background:transparent;border:2px solid var(--accent);color:var(--accent);border-radius:4px;font-family:'Courier New',monospace;font-size:14px;cursor:pointer;letter-spacing:3px;text-transform:uppercase;text-align:center}
+.return-btn:hover{background:var(--accent);color:var(--bg);box-shadow:0 0 30px rgba(0,255,136,0.3)}
+</style>
+</head>
+<body>
+<div id="welcomeScreen" class="screen active">
+<div class="welcome-content">
+  <h1>LEAP DIAGNOSTIC</h1>
+  <div class="sub">Iron Mind Academy &mdash; Week 2 Official Assessment</div>
+  <div class="info">
+    <strong>Chase Brown &mdash; 5th Grade</strong><br><br>
+    Comprehensive diagnostic covering all four LEAP subjects:<br>
+    <strong>ELA</strong> &middot; <strong>Mathematics</strong> &middot; <strong>Science</strong> &middot; <strong>Social Studies</strong><br><br>
+    <strong>48 questions</strong> &middot; ~60 minutes<br><br>
+    Navigate freely between questions. Flag items for review. Change answers anytime.
+  </div>
+  <button class="start-btn" onclick="startTest()">Begin Mission</button>
+</div>
+</div>
+<div id="testScreen" class="screen">
+  <div class="top-bar"><div><div class="title">LEAP Diagnostic</div><div class="section-name" id="sectionLabel"></div></div><div class="timer" id="timerDisplay">00:00</div></div>
+  <div class="navigator" id="navigator"></div>
+  <div class="content-area"><div class="passage-pane" id="passagePane"></div><div class="question-pane" id="questionPane"></div></div>
+  <div class="bottom-bar"><div class="bottom-left"><button class="btn" id="prevBtn" onclick="goQuestion(currentQ-1)">&larr; Previous</button><button class="btn flag" id="flagBtn" onclick="toggleFlag()">Flag for Review</button></div><div class="bottom-right"><button class="btn" id="nextBtn" onclick="goQuestion(currentQ+1)">Next &rarr;</button><button class="btn submit" onclick="showSubmitModal()">Submit Test</button></div></div>
+</div>
+<div class="modal-overlay" id="submitModal"><div class="modal"><h3>Submit Your Test?</h3><p id="submitInfo"></p><div class="btn-row"><button class="btn" onclick="closeModal()">Go Back</button><button class="btn submit" onclick="submitTest()">Submit</button></div></div></div>
+<div id="reviewScreen" class="screen"><div class="top-bar"><div><div class="title">Doug's Review</div></div><div style="color:var(--accent)">Diagnostic Complete</div></div><div class="review-content" id="reviewContent"></div></div>
+
+<script>
+const CONFIG={student:"Chase",grade:5,testId:"chase_diagnostic_week3_math_mar2026",testLabel:"Week 2 LEAP Diagnostic \u2014 March 15, 2026",
+webAppUrl:"https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec"};
+
+const PASSAGES={
+passage1:{title:"The Storm Chaser",label:"Literary Narrative",
+text:`<p>The sky had turned a sickly green\u2014the kind of green that made the hairs on Chase\u2019s arms stand up. His uncle Hector glanced at the dashboard of their battered pickup truck, where three different screens flickered with weather data. Doppler radar painted angry reds and purples across the map.</p>
+<p>\u201CThere,\u201D Uncle Hector said quietly, pointing toward the western horizon. A massive wall cloud hung low and dark, rotating slowly like a giant spinning top. \u201CThat\u2019s what we\u2019ve been waiting for.\u201D</p>
+<p>Chase had been riding along on storm chases since he was eight years old. Uncle Hector was a meteorologist at the National Weather Service, and every spring during tornado season, he drove across the Oklahoma plains to study severe storms up close. Most people ran from tornadoes. Uncle Hector drove toward them\u2014carefully, scientifically, always with an escape route planned.</p>
+<p>\u201CWind shear is incredible today,\u201D Uncle Hector muttered, tapping a screen that showed wind speeds at different altitudes. \u201CThe updraft is pulling in warm air from the Gulf at ground level, while cold air from Canada is pushing in above. That\u2019s what creates the rotation.\u201D</p>
+<p>Suddenly, the laptop connected to their portable weather station went dark. Uncle Hector frowned and tapped the keyboard. Nothing. \u201CBattery\u2019s dead,\u201D he said. \u201CThe backup must have come unplugged on that last dirt road.\u201D Without the weather station, they were driving blind\u2014no temperature readings, no barometric pressure, no wind speed data.</p>
+<p>Chase looked out the window. He couldn\u2019t read instruments, but he could read the sky. The wall cloud was tightening, its rotation speeding up. Dust was swirling beneath it, rising in a thin spiral. He remembered what Uncle Hector had taught him: when the rotation narrows and debris begins to rise, a tornado is about to form.</p>
+<p>\u201CUncle Hector,\u201D Chase said, his voice steady despite his racing heart. \u201CThe dust is rising under the wall cloud. And look\u2014the rain curtain is wrapping around the back side. I think it\u2019s about to drop.\u201D</p>
+<p>Uncle Hector looked where Chase was pointing. His eyes went wide. \u201CYou\u2019re right. That\u2019s a tornado forming.\u201D He grabbed the radio. \u201CNWS Norman, this is Chaser Seven. Tornado is imminent, two miles west of Route 33 near Fairview. Recommend immediate warning.\u201D</p>
+<p>As they turned the truck south to move out of the storm\u2019s path, Chase watched the funnel descend from the cloud like a gray rope. It was terrifying and beautiful at the same time. But more than anything, he was glad that the warning had gone out. Somewhere nearby, families were heading to their shelters because Chase had read the sky when the instruments failed.</p>`},
+
+passage2:{title:"The Hidden Kingdom of Coral Reefs",label:"Informational \u2014 Science",
+text:`<p>Beneath the surface of warm, shallow oceans lies one of Earth\u2019s most spectacular ecosystems: the coral reef. Often called \u201Crainforests of the sea,\u201D coral reefs cover less than one percent of the ocean floor, yet they support roughly twenty-five percent of all marine species. This astonishing concentration of life makes coral reefs among the most biologically diverse ecosystems on the planet.</p>
+<p>What many people do not realize is that coral is not a plant or a rock\u2014it is an animal. Individual coral organisms, called polyps, are tiny creatures related to jellyfish and sea anemones. Each polyp is usually less than half an inch wide. These polyps build hard limestone skeletons around themselves for protection. Over hundreds and thousands of years, as old polyps die and new ones grow on top, these skeletons stack up to form the enormous reef structures we see today. The Great Barrier Reef in Australia, the largest coral reef system in the world, stretches for over 1,400 miles.</p>
+<p>Coral polyps have a remarkable partnership with microscopic algae called zooxanthellae that live inside their tissues. The algae use sunlight to produce food through photosynthesis, sharing nutrients with the coral. In return, the coral provides the algae with a protected home and the compounds they need to photosynthesize. This relationship is why coral reefs are found in clear, shallow water where sunlight can reach them.</p>
+<p>The biodiversity of coral reefs is staggering. A single reef may be home to more than a thousand species of fish, along with sea turtles, sharks, octopuses, sea stars, shrimp, and countless other creatures. Many reef animals have developed remarkable adaptations to survive in this crowded environment. The clownfish, for example, has developed a special mucus coating that allows it to live safely among the stinging tentacles of sea anemones, gaining protection from predators.</p>
+<p>Unfortunately, coral reefs face serious threats. Rising ocean temperatures cause coral bleaching, a process in which stressed corals expel their zooxanthellae algae, turning white. Without the algae, the coral loses its primary food source and often dies. Scientists estimate that the world has already lost approximately half of its coral reef coverage since 1950. Ocean acidification, pollution, and destructive fishing practices have also contributed to reef decline.</p>
+<p>Conservation efforts are underway around the world. Marine protected areas limit fishing and development near reefs. Scientists are experimenting with \u201Ccoral gardening,\u201D growing heat-resistant coral fragments in underwater nurseries and transplanting them onto damaged reefs. While the challenges are enormous, these efforts offer hope that coral reefs\u2014and the incredible web of life they support\u2014can be preserved for future generations.</p>`}
+};
+
+const SECTIONS=[
+{id:'ela',name:'English Language Arts',range:[0,14]},
+{id:'math',name:'Mathematics',range:[15,26]},
+{id:'science',name:'Science',range:[27,36]},
+{id:'ss',name:'Social Studies',range:[37,47]}
+];
+
+const Q=[
+// ========== ELA (Q1-Q15) ==========
+// Passage 1: Storm Chaser (5 MC)
+{p:'passage1',sec:'ela',std:'RL.5.2',skill:'Theme',diff:'grade-level',type:'mc',
+text:'What is the central theme of this passage?',
+opts:['Storm chasing is too dangerous for children.','Knowledge and observation can be just as valuable as technology.','Tornadoes are the most powerful storms on Earth.','Adults should never rely on children for help.'],
+cor:1,exp:'When the instruments fail, Chase uses what he\u2019s learned from watching his uncle to read the sky. His observation skills prove just as valuable as the technology.',str:'For theme questions, ask: What lesson does the main character\u2019s experience teach?'},
+
+{p:'passage1',sec:'ela',std:'RL.5.1',skill:'Textual Evidence',diff:'grade-level',type:'mc',
+text:'Which detail best shows that Chase has been learning from his uncle?',
+opts:['"Chase had been riding along on storm chases since he was eight years old."','"He remembered what Uncle Hector had taught him: when the rotation narrows and debris begins to rise, a tornado is about to form."','"His uncle Hector glanced at the dashboard."','"It was terrifying and beautiful at the same time."'],
+cor:1,exp:'This sentence directly shows Chase applying specific knowledge his uncle taught him\u2014connecting the narrowing rotation and rising debris to tornado formation.',str:'The strongest evidence is the detail most directly connected to the claim. Look for specifics, not general statements.'},
+
+{p:'passage1',sec:'ela',std:'RL.5.4',skill:'Vocabulary in Context',diff:'grade-level',type:'mc',
+text:'What does "imminent" mean as used in paragraph 8?',
+opts:['Unlikely to happen','About to happen very soon','Already finished','Happening far away'],
+cor:1,exp:'Uncle Hector says "tornado is imminent" because Chase spotted signs that a tornado is about to form right now. Imminent means about to happen very soon.',str:'Substitute each answer into the sentence. The one that makes the most sense with the surrounding details is correct.'},
+
+{p:'passage1',sec:'ela',std:'RL.5.3',skill:'Character',diff:'challenging',type:'mc',
+text:'How does Chase change from the beginning to the end of the passage?',
+opts:['He goes from being bored to being excited about storms.','He goes from being a passenger observing to someone who actively helps in a critical moment.','He goes from being afraid of storms to wanting to become a meteorologist.','He goes from disagreeing with his uncle to agreeing with him.'],
+cor:1,exp:'At first Chase is watching and learning as a passenger. When the equipment fails, he steps up and uses his knowledge to identify the tornado\u2014shifting from observer to active participant.',str:'Character development questions ask how a character grows. Track what they DO differently by the end.'},
+
+{p:'passage1',sec:'ela',std:'RL.5.1',skill:'Inference',diff:'challenging',type:'mc',
+text:'Why does the author most likely include the detail about Uncle Hector always having "an escape route planned"?',
+opts:['To show that storm chasing is completely safe.','To show that Uncle Hector is a reckless person.','To show that Uncle Hector approaches storm chasing scientifically and responsibly.','To explain why Chase does not like storm chasing.'],
+cor:2,exp:'Having an escape route planned shows that Uncle Hector is careful and methodical, not reckless. This detail builds trust in his character and judgment.',str:'When authors include small details, ask: Why did they choose to tell us this? What does it reveal?'},
+
+// Passage 2: Coral Reefs (5 MC)
+{p:'passage2',sec:'ela',std:'RI.5.2',skill:'Central Idea',diff:'grade-level',type:'mc',
+text:'What is the central idea of this passage?',
+opts:['Coral reefs are made entirely of rock formations.','Coral reefs are incredibly diverse ecosystems that face serious threats but may be saved through conservation.','The Great Barrier Reef is the only coral reef worth protecting.','Scientists have already solved the problem of coral reef decline.'],
+cor:1,exp:'The passage covers what coral reefs are, their biodiversity, the threats they face, and conservation efforts\u2014tying together diversity, danger, and hope.',str:'The central idea should be supported by ALL sections of the passage, not just one paragraph.'},
+
+{p:'passage2',sec:'ela',std:'RI.5.5',skill:'Text Structure',diff:'challenging',type:'mc',
+text:'How is this passage mainly organized?',
+opts:['It compares coral reefs to rainforests throughout.','It tells the story of one specific coral reef from start to finish.','It describes what coral reefs are, explains why they matter, identifies threats, and presents solutions.','It lists coral species in order from largest to smallest.'],
+cor:2,exp:'The passage follows a logical structure: definition/description \u2192 importance \u2192 threats \u2192 solutions. This is a problem-solution structure built on a descriptive foundation.',str:'Text structure is how the author organizes ideas. Common structures: cause/effect, problem/solution, compare/contrast, chronological, description.'},
+
+{p:'passage2',sec:'ela',std:'RI.5.4',skill:'Vocabulary in Context',diff:'grade-level',type:'mc',
+text:'What does "staggering" mean as used in the sentence "The biodiversity of coral reefs is staggering"?',
+opts:['Walking unsteadily','Extremely small','Amazingly large or overwhelming','Slowly increasing'],
+cor:2,exp:'The passage goes on to describe thousands of species living on a single reef. "Staggering" here means amazingly large\u2014so impressive it\u2019s hard to believe.',str:'Context clues come from the surrounding sentences. If the passage describes huge numbers, "staggering" must mean overwhelmingly large.'},
+
+{p:'passage2',sec:'ela',std:'RI.5.1',skill:'Textual Evidence',diff:'grade-level',type:'mc',
+text:'Which detail best supports the idea that coral reefs are in danger?',
+opts:['"Coral reefs cover less than one percent of the ocean floor."','"Scientists estimate that the world has already lost approximately half of its coral reef coverage since 1950."','"The Great Barrier Reef stretches for over 1,400 miles."','"A single reef may be home to more than a thousand species of fish."'],
+cor:1,exp:'Losing half of coral reef coverage is a specific, measurable fact that directly proves reefs are in danger. The other options describe size or diversity, not threat.',str:'The best evidence is specific and directly supports the claim. Numbers and data are usually stronger than general descriptions.'},
+
+{p:'passage2',sec:'ela',std:'RI.5.6',skill:'Author\u2019s Purpose',diff:'challenging',type:'mc',
+text:'Why does the author call coral reefs "rainforests of the sea"?',
+opts:['Because coral reefs receive a lot of rain.','Because both rainforests and coral reefs have very high biodiversity despite covering small areas.','Because coral and trees are the same type of organism.','Because coral reefs are located near rainforests.'],
+cor:1,exp:'The author draws a comparison: just as rainforests have enormous biodiversity on land, coral reefs have enormous biodiversity in the ocean\u2014both disproportionate to their size.',str:'When authors use comparisons or metaphors, ask: What do these two things have in common? That shared quality is the point.'},
+
+// Language & Vocab (3 MC)
+{p:null,sec:'ela',std:'L.5.2',skill:'Commas',diff:'grade-level',type:'mc',
+text:'Which sentence uses commas correctly?',
+opts:['Chase wanted to stay, but, the storm was too dangerous.','Chase wanted to stay but the storm was too dangerous.','Chase wanted to stay, but the storm was too dangerous.','Chase, wanted to stay but the storm, was too dangerous.'],
+cor:2,exp:'Use a comma before a coordinating conjunction (but, and, or, so) when it joins two complete sentences. "Chase wanted to stay" and "the storm was too dangerous" are both complete.',str:'Comma before FANBOYS (for, and, nor, but, or, yet, so) ONLY when joining two complete sentences.'},
+
+{p:null,sec:'ela',std:'L.5.1',skill:'Subject-Verb Agreement',diff:'grade-level',type:'mc',
+text:'Which sentence has correct subject-verb agreement?',
+opts:['The group of scientists are studying the reef.','The group of scientists is studying the reef.','The group of scientists were studying the reef tomorrow.','The group of scientists have studied the reef yesterday.'],
+cor:1,exp:'"Group" is the subject (singular), not "scientists." A singular subject takes a singular verb: "group is studying."',str:'Find the true subject. Phrases like "of scientists" or "of books" are extra info\u2014the verb must agree with the main subject before "of."'},
+
+{p:null,sec:'ela',std:'L.5.4',skill:'Context Clues',diff:'ceiling',type:'mc',
+text:'Read: "The diver was mesmerized by the vibrant colors of the reef, unable to look away from the brilliant display." What does "mesmerized" most likely mean?',
+opts:['Frightened','Fascinated and captivated','Confused','Bored'],
+cor:1,exp:'"Unable to look away" tells you the diver was held in wonder. Mesmerized means fascinated or captivated.',str:'Look for clues in the same sentence. "Unable to look away" = completely focused = fascinated/captivated.'},
+
+// Writing (1 SCR + 1 ECR)
+{p:'passage2',sec:'ela',std:'W.5.2',skill:'Informative Writing',diff:'challenging',type:'scr',
+text:'Explain the relationship between coral polyps and zooxanthellae algae. How does this partnership benefit both organisms? Use specific details from the passage.',
+guidance:'Write 3\u20135 sentences. Use specific details from the passage.',minWords:30},
+
+{p:'passage1',sec:'ela',std:'W.5.1',skill:'Opinion Writing',diff:'challenging',type:'scr',
+text:'Do you think Chase made the right decision to speak up about the tornado warning signs? Use evidence from the passage to support your opinion.',
+guidance:'State your opinion. Give at least two reasons with evidence.',minWords:30},
+
+// ========== MATHEMATICS (Q16-Q27) ==========
+{p:null,sec:'math',std:'5.OA.1',skill:'Order of Operations',diff:'baseline',type:'mc',
+text:'What is the value of (6 + 4) \u00d7 3?',
+opts:['18','22','30','42'],cor:2,exp:'Parentheses first: 6 + 4 = 10. Then multiply: 10 \u00d7 3 = 30.',str:'Always solve what\u2019s inside parentheses first, then multiply.'},
+
+{p:null,sec:'math',std:'5.OA.3',skill:'Patterns',diff:'grade-level',type:'mc',
+text:'Look at this pattern: 2, 6, 18, 54, ... What is the rule?',
+opts:['Add 4','Add 12','Multiply by 3','Multiply by 2'],cor:2,exp:'Each number is 3 times the previous: 2\u00d73=6, 6\u00d73=18, 18\u00d73=54.',str:'Check if the difference between numbers is constant (addition rule) or if the ratio is constant (multiplication rule).'},
+
+{p:null,sec:'math',std:'5.NBT.1',skill:'Place Value',diff:'baseline',type:'mc',
+text:'In the number 45,320, what is the value of the digit 5?',
+opts:['5','50','500','5,000'],cor:3,exp:'The 5 is in the thousands place. Its value is 5 \u00d7 1,000 = 5,000.',str:'Each place has a value: ones, tens, hundreds, thousands, ten-thousands. Multiply the digit by its place value.'},
+
+{p:null,sec:'math',std:'5.NBT.2',skill:'Powers of 10',diff:'grade-level',type:'mc',
+text:'What is 3.25 \u00d7 100?',
+opts:['32.5','325','3,250','0.0325'],cor:1,exp:'Multiplying by 100 moves the decimal 2 places right: 3.25 \u2192 32.5 \u2192 325.',str:'Multiplying by 10\u207f moves the decimal n places to the right. 100 = 10\u00b2 = 2 places right.'},
+
+{p:null,sec:'math',std:'5.NBT.7',skill:'Decimal Operations',diff:'grade-level',type:'mc',
+text:'What is 8.3 \u2212 2.75?',
+opts:['5.55','6.55','5.45','6.45'],cor:0,exp:'Line up decimals: 8.30 \u2212 2.75. From right: 0\u22125 (borrow: 10\u22125=5), 2\u22127 (borrow: 12\u22127=5), 7\u22122=5. Answer: 5.55.',str:'Add a zero so both numbers have the same decimal places. Line up the decimal points, then subtract.'},
+
+{p:null,sec:'math',std:'5.NF.1',skill:'Add Fractions',diff:'grade-level',type:'mc',
+text:'What is 1/3 + 1/4?',
+opts:['2/7','2/12','7/12','1/7'],cor:2,exp:'Find common denominator: 1/3 = 4/12, 1/4 = 3/12. Add: 4/12 + 3/12 = 7/12.',str:'To add fractions with different denominators, find the least common denominator, convert, then add numerators.'},
+
+{p:null,sec:'math',std:'5.NF.4',skill:'Multiply Fractions',diff:'grade-level',type:'mc',
+text:'What is 3/4 \u00d7 2/5?',
+opts:['5/9','6/20','3/10','5/20'],cor:2,exp:'Multiply tops: 3\u00d72=6. Multiply bottoms: 4\u00d75=20. Result: 6/20 = 3/10.',str:'Multiply numerators, multiply denominators, then simplify. 6/20 \u00f7 2/2 = 3/10.'},
+
+{p:null,sec:'math',std:'5.NF.7',skill:'Divide with Fractions',diff:'challenging',type:'mc',
+text:'How many 1/3-cup servings are in 4 cups of soup?',
+opts:['4/3','7','12','3'],cor:2,exp:'4 \u00f7 1/3 = 4 \u00d7 3 = 12. Dividing by a fraction is the same as multiplying by its reciprocal.',str:'Dividing by a fraction? Flip and multiply! 4 \u00f7 (1/3) = 4 \u00d7 (3/1) = 12.'},
+
+{p:null,sec:'math',std:'5.MD.1',skill:'Unit Conversion',diff:'grade-level',type:'mc',
+text:'How many ounces are in 3 pounds? (1 pound = 16 ounces)',
+opts:['32','48','64','36'],cor:1,exp:'3 pounds \u00d7 16 ounces per pound = 48 ounces.',str:'Converting from larger to smaller units: multiply. There are more ounces than pounds, so the number gets bigger.'},
+
+{p:null,sec:'math',std:'5.MD.5',skill:'Volume',diff:'grade-level',type:'mc',
+text:'What is the volume of a rectangular prism that is 7 cm long, 3 cm wide, and 4 cm tall?',
+opts:['14 cm\u00b3','21 cm\u00b3','84 cm\u00b3','48 cm\u00b3'],cor:2,exp:'V = length \u00d7 width \u00d7 height = 7 \u00d7 3 \u00d7 4 = 84 cm\u00b3.',str:'For rectangular prisms: V = l \u00d7 w \u00d7 h. Multiply all three dimensions. Answer is in cubic units.'},
+
+{p:null,sec:'math',std:'5.G.1',skill:'Coordinate Plane',diff:'grade-level',type:'mc',
+text:'Chase plots a point at (4, 7) on a coordinate grid. Which describes the location?',
+opts:['4 units up and 7 units right','7 units right and 4 units up','4 units right and 7 units up','7 units down and 4 units left'],cor:2,exp:'In (x, y), x = how far right, y = how far up. So (4, 7) means 4 right, 7 up.',str:'Remember: (x, y) = (right, up). "x goes across, y goes to the sky."'},
+
+{p:null,sec:'math',std:'5.NF.6',skill:'Problem Solving',diff:'challenging',type:'cr',
+text:'Chase has 24 baseball cards. He gives 1/4 of them to his brother and 1/3 of the original amount to his friend.\n\nHow many cards did he give away in total? How many does he have left? Show all your work.',
+guidance:'Show each step. State the final answer clearly.',minWords:25},
+
+// ========== SCIENCE (Q28-Q37) ==========
+{p:null,sec:'science',std:'PS.5.1',skill:'Properties of Matter',diff:'grade-level',type:'mc',
+text:'Which property can be used to identify an unknown substance?',
+opts:['Its location','Its age','Its boiling point','Its owner'],
+cor:2,exp:'Boiling point is a physical property unique to each substance. It can help identify an unknown material. Location and age are not properties of the substance itself.',str:'Physical properties (boiling point, melting point, density, color) are characteristics that help identify substances.'},
+
+{p:null,sec:'science',std:'PS.5.2',skill:'Chemical vs Physical Change',diff:'grade-level',type:'mc',
+text:'Which is an example of a physical change?',
+opts:['Burning a log in a campfire','Frying an egg','Cutting a piece of paper in half','Rusting of an iron nail'],
+cor:2,exp:'Cutting paper changes its shape/size but not what it\u2019s made of\u2014still paper. Burning, frying, and rusting create new substances (chemical changes).',str:'Physical change = same substance, different shape/size/state. Chemical change = new substance formed (burning, rusting, cooking).'},
+
+{p:null,sec:'science',std:'PS.5.3',skill:'Force and Motion',diff:'grade-level',type:'mc',
+text:'A ball rolls across a flat floor and eventually stops. What force caused it to stop?',
+opts:['Gravity','Friction','Magnetism','Air pressure'],
+cor:1,exp:'Friction between the ball and the floor surface opposes its motion, gradually slowing it down until it stops.',str:'Friction opposes motion between surfaces in contact. It always works to slow things down.'},
+
+{p:null,sec:'science',std:'PS.5.4',skill:'Energy',diff:'grade-level',type:'mc',
+text:'A solar panel on a rooftop converts sunlight into electricity. This is an example of\u2014',
+opts:['energy being created from nothing','energy being destroyed','energy being transformed from one form to another','energy staying in the same form'],
+cor:2,exp:'The solar panel transforms light energy from the sun into electrical energy. Energy is not created or destroyed\u2014it changes form.',str:'Energy transformation = energy changing from one type to another. Energy cannot be created or destroyed (law of conservation of energy).'},
+
+{p:null,sec:'science',std:'LS.5.1',skill:'Food Chains',diff:'grade-level',type:'mc',
+text:'In the food chain: grass \u2192 rabbit \u2192 hawk, which organism is the primary consumer?',
+opts:['Grass','Rabbit','Hawk','The Sun'],
+cor:1,exp:'The rabbit eats the grass (producer), making it the primary consumer. The hawk eats the rabbit, making it the secondary consumer.',str:'Producer = makes its own food (plants). Primary consumer = eats producers. Secondary consumer = eats primary consumers.'},
+
+{p:null,sec:'science',std:'LS.5.2',skill:'Plant Adaptations',diff:'grade-level',type:'mc',
+text:'A cactus has thick, waxy skin and stores water inside its stem. These are adaptations for surviving in\u2014',
+opts:['a cold arctic environment','a wet rainforest','a dry desert environment','a deep ocean'],
+cor:2,exp:'Thick skin reduces water loss and storing water helps survive long dry periods. These are desert adaptations.',str:'Adaptations match the environment. Water storage + reduced water loss = dry environment.'},
+
+{p:null,sec:'science',std:'ES.5.1',skill:'Water Cycle',diff:'grade-level',type:'mc',
+text:'What happens during the condensation stage of the water cycle?',
+opts:['Water soaks into the ground.','Water vapor in the air cools and forms clouds.','Water flows downhill into rivers and streams.','Water evaporates from lakes and oceans.'],
+cor:1,exp:'Condensation is when water vapor (gas) cools and turns back into tiny water droplets, forming clouds. Evaporation is the opposite process.',str:'Water cycle stages: evaporation (liquid\u2192gas) \u2192 condensation (gas\u2192liquid/clouds) \u2192 precipitation (rain/snow) \u2192 collection.'},
+
+{p:null,sec:'science',std:'ES.5.2',skill:'Earth\u2019s Layers',diff:'challenging',type:'mc',
+text:'Which layer of Earth is the thickest?',
+opts:['Crust','Mantle','Outer core','Inner core'],
+cor:1,exp:'The mantle is Earth\u2019s thickest layer, extending about 1,800 miles deep. The crust is the thinnest layer (3\u201345 miles).',str:'Earth\u2019s layers from outside in: crust (thinnest) \u2192 mantle (thickest) \u2192 outer core (liquid) \u2192 inner core (solid).'},
+
+{p:null,sec:'science',std:'ES.5.3',skill:'Solar System',diff:'challenging',type:'mc',
+text:'Why does the Moon appear to change shape throughout the month?',
+opts:['Earth\u2019s shadow always covers part of the Moon.','The Moon produces its own light that fades and brightens.','We see different amounts of the Moon\u2019s sunlit side as it orbits Earth.','The Moon actually changes size as it moves.'],
+cor:2,exp:'The Moon doesn\u2019t produce light\u2014it reflects sunlight. As the Moon orbits Earth, we see different portions of its sunlit half, creating the phases.',str:'Moon phases = different views of the sunlit side. It\u2019s not Earth\u2019s shadow (that\u2019s a lunar eclipse, which is rare).'},
+
+{p:null,sec:'science',std:'SI.5.1',skill:'Scientific Investigation',diff:'challenging',type:'mc',
+text:'Chase wants to test if plants grow taller with more sunlight. He puts one plant in a sunny window and one in a dark closet. What should he keep the SAME for a fair test?',
+opts:['The amount of sunlight each plant gets','The type of plant, soil, water, and pot size','The location of each plant','Nothing\u2014everything should be different'],
+cor:1,exp:'In a fair test, you only change ONE variable (sunlight). Everything else\u2014plant type, soil, water, pot size\u2014must stay the same so you know sunlight caused any difference.',str:'Fair test = change ONE thing (independent variable), measure ONE thing (dependent variable), keep EVERYTHING else the same (controlled variables).'},
+
+// ========== SOCIAL STUDIES (Q38-Q48) ==========
+{p:null,sec:'ss',std:'USH.5.1',skill:'Native Americans',diff:'baseline',type:'mc',
+text:'Before Europeans arrived, Native American groups adapted to their environments in different ways. Which group most likely built pueblos (multi-story stone and clay buildings)?',
+opts:['Inuit peoples of the Arctic','Kwakiutl peoples of the Pacific Northwest','Pueblo peoples of the dry Southwest','Iroquois peoples of the Eastern Woodlands'],
+cor:2,exp:'Pueblo peoples of the Southwest built multi-story stone and adobe (clay) structures suited to the hot, dry desert climate. Each group\u2019s housing matched their environment.',str:'Native American groups adapted to their region. Southwest = pueblos (adobe). Northwest = longhouses (wood). Arctic = igloos. Eastern = longhouses/wigwams.'},
+
+{p:null,sec:'ss',std:'USH.5.2',skill:'European Exploration',diff:'grade-level',type:'mc',
+text:'What were the three main reasons European countries explored and colonized the Americas?',
+opts:['Gold, Glory, and God','Peace, Freedom, and Trade','Science, Art, and Music','Farming, Fishing, and Hunting'],
+cor:0,exp:'The "Three G\u2019s"\u2014Gold (wealth/resources), Glory (power/fame for their country), and God (spreading Christianity)\u2014drove European exploration.',str:'The 3 G\u2019s of exploration: Gold (riches), Glory (fame/power), God (religion). These motivated Spain, England, France, and Portugal.'},
+
+{p:null,sec:'ss',std:'USH.5.3',skill:'Colonial America',diff:'grade-level',type:'mc',
+text:'The Pilgrims came to America in 1620 primarily to\u2014',
+opts:['find gold and silver','practice their religion freely','establish a military base','trade furs with Native Americans'],
+cor:1,exp:'The Pilgrims (Separatists) left England because they were persecuted for their religious beliefs. They came to America seeking religious freedom.',str:'Plymouth Colony = religious freedom. Jamestown (1607) = wealth/gold. Know why each colony was founded.'},
+
+{p:null,sec:'ss',std:'USH.5.4',skill:'American Revolution',diff:'grade-level',type:'mc',
+text:'The phrase "No taxation without representation" expressed the colonists\u2019 belief that\u2014',
+opts:['all taxes should be eliminated forever','they should not pay taxes to a government where they had no voice or vote','only wealthy people should pay taxes','the king should pay taxes too'],
+cor:1,exp:'The colonists objected to paying British taxes because they had no elected representatives in the British Parliament. They wanted a say in the laws that affected them.',str:'"No taxation without representation" = if we can\u2019t vote on laws, you can\u2019t tax us. This was a key cause of the American Revolution.'},
+
+{p:null,sec:'ss',std:'USH.5.5',skill:'Declaration of Independence',diff:'grade-level',type:'mc',
+text:'The Declaration of Independence states that all people have certain "unalienable rights." Which of the following is one of these rights?',
+opts:['The right to vote at age 16','Life, liberty, and the pursuit of happiness','The right to free internet','The right to own property without paying taxes'],
+cor:1,exp:'The Declaration lists "Life, Liberty, and the pursuit of Happiness" as rights that cannot be taken away (unalienable). These ideas were revolutionary at the time.',str:'Unalienable rights = rights you\u2019re born with that can\u2019t be taken away. Life, Liberty, Pursuit of Happiness (from the Declaration of Independence).'},
+
+{p:null,sec:'ss',std:'CIV.5.1',skill:'Branches of Government',diff:'grade-level',type:'mc',
+text:'Which branch of the U.S. government is responsible for making laws?',
+opts:['Executive Branch (President)','Legislative Branch (Congress)','Judicial Branch (Supreme Court)','Military Branch (Armed Forces)'],
+cor:1,exp:'Congress (Senate + House of Representatives) is the legislative branch, which writes and passes laws. The President enforces laws. The Supreme Court interprets laws.',str:'Three branches: Legislative = makes laws (Congress). Executive = enforces laws (President). Judicial = interprets laws (courts).'},
+
+{p:null,sec:'ss',std:'CIV.5.2',skill:'Bill of Rights',diff:'challenging',type:'mc',
+text:'The First Amendment to the U.S. Constitution protects\u2014',
+opts:['the right to own any weapon','freedom of speech, religion, press, assembly, and petition','the right to a speedy trial','protection from unreasonable searches'],
+cor:1,exp:'The First Amendment protects five freedoms: speech, religion, press, peaceful assembly, and petitioning the government. The Second Amendment covers weapons. The Sixth covers trials.',str:'First Amendment = 5 freedoms (speech, religion, press, assembly, petition). These are the most commonly tested rights.'},
+
+{p:null,sec:'ss',std:'GEO.5.1',skill:'U.S. Regions',diff:'grade-level',type:'mc',
+text:'Which U.S. region is known for its flat plains, large farms, and growing wheat and corn?',
+opts:['Northeast','Southeast','Midwest','Southwest'],
+cor:2,exp:'The Midwest (Great Plains) has flat terrain and fertile soil ideal for large-scale farming of wheat, corn, and soybeans. It\u2019s often called "America\u2019s breadbasket."',str:'U.S. regions have distinct features. Midwest = plains/farming. Northeast = cities/industry. Southeast = warm/humid. Southwest = desert/dry. West = mountains/coast.'},
+
+{p:null,sec:'ss',std:'GEO.5.2',skill:'Map Skills',diff:'baseline',type:'mc',
+text:'On a map, what does a compass rose show?',
+opts:['The distance between two cities','The cardinal directions (North, South, East, West)','The population of each state','The elevation of mountains'],
+cor:1,exp:'A compass rose is a symbol on a map that shows the four cardinal directions: North, South, East, and West (and sometimes intermediate directions like NE, SW).',str:'Map tools: compass rose = directions. Scale = distance. Legend/key = symbols. Title = what the map shows.'},
+
+{p:null,sec:'ss',std:'ECON.5.1',skill:'Economics',diff:'grade-level',type:'mc',
+text:'When Chase decides to spend his allowance on a video game instead of a book, the book is called his\u2014',
+opts:['profit','supply','opportunity cost','demand'],
+cor:2,exp:'Opportunity cost is what you give up when you make a choice. By choosing the video game, Chase gave up the book\u2014the book is his opportunity cost.',str:'Opportunity cost = the next best thing you gave up. Every choice has a cost because you can\u2019t have everything.'},
+
+{p:null,sec:'ss',std:'HT.5.1',skill:'Historical Thinking',diff:'challenging',type:'mc',
+text:'A student reads a diary entry written by a soldier during the American Revolution. This diary is a\u2014',
+opts:['secondary source, because it is old','primary source, because it was written by someone who experienced the events','fiction, because it tells a personal story','tertiary source, because it is about history'],
+cor:1,exp:'A primary source is created by someone who was there. The soldier\u2019s diary is a firsthand account of his experience during the Revolution.',str:'Primary source = written/created by someone who was there (diaries, letters, photos). Secondary source = written later by someone studying the topic (textbooks, articles).'}
+];
+
+// ==================== ENGINE ====================
+let currentQ=0, answers={}, flags=new Set(), startTime=null, timerInterval=null, submitted=false;
+
+function startTest(){
+  const saved=localStorage.getItem('diagnostic_'+CONFIG.testId);
+  if(saved){try{const s=JSON.parse(saved);currentQ=s.currentQ||0;answers=s.answers||{};flags=new Set(s.flags||[]);startTime=s.startTime||Date.now()}catch(e){startTime=Date.now()}}
+  else startTime=Date.now();
+  document.getElementById('welcomeScreen').classList.remove('active');
+  document.getElementById('testScreen').classList.add('active');
+  timerInterval=setInterval(updateTimer,1000);updateTimer();renderNav();renderQuestion();
+}
+function updateTimer(){const e=Math.floor((Date.now()-startTime)/1000),m=Math.floor(e/60),s=e%60;document.getElementById('timerDisplay').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function renderNav(){
+  let h='';Q.forEach((q,i)=>{const sec=SECTIONS.find(s=>i>=s.range[0]&&i<=s.range[1]);
+  if(sec&&i===sec.range[0]&&i>0)h+='<div class="nav-sep"></div>';
+  let c='nav-btn';if(i===currentQ)c+=' current';if(flags.has(i))c+=' flagged';else if(answers[i]!==undefined)c+=' answered';
+  h+=`<button class="${c}" onclick="goQuestion(${i})">${i+1}</button>`});
+  document.getElementById('navigator').innerHTML=h;
+}
+function goQuestion(idx){if(idx<0||idx>=Q.length)return;saveCurrentWriting();currentQ=idx;renderNav();renderQuestion();saveState()}
+function getSection(idx){for(const s of SECTIONS)if(idx>=s.range[0]&&idx<=s.range[1])return s;return SECTIONS[0]}
+
+function renderQuestion(){
+  const q=Q[currentQ],sec=getSection(currentQ);
+  document.getElementById('sectionLabel').textContent=sec.name;
+  const pp=document.getElementById('passagePane'),qp=document.getElementById('questionPane');
+  if(q.p&&PASSAGES[q.p]){
+    pp.style.display='block';qp.classList.remove('full-width');
+    const p=PASSAGES[q.p];
+    pp.innerHTML=`<h3>${p.label}: ${p.title}</h3>${p.text}`;
+  } else {pp.style.display='none';qp.classList.add('full-width')}
+
+  let h=`<div class="q-header"><div class="q-number">Question ${currentQ+1} of ${Q.length}</div>
+    <div class="q-standard">${q.std} \u00b7 ${q.skill}</div>
+    ${q.diff?`<div class="q-diff ${q.diff}">${q.diff}</div>`:''}</div>
+    <div class="q-text">${q.text.replace(/\n/g,'<br>')}</div>`;
+
+  if(q.type==='mc'){h+='<div class="q-options">';const L=['A','B','C','D'];
+    q.opts.forEach((o,i)=>{const sel=answers[currentQ]===i?' selected':'';
+    h+=`<div class="q-option${sel}" onclick="selectOption(${i})"><span class="letter">${L[i]}</span><span>${o}</span></div>`});h+='</div>'}
+  else if(q.type==='scr'||q.type==='cr'){const v=answers[currentQ]||'';
+    h+=`<div class="q-guidance">${q.guidance}</div><textarea class="q-textarea" id="writingArea" placeholder="Type your answer..." oninput="updateWC()">${v}</textarea>
+    <div class="q-wordcount" id="wc">${cw(v)} words</div>`}
+
+  qp.innerHTML=h;qp.scrollTop=0;
+  document.getElementById('prevBtn').disabled=currentQ===0;
+  document.getElementById('nextBtn').textContent=currentQ===Q.length-1?'Review':'Next \u2192';
+  const fb=document.getElementById('flagBtn');fb.classList.toggle('active',flags.has(currentQ));
+  fb.textContent=flags.has(currentQ)?'Unflag':'Flag for Review';
+}
+
+function selectOption(i){answers[currentQ]=i;renderNav();renderQuestion();saveState()}
+function saveCurrentWriting(){const ta=document.getElementById('writingArea');if(ta&&(Q[currentQ].type==='scr'||Q[currentQ].type==='cr')){const t=ta.value.trim();if(t)answers[currentQ]=t;else delete answers[currentQ]}}
+function cw(t){return t?t.trim().split(/\s+/).filter(w=>w.length>0).length:0}
+function updateWC(){const ta=document.getElementById('writingArea'),el=document.getElementById('wc');if(ta&&el)el.textContent=cw(ta.value)+' words'}
+function toggleFlag(){if(flags.has(currentQ))flags.delete(currentQ);else flags.add(currentQ);renderNav();renderQuestion();saveState()}
+function saveState(){localStorage.setItem('diagnostic_'+CONFIG.testId,JSON.stringify({currentQ,answers,flags:Array.from(flags),startTime}))}
+
+function showSubmitModal(){saveCurrentWriting();const t=Q.length,a=Object.keys(answers).length,u=t-a,f=flags.size;
+  let info=`<p>Answered <strong>${a}</strong> of <strong>${t}</strong> questions.</p>`;
+  if(u>0)info+=`<p class="warn">${u} unanswered!</p>`;if(f>0)info+=`<p class="warn">${f} flagged for review.</p>`;
+  if(u===0&&f===0)info+='<p>All questions answered. Ready to submit!</p>';
+  document.getElementById('submitInfo').innerHTML=info;document.getElementById('submitModal').classList.add('active')}
+function closeModal(){document.getElementById('submitModal').classList.remove('active')}
+
+function submitTest(){
+  if(submitted)return;submitted=true;closeModal();clearInterval(timerInterval);saveCurrentWriting();
+  const elapsed=Math.floor((Date.now()-startTime)/1000),today=new Date().toISOString().split('T')[0];
+  const allAns=Q.map((q,i)=>{const a=answers[i];
+    if(q.type==='mc')return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'mc',question:q.text,selectedOption:a!==undefined?a:-1,selectedText:a!==undefined?q.opts[a]:'Not answered',correctOption:q.cor,correctText:q.opts[q.cor]};
+    return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'written',question:q.text,response:a||''}});
+
+  const secSum={};SECTIONS.forEach(sec=>{let c=0,t=0;for(let i=sec.range[0];i<=sec.range[1];i++){if(Q[i].type==='mc'){t++;if(answers[i]===Q[i].cor)c++}}secSum[sec.id]={correct:c,total:t,pct:t>0?Math.round(c/t*100):0}});
+  const totalMC=Q.filter(q=>q.type==='mc').length,correctMC=Q.filter((q,i)=>q.type==='mc'&&answers[i]===q.cor).length;
+
+  const payload={action:'saveDiagnosticResults',student:CONFIG.student,grade:CONFIG.grade,testId:CONFIG.testId,testLabel:CONFIG.testLabel,timestamp:new Date().toISOString(),answers:allAns,
+    summary:{totalQuestions:Q.length,answeredQuestions:Object.keys(answers).length,totalTimeSeconds:elapsed,effortScore:Math.round(Object.keys(answers).length/Q.length*100),sections:secSum,correctMC,totalMC,percentCorrect:Math.round(correctMC/totalMC*100)}};
+  try{fetch(CONFIG.webAppUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})}catch(e){}
+
+  const signal={completed:true,timestamp:new Date().toISOString(),date:today,testId:CONFIG.testId,testLabel:CONFIG.testLabel,points:15};
+  localStorage.setItem('chase_diagnostic_week3_signal',JSON.stringify(signal));
+  localStorage.setItem('chase_diagnostic_signal',JSON.stringify(signal));
+
+  try{const dk='chase_dashboard_v3',dd=JSON.parse(localStorage.getItem(dk)||'{}');if(!dd.days)dd.days={};if(!dd.days[today])dd.days[today]={};
+  dd.days[today].session=true;dd.days[today].khan=true;dd.days[today].reading=true;dd.days[today].diagnosticComplete=true;dd.days[today].diagnosticPoints=15;localStorage.setItem(dk,JSON.stringify(dd))}catch(e){}
+
+  try{fetch(CONFIG.webAppUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'completeDiagnosticTest',student:CONFIG.student,testId:CONFIG.testId,date:today,points:15})})}catch(e){}
+  localStorage.removeItem('diagnostic_'+CONFIG.testId);
+  showTutorReview(correctMC,totalMC,elapsed,secSum);
+}
+
+function estimateScores(pct){
+  let ptile;if(pct>=97)ptile=97;else if(pct>=93)ptile=92;else if(pct>=88)ptile=84;else if(pct>=82)ptile=75;else if(pct>=75)ptile=65;else if(pct>=70)ptile=55;else if(pct>=65)ptile=46;else if(pct>=60)ptile=38;else if(pct>=55)ptile=30;else if(pct>=50)ptile=24;else if(pct>=40)ptile=15;else ptile=Math.max(5,Math.round(pct*0.35));
+  let msg='';if(ptile>=90)msg='Excellent \u2014 keep pushing';else if(ptile>=75)msg='Strong \u2014 above most peers';else if(ptile>=55)msg='Solid ground';else if(ptile>=35)msg='Room to grow';else msg='Building foundation';
+  const ttp=Math.max(1,Math.round((ptile-15)/0.85)),leap=Math.round(650+(ttp/100)*200);
+  let ll='';if(leap>=790)ll='Advanced';else if(leap>=750)ll='Mastery';else if(leap>=700)ll='Basic';else if(leap>=650)ll='Approaching Basic';else ll='Unsatisfactory';
+  return{leap,ll,ptile,msg,psat:Math.min(1440,Math.max(240,Math.round(240+(ttp/100)*950))),act:Math.min(36,Math.max(1,Math.round(1+(ttp/100)*31))),sat:Math.min(1600,Math.round(Math.min(1440,Math.max(240,Math.round(240+(ttp/100)*950)))*1.05)),ttp};
+}
+
+function showTutorReview(correctMC,totalMC,elapsed,secSum){
+  const pct=Math.round(correctMC/totalMC*100),min=Math.floor(elapsed/60),bm=estimateScores(pct);
+  let dm='';if(pct>=90)dm='Outstanding scan results, Chase. All systems running at peak efficiency across every sector. Keep this trajectory!';else if(pct>=75)dm='Solid mission performance. You\u2019re showing real strength across subjects. Let\u2019s calibrate the areas you missed.';else if(pct>=60)dm='Good effort, pilot. Let\u2019s debrief the questions you missed \u2014 that\u2019s how we upgrade your systems.';else dm='Every miss is intel for the next mission. Let\u2019s walk through the debrief and build your skills.';
+
+  const wrong=[];Q.forEach((q,i)=>{if(q.type==='mc'&&answers[i]!==q.cor)wrong.push({num:i+1,q,ua:answers[i]!==undefined?q.opts[answers[i]]:'Not answered',ca:q.opts[q.cor]})});
+  const skillMap={};Q.forEach((q,i)=>{if(q.type!=='mc')return;if(!skillMap[q.skill])skillMap[q.skill]={c:0,t:0};skillMap[q.skill].t++;if(answers[i]===q.cor)skillMap[q.skill].c++});
+
+  let h=`<div class="review-score"><div class="big">${correctMC}/${totalMC}</div><div class="pct">${pct}% \u00b7 ${min} min</div><div class="tutor-msg">\u201C${dm}\u201D \u2014 Doug</div></div>
+  <div class="points-banner"><div class="pts">+15 PTS CREDITED</div></div>
+  <div class="review-section"><h3>LEAP Performance Estimate</h3><div class="score-grid">
+    <div class="score-card"><div class="label">Est. LEAP</div><div class="value">${bm.leap}</div><div class="sub">${bm.ll}</div></div>
+    <div class="score-card"><div class="label">Percentile</div><div class="value">${bm.ptile}%</div><div class="sub">${bm.msg}</div></div>
+    <div class="score-card"><div class="label">Baseline (Apr 2025)</div><div class="value">791</div><div class="sub">Mastery</div></div>
+  </div></div>
+  <div class="review-section"><h3>Score by Subject</h3><div class="score-grid">
+    ${Object.entries(secSum).filter(([k,v])=>v.total>0).map(([k,v])=>{const s=SECTIONS.find(x=>x.id===k);return`<div class="score-card"><div class="label">${s?s.name:k}</div><div class="value">${v.correct}/${v.total}</div><div class="sub">${v.pct}%</div></div>`}).join('')}
+  </div></div>
+  <div class="review-section"><h3>Score Projections</h3><div class="score-grid">
+    <div class="score-card"><div class="label">LEAP</div><div class="value">${bm.leap}</div><div class="sub">${bm.ll}</div></div>
+    <div class="score-card"><div class="label">PSAT 8/9</div><div class="value">${bm.psat}</div><div class="sub">of 1440</div></div>
+    <div class="score-card"><div class="label">ACT</div><div class="value">${bm.act}</div><div class="sub">of 36</div></div>
+    <div class="score-card"><div class="label">SAT</div><div class="value">${bm.sat}</div><div class="sub">of 1600</div></div>
+  </div><div style="color:var(--text-muted);font-size:11px;text-align:center;margin-top:8px">Early projections. Every diagnostic helps build accuracy.</div></div>
+  <div class="review-section"><h3>Skill Analysis</h3><div class="skill-grid">
+    ${Object.entries(skillMap).map(([sk,d])=>{const p=Math.round(d.c/d.t*100),cls=p>=75?'strong':p>=50?'ok':'weak';return`<div class="skill-item"><span class="sk-name">${sk}</span><span class="sk-score ${cls}">${d.c}/${d.t} (${p}%)</span></div>`}).join('')}
+  </div></div>`;
+
+  if(wrong.length>0){h+=`<div class="review-section"><h3>Doug\u2019s Debrief \u2014 Questions Missed (${wrong.length})</h3>`;
+    wrong.forEach(w=>{h+=`<div class="wrong-item"><div class="wi-q">Q${w.num} \u00b7 ${w.q.std} \u00b7 ${w.q.skill}</div><div class="wi-text">${w.q.text.replace(/\n/g,'<br>')}</div><div class="wi-yours"><b>Your answer:</b> ${w.ua}</div><div class="wi-correct"><b>Correct:</b> ${w.ca}</div><div class="wi-explain">${w.q.exp}</div>${w.q.str?`<div class="wi-strategy">LEAP Strategy: ${w.q.str}</div>`:''}</div>`});h+='</div>'}
+  else h+='<div class="review-section"><h3 style="color:var(--success)">Perfect Score!</h3></div>';
+
+  h+=`<div style="text-align:center;color:var(--accent2);font-size:13px;padding:16px;margin-top:12px">\u201CKeep learning, keep observing, keep pushing forward. The LEAP is coming \u2014 you\u2019re building something strong.\u201D \u2014 Doug</div>`;
+  h+=`<button class="return-btn" onclick="window.location.href='Chase_Dashboard.html'">Return to Dashboard</button>`;
+  document.getElementById('testScreen').classList.remove('active');document.getElementById('reviewScreen').classList.add('active');document.getElementById('reviewContent').innerHTML=h;
+}
+</script>
+</body>
+</html>

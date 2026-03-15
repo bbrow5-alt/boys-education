@@ -1719,15 +1719,15 @@ async function loadDiagnosticTests() {
   // Diagnostic tests are managed via hardcoded entries (updated each time a new test is built).
   // The API endpoint returns stale data, so we skip it and use the local definition as source of truth.
   // When a new diagnostic is created, replace this single entry.
-  const signal = JSON.parse(localStorage.getItem('jacob_diagnostic_week2_signal') || 'null');
-  const isCompleted = signal && signal.completed && signal.testId === 'jacob_diagnostic_week2_mar2026';
+  const signal = JSON.parse(localStorage.getItem('jacob_diagnostic_week3_signal') || 'null');
+  const isCompleted = signal && signal.completed && signal.testId === 'jacob_diagnostic_week3_ela_mar2026';
   diagnosticTests = [
     {
-      TestLabel: 'March 9 Diagnostic',
+      TestLabel: 'March 15 LEAP Diagnostic',
       Month: 'March 2026',
-      TestURL: 'Diagnostic_Test_Jacob_Week2_March2026.html',
-      AvailableDate: '2026-03-10',
-      DueDate: '2026-03-11',
+      TestURL: 'Diagnostic_Test_Jacob_Week3_ELA_March2026.html',
+      AvailableDate: '2026-03-15',
+      DueDate: '2026-03-16',
       Completed: isCompleted ? 'TRUE' : 'FALSE',
       CompletedDate: isCompleted ? signal.date : '',
       PointsAwarded: 15
