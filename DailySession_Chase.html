@@ -310,6 +310,58 @@
             flex-direction: column;
         }
 
+        .passage-review-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #1a2332;
+            border: 1px solid #2a3a4a;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            color: #5a8abf;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .passage-review-toggle:hover {
+            background-color: #1e2a3a;
+            border-color: #3a5a7a;
+        }
+
+        .passage-review-toggle .toggle-arrow {
+            transition: transform 0.2s ease;
+            font-size: 12px;
+        }
+
+        .passage-review-toggle.open .toggle-arrow {
+            transform: rotate(90deg);
+        }
+
+        .passage-review-panel {
+            display: none;
+            background-color: #141c28;
+            border: 1px solid #2a3a4a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            line-height: 1.7;
+            color: #a0b8d0;
+            font-size: 14px;
+        }
+
+        .passage-review-panel.open {
+            display: block;
+        }
+
+        .passage-review-panel p {
+            margin-bottom: 12px;
+        }
+
         .question-header {
             margin-bottom: 20px;
         }
@@ -953,6 +1005,11 @@
         <!-- Phase 3: Comprehension -->
         <div class="phase" id="phase3">
             <div class="comprehension-container">
+                <div class="passage-review-toggle" id="passageReviewToggle" onclick="togglePassageReview()">
+                    <span class="toggle-arrow">&#9654;</span>
+                    <span>Review Passage</span>
+                </div>
+                <div class="passage-review-panel" id="passageReviewPanel"></div>
                 <div class="question-header">
                     <div class="question-number" id="questionNumber"></div>
                     <div class="question-text" id="questionText"></div>
@@ -1724,8 +1781,31 @@ Every bridge is designed for specific conditions in its location. A bridge in an
         // ============================================================================
 
         function initPhase3() {
+            // Populate passage review panel so boy can reference it during questions
+            const reviewPanel = document.getElementById('passageReviewPanel');
+            if (currentTopic && currentTopic.passage) {
+                reviewPanel.innerHTML = '';
+                currentTopic.passage.split('\n').forEach(paragraph => {
+                    if (paragraph.trim()) {
+                        const p = document.createElement('p');
+                        p.textContent = paragraph;
+                        reviewPanel.appendChild(p);
+                    }
+                });
+            }
+            // Reset toggle state (collapsed by default)
+            document.getElementById('passageReviewToggle').classList.remove('open');
+            reviewPanel.classList.remove('open');
+
             showPhase(3);
             displayQuestion();
+        }
+
+        function togglePassageReview() {
+            const toggle = document.getElementById('passageReviewToggle');
+            const panel = document.getElementById('passageReviewPanel');
+            toggle.classList.toggle('open');
+            panel.classList.toggle('open');
         }
 
         function displayQuestion() {
