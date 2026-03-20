@@ -1582,7 +1582,10 @@
                 console.log('AI passage generation failed, using all fallbacks:', error.message);
             }
 
-            displayTopics(fallbackChoices);
+            // Auto-assign first topic (no selection screen)
+            const loadingText = document.querySelector('.loading-text');
+            if (loadingText) loadingText.textContent = 'Gary is preparing your session...';
+            selectTopic(fallbackChoices[0]);
         }
 
         function displayTopics(topics) {

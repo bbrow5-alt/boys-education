@@ -1647,22 +1647,10 @@ Every bridge is designed for specific conditions in its location. A bridge in an
                 console.log('AI passage generation failed, using all fallbacks:', error.message);
             }
 
-            passages.forEach(passage => {
-                const card = document.createElement('div');
-                card.className = 'topic-card';
-                card.innerHTML = `
-                    <div class="topic-icon">${passage.icon}</div>
-                    <div class="topic-title">${passage.title}</div>
-                    <div class="topic-description">${passage.description}</div>
-                    <button class="topic-select-btn">Select Mission</button>
-                `;
-                card.querySelector('.topic-select-btn').addEventListener('click', () => {
-                    selectTopic(passage);
-                });
-                topicsGrid.appendChild(card);
-            });
-
-            showPhase(1);
+            // Auto-assign first topic (no selection screen)
+            const loadingText = document.querySelector('.loading-text');
+            if (loadingText) loadingText.textContent = 'Doug is preparing your mission...';
+            selectTopic(passages[0]);
         }
 
         function selectTopic(passage) {
