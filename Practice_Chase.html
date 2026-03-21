@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Module — Explorer's Lab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; }
+        body {
+            background-color: #0f1a1a;
+            color: #d4ede8;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 16px;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+        .back-button {
+            background: none; border: none; color: #2eaaaa;
+            font-size: 24px; cursor: pointer; padding: 8px;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s ease; border-radius: 8px;
+        }
+        .back-button:hover { transform: scale(1.1); color: #d4ede8; }
+        .timer-display {
+            background: rgba(46,170,170,0.15);
+            border: 1px solid rgba(46,170,170,0.3);
+            border-radius: 12px;
+            padding: 6px 16px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2eaaaa;
+            font-variant-numeric: tabular-nums;
+        }
+        .timer-display.warning { color: #e8a33c; border-color: rgba(232,163,60,0.5); }
+        .timer-display.critical { color: #e85c3c; border-color: rgba(232,92,60,0.5); animation: pulse 1s ease infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .progress-bar-container {
+            background: #1a2a2a;
+            border-radius: 8px;
+            height: 6px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #2eaaaa, #7fb069);
+            border-radius: 8px;
+            transition: width 0.5s ease;
+        }
+        .problem-counter {
+            text-align: center;
+            color: #6b8a85;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            gap: 20px;
+        }
+        .loading-spinner {
+            width: 48px; height: 48px;
+            border: 3px solid #1a2a2a;
+            border-top-color: #2eaaaa;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: #6b8a85; font-style: italic; }
+        .problem-card {
+            background: rgba(26,42,42,0.8);
+            border: 1px solid rgba(46,170,170,0.2);
+            border-radius: 16px;
+            padding: 28px 24px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .problem-topic {
+            display: inline-block;
+            background: rgba(46,170,170,0.15);
+            color: #2eaaaa;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 14px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .problem-difficulty {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-left: 8px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .diff-baseline { background: rgba(127,176,105,0.2); color: #7fb069; }
+        .diff-grade { background: rgba(46,170,170,0.2); color: #2eaaaa; }
+        .diff-challenge { background: rgba(232,163,60,0.2); color: #e8a33c; }
+        .diff-ceiling { background: rgba(232,92,60,0.2); color: #e85c3c; }
+
+        /* Passage box for reading comprehension questions */
+        .passage-box {
+            background: rgba(46,170,170,0.05);
+            border: 1px solid rgba(46,170,170,0.12);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 18px;
+            font-size: 15px;
+            line-height: 1.7;
+            color: #b8d8d2;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .passage-box::-webkit-scrollbar { width: 6px; }
+        .passage-box::-webkit-scrollbar-track { background: transparent; }
+        .passage-box::-webkit-scrollbar-thumb { background: rgba(46,170,170,0.3); border-radius: 3px; }
+
+        .problem-question {
+            font-size: 18px;
+            line-height: 1.7;
+            margin-bottom: 24px;
+            color: #d4ede8;
+        }
+        .choices-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .choice-btn {
+            background: rgba(26,42,42,0.6);
+            border: 2px solid rgba(46,170,170,0.15);
+            border-radius: 12px;
+            padding: 14px 18px;
+            color: #d4ede8;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .choice-btn:hover:not(.disabled) {
+            border-color: rgba(46,170,170,0.5);
+            background: rgba(46,170,170,0.08);
+        }
+        .choice-label {
+            width: 28px; height: 28px; min-width: 28px;
+            border-radius: 50%;
+            border: 2px solid rgba(46,170,170,0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: bold; color: #2eaaaa;
+        }
+        .choice-btn.correct {
+            border-color: #7fb069 !important;
+            background: rgba(127,176,105,0.15) !important;
+        }
+        .choice-btn.correct .choice-label {
+            background: #7fb069; color: #0f1a1a; border-color: #7fb069;
+        }
+        .choice-btn.incorrect {
+            border-color: #e85c3c !important;
+            background: rgba(232,92,60,0.1) !important;
+        }
+        .choice-btn.incorrect .choice-label {
+            background: #e85c3c; color: #0f1a1a; border-color: #e85c3c;
+        }
+        .choice-btn.disabled { cursor: default; opacity: 0.7; }
+        .choice-btn.disabled.correct { opacity: 1; }
+        .feedback-box {
+            margin-top: 18px;
+            padding: 16px 18px;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.5;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .feedback-box.correct {
+            background: rgba(127,176,105,0.12);
+            border: 1px solid rgba(127,176,105,0.3);
+            color: #a8d49a;
+        }
+        .feedback-box.incorrect {
+            background: rgba(232,92,60,0.08);
+            border: 1px solid rgba(232,92,60,0.2);
+            color: #e8a08a;
+        }
+        .feedback-box.show { display: block; }
+        .next-btn {
+            background: linear-gradient(135deg, #2eaaaa, #258f8f);
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            color: #0f1a1a;
+            font-family: Georgia, serif;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            align-self: center;
+            display: none;
+        }
+        .next-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(46,170,170,0.3); }
+        .next-btn.show { display: block; }
+        .summary-screen { display: none; animation: fadeIn 0.5s ease; }
+        .summary-screen.show { display: flex; flex-direction: column; flex: 1; }
+        .summary-header { text-align: center; margin-bottom: 30px; }
+        .summary-header h2 { font-size: 28px; color: #2eaaaa; margin-bottom: 8px; }
+        .summary-header p { color: #6b8a85; font-size: 15px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+        .stat-card {
+            background: rgba(26,42,42,0.8);
+            border: 1px solid rgba(46,170,170,0.2);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-value { font-size: 28px; font-weight: bold; color: #2eaaaa; }
+        .stat-label { font-size: 12px; color: #6b8a85; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+        .topic-breakdown {
+            background: rgba(26,42,42,0.6);
+            border: 1px solid rgba(46,170,170,0.15);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 24px;
+        }
+        .topic-breakdown h3 { color: #2eaaaa; font-size: 15px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .topic-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(46,170,170,0.08); }
+        .topic-row:last-child { border-bottom: none; }
+        .topic-name { color: #d4ede8; font-size: 14px; }
+        .topic-score { font-weight: bold; font-size: 14px; }
+        .topic-score.good { color: #7fb069; }
+        .topic-score.ok { color: #e8a33c; }
+        .topic-score.needs-work { color: #e85c3c; }
+        .done-btn {
+            background: linear-gradient(135deg, #7fb069, #6a9a58);
+            border: none; border-radius: 12px; padding: 16px 40px;
+            color: #0f1a1a; font-family: Georgia, serif; font-size: 18px; font-weight: bold;
+            cursor: pointer; align-self: center; margin-top: auto; transition: transform 0.2s ease;
+        }
+        .done-btn:hover { transform: translateY(-2px); }
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: #1a2a2a; border: 1px solid rgba(46,170,170,0.3);
+            border-radius: 16px; padding: 28px; max-width: 350px; width: 90%; text-align: center;
+        }
+        .modal-box h3 { color: #2eaaaa; margin-bottom: 12px; }
+        .modal-box p { color: #6b8a85; margin-bottom: 20px; font-size: 14px; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { padding: 10px 24px; border-radius: 10px; font-family: Georgia, serif; font-size: 14px; cursor: pointer; border: none; }
+        .modal-btn.stay { background: #2eaaaa; color: #0f1a1a; font-weight: bold; }
+        .modal-btn.leave { background: rgba(232,92,60,0.2); color: #e85c3c; border: 1px solid rgba(232,92,60,0.3); }
+        .tutor-msg {
+            display: flex; align-items: flex-start; gap: 12px;
+            background: rgba(46,170,170,0.06); border-left: 3px solid #2eaaaa;
+            border-radius: 0 10px 10px 0; padding: 12px 16px; margin-bottom: 20px;
+            font-size: 14px; color: #2eaaaa; font-style: italic;
+        }
+        .tutor-msg .tutor-name { font-weight: bold; font-style: normal; white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-button" onclick="handleBack()">&#8592;</button>
+            <div class="timer-display" id="timer">20:00</div>
+        </div>
+        <div class="problem-counter" id="problemCounter">Problem 1 of —</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="loading-screen" id="loadingScreen">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Doug is building your challenges...</div>
+        </div>
+
+        <div id="problemArea" style="display:none;">
+            <div class="tutor-msg" id="tutorMsg">
+                <span class="tutor-name">Doug:</span>
+                <span id="tutorText">Time to level up those language skills.</span>
+            </div>
+            <div class="problem-card" id="problemCard">
+                <div>
+                    <span class="problem-topic" id="problemTopic">Vocabulary</span>
+                    <span class="problem-difficulty" id="problemDifficulty">Grade Level</span>
+                </div>
+                <div class="passage-box" id="passageBox" style="display:none;"></div>
+                <div class="problem-question" id="problemQuestion"></div>
+                <div class="choices-grid" id="choicesGrid"></div>
+                <div class="feedback-box" id="feedbackBox"></div>
+            </div>
+            <button class="next-btn" id="nextBtn" onclick="nextProblem()">Next Problem &#8594;</button>
+        </div>
+
+        <div class="summary-screen" id="summaryScreen">
+            <div class="summary-header">
+                <h2 id="summaryTitle">Session Complete</h2>
+                <p id="summarySubtitle"></p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-value" id="statCorrect">0</div><div class="stat-label">Correct</div></div>
+                <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Problems</div></div>
+                <div class="stat-card"><div class="stat-value" id="statAccuracy">0%</div><div class="stat-label">Accuracy</div></div>
+                <div class="stat-card"><div class="stat-value" id="statTime">0:00</div><div class="stat-label">Time Used</div></div>
+            </div>
+            <div class="topic-breakdown" id="topicBreakdown">
+                <h3>Topic Breakdown</h3>
+                <div id="topicRows"></div>
+            </div>
+            <button class="done-btn" onclick="finishAndReturn()">Return to Dashboard</button>
+        </div>
+
+        <div class="modal-overlay" id="exitModal">
+            <div class="modal-box">
+                <h3>Leave Practice?</h3>
+                <p>Your progress will be saved, but the session won't count as complete unless you finish.</p>
+                <div class="modal-buttons">
+                    <button class="modal-btn stay" onclick="closeExitModal()">Keep Going</button>
+                    <button class="modal-btn leave" onclick="confirmExit()">Leave</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // CONFIGURATION
+        // ============================================================================
+        const CONFIG = {
+            student: 'Chase',
+            grade: 5,
+            tutorName: 'Doug',
+            primarySubject: 'ela',
+            timerMinutes: 20,
+            minProblemsForCompletion: 8,
+            problemsPerBatch: 6,
+            webAppUrl: 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec'
+        };
+
+        const TODAY = new Date().toISOString().split('T')[0];
+        const PRACTICE_KEY = 'chase_practice_v1';
+        const SIGNAL_KEY = 'chase_practice_signal';
+        const USED_PROBLEMS_KEY = 'chase_used_practice_topics_v1';
+
+        // ============================================================================
+        // ELA PROBLEM BANK — 5th Grade LEAP Aligned
+        // Categories: reading_comprehension, vocabulary, grammar, writing_mechanics
+        // ============================================================================
+        const PROBLEM_BANK = {
+            reading_comprehension: [
+                {
+                    passage: "The octopus is one of the most intelligent creatures in the ocean. Scientists have observed octopuses solving complex puzzles, unscrewing jar lids to reach food inside, and even escaping from aquarium tanks. Unlike most animals, an octopus has three hearts and blue blood. Two hearts pump blood to the gills, while the third pumps it to the rest of the body. When an octopus swims, the heart that delivers blood to the body actually stops beating, which is why octopuses prefer crawling to swimming — it's less exhausting.",
+                    question: "Based on the passage, why do octopuses prefer crawling to swimming?",
+                    choices: [
+                        "Because one of their hearts stops beating when they swim, making it tiring",
+                        "Because they are too heavy to swim quickly",
+                        "Because their blue blood works better on land",
+                        "Because they need all three hearts to solve puzzles"
+                    ],
+                    correctIndex: 0,
+                    explanation: "The passage states that 'the heart that delivers blood to the body actually stops beating' when swimming, 'which is why octopuses prefer crawling — it's less exhausting.'",
+                    difficulty: "baseline",
+                    topic: "reading_comprehension"
+                },
+                {
+                    passage: "In 1928, scientist Alexander Fleming returned from vacation to find mold growing on one of his petri dishes. Most scientists would have thrown it away, but Fleming noticed something remarkable: the bacteria near the mold had died. He realized the mold was producing a substance that killed bacteria. He named it penicillin. However, Fleming couldn't figure out how to produce penicillin in large quantities. It wasn't until World War II, more than a decade later, that Howard Florey and Ernst Chain developed methods to mass-produce penicillin, saving countless soldiers' lives on the battlefield.",
+                    question: "Which statement best describes the author's purpose in this passage?",
+                    choices: [
+                        "To explain how penicillin was discovered and eventually mass-produced",
+                        "To argue that Alexander Fleming was the greatest scientist ever",
+                        "To describe what happens when food gets moldy",
+                        "To persuade readers to become scientists"
+                    ],
+                    correctIndex: 0,
+                    explanation: "The passage traces the story from discovery (Fleming) to mass production (Florey and Chain). It informs the reader about the history, not persuading or arguing.",
+                    difficulty: "grade-level",
+                    topic: "reading_comprehension"
+                },
+                {
+                    passage: "Maria stared at the blank canvas. The art show was in three days, and she hadn't even started. Her older sister Elena had won the school art prize two years in a row, and everyone expected Maria to follow in her footsteps. But Maria didn't want to paint flowers like Elena. She wanted to paint the thunderstorm she'd seen last week — the way the lightning had turned the whole sky purple. 'That's not the kind of art that wins prizes,' her friend Jasmine had said. Maria picked up her brush anyway.",
+                    question: "What can you infer about Maria's character from this passage?",
+                    choices: [
+                        "She is willing to take risks and follow her own vision despite pressure",
+                        "She is jealous of her sister Elena's success",
+                        "She does not care about the art show at all",
+                        "She always listens to her friend Jasmine's advice"
+                    ],
+                    correctIndex: 0,
+                    explanation: "Maria chooses to paint what inspires her (the thunderstorm) even though others expect her to copy Elena's style and Jasmine doubts her. 'Maria picked up her brush anyway' shows determination.",
+                    difficulty: "grade-level",
+                    topic: "reading_comprehension"
+                },
+                {
+                    passage: "Coral reefs are often called the 'rainforests of the sea' because they support about 25% of all marine species despite covering less than 1% of the ocean floor. However, coral reefs are dying at an alarming rate. Rising ocean temperatures cause coral bleaching — a process where stressed corals expel the colorful algae living inside them, turning white and eventually dying. Scientists estimate that 50% of the world's coral reefs have already been lost. Without immediate action to address climate change, we could lose 90% of coral reefs by 2050.",
+                    question: "The author compares coral reefs to rainforests most likely to —",
+                    choices: [
+                        "Emphasize how much biodiversity coral reefs support relative to their size",
+                        "Suggest that coral reefs have the same plants as rainforests",
+                        "Show that rainforests are also threatened by climate change",
+                        "Explain why coral reefs are green"
+                    ],
+                    correctIndex: 0,
+                    explanation: "The comparison highlights that reefs support 25% of marine species while covering <1% of the ocean — an outsized impact, like rainforests on land.",
+                    difficulty: "challenging",
+                    topic: "reading_comprehension"
+                },
+                {
+                    passage: "Two students wrote about school lunch:\n\nStudent A: 'The school cafeteria should offer more fresh fruits and vegetables. Research shows that students who eat nutritious meals perform better on tests and have fewer behavioral issues. While some argue that healthier food costs more, the long-term benefits to student health and academic performance far outweigh the additional expense.'\n\nStudent B: 'Our school lunches are fine the way they are. The pizza and chicken nuggets taste great, and everyone loves them. My friends and I never complain about the food. If they change the menu, nobody will eat lunch.'",
+                    question: "Which student provides stronger evidence for their argument, and why?",
+                    choices: [
+                        "Student A, because they cite research about nutrition's effect on performance",
+                        "Student B, because they surveyed their friends",
+                        "Student A, because they like vegetables more",
+                        "Student B, because more students agree with them"
+                    ],
+                    correctIndex: 0,
+                    explanation: "Student A cites research (evidence-based). Student B relies on personal opinion and anecdote ('my friends and I'). Strong arguments use evidence, not just preferences.",
+                    difficulty: "challenging",
+                    topic: "reading_comprehension"
+                }
+            ],
+            vocabulary: [
+                {
+                    question: "Read this sentence: 'The detective scrutinized the footprints carefully, looking for any detail that might identify the suspect.' What does 'scrutinized' most likely mean?",
+                    choices: ["Examined closely", "Quickly glanced at", "Stepped on", "Photographed"],
+                    correctIndex: 0,
+                    explanation: "Context clue: 'carefully, looking for any detail' tells us scrutinized means to examine very closely and thoroughly.",
+                    difficulty: "baseline",
+                    topic: "vocabulary"
+                },
+                {
+                    question: "Which word is the best synonym for 'resilient'?",
+                    choices: ["Tough and able to recover", "Quiet and shy", "Angry and aggressive", "Slow and careful"],
+                    correctIndex: 0,
+                    explanation: "Resilient means able to recover quickly from difficulties — tough, bouncing back.",
+                    difficulty: "baseline",
+                    topic: "vocabulary"
+                },
+                {
+                    question: "Read: 'The once-bustling marketplace was now desolate; the only sound was the wind blowing through empty stalls.' What does 'desolate' mean?",
+                    choices: ["Empty and abandoned", "Crowded and noisy", "Newly built", "Beautifully decorated"],
+                    correctIndex: 0,
+                    explanation: "Context clues: 'once-bustling' (was busy before), 'now' (contrast), 'empty stalls,' and 'only sound was wind' all point to deserted/abandoned.",
+                    difficulty: "grade-level",
+                    topic: "vocabulary"
+                },
+                {
+                    question: "The Latin root 'bene' means 'good' or 'well.' Which word most likely contains this root?",
+                    choices: ["Beneficial", "Beneath", "Bend", "Bicycle"],
+                    correctIndex: 0,
+                    explanation: "Beneficial (meaning 'producing good results') contains 'bene' = good. Beneath, bend, and bicycle have different roots.",
+                    difficulty: "grade-level",
+                    topic: "vocabulary"
+                },
+                {
+                    question: "Read: 'Although the reviews were laudatory, the humble author insisted her book was just adequate.' The word 'laudatory' most likely means —",
+                    choices: ["Full of praise", "Very critical", "Confusing", "Short"],
+                    correctIndex: 0,
+                    explanation: "The contrast ('although... humble... just adequate') tells us laudatory is the opposite of humble/adequate — meaning full of praise.",
+                    difficulty: "challenging",
+                    topic: "vocabulary"
+                },
+                {
+                    question: "Which pair of words are antonyms?",
+                    choices: ["Abundant and scarce", "Ancient and old", "Rapid and swift", "Huge and enormous"],
+                    correctIndex: 0,
+                    explanation: "Abundant (plentiful) and scarce (rare/limited) are opposites. The other pairs are synonyms.",
+                    difficulty: "grade-level",
+                    topic: "vocabulary"
+                }
+            ],
+            grammar: [
+                {
+                    question: "Which sentence uses commas correctly?",
+                    choices: [
+                        "After the long hike, we ate lunch, rested, and headed home.",
+                        "After the long hike we ate lunch rested and headed home.",
+                        "After, the long hike, we ate lunch rested and headed home.",
+                        "After the long hike, we ate lunch rested, and headed home."
+                    ],
+                    correctIndex: 0,
+                    explanation: "Comma after introductory phrase ('After the long hike,') + commas separating items in a series (ate, rested, and headed).",
+                    difficulty: "baseline",
+                    topic: "grammar"
+                },
+                {
+                    question: "Which sentence correctly uses a semicolon?",
+                    choices: [
+                        "The experiment failed; however, the team learned valuable lessons.",
+                        "The experiment failed; and the team was disappointed.",
+                        "The experiment; failed however the team learned.",
+                        "The experiment failed, however; the team learned."
+                    ],
+                    correctIndex: 0,
+                    explanation: "A semicolon joins two independent clauses. 'However' is a conjunctive adverb, correctly placed after the semicolon with a comma after it.",
+                    difficulty: "challenging",
+                    topic: "grammar"
+                },
+                {
+                    question: "Choose the sentence with correct subject-verb agreement:",
+                    choices: [
+                        "The group of students was working on a project.",
+                        "The group of students were working on a project.",
+                        "The group of students are working on a projects.",
+                        "The groups of student was working on a project."
+                    ],
+                    correctIndex: 0,
+                    explanation: "'Group' is a collective noun (singular subject), so it takes 'was' (singular verb). 'Of students' is a prepositional phrase, not the subject.",
+                    difficulty: "grade-level",
+                    topic: "grammar"
+                },
+                {
+                    question: "Which sentence uses the correct form of 'their/there/they're'?",
+                    choices: [
+                        "They're going to bring their backpacks over there.",
+                        "Their going to bring they're backpacks over there.",
+                        "There going to bring their backpacks over they're.",
+                        "They're going to bring there backpacks over their."
+                    ],
+                    correctIndex: 0,
+                    explanation: "They're = they are. Their = possessive (belonging to them). There = a place. 'They are going to bring their (belonging to them) backpacks over there (that place).'",
+                    difficulty: "baseline",
+                    topic: "grammar"
+                },
+                {
+                    question: "Identify the complex sentence:",
+                    choices: [
+                        "Although it was raining, the team played the entire game.",
+                        "The team played the game and won the championship.",
+                        "It was raining.",
+                        "The team played the game. They won the championship."
+                    ],
+                    correctIndex: 0,
+                    explanation: "A complex sentence has one independent clause and at least one dependent clause. 'Although it was raining' (dependent) + 'the team played' (independent).",
+                    difficulty: "grade-level",
+                    topic: "grammar"
+                },
+                {
+                    question: "Which revision best improves this sentence? 'The dog ran fast and the dog jumped over the fence and the dog landed in the yard.'",
+                    choices: [
+                        "The dog ran fast, jumped over the fence, and landed in the yard.",
+                        "The fast dog ran jumped and landed in the yard fence.",
+                        "Running fast, jumping, landing — that's what the dog did.",
+                        "The dog ran. Fast. Over the fence. Into the yard."
+                    ],
+                    correctIndex: 0,
+                    explanation: "Combining the repetitive clauses into a single sentence with a series (ran, jumped, and landed) eliminates redundancy while keeping all the information.",
+                    difficulty: "challenging",
+                    topic: "grammar"
+                }
+            ],
+            writing_mechanics: [
+                {
+                    question: "Which sentence is a strong thesis statement for a persuasive essay about school start times?",
+                    choices: [
+                        "Schools should start no earlier than 9:00 AM because later start times improve student health, academic performance, and attendance.",
+                        "School start times are a topic that many people have opinions about.",
+                        "I think schools should start later because I'm tired in the morning.",
+                        "Some schools start early and some start late."
+                    ],
+                    correctIndex: 0,
+                    explanation: "A strong thesis states a clear position AND previews the supporting reasons. Option A does both. The others are vague, personal opinion without evidence, or purely descriptive.",
+                    difficulty: "grade-level",
+                    topic: "writing_mechanics"
+                },
+                {
+                    question: "Read this paragraph opening: 'Many people believe that homework is necessary for learning. _____, recent studies suggest that excessive homework can actually harm student well-being.' Which transition word best fills the blank?",
+                    choices: ["However", "Therefore", "Similarly", "For example"],
+                    correctIndex: 0,
+                    explanation: "'However' signals a contrast — the second sentence contradicts the first. 'Therefore' shows cause/effect, 'Similarly' shows agreement, 'For example' introduces evidence.",
+                    difficulty: "grade-level",
+                    topic: "writing_mechanics"
+                },
+                {
+                    question: "Which is the best concluding sentence for a paragraph about the benefits of reading? (The paragraph discusses improved vocabulary, better focus, and reduced stress.)",
+                    choices: [
+                        "With benefits ranging from stronger vocabulary to lower stress levels, daily reading is one of the most valuable habits a person can develop.",
+                        "In conclusion, reading is good.",
+                        "That is everything I know about reading.",
+                        "Another benefit of reading is that libraries exist."
+                    ],
+                    correctIndex: 0,
+                    explanation: "A strong conclusion restates the main points and reinforces the argument without introducing new ideas. Option A ties together all three benefits mentioned.",
+                    difficulty: "challenging",
+                    topic: "writing_mechanics"
+                },
+                {
+                    question: "Which sentence uses a quote correctly?",
+                    choices: [
+                        "The coach said, \"Practice doesn't make perfect — perfect practice makes perfect.\"",
+                        "The coach said \"Practice doesn't make perfect — perfect practice makes perfect\".",
+                        "\"The coach said Practice doesn't make perfect perfect practice makes perfect.\"",
+                        "The coach said, Practice doesn't make perfect — perfect practice makes perfect."
+                    ],
+                    correctIndex: 0,
+                    explanation: "Correct quotation format: comma after 'said,' opening quote mark, quoted text, period INSIDE the closing quote mark.",
+                    difficulty: "baseline",
+                    topic: "writing_mechanics"
+                },
+                {
+                    question: "A student writes: 'The Amazon rainforest is big. It has animals. It rains there.' How should this be revised?",
+                    choices: [
+                        "The vast Amazon rainforest, home to millions of animal species, receives over 80 inches of rainfall annually.",
+                        "The Amazon is the biggest, most animal-filled, rainiest place.",
+                        "Big Amazon forest: animals, rain, lots of both things there.",
+                        "The Amazon rainforest is really, really big and has lots and lots of animals and tons of rain."
+                    ],
+                    correctIndex: 0,
+                    explanation: "The revision combines three choppy sentences into one with specific details ('millions of species,' '80 inches'), varied sentence structure, and precise vocabulary.",
+                    difficulty: "challenging",
+                    topic: "writing_mechanics"
+                }
+            ]
+        };
+
+        const TOPIC_NAMES = {
+            reading_comprehension: 'Reading Comprehension',
+            vocabulary: 'Vocabulary',
+            grammar: 'Grammar & Usage',
+            writing_mechanics: 'Writing & Structure'
+        };
+
+        const DIFF_LABELS = {
+            baseline: { text: 'Warm-Up', class: 'diff-baseline' },
+            'grade-level': { text: 'Grade Level', class: 'diff-grade' },
+            challenging: { text: 'Challenge', class: 'diff-challenge' },
+            ceiling: { text: 'Ceiling', class: 'diff-ceiling' }
+        };
+
+        const TUTOR_MESSAGES = {
+            start: [
+                "Let's build those language skills. 20 minutes, full focus.",
+                "Words are power. Let's sharpen yours.",
+                "Every question makes your brain stronger. Let's go."
+            ],
+            correct: [
+                "Solid work. Next.",
+                "You've got the eye for this.",
+                "That's the kind of thinking that moves you forward.",
+                "Clean answer. Keep going.",
+                "Locked in. I like it."
+            ],
+            incorrect: [
+                "Not that one — read the explanation carefully. That's where the learning is.",
+                "Good try. The explanation will make it click.",
+                "Miss it now, remember it forever. Read why.",
+                "This is how you level up. Study the answer."
+            ],
+            streak3: ["Three in a row. You're dialed in.", "Hat trick. Keep the streak alive."],
+            streak5: ["Five straight. Explorer mode activated.", "That's a run. Don't stop."],
+            halfway: ["Halfway there. Stay focused.", "Strong first half. Finish strong."],
+            almostDone: ["Final stretch. Bring it home.", "Almost there. Close it out."]
+        };
+
+        // ============================================================================
+        // STATE
+        // ============================================================================
+        let allProblems = [];
+        let currentProblemIndex = 0;
+        let answers = [];
+        let sessionStartTime = null;
+        let problemStartTime = null;
+        let timerInterval = null;
+        let timerSecondsLeft = CONFIG.timerMinutes * 60;
+        let isTimerRunning = false;
+        let currentStreak = 0;
+        let sessionComplete = false;
+        let apiProblemsLoaded = false;
+
+        // ============================================================================
+        // INITIALIZATION
+        // ============================================================================
+        async function init() {
+            const existingSignal = localStorage.getItem(SIGNAL_KEY);
+            if (existingSignal) {
+                const signal = JSON.parse(existingSignal);
+                if (signal.date === TODAY && signal.completed) {
+                    document.getElementById('loadingScreen').innerHTML = `
+                        <div style="text-align:center;">
+                            <div style="font-size:48px;margin-bottom:16px;">&#9989;</div>
+                            <h2 style="color:#7fb069;margin-bottom:8px;">Practice Complete</h2>
+                            <p style="color:#6b8a85;">You already finished today's practice session.</p>
+                            <button class="done-btn" style="margin-top:24px;" onclick="returnToDashboard()">Back to Dashboard</button>
+                        </div>`;
+                    return;
+                }
+            }
+            sessionStartTime = Date.now();
+            try { await loadProblems(); } catch (e) { console.log('API fallback:', e); loadFallbackProblems(); }
+            if (allProblems.length === 0) loadFallbackProblems();
+
+            allProblems.forEach(p => {
+                if (!p._shuffled) {
+                    const correctAnswer = p.choices[p.correctIndex];
+                    for (let i = p.choices.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [p.choices[i], p.choices[j]] = [p.choices[j], p.choices[i]];
+                    }
+                    p.correctIndex = p.choices.indexOf(correctAnswer);
+                    p._shuffled = true;
+                }
+            });
+
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('problemArea').style.display = 'block';
+            startTimer();
+            showProblem(0);
+        }
+
+        async function loadProblems() {
+            const weekFocus = getWeekFocus();
+            const response = await fetch(CONFIG.webAppUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    action: 'generatePracticeProblems',
+                    student: CONFIG.student,
+                    grade: CONFIG.grade,
+                    subject: CONFIG.primarySubject,
+                    focus: weekFocus,
+                    count: 15
+                })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.problems && data.problems.length > 0) {
+                    allProblems = data.problems;
+                    apiProblemsLoaded = true;
+                    return;
+                }
+            }
+            throw new Error('API did not return problems');
+        }
+
+        function getWeekFocus() {
+            try {
+                const stored = localStorage.getItem('chase_week_focus');
+                if (stored) return JSON.parse(stored);
+            } catch (e) {}
+            return { primary: 'reading_comprehension', secondary: 'vocabulary', tertiary: 'grammar' };
+        }
+
+        function loadFallbackProblems() {
+            const focus = getWeekFocus();
+            const topics = Object.keys(PROBLEM_BANK);
+            const usedProblems = getUsedProblems();
+            const weights = {};
+            topics.forEach(t => weights[t] = 2);
+            if (focus.primary && weights[focus.primary] !== undefined) weights[focus.primary] = 5;
+            if (focus.secondary && weights[focus.secondary] !== undefined) weights[focus.secondary] = 4;
+            if (focus.tertiary && weights[focus.tertiary] !== undefined) weights[focus.tertiary] = 3;
+
+            let problems = [];
+            topics.forEach(topic => {
+                const available = PROBLEM_BANK[topic].filter(p => !usedProblems.includes(p.question.substring(0, 50)));
+                const toUse = available.length > 0 ? available : PROBLEM_BANK[topic];
+                toUse.forEach(p => {
+                    for (let w = 0; w < (weights[topic] || 1); w++) problems.push({ ...p, topic: p.topic || topic });
+                });
+            });
+            problems = shuffleArray(problems);
+            const seen = new Set();
+            const unique = [];
+            for (const p of problems) {
+                const key = p.question.substring(0, 50);
+                if (!seen.has(key)) { seen.add(key); unique.push(p); }
+            }
+            const diffOrder = { baseline: 0, 'grade-level': 1, challenging: 2, ceiling: 3 };
+            unique.sort((a, b) => (diffOrder[a.difficulty] || 1) - (diffOrder[b.difficulty] || 1));
+            allProblems = unique.slice(0, 20);
+        }
+
+        function getUsedProblems() {
+            try {
+                const stored = JSON.parse(localStorage.getItem(USED_PROBLEMS_KEY) || '[]');
+                const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                return stored.filter(e => e.ts > weekAgo).map(e => e.q);
+            } catch (e) { return []; }
+        }
+
+        function saveUsedProblems() {
+            const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            let stored = [];
+            try { stored = JSON.parse(localStorage.getItem(USED_PROBLEMS_KEY) || '[]'); } catch(e) {}
+            stored = stored.filter(e => e.ts > weekAgo);
+            answers.forEach(a => {
+                const p = allProblems[a.problemIndex];
+                if (p) stored.push({ q: p.question.substring(0, 50), ts: Date.now() });
+            });
+            localStorage.setItem(USED_PROBLEMS_KEY, JSON.stringify(stored));
+        }
+
+        // ============================================================================
+        // TIMER
+        // ============================================================================
+        function startTimer() {
+            isTimerRunning = true;
+            timerInterval = setInterval(() => {
+                timerSecondsLeft--;
+                updateTimerDisplay();
+                if (timerSecondsLeft <= 0) {
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                    endSession('time');
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const min = Math.floor(timerSecondsLeft / 60);
+            const sec = timerSecondsLeft % 60;
+            const el = document.getElementById('timer');
+            el.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+            el.className = 'timer-display';
+            if (timerSecondsLeft <= 60) el.classList.add('critical');
+            else if (timerSecondsLeft <= 300) el.classList.add('warning');
+        }
+
+        // ============================================================================
+        // PROBLEM DISPLAY
+        // ============================================================================
+        function showProblem(index) {
+            if (index >= allProblems.length) { endSession('problems'); return; }
+            currentProblemIndex = index;
+            problemStartTime = Date.now();
+            const problem = allProblems[index];
+
+            document.getElementById('problemCounter').textContent = `Problem ${index + 1} of ${allProblems.length}`;
+            document.getElementById('progressBar').style.width = `${((index) / allProblems.length) * 100}%`;
+
+            document.getElementById('problemTopic').textContent = TOPIC_NAMES[problem.topic] || problem.topic;
+            const diffInfo = DIFF_LABELS[problem.difficulty] || DIFF_LABELS['grade-level'];
+            const diffEl = document.getElementById('problemDifficulty');
+            diffEl.textContent = diffInfo.text;
+            diffEl.className = 'problem-difficulty ' + diffInfo.class;
+
+            // Show passage if reading comprehension
+            const passageBox = document.getElementById('passageBox');
+            if (problem.passage) {
+                passageBox.innerHTML = problem.passage;
+                passageBox.style.display = 'block';
+            } else {
+                passageBox.style.display = 'none';
+            }
+
+            document.getElementById('problemQuestion').innerHTML = problem.question;
+
+            const grid = document.getElementById('choicesGrid');
+            grid.innerHTML = '';
+            const labels = ['A', 'B', 'C', 'D'];
+            problem.choices.forEach((choice, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerHTML = `<span class="choice-label">${labels[i]}</span><span>${choice}</span>`;
+                btn.onclick = () => selectAnswer(i);
+                btn.id = `choice-${i}`;
+                grid.appendChild(btn);
+            });
+
+            const fb = document.getElementById('feedbackBox');
+            fb.className = 'feedback-box';
+            fb.style.display = 'none';
+            document.getElementById('nextBtn').className = 'next-btn';
+
+            updateTutorMessage(index);
+            document.getElementById('problemCard').style.animation = 'none';
+            requestAnimationFrame(() => { document.getElementById('problemCard').style.animation = 'fadeIn 0.4s ease'; });
+        }
+
+        function selectAnswer(selectedIndex) {
+            const problem = allProblems[currentProblemIndex];
+            const isCorrect = selectedIndex === problem.correctIndex;
+            const timeSpent = Math.round((Date.now() - problemStartTime) / 1000);
+
+            answers.push({
+                problemIndex: currentProblemIndex, topic: problem.topic, difficulty: problem.difficulty,
+                selectedIndex, correctIndex: problem.correctIndex, correct: isCorrect, timeSpent,
+                question: problem.question.substring(0, 80)
+            });
+
+            if (isCorrect) { currentStreak++; } else { currentStreak = 0; }
+
+            document.querySelectorAll('.choice-btn').forEach((btn, i) => {
+                btn.classList.add('disabled');
+                if (i === problem.correctIndex) btn.classList.add('correct');
+                if (i === selectedIndex && !isCorrect) btn.classList.add('incorrect');
+            });
+
+            const fb = document.getElementById('feedbackBox');
+            fb.className = `feedback-box ${isCorrect ? 'correct' : 'incorrect'} show`;
+            fb.innerHTML = isCorrect
+                ? `<strong>Correct!</strong> ${problem.explanation}`
+                : `<strong>Not quite.</strong> The answer is <strong>${problem.choices[problem.correctIndex]}</strong>. ${problem.explanation}`;
+
+            document.getElementById('nextBtn').className = 'next-btn show';
+
+            if (currentStreak === 3) setTutorText(randomPick(TUTOR_MESSAGES.streak3));
+            else if (currentStreak === 5) setTutorText(randomPick(TUTOR_MESSAGES.streak5));
+            else if (isCorrect) setTutorText(randomPick(TUTOR_MESSAGES.correct));
+            else setTutorText(randomPick(TUTOR_MESSAGES.incorrect));
+        }
+
+        function nextProblem() { showProblem(currentProblemIndex + 1); }
+
+        function updateTutorMessage(index) {
+            if (index === 0) setTutorText(randomPick(TUTOR_MESSAGES.start));
+            else if (index === Math.floor(allProblems.length / 2)) setTutorText(randomPick(TUTOR_MESSAGES.halfway));
+            else if (index === allProblems.length - 2) setTutorText(randomPick(TUTOR_MESSAGES.almostDone));
+        }
+
+        function setTutorText(text) { document.getElementById('tutorText').textContent = text; }
+
+        // ============================================================================
+        // SESSION END
+        // ============================================================================
+        function endSession(reason) {
+            if (sessionComplete) return;
+            sessionComplete = true;
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+
+            const totalCorrect = answers.filter(a => a.correct).length;
+            const totalAttempted = answers.length;
+            const accuracy = totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
+            const timeUsedSec = Math.round((Date.now() - sessionStartTime) / 1000);
+            const timeUsedMin = Math.floor(timeUsedSec / 60);
+            const timeUsedRemSec = timeUsedSec % 60;
+            const meetsMinimum = totalAttempted >= CONFIG.minProblemsForCompletion;
+
+            document.getElementById('problemArea').style.display = 'none';
+            document.getElementById('problemCounter').style.display = 'none';
+            document.querySelector('.progress-bar-container').style.display = 'none';
+
+            if (!meetsMinimum) {
+                document.getElementById('summaryTitle').textContent = 'Session Incomplete';
+                document.getElementById('summaryTitle').style.color = '#e8a33c';
+                document.getElementById('summarySubtitle').textContent = `You answered ${totalAttempted} problems. Need at least ${CONFIG.minProblemsForCompletion} to count as complete.`;
+            } else if (accuracy >= 80) {
+                document.getElementById('summaryTitle').textContent = 'Excellent Work';
+                document.getElementById('summarySubtitle').textContent = reason === 'time' ? "Time's up! Strong performance." : "All problems complete!";
+            } else if (accuracy >= 60) {
+                document.getElementById('summaryTitle').textContent = 'Good Effort';
+                document.getElementById('summarySubtitle').textContent = "Review the topics you missed.";
+            } else {
+                document.getElementById('summaryTitle').textContent = 'Keep Practicing';
+                document.getElementById('summarySubtitle').textContent = "Focus on the explanations — that's where the learning happens.";
+            }
+
+            document.getElementById('statCorrect').textContent = totalCorrect;
+            document.getElementById('statTotal').textContent = totalAttempted;
+            document.getElementById('statAccuracy').textContent = accuracy + '%';
+            document.getElementById('statTime').textContent = `${timeUsedMin}:${timeUsedRemSec.toString().padStart(2, '0')}`;
+
+            const topicStats = {};
+            answers.forEach(a => {
+                if (!topicStats[a.topic]) topicStats[a.topic] = { correct: 0, total: 0 };
+                topicStats[a.topic].total++;
+                if (a.correct) topicStats[a.topic].correct++;
+            });
+
+            const topicRows = document.getElementById('topicRows');
+            topicRows.innerHTML = '';
+            Object.entries(topicStats).forEach(([topic, stats]) => {
+                const pct = Math.round((stats.correct / stats.total) * 100);
+                const scoreClass = pct >= 80 ? 'good' : pct >= 50 ? 'ok' : 'needs-work';
+                topicRows.innerHTML += `<div class="topic-row"><span class="topic-name">${TOPIC_NAMES[topic] || topic}</span><span class="topic-score ${scoreClass}">${stats.correct}/${stats.total} (${pct}%)</span></div>`;
+            });
+
+            document.getElementById('summaryScreen').classList.add('show');
+            saveResults(meetsMinimum, totalCorrect, totalAttempted, accuracy, timeUsedSec, topicStats);
+        }
+
+        // ============================================================================
+        // DATA PERSISTENCE
+        // ============================================================================
+        function saveResults(isComplete, correct, total, accuracy, timeSec, topicStats) {
+            saveUsedProblems();
+            const signal = {
+                date: TODAY, completed: isComplete, correct, total, accuracy,
+                timeSeconds: timeSec, topicBreakdown: topicStats, timestamp: new Date().toISOString()
+            };
+            localStorage.setItem(SIGNAL_KEY, JSON.stringify(signal));
+
+            if (isComplete) {
+                const dashKey = 'chase_dashboard_v3';
+                const dashData = JSON.parse(localStorage.getItem(dashKey) || '{}');
+                if (!dashData.days) dashData.days = {};
+                if (!dashData.days[TODAY]) dashData.days[TODAY] = {};
+                dashData.days[TODAY].practice = true;
+                dashData.days[TODAY].practiceAccuracy = accuracy;
+                localStorage.setItem(dashKey, JSON.stringify(dashData));
+            }
+
+            syncResults(isComplete, correct, total, accuracy, timeSec, topicStats);
+        }
+
+        async function syncResults(isComplete, correct, total, accuracy, timeSec, topicStats) {
+            try {
+                await fetch(CONFIG.webAppUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'savePracticeResults', student: CONFIG.student, date: TODAY,
+                        completed: isComplete, correct, total, accuracy, timeSeconds: timeSec,
+                        topicBreakdown: JSON.stringify(topicStats), answers: JSON.stringify(answers),
+                        source: apiProblemsLoaded ? 'claude_api' : 'problem_bank', timestamp: new Date().toISOString()
+                    })
+                });
+                if (isComplete) {
+                    await fetch(CONFIG.webAppUrl, {
+                        method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: 'saveDailyTracking', date: TODAY, student: CONFIG.student,
+                            practice: true, practiceAccuracy: accuracy
+                        })
+                    });
+                }
+            } catch (e) { console.log('Sync failed, data saved locally'); }
+        }
+
+        // ============================================================================
+        // NAVIGATION
+        // ============================================================================
+        function handleBack() {
+            if (answers.length > 0 && !sessionComplete) document.getElementById('exitModal').classList.add('show');
+            else returnToDashboard();
+        }
+        function closeExitModal() { document.getElementById('exitModal').classList.remove('show'); }
+        function confirmExit() {
+            if (answers.length > 0) {
+                const totalCorrect = answers.filter(a => a.correct).length;
+                const timeSec = Math.round((Date.now() - sessionStartTime) / 1000);
+                const topicStats = {};
+                answers.forEach(a => {
+                    if (!topicStats[a.topic]) topicStats[a.topic] = { correct: 0, total: 0 };
+                    topicStats[a.topic].total++; if (a.correct) topicStats[a.topic].correct++;
+                });
+                saveResults(false, totalCorrect, answers.length, Math.round((totalCorrect / answers.length) * 100), timeSec, topicStats);
+            }
+            returnToDashboard();
+        }
+        function finishAndReturn() { returnToDashboard(); }
+        function returnToDashboard() { window.location.href = 'Chase_Dashboard.html'; }
+
+        // ============================================================================
+        // UTILITIES
+        // ============================================================================
+        function shuffleArray(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+        function randomPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        // START
+        init();
+    </script>
+</body>
+</html>

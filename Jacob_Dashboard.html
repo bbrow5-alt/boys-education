@@ -534,9 +534,9 @@
 
 <!-- WEEKLY COMPLETION METER -->
 <div class="weekly-meter">
-  <div class="section-title">— Weekly Progress —</div>
+  <div class="section-title">— This Week (Mon-Fri) —</div>
   <div class="meter-header">
-    <div class="meter-count"><span id="meterCredits">0</span><span class="total"> / 21</span></div>
+    <div class="meter-count"><span id="meterCredits">0</span><span class="total"> / 5 days</span></div>
     <div class="meter-label-right" id="meterStatus"></div>
   </div>
   <div class="meter-bar">
@@ -559,34 +559,42 @@
       <a class="task-launch" href="DailySession_Jacob.html" onclick="event.stopPropagation();">Start Session</a>
     </div>
   </div>
-  <div class="task-item" id="task-khan">
-    <span class="task-icon">&#128208;</span>
-    <div class="task-check" onclick="event.stopPropagation(); toggleTask('khan')"></div>
+  <div class="task-item" id="task-practice">
+    <span class="task-icon">&#9881;</span>
+    <div class="task-check"></div>
     <div class="task-info">
       <div class="task-name">The Forge</div>
-      <div class="task-detail" id="khan-mission-subject" style="color:var(--accent); font-weight:700;">Loading mission...</div>
-      <div class="task-detail" id="khan-mission-msg" style="font-size:11px; color:var(--text-dim); margin-top:2px; font-style:italic;"></div>
-      <div id="khan-timer-display" style="display:none; margin-top:8px; padding:8px 12px; background:var(--accent-dim); border-radius:8px; text-align:center;">
-        <span id="khan-timer-text" style="font-size:18px; font-weight:700; color:var(--accent); letter-spacing:2px;">20:00</span>
-        <button id="khan-pause-btn" onclick="event.stopPropagation(); toggleKhanPause();" style="display:inline-block; margin-left:12px; padding:4px 14px; font-size:11px; background:transparent; border:1px solid var(--accent); color:var(--accent); border-radius:6px; cursor:pointer; letter-spacing:1px; font-weight:600; vertical-align:middle;">Pause</button>
-      </div>
-      <div id="khan-complete-msg" style="display:none; margin-top:8px; padding:8px 12px; background:var(--success-dim); border-radius:8px; font-size:14px; font-weight:700; color:var(--success); text-align:center;">
-        &#10003; Khan Complete! +3 pts
-      </div>
-      <div class="task-detail" style="margin-top:4px; color:var(--accent2); font-size:10px; letter-spacing:1px;">Username: <strong style="color:var(--text);">IronFox88</strong> &nbsp;|&nbsp; Password: <strong style="color:var(--text);">Dadlovesyou!</strong></div>
-      <a class="task-launch" id="khan-launch-btn" href="#" onclick="event.stopPropagation(); startKhanMission(); return false;">Start Today's Mission</a>
+      <div class="task-detail">Practice Module — 20 min of targeted math problems</div>
+      <a class="task-launch" href="Practice_Jacob.html" onclick="event.stopPropagation();">Start Practice</a>
     </div>
-  </div>
-  <div class="bonus-row" id="bonus-khan">
-    <button class="bonus-btn" onclick="event.stopPropagation(); addBonus('khan')">+ Extra Session</button>
-    <span class="bonus-count" id="bonus-khan-count"></span>
   </div>
   <div class="task-item" id="task-reading" onclick="toggleTask('reading')">
     <span class="task-icon">&#128220;</span>
     <div class="task-check"></div>
     <div class="task-info">
       <div class="task-name">The Scroll</div>
-      <div class="task-detail">Reading — 20 minutes daily</div>
+      <div class="task-detail">Reading — 10 minutes daily</div>
+    </div>
+  </div>
+</div>
+
+<!-- KHAN ACADEMY — BONUS (Optional) -->
+<div class="books-section" style="margin-top: 0;">
+  <div class="books-toggle" id="khanBonusToggle" onclick="toggleKhanBonus()">
+    <div class="section-title" style="margin:0;">— Khan Academy (Bonus) —</div>
+    <span class="arrow" id="khanBonusArrow">&#9654;</span>
+  </div>
+  <div id="khanBonusWrap" style="display:none; margin-top: 12px;">
+    <div class="books-why">
+      <strong>Want extra credit?</strong> Khan Academy is no longer required, but if you use it on your own, it shows initiative. Your progress is tracked — real usage (not just running the timer) earns respect and may earn bonus money.
+    </div>
+    <div style="padding: 8px 0;">
+      <div style="font-size:12px; color:var(--text-dim); margin-bottom:8px;">
+        <strong style="color:var(--text);">Username:</strong> IronFox88 &nbsp;|&nbsp; <strong style="color:var(--text);">Password:</strong> Dadlovesyou!
+      </div>
+      <div id="khan-mission-subject" style="font-size:13px; color:var(--accent); margin-bottom:4px;"></div>
+      <div id="khan-mission-msg" style="font-size:11px; color:var(--text-dim); font-style:italic;"></div>
+      <a href="https://www.khanacademy.org/math/cc-sixth-grade-math" target="_blank" style="display:inline-block; margin-top:8px; padding:8px 16px; border:1px solid var(--accent); color:var(--accent); text-decoration:none; font-size:12px; letter-spacing:1px;">Open Khan Academy &#8594;</a>
     </div>
   </div>
 </div>
@@ -594,7 +602,7 @@
 <div class="timer-section">
   <div class="section-title">— Reading Timer —</div>
   <div class="timer-mode-label" id="timerModeLabel"></div>
-  <div class="timer-display" id="timerDisplay">20:00</div>
+  <div class="timer-display" id="timerDisplay">10:00</div>
   <div class="timer-progress"><div class="timer-progress-fill" id="timerFill"></div></div>
   <div class="timer-buttons">
     <button class="timer-btn" id="timerStart" onclick="toggleTimer()">Begin</button>
@@ -637,32 +645,28 @@
   <div class="calendar-grid" id="calGrid"></div>
 </div>
 
-<!-- POINTS / REWARDS -->
+<!-- WEEKLY PAYMENT -->
 <div class="points-section">
-  <div class="section-title">— Treasury —</div>
-  <div class="points-header">
-    <div class="points-balance"><span id="pointsBalance">0</span> <span class="pts-label">pts</span></div>
+  <div class="section-title">— Weekly Payout —</div>
+  <div style="text-align:center; margin-bottom:12px;">
+    <div style="font-size:11px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Complete all 3 tasks Mon–Fri to earn:</div>
+    <div style="font-size:36px; font-weight:bold; color:var(--success);" id="weeklyPayoutAmount">$50.00</div>
+    <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">$25 from Dad + $25 from Mom — paid Friday</div>
   </div>
-
-  <!-- Contributor Balances -->
-  <div class="contributor-grid" id="contributorGrid"></div>
-
-  <!-- Lifetime Earnings -->
-  <div class="lifetime-earned" id="lifetimeEarned"></div>
-
-  <!-- Payout History Toggle -->
-  <div class="payout-history-toggle" onclick="togglePayoutHistory()">
-    <span id="payoutArrow">►</span>
-    <span>Payout History</span>
+  <div class="contributor-grid" id="weeklyPayoutGrid">
+    <div class="contributor-box">
+      <div class="contributor-name">Dad</div>
+      <div class="contributor-amount" id="dadPayout">$25.00</div>
+    </div>
+    <div class="contributor-box">
+      <div class="contributor-name">Mom</div>
+      <div class="contributor-amount" id="momPayout">$25.00</div>
+    </div>
   </div>
-
-  <!-- Payout History (Collapsible) -->
-  <div class="payout-history" id="payoutHistoryWrap">
-    <div id="payoutListContainer"></div>
-    <div id="lifetimeEarnedHistory" style="font-size: 12px; color: var(--accent-dim); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--accent-dim);"></div>
+  <div id="weeklyComplianceStatus" style="text-align:center; padding:12px; margin-top:8px; border-radius:8px; font-size:14px;"></div>
+  <div id="missedDayNote" style="display:none; text-align:center; padding:10px; margin-top:8px; background:var(--accent-dim); border-radius:8px; font-size:12px; color:var(--accent);">
+    Missed a day? Tell Dad or Mom why — they can still approve partial payment.
   </div>
-
-  <a class="points-link" href="How_Points_Work.html">How Do Points Work? &#8594;</a>
 </div>
 
 <!-- TIMELINE -->
@@ -689,7 +693,7 @@
   </div>
   <div class="books-table-wrap" id="booksWrap">
     <div class="books-why">
-      <strong>Why these books?</strong> Your 20-minute reading time is for <strong>narrative books</strong> — stories with chapters that pull you forward page by page. This is how your brain builds vocabulary, reading speed, and comprehension. Flipping through picture books, reference guides, or how-to manuals doesn't build the same deep-reading muscle. Those are great for browsing on your own time, but the timer is for real reading.
+      <strong>Why these books?</strong> Your 10-minute reading time is for <strong>narrative books</strong> — stories with chapters that pull you forward page by page. This is how your brain builds vocabulary, reading speed, and comprehension. Flipping through picture books, reference guides, or how-to manuals doesn't build the same deep-reading muscle. Those are great for browsing on your own time, but the timer is for real reading.
     </div>
     <table class="books-table">
       <thead><tr><th>Title</th><th>Author</th><th>Category</th><th></th></tr></thead>
@@ -974,10 +978,10 @@ const quotes = [
 ];
 
 // --- Timer State ---
-// Timer now has two phases: COUNTDOWN (20 min) then BONUS (counts up)
+// Timer now has two phases: COUNTDOWN (10 min) then BONUS (counts up)
 let timerInterval = null;
-let timerSeconds = 20 * 60; // countdown seconds remaining
-let timerBonusSeconds = 0;  // seconds past the 20-min mark
+let timerSeconds = 10 * 60; // countdown seconds remaining
+let timerBonusSeconds = 0;  // seconds past the 10-min mark
 let timerRunning = false;
 let timerPhase = 'countdown'; // 'countdown' or 'bonus'
 
@@ -1125,7 +1129,7 @@ function resetTimer() {
   clearInterval(timerInterval);
   timerRunning = false;
   timerPhase = 'countdown';
-  timerSeconds = 20 * 60;
+  timerSeconds = 10 * 60;
   timerBonusSeconds = 0;
   const startBtn = document.getElementById('timerStart');
   startBtn.textContent = 'Begin';
@@ -1153,22 +1157,17 @@ function loadData() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY))
 function saveData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 function getDayData(date) {
   const raw = loadData().days[date];
-  return raw || { session: false, khan: false, reading: false, sessionBonus: 0, khanBonus: 0 };
+  return raw || { session: false, practice: false, reading: false, sessionBonus: 0 };
 }
 function setDayData(date, dayData) { const data = loadData(); data.days[date] = dayData; saveData(data); }
-function isDayComplete(date) { const d = getDayData(date); return d.session && d.khan && d.reading; }
+function isDayComplete(date) { const d = getDayData(date); return d.session && d.practice && d.reading; }
 function dayTaskCount(date) {
   const d = getDayData(date);
-  return (d.session ? 1 : 0) + (d.khan ? 1 : 0) + (d.reading ? 1 : 0);
+  return (d.session ? 1 : 0) + (d.practice ? 1 : 0) + (d.reading ? 1 : 0);
 }
 function dayTotalCredits(date) {
   const d = getDayData(date);
-  const base = (d.session ? 1 : 0) + (d.khan ? 1 : 0) + (d.reading ? 1 : 0);
-  const bonus = (d.sessionBonus || 0) + (d.khanBonus || 0);
-  // Bonus reading from timer
-  const td = loadTimerDataForDate(date);
-  const readingBonus = td.bonusMinutes >= 20 ? Math.floor(td.bonusMinutes / 20) : 0;
-  return base + bonus + readingBonus;
+  return (d.session ? 1 : 0) + (d.practice ? 1 : 0) + (d.reading ? 1 : 0);
 }
 function loadTimerDataForDate(date) {
   try {
@@ -1181,7 +1180,7 @@ function toggleTask(task) {
   const today = getToday(); const dayData = getDayData(today);
   dayData[task] = !dayData[task]; setDayData(today, dayData); render();
   syncDailyTracking(today, dayData);
-  if (dayData.session && dayData.khan && dayData.reading) celebrateCompletion();
+  if (dayData.session && dayData.practice && dayData.reading) celebrateCompletion();
 }
 
 function addBonus(task) {
@@ -1195,7 +1194,7 @@ function addBonus(task) {
 
 function resetToday() {
   const today = getToday();
-  const emptyData = { session: false, khan: false, reading: false, sessionBonus: 0, khanBonus: 0 };
+  const emptyData = { session: false, practice: false, reading: false, sessionBonus: 0 };
   setDayData(today, emptyData);
   // Reset timer data for today
   try {
@@ -1230,7 +1229,7 @@ function render() {
   const dayData = getDayData(today);
 
   // Tasks
-  ['session','khan','reading'].forEach(task => {
+  ['session','practice','reading'].forEach(task => {
     const el = document.getElementById(`task-${task}`);
     if (el) {
       el.classList.toggle('done', dayData[task]);
@@ -1239,7 +1238,7 @@ function render() {
   });
 
   // Bonus rows visibility
-  ['session','khan'].forEach(task => {
+  ['session'].forEach(task => {
     const bonusRow = document.getElementById(`bonus-${task}`);
     if (bonusRow) {
       if (dayData[task]) {
@@ -1263,43 +1262,31 @@ function render() {
   else if (streak >= 3) laurel.textContent = '\uD83C\uDFDB';
   else laurel.textContent = '\uD83E\uDEA8';
 
-  // Weekly Completion Meter
+  // Weekly Completion Meter (M-F only)
   const weekDates = getWeekDates();
-  let weekCredits = 0;
-  let weekBaseCredits = 0;
-  const todayStr = today; // YYYY-MM-DD string from getToday()
-  weekDates.forEach(date => {
-    const ds = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-    if (ds <= todayStr) {
-      weekCredits += dayTotalCredits(ds);
-      weekBaseCredits += dayTaskCount(ds);
+  const today = new Date();
+  let weekdayComplete = 0;
+  let weekdaysPassed = 0;
+  weekDates.forEach(d => {
+    const dow = d.getDay();
+    if (dow >= 1 && dow <= 5) { // Mon-Fri
+      const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      if (d <= today) {
+        weekdaysPassed++;
+        if (isDayComplete(ds)) weekdayComplete++;
+      }
     }
   });
-
-  document.getElementById('meterCredits').textContent = weekCredits;
-  const meterFill = document.getElementById('meterFill');
-  const meterPct = Math.min((weekCredits / 21) * 100, 130);
-  meterFill.style.width = `${Math.min(meterPct, 100)}%`;
-  meterFill.className = weekCredits > 21 ? 'meter-fill over' : 'meter-fill normal';
-
-  const meterStatus = document.getElementById('meterStatus');
-  const meterNote = document.getElementById('meterNote');
-  if (weekCredits >= 21) {
-    const extra = weekCredits - 21;
-    meterStatus.textContent = 'Target reached!';
-    meterStatus.style.color = 'var(--success)';
-    meterNote.innerHTML = extra > 0 ? `<span class="bonus-text">+${extra} bonus credits this week</span>` : 'Perfect week!';
-  } else {
-    const remaining = 21 - weekCredits;
-    meterStatus.textContent = `${remaining} to go`;
-    meterStatus.style.color = 'var(--text-dim)';
-    const daysLeft = weekDates.filter(d => d > todayDate).length + (isDayComplete(today) ? 0 : 1);
-    if (remaining <= daysLeft * 3) {
-      meterNote.textContent = 'On track \u2014 keep building!';
-    } else {
-      meterNote.textContent = `Bonus sessions can help close the gap`;
-    }
-  }
+  document.getElementById('meterCredits').textContent = weekdayComplete;
+  const meterPct = Math.min(100, (weekdayComplete / 5) * 100);
+  const fill = document.getElementById('meterFill');
+  fill.style.width = meterPct + '%';
+  fill.className = weekdayComplete === 5 ? 'meter-fill bonus' : 'meter-fill normal';
+  const statusEl = document.getElementById('meterStatus');
+  if (weekdayComplete === 5) statusEl.textContent = 'PERFECT WEEK!';
+  else if (weekdayComplete >= weekdaysPassed) statusEl.textContent = 'On track';
+  else statusEl.textContent = weekdayComplete + ' of ' + weekdaysPassed + ' days done';
+  document.getElementById('meterNote').textContent = weekdayComplete === 5 ? '$50 earned!' : (5 - weekdayComplete) + ' more day(s) to earn $50';
 
   // Weekly dots
   const dayNames = ['M','T','W','T','F','S','S'];
@@ -1474,92 +1461,68 @@ function savePointsData(data) {
   syncPaidOutPoints(data.paidOutPoints || 0);
 }
 
-function calculatePoints() {
-  const allData = loadData();
-  let totalPoints = 0;
-  let todayPoints = 0;
-  let weekPoints = 0;
+function calculateWeeklyCompliance() {
   const weekDates = getWeekDates();
-  const todayDate = new Date();
-  const weekDateStrings = weekDates.map(d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
-  const today = getToday();
+  const today = new Date();
+  let completeDays = 0;
+  let totalWeekdays = 0;
+  let missedDays = [];
 
-  Object.entries(allData.days).forEach(([date, d]) => {
-    let dayPts = 0;
-    // New points: Session=3 base, Khan=2, Reading=2, All-complete=+3
-    // Comprehension bonus from session: 0-2 pts (stored in sessionBonus)
-    const sessionPts = d.session ? 3 : 0;
-    const khanPts = d.khan ? 2 : 0;
-    const readingPts = d.reading ? 2 : 0;
-    dayPts += sessionPts + khanPts + readingPts;
-    // All-complete bonus
-    const tasks = (d.session ? 1 : 0) + (d.khan ? 1 : 0) + (d.reading ? 1 : 0);
-    if (tasks === 3) dayPts += 3;
-    // Session comprehension bonus (0-2 pts from session page)
-    dayPts += (d.sessionBonus || 0);
-    // Khan bonus sessions
-    dayPts += (d.khanBonus || 0) * 2;
-    const td = loadTimerDataForDate(date);
-    dayPts += (td.bonusMinutes >= 20 ? Math.floor(td.bonusMinutes / 20) : 0) * 2;
-    totalPoints += dayPts;
-    if (date === today) todayPoints = dayPts;
-    if (weekDateStrings.includes(date)) weekPoints += dayPts;
-  });
-
-  const streak = calculateStreak();
-  if (streak >= 30) totalPoints += 75;
-  else if (streak >= 14) totalPoints += 30;
-  else if (streak >= 7) totalPoints += 15;
-
-  let weekCredits = 0;
   weekDates.forEach(d => {
-    const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    if (d <= todayDate) weekCredits += dayTotalCredits(ds);
+    const dayOfWeek = d.getDay();
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Mon-Fri only
+      totalWeekdays++;
+      const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      if (d <= today) {
+        if (isDayComplete(ds)) {
+          completeDays++;
+        } else if (d < today || (d.toDateString() === today.toDateString() && today.getHours() >= 19)) {
+          missedDays.push(ds);
+        }
+      }
+    }
   });
-  if (weekCredits >= 21) weekPoints += 20;
 
-  const pData = loadPointsData();
-  const unpaidPoints = totalPoints - pData.paidOutPoints;
-  const dollarBalance = Math.max(0, unpaidPoints / 3);
+  const weekdaysPassed = weekDates.filter(d => {
+    const dow = d.getDay();
+    return dow >= 1 && dow <= 5 && d < today;
+  }).length;
 
-  return { totalPoints, todayPoints, weekPoints, streak, dollarBalance };
+  const isFriday = today.getDay() === 5;
+  const isPerfect = completeDays >= weekdaysPassed && weekdaysPassed > 0;
+  const isFullWeekComplete = completeDays === 5;
+
+  return { completeDays, totalWeekdays: 5, missedDays, isPerfect, isFullWeekComplete, isFriday };
 }
 
-function renderPoints() {
-  const { totalPoints, todayPoints, weekPoints, streak, dollarBalance } = calculatePoints();
-  document.getElementById('pointsBalance').textContent = totalPoints;
+function renderWeeklyPayout() {
+  const compliance = calculateWeeklyCompliance();
+  const statusEl = document.getElementById('weeklyComplianceStatus');
+  const missedEl = document.getElementById('missedDayNote');
 
-  // Render contributor grid
-  const gridHtml = CONTRIBUTORS.map(c => {
-    const balance = c.id === 'Dad' ? dollarBalance : calculateContributorBalance(c.id, dollarBalance);
-    return `
-      <div class="contributor-box">
-        <div class="contributor-name">${c.label}</div>
-        <div class="contributor-amount">$${balance.toFixed(2)}</div>
-      </div>
-    `;
-  }).join('');
-  document.getElementById('contributorGrid').innerHTML = gridHtml;
-
-  // Lifetime earnings
-  const lifetimeEarned = payoutHistory.reduce((sum, p) => sum + (Number(p.Amount) || 0), 0);
-  document.getElementById('lifetimeEarned').innerHTML =
-    `<span class="earned">Lifetime Earned: $${(lifetimeEarned + dollarBalance).toFixed(2)}</span>`;
-
-  // Payout history
-  const payoutContainer = document.getElementById('payoutListContainer');
-  if (payoutHistory.length > 0) {
-    const payoutHtml = payoutHistory.map(p => `
-      <div class="payout-item">
-        <span class="payout-date">${p.Date}</span>
-        <span class="payout-detail">${p.Contributor} paid $${Number(p.Amount).toFixed(2)} via ${p.Method}</span>
-      </div>
-    `).join('');
-    payoutContainer.innerHTML = payoutHtml;
-    document.getElementById('lifetimeEarnedHistory').innerHTML =
-      `<span class="earned">Lifetime earned: $${lifetimeEarned.toFixed(2)}</span>`;
+  if (compliance.isFullWeekComplete) {
+    statusEl.style.background = 'rgba(127,176,105,0.15)';
+    statusEl.style.color = '#7fb069';
+    statusEl.innerHTML = '&#10003; All 5 days complete! $50 earned this week.';
+    missedEl.style.display = 'none';
+  } else if (compliance.isPerfect) {
+    statusEl.style.background = 'rgba(201,168,76,0.1)';
+    statusEl.style.color = '#c9a84c';
+    statusEl.innerHTML = `${compliance.completeDays}/5 days complete so far. Keep going!`;
+    missedEl.style.display = 'none';
+  } else if (compliance.missedDays.length > 0) {
+    statusEl.style.background = 'rgba(232,92,60,0.1)';
+    statusEl.style.color = '#e8a33c';
+    statusEl.innerHTML = `${compliance.completeDays}/5 days complete. ${compliance.missedDays.length} day(s) missed.`;
+    missedEl.style.display = 'block';
+    document.getElementById('dadPayout').textContent = '?';
+    document.getElementById('momPayout').textContent = '?';
+    document.getElementById('weeklyPayoutAmount').textContent = '?';
   } else {
-    payoutContainer.innerHTML = '<div class="payout-item"><span class="payout-date">No payouts yet</span></div>';
+    statusEl.style.background = 'var(--accent-dim)';
+    statusEl.style.color = 'var(--text-dim)';
+    statusEl.innerHTML = 'Week starts Monday. Complete all 3 tasks every weekday.';
+    missedEl.style.display = 'none';
   }
 }
 
@@ -1719,17 +1682,17 @@ async function loadDiagnosticTests() {
   // Diagnostic tests are managed via hardcoded entries (updated each time a new test is built).
   // The API endpoint returns stale data, so we skip it and use the local definition as source of truth.
   // When a new diagnostic is created, replace this single entry.
-  const signal = JSON.parse(localStorage.getItem('jacob_diagnostic_week3_signal') || 'null');
-  const isCompleted = signal && signal.completed && signal.testId === 'jacob_diagnostic_week3_ela_mar2026';
+  const signalWeek4 = JSON.parse(localStorage.getItem('jacob_diagnostic_week4_signal') || 'null');
+  const isCompletedWeek4 = signalWeek4 && signalWeek4.completed && signalWeek4.testId === 'jacob_diagnostic_week4_math_mar2026';
   diagnosticTests = [
     {
-      TestLabel: 'March 15 LEAP Diagnostic',
+      TestLabel: 'March 23 Week 4 Math Diagnostic',
       Month: 'March 2026',
-      TestURL: 'Diagnostic_Test_Jacob_Week3_ELA_March2026.html',
-      AvailableDate: '2026-03-15',
-      DueDate: '2026-03-16',
-      Completed: isCompleted ? 'TRUE' : 'FALSE',
-      CompletedDate: isCompleted ? signal.date : '',
+      TestURL: 'Diagnostic_Test_Jacob_Week4_Math_March2026.html',
+      AvailableDate: '2026-03-23',
+      DueDate: '2026-03-24',
+      Completed: isCompletedWeek4 ? 'TRUE' : 'FALSE',
+      CompletedDate: isCompletedWeek4 ? signalWeek4.date : '',
       PointsAwarded: 15
     }
   ];
@@ -1846,8 +1809,30 @@ function checkSessionReturn() {
   }
 }
 
+function checkPracticeReturn() {
+  const signal = localStorage.getItem('jacob_practice_signal');
+  if (!signal) return;
+  try {
+    const data = JSON.parse(signal);
+    if (data.date === getToday() && data.completed) {
+      const dayData = getDayData(getToday());
+      dayData.practice = true;
+      dayData.practiceAccuracy = data.accuracy || 0;
+      setDayData(getToday(), dayData);
+      syncDailyTracking(getToday(), dayData);
+    }
+  } catch(e) { console.log('Practice signal parse error'); }
+}
+
+function initKhanBonus() {
+  const el = document.getElementById('khan-mission-subject');
+  if (el) el.textContent = '6th Grade Math';
+  const msg = document.getElementById('khan-mission-msg');
+  if (msg) msg.textContent = 'Extra practice on your own time. Real usage earns respect.';
+}
+
 // ============================================================================
-// KHAN ACADEMY MISSION SYSTEM + 20-MIN TIMER
+// KHAN ACADEMY MISSION SYSTEM + 20-MIN TIMER (commented out - Khan is now bonus)
 // ============================================================================
 const KHAN_TARGET_MS = 20 * 60 * 1000;
 const KHAN_TIMER_KEY = 'jacob_khan_timer';
@@ -2030,19 +2015,35 @@ function dismissLoading() {
   }, delay);
 }
 
+function toggleKhanBonus() {
+  const wrap = document.getElementById('khanBonusWrap');
+  const arrow = document.getElementById('khanBonusArrow');
+  if (wrap.style.display === 'none') {
+    wrap.style.display = 'block';
+    arrow.innerHTML = '&#9660;';
+  } else {
+    wrap.style.display = 'none';
+    arrow.innerHTML = '&#9654;';
+  }
+}
+
 initializeSync().then(() => {
   return loadContributorData();
 }).then(() => {
   return loadDiagnosticTests();
 }).then(() => {
   checkSessionReturn();
+  checkPracticeReturn();
   render();
-  initKhanMission();
+  renderWeeklyPayout();
+  initKhanBonus();
   dismissLoading();
 }).catch(() => {
   checkSessionReturn();
+  checkPracticeReturn();
   render();
-  initKhanMission();
+  renderWeeklyPayout();
+  initKhanBonus();
   dismissLoading();
 });
 </script>

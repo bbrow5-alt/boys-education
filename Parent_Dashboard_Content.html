@@ -1559,8 +1559,20 @@
                 </select>
             </div>
             <div class="form-group">
+                <label class="form-label">Payment Type</label>
+                <select class="form-select" id="paymentType" onchange="updatePaymentFields()">
+                    <option value="full">Full Week ($50)</option>
+                    <option value="partial">Partial Payment</option>
+                    <option value="override">Override with Reason</option>
+                </select>
+            </div>
+            <div class="form-group" id="amountGroup" style="display: none;">
                 <label class="form-label">Amount ($)</label>
                 <input type="number" class="form-input" id="paymentAmount" min="0.01" step="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group" id="reasonGroup" style="display: none;">
+                <label class="form-label">Reason for Override</label>
+                <textarea class="form-input" id="overrideReason" placeholder="e.g., Missed Monday due to illness, but otherwise compliant" style="resize: vertical; min-height: 60px;"></textarea>
             </div>
             <div class="form-group">
                 <label class="form-label">Notes (optional)</label>
@@ -1644,12 +1656,15 @@
                     dateKey = new Date(dateKey).toISOString().split('T')[0];
                 }
                 if (dateKey) {
+                    // Support both 'Practice' (new) and 'Khan' (old) fields
+                    const practice = row.Practice === true || row.Practice === 'true' || row.Practice === 1 ||
+                                    row.Khan === true || row.Khan === 'true' || row.Khan === 1;
                     result[dateKey] = {
                         session: row.Session === true || row.Session === 'true' || row.Session === 1,
-                        khan: row.Khan === true || row.Khan === 'true' || row.Khan === 1,
+                        practice: practice,
                         reading: row.Reading === true || row.Reading === 'true' || row.Reading === 1,
                         sessionBonus: Number(row.SessionBonusSessions || row.SessionBonus || 0),
-                        khanBonus: Number(row.KhanBonusSessions || row.KhanBonus || 0),
+                        practiceBonus: Number(row.PracticeBonusSessions || row.KhanBonusSessions || row.PracticeBonus || row.KhanBonus || 0),
                         comprehensionPct: Number(row.ComprehensionPct || 0)
                     };
                 }
@@ -1739,17 +1754,17 @@
 
             const todayData = daily[todayStr] || {};
             const sessionComplete = todayData.session === true;
-            const khanComplete = todayData.khan === true;
+            const practiceComplete = todayData.practice === true;
             const readingComplete = todayData.reading === true;
-            const allComplete = sessionComplete && khanComplete && readingComplete;
+            const allComplete = sessionComplete && practiceComplete && readingComplete;
 
             // Calculate today's points from dailyTracking (3 pts per completed task + bonuses)
             let todayPoints = 0;
             if (sessionComplete) todayPoints += 3;
-            if (khanComplete) todayPoints += 3;
+            if (practiceComplete) todayPoints += 3;
             if (readingComplete) todayPoints += 2;
             todayPoints += (todayData.sessionBonus || 0) * 3;
-            todayPoints += (todayData.khanBonus || 0) * 3;
+            todayPoints += (todayData.practiceBonus || 0) * 3;
 
             // Calculate streak from dailyTracking — a day counts if ALL 3 tasks are done
             let streak = 0;
@@ -1758,7 +1773,7 @@
                 checkDate.setDate(checkDate.getDate() - i);
                 const checkStr = checkDate.toISOString().split('T')[0];
                 const dayData = daily[checkStr];
-                if (dayData && dayData.session && dayData.khan && dayData.reading) {
+                if (dayData && dayData.session && dayData.practice && dayData.reading) {
                     streak++;
                 } else if (i === 0) {
                     // Today not complete yet — check from yesterday
@@ -1782,8 +1797,8 @@
                     <span>Daily Session</span>
                 </div>
                 <div class="task-item">
-                    <span class="task-check ${khanComplete ? 'complete' : 'incomplete'}">${khanComplete ? '\u2713' : '\u25CB'}</span>
-                    <span>Khan Academy</span>
+                    <span class="task-check ${practiceComplete ? 'complete' : 'incomplete'}">${practiceComplete ? '\u2713' : '\u25CB'}</span>
+                    <span>Practice Module</span>
                 </div>
                 <div class="task-item">
                     <span class="task-check ${readingComplete ? 'complete' : 'incomplete'}">${readingComplete ? '\u2713' : '\u25CB'}</span>
@@ -1805,90 +1820,97 @@
             weekStart.setDate(weekStart.getDate() - weekStart.getDay());
 
             let gridHtml = '';
-            let weeklyCredits = 0;
+            let weeklyCompleteCount = 0;
 
             for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
                 const cellDate = new Date(weekStart);
                 cellDate.setDate(cellDate.getDate() + dayOffset);
                 const dateKey = cellDate.toISOString().split('T')[0];
                 const dayData = daily[dateKey] || {};
+                const dow = cellDate.getDay();
 
-                const base = (dayData.session ? 1 : 0) + (dayData.khan ? 1 : 0) + (dayData.reading ? 1 : 0);
-                const bonus = (dayData.sessionBonus || 0) + (dayData.khanBonus || 0);
-                const dayCredits = base + bonus;
-                weeklyCredits += dayCredits;
+                // Only count M-F
+                if (dow >= 1 && dow <= 5) {
+                    const allTasksDone = dayData.session && dayData.practice && dayData.reading;
+                    if (allTasksDone) weeklyCompleteCount++;
 
-                const dayComplete = dayData.session || dayData.khan || dayData.reading;
-                gridHtml += `
-                    <div class="day-cell">
-                        <div class="day-label">${getDayLabel(dateKey)}</div>
-                        <div class="day-value">${formatDate(dateKey).split(' ')[1]}</div>
-                        <div class="day-indicator">${dayComplete ? '\u2713' : '\u2014'}</div>
-                    </div>
-                `;
+                    gridHtml += `
+                        <div class="day-cell">
+                            <div class="day-label">${getDayLabel(dateKey)}</div>
+                            <div class="day-value">${formatDate(dateKey).split(' ')[1]}</div>
+                            <div class="day-indicator">${allTasksDone ? '\u2713' : '\u2014'}</div>
+                        </div>
+                    `;
+                }
             }
 
             const prefix = student.toLowerCase();
             document.getElementById(`${prefix}-weekly-grid`).innerHTML = gridHtml;
 
-            const percentage = Math.min((weeklyCredits / 21) * 100, 100);
+            const percentage = Math.min((weeklyCompleteCount / 5) * 100, 100);
             const bar = document.getElementById(`${prefix}-weekly-bar`);
             bar.style.width = percentage + '%';
-            document.getElementById(`${prefix}-weekly-percent`).textContent = `${weeklyCredits}/21`;
+            document.getElementById(`${prefix}-weekly-percent`).textContent = `${weeklyCompleteCount}/5`;
         }
 
         // ============================================================
-        // RENDER: Points Grid
+        // RENDER: Points Grid (Weekly Compliance)
         // ============================================================
         function renderPointsGrid(student) {
             const studentData = allData[student] || {};
             const daily = studentData.dailyTracking || {};
-            const balance = studentData.paymentBalance || {};
 
             const today = new Date();
             const weekStart = new Date(today);
             weekStart.setDate(weekStart.getDate() - weekStart.getDay());
 
-            // Calculate this week's points from dailyTracking (same source as total points)
-            let weekPoints = 0;
-            Object.entries(daily).forEach(([dateStr, dayData]) => {
-                const dayDate = new Date(dateStr + 'T00:00:00');
-                if (dayDate >= weekStart) {
-                    if (dayData.session) weekPoints += 3;
-                    if (dayData.khan) weekPoints += 3;
-                    if (dayData.reading) weekPoints += 2;
-                    weekPoints += (dayData.sessionBonus || 0) * 3;
-                    weekPoints += (dayData.khanBonus || 0) * 3;
-                }
-            });
+            // Count M-F complete days (all 3 tasks done)
+            let weeklyCompleteCount = 0;
+            let missedDays = [];
 
-            // Use server-calculated totals when available
-            const totalPoints = balance.totalPointsEarned || 0;
-            const totalEarned = balance.totalDollarsEarned || (totalPoints / 3);
-            const totalPaid = balance.totalPaid || 0;
-            const owed = balance.balance || totalEarned;
-            const weekPayout = (weekPoints / 3).toFixed(2);
+            for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+                const cellDate = new Date(weekStart);
+                cellDate.setDate(cellDate.getDate() + dayOffset);
+                const dateKey = cellDate.toISOString().split('T')[0];
+                const dayData = daily[dateKey] || {};
+                const dow = cellDate.getDay();
+
+                // Only count M-F (1=Mon, 5=Fri)
+                if (dow >= 1 && dow <= 5) {
+                    const allTasksDone = dayData.session && dayData.practice && dayData.reading;
+                    if (allTasksDone) {
+                        weeklyCompleteCount++;
+                    } else {
+                        missedDays.push(getDayLabel(dateKey));
+                    }
+                }
+            }
+
+            const isFullWeek = weeklyCompleteCount === 5;
+            const dadAmount = isFullWeek ? 25.00 : 0.00;
+            const momAmount = isFullWeek ? 25.00 : 0.00;
+            const statusText = isFullWeek ? 'EARNED' : `INCOMPLETE — ${5 - weeklyCompleteCount} days missed`;
 
             const gridHtml = `
                 <div class="points-card">
-                    <div class="points-card-title">This Week</div>
-                    <div class="points-card-value">${weekPoints}</div>
-                    <div class="points-card-secondary">Est. $${weekPayout}</div>
+                    <div class="points-card-title">This Week (M-F)</div>
+                    <div class="points-card-value">${weeklyCompleteCount}/5</div>
+                    <div class="points-card-secondary">${missedDays.length > 0 ? missedDays.join(', ') : 'All complete!'}</div>
                 </div>
                 <div class="points-card">
-                    <div class="points-card-title">Total Points</div>
-                    <div class="points-card-value">${totalPoints}</div>
-                    <div class="points-card-secondary">3 pts = $1.00</div>
+                    <div class="points-card-title">Dad</div>
+                    <div class="points-card-value">$${dadAmount.toFixed(2)}</div>
+                    <div class="points-card-secondary">${isFullWeek ? 'Earned' : 'Not earned'}</div>
                 </div>
                 <div class="points-card">
-                    <div class="points-card-title">Total Earned</div>
-                    <div class="points-card-value">$${totalEarned.toFixed(2)}</div>
-                    <div class="points-card-secondary">$${totalPaid.toFixed(2)} paid out</div>
+                    <div class="points-card-title">Mom</div>
+                    <div class="points-card-value">$${momAmount.toFixed(2)}</div>
+                    <div class="points-card-secondary">${isFullWeek ? 'Earned' : 'Not earned'}</div>
                 </div>
                 <div class="points-card">
-                    <div class="points-card-title">Balance Owed</div>
-                    <div class="points-card-value" style="color: ${owed > 0 ? '#f59e0b' : '#22c55e'}">$${owed.toFixed(2)}</div>
-                    <div class="points-card-secondary">${owed > 0 ? 'Awaiting payout' : 'Paid up!'}</div>
+                    <div class="points-card-title">Status</div>
+                    <div class="points-card-value" style="color: ${isFullWeek ? '#22c55e' : '#f59e0b'}">${isFullWeek ? '$50.00' : '$0.00'}</div>
+                    <div class="points-card-secondary">${statusText}</div>
                 </div>
             `;
 
@@ -1994,7 +2016,7 @@
                 const dd = daily[d];
                 if (dd) {
                     totalDays++;
-                    if (dd.session && dd.khan && dd.reading) completeDays++;
+                    if (dd.session && dd.practice && dd.reading) completeDays++;
                 }
             });
             const weekCompletionRate = totalDays > 0 ? Math.round((completeDays / totalDays) * 100) : 0;
@@ -2125,7 +2147,7 @@
             // Build admin/system insight
             let adminInsight = '';
 
-            // Day-of-week analysis
+            // Day-of-week analysis (M-F only)
             if (dates.length >= 7) {
                 const dayOfWeekCompletion = [0, 0, 0, 0, 0, 0, 0];
                 const dayOfWeekTotal = [0, 0, 0, 0, 0, 0, 0];
@@ -2133,13 +2155,13 @@
                     const dow = new Date(d + 'T00:00:00').getDay();
                     dayOfWeekTotal[dow]++;
                     const dd = daily[d];
-                    if (dd && dd.session && dd.khan && dd.reading) dayOfWeekCompletion[dow]++;
+                    if (dd && dd.session && dd.practice && dd.reading) dayOfWeekCompletion[dow]++;
                 });
 
                 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                 let worstDay = 0;
                 let worstRate = 1;
-                for (let i = 0; i < 7; i++) {
+                for (let i = 1; i <= 5; i++) {  // M-F only
                     if (dayOfWeekTotal[i] >= 2) {
                         const rate = dayOfWeekCompletion[i] / dayOfWeekTotal[i];
                         if (rate < worstRate) {
@@ -2153,19 +2175,19 @@
                 }
             }
 
-            // Khan completion vs session completion analysis
+            // Practice completion vs session completion analysis
             if (dates.length >= 7) {
-                let khanSkips = 0;
+                let practiceSkips = 0;
                 let sessionDone = 0;
                 dates.slice(-14).forEach(d => {
                     const dd = daily[d];
                     if (dd && dd.session) {
                         sessionDone++;
-                        if (!dd.khan) khanSkips++;
+                        if (!dd.practice) practiceSkips++;
                     }
                 });
-                if (sessionDone > 0 && khanSkips / sessionDone > 0.3) {
-                    adminInsight += `<p><strong>Khan Academy gap:</strong> ${student} completes daily sessions but skips Khan Academy ${Math.round((khanSkips / sessionDone) * 100)}% of the time. The Khan mission may need to be more engaging or shorter.</p>`;
+                if (sessionDone > 0 && practiceSkips / sessionDone > 0.3) {
+                    adminInsight += `<p><strong>Practice module gap:</strong> ${student} completes daily sessions but skips the practice module ${Math.round((practiceSkips / sessionDone) * 100)}% of the time. The practice assignment may need to be more engaging or shorter.</p>`;
                 }
             }
 
@@ -2447,46 +2469,49 @@
         function renderDailyTaskAnalytics() {
             STUDENTS.forEach(student => {
                 const daily = allData[student]?.dailyTracking || {};
-                const balance = allData[student]?.paymentBalance || {};
                 const dates = Object.keys(daily).sort();
 
                 let totalDays = 0, totalComplete = 0, longestStreak = 0, currentStreak = 0;
+                let weeklyCompleteCount = 0;
 
                 dates.forEach(d => {
                     const dd = daily[d];
-                    totalDays++;
-                    if (dd.session && dd.khan && dd.reading) {
-                        totalComplete++;
-                        currentStreak++;
-                        if (currentStreak > longestStreak) longestStreak = currentStreak;
-                    } else {
-                        currentStreak = 0;
+                    const dt = new Date(d + 'T00:00:00');
+                    const dow = dt.getDay();
+
+                    if (dow >= 1 && dow <= 5) {  // Only M-F
+                        totalDays++;
+                        if (dd.session && dd.practice && dd.reading) {
+                            totalComplete++;
+                            currentStreak++;
+                            if (currentStreak > longestStreak) longestStreak = currentStreak;
+                        } else {
+                            currentStreak = 0;
+                        }
                     }
                 });
 
-                // Use server-calculated total points (from getPaymentBalance, same source as Points & Earnings)
-                const totalPoints = balance.totalPointsEarned || 0;
-
-                const overallRate = totalDays > 0 ? Math.round((totalComplete / totalDays) * 100) : 0;
+                // Calculate weekly compliance rate
+                const weeklyCompleteRate = totalDays > 0 ? Math.round((totalComplete / totalDays) * 100) : 0;
 
                 const pillsEl = document.getElementById(`${student.toLowerCase()}-stat-pills`);
                 if (pillsEl) {
                     pillsEl.innerHTML = `
                         <div class="stat-pill">
-                            <div class="stat-pill-label">Completion</div>
-                            <div class="stat-pill-value">${overallRate}%</div>
+                            <div class="stat-pill-label">Weekly Compliance</div>
+                            <div class="stat-pill-value">${weeklyCompleteRate}%</div>
                         </div>
                         <div class="stat-pill">
-                            <div class="stat-pill-label">Days Logged</div>
-                            <div class="stat-pill-value">${totalDays}</div>
+                            <div class="stat-pill-label">Days Completed (M-F)</div>
+                            <div class="stat-pill-value">${totalComplete}/${totalDays}</div>
                         </div>
                         <div class="stat-pill">
                             <div class="stat-pill-label">Best Streak</div>
                             <div class="stat-pill-value">${longestStreak}d</div>
                         </div>
                         <div class="stat-pill">
-                            <div class="stat-pill-label">Total Points</div>
-                            <div class="stat-pill-value">${totalPoints}</div>
+                            <div class="stat-pill-label">Current Payout</div>
+                            <div class="stat-pill-value">$50/wk</div>
                         </div>
                     `;
                 }
@@ -2508,13 +2533,17 @@
             const weeks = {};
             dates.forEach(d => {
                 const dt = new Date(d + 'T00:00:00');
+                const dow = dt.getDay();
+                // Only count M-F
+                if (dow < 1 || dow > 5) return;
+
                 const weekStart = new Date(dt);
                 weekStart.setDate(weekStart.getDate() - weekStart.getDay());
                 const weekKey = weekStart.toISOString().split('T')[0];
                 if (!weeks[weekKey]) weeks[weekKey] = { complete: 0, total: 0 };
                 weeks[weekKey].total++;
                 const dd = daily[d];
-                if (dd.session && dd.khan && dd.reading) weeks[weekKey].complete++;
+                if (dd.session && dd.practice && dd.reading) weeks[weekKey].complete++;
             });
 
             const sortedWeeks = Object.keys(weeks).sort();
@@ -2525,7 +2554,7 @@
                 data: {
                     labels: sortedWeeks.map(w => 'Wk ' + formatDate(w)),
                     datasets: [{
-                        label: 'Completion %',
+                        label: 'M-F Completion %',
                         data,
                         backgroundColor: color + '66',
                         borderColor: color,
@@ -2554,11 +2583,16 @@
             const daily = allData[student]?.dailyTracking || {};
             const dates = Object.keys(daily).sort();
 
-            // Streak data
+            // Streak data (count consecutive complete weeks, M-F only)
             let streak = 0;
             const streakData = dates.map(d => {
                 const dd = daily[d];
-                if (dd && dd.session && dd.khan && dd.reading) { streak++; } else { streak = 0; }
+                const dt = new Date(d + 'T00:00:00');
+                const dow = dt.getDay();
+                // Only count M-F for streak
+                if (dow >= 1 && dow <= 5) {
+                    if (dd && dd.session && dd.practice && dd.reading) { streak++; } else { streak = 0; }
+                }
                 return streak;
             });
 
@@ -2568,10 +2602,10 @@
                 const dd = daily[d] || {};
                 let dayPts = 0;
                 if (dd.session) dayPts += 3;
-                if (dd.khan) dayPts += 3;
+                if (dd.practice) dayPts += 3;
                 if (dd.reading) dayPts += 2;
                 dayPts += (dd.sessionBonus || 0) * 3;
-                dayPts += (dd.khanBonus || 0) * 3;
+                dayPts += (dd.practiceBonus || 0) * 3;
                 cumPts += dayPts;
                 return cumPts;
             });
@@ -2722,34 +2756,64 @@
         function renderPaymentSection(student) {
             const prefix = student.toLowerCase();
             const container = document.getElementById(`${prefix}-payment-section`);
-            const balance = allData[student]?.paymentBalance || {};
+            const daily = allData[student]?.dailyTracking || {};
             const ledger = allData[student]?.paymentLedger || [];
-            const rates = allData[student]?.contributorRates || [];
             const payouts = allData[student]?.payoutHistory || [];
 
-            const totalEarned = balance.totalDollarsEarned || 0;
-            const totalPaid = balance.totalPaid || 0;
-            const owed = balance.balance || 0;
-            const totalPoints = balance.totalPointsEarned || 0;
+            // Calculate current week's compliance (M-F only)
+            const today = new Date();
+            const weekStart = new Date(today);
+            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
 
-            // Summary cards
+            let weeklyCompleteCount = 0;
+            let missedDays = [];
+
+            for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+                const cellDate = new Date(weekStart);
+                cellDate.setDate(cellDate.getDate() + dayOffset);
+                const dateKey = cellDate.toISOString().split('T')[0];
+                const dayData = daily[dateKey] || {};
+                const dow = cellDate.getDay();
+
+                // Only count M-F (1=Mon, 5=Fri)
+                if (dow >= 1 && dow <= 5) {
+                    const allTasksDone = dayData.session && dayData.practice && dayData.reading;
+                    if (allTasksDone) {
+                        weeklyCompleteCount++;
+                    } else {
+                        missedDays.push(getDayLabel(dateKey));
+                    }
+                }
+            }
+
+            const isFullWeek = weeklyCompleteCount === 5;
+            const dadAmount = isFullWeek ? 25.00 : 0.00;
+            const momAmount = isFullWeek ? 25.00 : 0.00;
+            const totalAmount = dadAmount + momAmount;
+            const statusText = isFullWeek ? `EARNED: $${totalAmount.toFixed(2)}` : `INCOMPLETE: ${5 - weeklyCompleteCount} days missed`;
+
+            // Summary cards — Weekly Compliance View
             let html = `
                 <div class="balance-cards">
                     <div class="balance-card">
-                        <div class="balance-card-title">Total Points</div>
-                        <div class="balance-card-value">${totalPoints}</div>
+                        <div class="balance-card-title">This Week (M-F)</div>
+                        <div class="balance-card-value">${weeklyCompleteCount}/5</div>
+                        <div class="balance-card-secondary">${missedDays.length > 0 ? missedDays.join(', ') : 'All complete!'}</div>
                     </div>
                     <div class="balance-card">
-                        <div class="balance-card-title">Total Earned</div>
-                        <div class="balance-card-value">$${totalEarned.toFixed(2)}</div>
+                        <div class="balance-card-title">Dad</div>
+                        <div class="balance-card-value">$${dadAmount.toFixed(2)}</div>
+                        <div class="balance-card-secondary">${isFullWeek ? 'Earned' : 'Not earned'}</div>
                     </div>
                     <div class="balance-card">
-                        <div class="balance-card-title">Total Paid</div>
-                        <div class="balance-card-value paid">$${totalPaid.toFixed(2)}</div>
+                        <div class="balance-card-title">Mom</div>
+                        <div class="balance-card-value">$${momAmount.toFixed(2)}</div>
+                        <div class="balance-card-secondary">${isFullWeek ? 'Earned' : 'Not earned'}</div>
                     </div>
                     <div class="balance-card">
-                        <div class="balance-card-title">Balance Owed</div>
-                        <div class="balance-card-value owed">$${owed.toFixed(2)}</div>
+                        <div class="balance-card-title">Total</div>
+                        <div class="balance-card-value" style="color: ${isFullWeek ? '#22c55e' : '#f59e0b'}">$${totalAmount.toFixed(2)}</div>
+                        <div class="balance-card-secondary">${statusText}</div>
                     </div>
                 </div>`;
 
@@ -2946,6 +3010,31 @@
         // ============================================================
         // PAYMENT MODAL
         // ============================================================
+        function updatePaymentFields() {
+            const paymentType = document.getElementById('paymentType').value;
+            const amountGroup = document.getElementById('amountGroup');
+            const reasonGroup = document.getElementById('reasonGroup');
+
+            if (paymentType === 'full') {
+                // Full week: $50, no amount input needed
+                amountGroup.style.display = 'none';
+                reasonGroup.style.display = 'none';
+                document.getElementById('paymentAmount').value = '50.00';
+            } else if (paymentType === 'partial') {
+                // Partial: show amount input
+                amountGroup.style.display = 'block';
+                reasonGroup.style.display = 'none';
+                document.getElementById('paymentAmount').value = '';
+                document.getElementById('overrideReason').value = '';
+            } else if (paymentType === 'override') {
+                // Override: show both amount and reason
+                amountGroup.style.display = 'block';
+                reasonGroup.style.display = 'block';
+                document.getElementById('paymentAmount').value = '';
+                document.getElementById('overrideReason').value = '';
+            }
+        }
+
         function showPaymentModal(student) {
             document.getElementById('paymentStudent').value = student;
             document.getElementById('paymentAmount').value = '';
@@ -2966,13 +3055,28 @@
         async function submitPayment() {
             const student = document.getElementById('paymentStudent').value;
             const payer = document.getElementById('paymentPayer').value;
-            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const paymentType = document.getElementById('paymentType').value;
+            let amount = parseFloat(document.getElementById('paymentAmount').value);
             const notes = document.getElementById('paymentNotes').value;
+            const overrideReason = document.getElementById('overrideReason').value;
             const statusEl = document.getElementById('paymentStatus');
 
-            if (!amount || amount <= 0) {
-                statusEl.innerHTML = '<span style="color: #ef4444;">Please enter a valid amount.</span>';
-                return;
+            // Determine amount based on payment type
+            if (paymentType === 'full') {
+                amount = 50.00; // $25 Dad + $25 Mom
+            } else if (paymentType === 'partial' || paymentType === 'override') {
+                if (!amount || amount <= 0) {
+                    statusEl.innerHTML = '<span style="color: #ef4444;">Please enter a valid amount.</span>';
+                    return;
+                }
+            }
+
+            // Build notes to include override reason if applicable
+            let finalNotes = notes;
+            if (paymentType === 'override' && overrideReason) {
+                finalNotes = `[OVERRIDE] ${overrideReason}${notes ? ' — ' + notes : ''}`;
+            } else if (paymentType === 'partial') {
+                finalNotes = `[PARTIAL] ${notes}`;
             }
 
             statusEl.innerHTML = '<span style="color: #4fc3f7;">Recording payment...</span>';
@@ -2986,7 +3090,8 @@
                         student: student,
                         payer: payer,
                         amount: amount,
-                        notes: notes
+                        notes: finalNotes,
+                        paymentType: paymentType
                     })
                 });
 
