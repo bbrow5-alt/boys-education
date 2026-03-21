@@ -1700,11 +1700,10 @@ function toggleBooks() {
   wrap.classList.toggle('visible');
 }
 
-// Patch render to include points + timeline
+// Patch render to include timeline + countdown
 const _originalRender = render;
 render = function() {
   _originalRender();
-  renderPoints();
   renderTimeline();
   renderCountdown();
 };
