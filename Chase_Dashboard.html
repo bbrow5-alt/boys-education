@@ -1218,10 +1218,17 @@ function resetToday() {
   render();
 }
 
+function isActiveDay(date) {
+  const dow = date.getDay();
+  return dow >= 0 && dow <= 4; // Sun-Thu (Chase's schedule)
+}
+
 function calculateStreak() {
   let streak = 0; const today = new Date(); let check = new Date(today);
   if (!isDayComplete(getToday())) check.setDate(check.getDate() - 1);
   while (true) {
+    // Skip off-days (Friday=5, Saturday=6)
+    if (!isActiveDay(check)) { check.setDate(check.getDate() - 1); continue; }
     const ds = `${check.getFullYear()}-${String(check.getMonth()+1).padStart(2,'0')}-${String(check.getDate()).padStart(2,'0')}`;
     if (isDayComplete(ds)) { streak++; check.setDate(check.getDate() - 1); } else break;
   }
@@ -1229,9 +1236,9 @@ function calculateStreak() {
 }
 
 function getWeekDates() {
-  const today = new Date(); const day = today.getDay(); const monday = new Date(today);
-  monday.setDate(today.getDate() - ((day + 6) % 7));
-  return Array.from({length:7}, (_,i) => { const d = new Date(monday); d.setDate(monday.getDate()+i); return d; });
+  const today = new Date(); const day = today.getDay(); const sunday = new Date(today);
+  sunday.setDate(today.getDate() - day);
+  return Array.from({length:7}, (_,i) => { const d = new Date(sunday); d.setDate(sunday.getDate()+i); return d; });
 }
 
 function render() {
@@ -1272,15 +1279,15 @@ function render() {
   else if (streak >= 3) icon.textContent = '\uD83D\uDE80';
   else icon.textContent = '\uD83D\uDEF0\uFE0F';
 
-  // Weekly Completion Meter (M-F only)
+  // Weekly Completion Meter (Sun-Thu only)
   const weekDates = getWeekDates();
   const todayStr = today; // YYYY-MM-DD string from getToday()
-  let completedDays = 0; // Count M-F days that are complete
-  let weekdayCount = 0; // Count M-F days up to today
+  let completedDays = 0; // Count Sun-Thu days that are complete
+  let weekdayCount = 0; // Count Sun-Thu days up to today
 
   weekDates.forEach((date, i) => {
-    const isWeekday = i >= 0 && i <= 4; // Monday=0, Friday=4
-    if (!isWeekday) return; // Skip Saturday (5) and Sunday (6)
+    const isActive = i >= 0 && i <= 4; // Sunday=0, Thursday=4
+    if (!isActive) return; // Skip Friday (5) and Saturday (6)
 
     const ds = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
     if (ds <= todayStr) {
@@ -1309,7 +1316,7 @@ function render() {
   }
 
   // Weekly dots
-  const dayNames = ['MO','TU','WE','TH','FR','SA','SU'];
+  const dayNames = ['SU','MO','TU','WE','TH','FR','SA'];
   const weekEl = document.getElementById('weekDays'); weekEl.innerHTML = '';
   let completedWeek = 0, passedWeek = 0, totalComplete = 0, totalDays = 0;
   const allData = loadData();
@@ -1504,8 +1511,8 @@ function calculateWeeklyCompliance() {
   let allDaysComplete = false;
 
   weekDates.forEach((date, i) => {
-    const isWeekday = i >= 0 && i <= 4; // Monday=0, Friday=4
-    if (!isWeekday) return;
+    const isActive = i >= 0 && i <= 4; // Sunday=0, Thursday=4
+    if (!isActive) return;
 
     const ds = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
     if (ds <= today) {
@@ -1514,7 +1521,7 @@ function calculateWeeklyCompliance() {
     }
   });
 
-  // Check if all 5 weekdays are complete
+  // Check if all 5 active days (Sun-Thu) are complete
   allDaysComplete = completedDays === 5 && weekdayCount === 5;
 
   return { completedDays, weekdayCount, allDaysComplete, payoutStatus: allDaysComplete ? '$50.00' : '$0.00' };
@@ -1534,7 +1541,7 @@ function renderWeeklyPayout() {
   const missedEl = document.getElementById('missedDayNote');
 
   if (allDaysComplete) {
-    statusEl.textContent = '✓ ALL TASKS COMPLETE — PAYOUT APPROVED FOR FRIDAY';
+    statusEl.textContent = '✓ ALL TASKS COMPLETE — PAYOUT APPROVED FOR THURSDAY';
     statusEl.style.background = 'var(--success-dim)';
     statusEl.style.color = 'var(--success)';
     missedEl.style.display = 'none';

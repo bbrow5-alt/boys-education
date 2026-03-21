@@ -1631,6 +1631,15 @@
             return date.toLocaleDateString('en-US', { weekday: 'short' });
         }
 
+        // Active school days per student: Jacob=Mon-Fri, Chase=Sun-Thu
+        function isActiveSchoolDay(student, dow) {
+            if (student === 'Chase') return dow >= 0 && dow <= 4; // Sun=0, Thu=4
+            return dow >= 1 && dow <= 5; // Mon=1, Fri=5
+        }
+        function getActiveDayLabel(student) {
+            return student === 'Chase' ? 'Sun-Thu' : 'M-F';
+        }
+
         // Fetch data from Apps Script
         async function fetchData(action, student) {
             try {
@@ -1768,10 +1777,14 @@
             todayPoints += (todayData.practiceBonus || 0) * 3;
 
             // Calculate streak from dailyTracking — a day counts if ALL 3 tasks are done
+            // Skip off-days per student schedule (Jacob: Sat/Sun off, Chase: Fri/Sat off)
             let streak = 0;
             for (let i = 0; i < 365; i++) {
                 const checkDate = new Date();
                 checkDate.setDate(checkDate.getDate() - i);
+                const dow = checkDate.getDay();
+                // Skip off-days — they don't break the streak
+                if (!isActiveSchoolDay(student, dow)) continue;
                 const checkStr = checkDate.toISOString().split('T')[0];
                 const dayData = daily[checkStr];
                 if (dayData && dayData.session && dayData.practice && dayData.reading) {
@@ -1830,8 +1843,8 @@
                 const dayData = daily[dateKey] || {};
                 const dow = cellDate.getDay();
 
-                // Only count M-F
-                if (dow >= 1 && dow <= 5) {
+                // Only count active school days per student
+                if (isActiveSchoolDay(student, dow)) {
                     const allTasksDone = dayData.session && dayData.practice && dayData.reading;
                     if (allTasksDone) weeklyCompleteCount++;
 
@@ -1865,7 +1878,7 @@
             const weekStart = new Date(today);
             weekStart.setDate(weekStart.getDate() - weekStart.getDay());
 
-            // Count M-F complete days (all 3 tasks done)
+            // Count active school days complete (all 3 tasks done)
             let weeklyCompleteCount = 0;
             let missedDays = [];
 
@@ -1876,8 +1889,7 @@
                 const dayData = daily[dateKey] || {};
                 const dow = cellDate.getDay();
 
-                // Only count M-F (1=Mon, 5=Fri)
-                if (dow >= 1 && dow <= 5) {
+                if (isActiveSchoolDay(student, dow)) {
                     const allTasksDone = dayData.session && dayData.practice && dayData.reading;
                     if (allTasksDone) {
                         weeklyCompleteCount++;
@@ -2148,7 +2160,7 @@
             // Build admin/system insight
             let adminInsight = '';
 
-            // Day-of-week analysis (M-F only)
+            // Day-of-week analysis (active days only, per student schedule)
             if (dates.length >= 7) {
                 const dayOfWeekCompletion = [0, 0, 0, 0, 0, 0, 0];
                 const dayOfWeekTotal = [0, 0, 0, 0, 0, 0, 0];
@@ -2162,7 +2174,8 @@
                 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                 let worstDay = 0;
                 let worstRate = 1;
-                for (let i = 1; i <= 5; i++) {  // M-F only
+                const activeDays = student === 'Chase' ? [0,1,2,3,4] : [1,2,3,4,5];
+                for (const i of activeDays) {
                     if (dayOfWeekTotal[i] >= 2) {
                         const rate = dayOfWeekCompletion[i] / dayOfWeekTotal[i];
                         if (rate < worstRate) {
@@ -2480,7 +2493,7 @@
                     const dt = new Date(d + 'T00:00:00');
                     const dow = dt.getDay();
 
-                    if (dow >= 1 && dow <= 5) {  // Only M-F
+                    if (isActiveSchoolDay(student, dow)) {
                         totalDays++;
                         if (dd.session && dd.practice && dd.reading) {
                             totalComplete++;
@@ -2503,7 +2516,7 @@
                             <div class="stat-pill-value">${weeklyCompleteRate}%</div>
                         </div>
                         <div class="stat-pill">
-                            <div class="stat-pill-label">Days Completed (M-F)</div>
+                            <div class="stat-pill-label">Days Completed (${getActiveDayLabel(student)})</div>
                             <div class="stat-pill-value">${totalComplete}/${totalDays}</div>
                         </div>
                         <div class="stat-pill">
@@ -2535,8 +2548,7 @@
             dates.forEach(d => {
                 const dt = new Date(d + 'T00:00:00');
                 const dow = dt.getDay();
-                // Only count M-F
-                if (dow < 1 || dow > 5) return;
+                if (!isActiveSchoolDay(student, dow)) return;
 
                 const weekStart = new Date(dt);
                 weekStart.setDate(weekStart.getDate() - weekStart.getDay());
@@ -2590,8 +2602,8 @@
                 const dd = daily[d];
                 const dt = new Date(d + 'T00:00:00');
                 const dow = dt.getDay();
-                // Only count M-F for streak
-                if (dow >= 1 && dow <= 5) {
+                // Only count active school days for streak
+                if (isActiveSchoolDay(student, dow)) {
                     if (dd && dd.session && dd.practice && dd.reading) { streak++; } else { streak = 0; }
                 }
                 return streak;
@@ -2761,7 +2773,7 @@
             const ledger = allData[student]?.paymentLedger || [];
             const payouts = allData[student]?.payoutHistory || [];
 
-            // Calculate current week's compliance (M-F only)
+            // Calculate current week's compliance (per student schedule)
             const today = new Date();
             const weekStart = new Date(today);
             weekStart.setDate(weekStart.getDate() - weekStart.getDay());
@@ -2776,8 +2788,7 @@
                 const dayData = daily[dateKey] || {};
                 const dow = cellDate.getDay();
 
-                // Only count M-F (1=Mon, 5=Fri)
-                if (dow >= 1 && dow <= 5) {
+                if (isActiveSchoolDay(student, dow)) {
                     const allTasksDone = dayData.session && dayData.practice && dayData.reading;
                     if (allTasksDone) {
                         weeklyCompleteCount++;
