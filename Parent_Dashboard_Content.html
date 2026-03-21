@@ -1637,7 +1637,10 @@
                 const url = student
                     ? `${APPS_SCRIPT_URL}?action=${action}&student=${student}`
                     : `${APPS_SCRIPT_URL}?action=${action}`;
-                const response = await fetch(url, { mode: 'cors' });
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000);
+                const response = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeout);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return await response.json();
             } catch (error) {
@@ -1715,28 +1718,26 @@
                 allData = data;
                 console.log('Loaded data:', allData);
 
-                // Render all sections
+                // Render all sections (each wrapped so one failure doesn't kill the whole dashboard)
+                const renderFns = [
+                    renderTodayStatus, renderWeeklyProgress, renderPointsGrid,
+                    renderLeapScores, renderSchoolGrades, renderScreenTime,
+                    renderPaymentSection, renderProjectedScores, generateInsights
+                ];
                 STUDENTS.forEach(student => {
-                    renderTodayStatus(student);
-                    renderWeeklyProgress(student);
-                    renderPointsGrid(student);
-                    renderLeapScores(student);
-                    renderSchoolGrades(student);
-                    renderScreenTime(student);
-                    renderPaymentSection(student);
-                    renderProjectedScores(student);
-                    generateInsights(student);
+                    renderFns.forEach(fn => {
+                        try { fn(student); } catch(e) { console.warn(`${fn.name}(${student}) failed:`, e); }
+                    });
                 });
 
-                renderAnalytics();
+                try { renderAnalytics(); } catch(e) { console.warn('renderAnalytics failed:', e); }
                 updateLastUpdated();
 
                 loading.style.display = 'none';
                 content.style.display = 'block';
             } catch (error) {
                 console.error('Error loading data:', error);
-                const errorContainer = document.getElementById('errorContainer');
-                errorContainer.innerHTML = '<div class="error-message">Unable to load dashboard data. Please refresh the page.</div>';
+                // Still show the dashboard even if data load failed
                 loading.style.display = 'none';
                 content.style.display = 'block';
             }
