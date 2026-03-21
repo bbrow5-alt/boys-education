@@ -800,9 +800,13 @@ async function initializeSync() {
 async function fetchDailyTrackingFromSheet() {
   try {
     const url = `${SYNC_CONFIG.appsScriptUrl}?action=getDailyTracking&student=${encodeURIComponent(SYNC_CONFIG.studentName)}`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
     const response = await fetch(url, {
-      method: 'GET'
+      method: 'GET',
+      signal: controller.signal
     });
+    clearTimeout(timeout);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
@@ -1433,10 +1437,15 @@ async function loadContributorData() {
       return;
     }
     const studentParam = `student=${encodeURIComponent(STUDENT_NAME)}`;
+    function fetchWithTimeout(url, ms) {
+      const c = new AbortController();
+      const t = setTimeout(() => c.abort(), ms);
+      return fetch(url, { signal: c.signal }).finally(() => clearTimeout(t));
+    }
     const [ratesRes, historyRes, metaRes] = await Promise.all([
-      fetch(`${baseUrl}?action=getContributorRates&${studentParam}`),
-      fetch(`${baseUrl}?action=getPayoutHistory&${studentParam}`),
-      fetch(`${baseUrl}?action=getPointsMetadata&${studentParam}`)
+      fetchWithTimeout(`${baseUrl}?action=getContributorRates&${studentParam}`, 8000),
+      fetchWithTimeout(`${baseUrl}?action=getPayoutHistory&${studentParam}`, 8000),
+      fetchWithTimeout(`${baseUrl}?action=getPointsMetadata&${studentParam}`, 8000)
     ]);
     if (ratesRes.ok) contributorRates = await ratesRes.json();
     if (historyRes.ok) payoutHistory = await historyRes.json();
