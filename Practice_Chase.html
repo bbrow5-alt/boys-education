@@ -334,6 +334,13 @@
                 <div class="stat-card"><div class="stat-value" id="statAccuracy">0%</div><div class="stat-label">Accuracy</div></div>
                 <div class="stat-card"><div class="stat-value" id="statTime">0:00</div><div class="stat-label">Time Used</div></div>
             </div>
+            <!-- FOCUS SCORE -->
+            <div style="text-align:center; margin-bottom:24px; padding:20px; background:rgba(26,42,42,0.8); border:2px solid rgba(46,170,170,0.3); border-radius:16px;">
+                <div style="font-size:11px; color:#6b8a85; letter-spacing:3px; text-transform:uppercase; margin-bottom:4px;">Intent Per Minute</div>
+                <div style="font-size:48px; font-weight:bold; color:#2eaaaa;" id="focusScore">—</div>
+                <div style="font-size:13px; color:#6b8a85; margin-top:4px;" id="focusLabel">Focus Score</div>
+                <div style="font-size:11px; color:#4a6b66; margin-top:8px; font-style:italic;" id="focusMessage">"The fire doesn't care how long you stand near it."</div>
+            </div>
             <div class="topic-breakdown" id="topicBreakdown">
                 <h3>Topic Breakdown</h3>
                 <div id="topicRows"></div>
@@ -981,6 +988,27 @@
             document.getElementById('statTotal').textContent = totalAttempted;
             document.getElementById('statAccuracy').textContent = accuracy + '%';
             document.getElementById('statTime').textContent = `${timeUsedMin}:${timeUsedRemSec.toString().padStart(2, '0')}`;
+
+            // FOCUS SCORE
+            const focusRaw = totalAttempted > 0 && timeUsedMin > 0
+                ? (accuracy * totalAttempted) / (timeUsedSec / 60)
+                : 0;
+            const focusScore = Math.min(100, Math.round(focusRaw * 0.7));
+            document.getElementById('focusScore').textContent = focusScore;
+
+            let focusColor, focusMsg;
+            if (focusScore >= 80) {
+                focusColor = '#7fb069'; focusMsg = 'Elite focus. Every move was intentional. The blacksmith would be proud.';
+            } else if (focusScore >= 60) {
+                focusColor = '#2eaaaa'; focusMsg = 'Good intent. You moved with purpose, like a real explorer.';
+            } else if (focusScore >= 40) {
+                focusColor = '#e8a33c'; focusMsg = 'Decent effort. Less wandering, more discovering next time.';
+            } else {
+                focusColor = '#e85c3c'; focusMsg = 'Tourist mode. Too much wandering, not enough exploring.';
+            }
+            document.getElementById('focusScore').style.color = focusColor;
+            document.getElementById('focusLabel').textContent = `Focus Score (${focusScore >= 60 ? 'Intentional' : 'Needs More Focus'})`;
+            document.getElementById('focusMessage').textContent = focusMsg;
 
             const topicStats = {};
             answers.forEach(a => {

@@ -413,6 +413,13 @@
                     <div class="stat-label">Time Used</div>
                 </div>
             </div>
+            <!-- FOCUS SCORE -->
+            <div style="text-align:center; margin-bottom:24px; padding:20px; background:rgba(42,35,24,0.8); border:2px solid rgba(201,168,76,0.3); border-radius:16px;">
+                <div style="font-size:11px; color:#8a7d6b; letter-spacing:3px; text-transform:uppercase; margin-bottom:4px;">Intent Per Minute</div>
+                <div style="font-size:48px; font-weight:bold; color:#c9a84c;" id="focusScore">—</div>
+                <div style="font-size:13px; color:#8a7d6b; margin-top:4px;" id="focusLabel">Focus Score</div>
+                <div style="font-size:11px; color:#655c4e; margin-top:8px; font-style:italic;" id="focusMessage">"The fire doesn't care how long you stand near it."</div>
+            </div>
             <div class="topic-breakdown" id="topicBreakdown">
                 <h3>Topic Breakdown</h3>
                 <div id="topicRows"></div>
@@ -1089,6 +1096,29 @@
             document.getElementById('statTotal').textContent = totalAttempted;
             document.getElementById('statAccuracy').textContent = accuracy + '%';
             document.getElementById('statTime').textContent = `${timeUsedMin}:${timeUsedRemSec.toString().padStart(2, '0')}`;
+
+            // FOCUS SCORE: rewards speed + accuracy, not just completion
+            // Formula: (accuracy% * problems_attempted) / time_in_minutes
+            // Normalized to 0-100 scale. Higher = more focused.
+            const focusRaw = totalAttempted > 0 && timeUsedMin > 0
+                ? (accuracy * totalAttempted) / (timeUsedSec / 60)
+                : 0;
+            const focusScore = Math.min(100, Math.round(focusRaw * 0.7)); // calibrated for ~15 problems in 20 min at 80%
+            document.getElementById('focusScore').textContent = focusScore;
+
+            let focusColor, focusMsg;
+            if (focusScore >= 80) {
+                focusColor = '#7fb069'; focusMsg = 'Elite focus. Every blow landed. The blacksmith would be proud.';
+            } else if (focusScore >= 60) {
+                focusColor = '#c9a84c'; focusMsg = 'Good intent. You struck while the iron was hot.';
+            } else if (focusScore >= 40) {
+                focusColor = '#e8a33c'; focusMsg = 'Decent effort. Less wandering, more striking next time.';
+            } else {
+                focusColor = '#e85c3c'; focusMsg = 'The first apprentice. Too much wandering, not enough forging.';
+            }
+            document.getElementById('focusScore').style.color = focusColor;
+            document.getElementById('focusLabel').textContent = `Focus Score (${focusScore >= 60 ? 'Intentional' : 'Needs More Focus'})`;
+            document.getElementById('focusMessage').textContent = focusMsg;
 
             // Topic breakdown
             const topicStats = {};
