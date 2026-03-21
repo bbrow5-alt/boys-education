@@ -1293,14 +1293,14 @@ function render() {
 
   // Weekly Completion Meter (M-F only)
   const weekDates = getWeekDates();
-  const today = new Date();
+  const todayNow = new Date();
   let weekdayComplete = 0;
   let weekdaysPassed = 0;
   weekDates.forEach(d => {
     const dow = d.getDay();
     if (dow >= 1 && dow <= 5) { // Mon-Fri
       const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      if (d <= today) {
+      if (d <= todayNow) {
         weekdaysPassed++;
         if (isDayComplete(ds)) weekdayComplete++;
       }
