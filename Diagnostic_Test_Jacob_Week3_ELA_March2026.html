@@ -133,10 +133,10 @@ text:`<p>In the early months of World War II, the United States military faced a
 };
 
 const SECTIONS=[
-{id:'ela',name:'English Language Arts',range:[0,14]},
-{id:'math',name:'Mathematics',range:[15,26]},
-{id:'science',name:'Science',range:[27,36]},
-{id:'ss',name:'Social Studies',range:[37,47]}
+{id:'ela',name:'English Language Arts',range:[0,13]},
+{id:'math',name:'Mathematics',range:[14,25]},
+{id:'science',name:'Science',range:[26,35]},
+{id:'ss',name:'Social Studies',range:[36,46]}
 ];
 
 const Q=[
@@ -443,7 +443,7 @@ function submitTest(){
     if(q.type==='mc')return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'mc',question:q.text,selectedOption:a!==undefined?a:-1,selectedText:a!==undefined?q.opts[a]:'Not answered',correctOption:q.cor,correctText:q.opts[q.cor]};
     return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'written',question:q.text,response:a||''}});
 
-  const secSum={};SECTIONS.forEach(sec=>{let c=0,t=0;for(let i=sec.range[0];i<=sec.range[1];i++){if(Q[i].type==='mc'){t++;if(answers[i]===Q[i].cor)c++}}secSum[sec.id]={correct:c,total:t,pct:t>0?Math.round(c/t*100):0}});
+  const secSum={};SECTIONS.forEach(sec=>{let c=0,t=0;for(let i=sec.range[0];i<=Math.min(sec.range[1],Q.length-1);i++){if(Q[i]&&Q[i].type==='mc'){t++;if(answers[i]===Q[i].cor)c++}}secSum[sec.id]={correct:c,total:t,pct:t>0?Math.round(c/t*100):0}});
   const totalMC=Q.filter(q=>q.type==='mc').length,correctMC=Q.filter((q,i)=>q.type==='mc'&&answers[i]===q.cor).length;
 
   const payload={action:'saveDiagnosticResults',student:CONFIG.student,grade:CONFIG.grade,testId:CONFIG.testId,testLabel:CONFIG.testLabel,timestamp:new Date().toISOString(),answers:allAns,
