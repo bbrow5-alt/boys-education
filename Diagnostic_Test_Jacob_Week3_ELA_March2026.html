@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>LEAP Diagnostic — Jacob Brown — Week 2</title>
+<style>
+:root{--bg:#1a1510;--card:#231e17;--card-border:#3d3428;--accent:#c9a84c;--accent-dim:#3d3218;--accent2:#8b7355;--success:#4ade80;--error:#f87171;--warning:#fbbf24;--text:#f5f1e8;--text-dim:#b8a98a;--text-muted:#7a6e5d;--blue:#5ca4e8;--blue-dim:#1a2a3d}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:Georgia,serif;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column;overflow:hidden}
+.top-bar{background:var(--card);border-bottom:2px solid var(--accent);padding:10px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:10}
+.top-bar .title{color:var(--accent);font-size:14px;letter-spacing:2px;text-transform:uppercase}
+.top-bar .timer{color:var(--accent);font-size:18px;font-weight:bold;min-width:80px;text-align:right}
+.top-bar .section-name{color:var(--text-dim);font-size:12px;font-style:italic}
+.navigator{background:var(--card);border-bottom:1px solid var(--card-border);padding:8px 12px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;flex-shrink:0;overflow-x:auto}
+.nav-btn{width:30px;height:30px;border:1px solid var(--card-border);border-radius:4px;background:var(--bg);color:var(--text-muted);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;transition:all .15s}
+.nav-btn:hover{border-color:var(--accent);color:var(--text)}
+.nav-btn.answered{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.nav-btn.flagged{background:#3d3218;border-color:var(--warning);color:var(--warning)}
+.nav-btn.current{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);color:var(--accent);font-weight:bold}
+.nav-sep{width:1px;height:22px;background:var(--card-border);margin:0 4px;flex-shrink:0}
+.content-area{flex:1;display:flex;overflow:hidden}
+.passage-pane{flex:1;overflow-y:auto;padding:24px;border-right:2px solid var(--card-border);background:var(--card);line-height:1.8;font-size:15px}
+.passage-pane h3{color:var(--accent);font-size:14px;margin-bottom:12px;letter-spacing:1px;text-transform:uppercase}
+.passage-pane p{margin-bottom:12px;text-indent:24px}
+.passage-pane p:first-of-type{text-indent:0}
+.question-pane{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column}
+.question-pane.full-width{flex:2}
+.q-header{margin-bottom:14px}
+.q-number{color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:2px}
+.q-standard{color:var(--accent-dim);font-size:10px;margin-top:2px;letter-spacing:1px}
+.q-diff{display:inline-block;padding:2px 8px;border-radius:3px;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.q-diff.baseline{background:#1a2a1a;color:#4ade80}.q-diff.grade-level{background:#1a2a3d;color:#5ca4e8}.q-diff.challenging{background:#3d2800;color:#ffaa00}.q-diff.ceiling{background:#2a1210;color:#ff6666}
+.q-text{font-size:15px;line-height:1.6;margin-bottom:18px;color:var(--text);white-space:pre-wrap}
+.q-options{display:flex;flex-direction:column;gap:10px;max-width:620px}
+.q-option{background:var(--bg);border:2px solid var(--card-border);border-radius:6px;padding:12px 16px;cursor:pointer;font-size:14px;line-height:1.5;transition:all .15s;display:flex;align-items:flex-start;gap:10px;font-family:Georgia,serif}
+.q-option:hover{border-color:var(--accent);background:var(--accent-dim)}
+.q-option.selected{border-color:var(--blue);background:var(--blue-dim);color:var(--blue)}
+.q-option .letter{flex-shrink:0;width:24px;height:24px;border-radius:50%;border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}
+.q-option.selected .letter{border-color:var(--blue);background:var(--blue);color:var(--bg)}
+.q-textarea{width:100%;max-width:620px;min-height:120px;background:var(--bg);border:2px solid var(--card-border);border-radius:6px;color:var(--text);font-family:Georgia,serif;font-size:14px;padding:12px;line-height:1.6;resize:vertical}
+.q-textarea:focus{border-color:var(--accent);outline:none}
+.q-guidance{color:var(--text-muted);font-size:12px;margin-bottom:8px;font-style:italic}
+.q-wordcount{color:var(--text-muted);font-size:11px;margin-top:4px}
+.bottom-bar{background:var(--card);border-top:2px solid var(--card-border);padding:10px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.btn{padding:10px 20px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:Georgia,serif;font-size:13px;cursor:pointer;border-radius:4px;transition:all .15s;letter-spacing:1px}
+.btn:hover{background:var(--accent);color:var(--bg)}.btn:disabled{opacity:.3;cursor:default}.btn:disabled:hover{background:transparent;color:var(--accent)}
+.btn.flag{border-color:var(--warning);color:var(--warning)}.btn.flag:hover{background:var(--warning);color:var(--bg)}.btn.flag.active{background:var(--warning);color:var(--bg)}
+.btn.submit{border-color:var(--success);color:var(--success)}.btn.submit:hover{background:var(--success);color:var(--bg)}
+.bottom-left,.bottom-right{display:flex;gap:8px}
+.screen{display:none;flex-direction:column;height:100%}.screen.active{display:flex}
+.welcome-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px}
+.welcome-content h1{color:var(--accent);font-size:36px;margin-bottom:8px;letter-spacing:4px}
+.welcome-content .sub{color:var(--text-dim);font-size:16px;margin-bottom:32px;font-style:italic}
+.welcome-content .info{max-width:500px;font-size:14px;line-height:1.8;color:var(--text);margin-bottom:24px}
+.welcome-content .info strong{color:var(--accent)}
+.welcome-content .start-btn{padding:16px 48px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--bg);border:none;font-family:Georgia,serif;font-size:18px;cursor:pointer;border-radius:6px;letter-spacing:2px}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-overlay.active{display:flex}
+.modal{background:var(--card);border:2px solid var(--accent);border-radius:10px;padding:32px;max-width:420px;width:90%;text-align:center}
+.modal h3{color:var(--accent);margin-bottom:16px}.modal p{color:var(--text);font-size:14px;line-height:1.6;margin-bottom:8px}.modal .warn{color:var(--warning);font-weight:bold}.modal .btn-row{display:flex;gap:12px;justify-content:center;margin-top:20px}
+.review-content{padding:24px;max-width:800px;margin:0 auto;overflow-y:auto;flex:1}
+.review-score{text-align:center;margin-bottom:24px}.review-score .big{font-size:56px;color:var(--accent);font-weight:bold}.review-score .pct{font-size:18px;color:var(--text-dim)}.review-score .tutor-msg{color:var(--accent2);font-style:italic;margin-top:8px;font-size:15px}
+.review-section{margin-bottom:24px}.review-section h3{color:var(--accent);font-size:15px;margin-bottom:12px;border-bottom:1px solid var(--card-border);padding-bottom:6px}
+.score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:16px}
+.score-card{background:var(--card);border:1px solid var(--card-border);border-radius:6px;padding:12px;text-align:center}
+.score-card .label{color:var(--text-muted);font-size:10px;text-transform:uppercase;letter-spacing:1px}
+.score-card .value{color:var(--accent);font-size:22px;font-weight:bold;margin:4px 0}
+.score-card .sub{color:var(--text-muted);font-size:10px}
+.wrong-item{background:var(--card);border-left:3px solid var(--error);border-radius:0 6px 6px 0;padding:14px;margin-bottom:10px}
+.wrong-item .wi-q{color:var(--text-muted);font-size:11px;margin-bottom:4px}
+.wrong-item .wi-text{font-size:13px;margin-bottom:8px}
+.wrong-item .wi-yours{color:var(--error);font-size:12px;margin-bottom:4px}
+.wrong-item .wi-correct{color:var(--success);font-size:12px;margin-bottom:6px}
+.wrong-item .wi-explain{color:var(--text-dim);font-size:12px;line-height:1.5;border-top:1px solid var(--card-border);padding-top:6px}
+.wrong-item .wi-strategy{color:var(--accent-dim);font-size:11px;margin-top:4px;font-style:italic}
+.skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.skill-item{background:var(--card);border-radius:6px;padding:10px;display:flex;justify-content:space-between;align-items:center}
+.skill-item .sk-name{font-size:12px}.skill-item .sk-score{font-size:14px;font-weight:bold}
+.skill-item .sk-score.strong{color:var(--success)}.skill-item .sk-score.weak{color:var(--error)}.skill-item .sk-score.ok{color:var(--warning)}
+.points-banner{text-align:center;padding:12px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:8px;margin-bottom:24px}
+.points-banner .pts{color:var(--accent);font-size:20px;font-weight:bold}
+.return-btn{display:block;width:100%;padding:16px;margin-top:24px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--bg);border:none;border-radius:8px;font-family:Georgia,serif;font-size:16px;cursor:pointer;letter-spacing:2px;text-align:center}
+</style>
+</head>
+<body>
+<div id="welcomeScreen" class="screen active">
+<div class="welcome-content">
+  <h1>LEAP DIAGNOSTIC</h1>
+  <div class="sub">Iron Mind Academy &mdash; Week 2 Official Assessment</div>
+  <div class="info">
+    <strong>Jacob Brown &mdash; 6th Grade</strong><br><br>
+    Comprehensive diagnostic covering all four LEAP subjects:<br>
+    <strong>ELA</strong> &middot; <strong>Mathematics</strong> &middot; <strong>Science</strong> &middot; <strong>Social Studies</strong><br><br>
+    <strong>48 questions</strong> &middot; ~60 minutes<br><br>
+    Navigate freely between questions. Flag items for review. Change answers anytime.
+  </div>
+  <button class="start-btn" onclick="startTest()">Begin Assessment</button>
+</div>
+</div>
+<div id="testScreen" class="screen">
+  <div class="top-bar"><div><div class="title">LEAP Diagnostic</div><div class="section-name" id="sectionLabel"></div></div><div class="timer" id="timerDisplay">00:00</div></div>
+  <div class="navigator" id="navigator"></div>
+  <div class="content-area"><div class="passage-pane" id="passagePane"></div><div class="question-pane" id="questionPane"></div></div>
+  <div class="bottom-bar"><div class="bottom-left"><button class="btn" id="prevBtn" onclick="goQuestion(currentQ-1)">&larr; Previous</button><button class="btn flag" id="flagBtn" onclick="toggleFlag()">Flag for Review</button></div><div class="bottom-right"><button class="btn" id="nextBtn" onclick="goQuestion(currentQ+1)">Next &rarr;</button><button class="btn submit" onclick="showSubmitModal()">Submit Test</button></div></div>
+</div>
+<div class="modal-overlay" id="submitModal"><div class="modal"><h3>Submit Your Test?</h3><p id="submitInfo"></p><div class="btn-row"><button class="btn" onclick="closeModal()">Go Back</button><button class="btn submit" onclick="submitTest()">Submit</button></div></div></div>
+<div id="reviewScreen" class="screen"><div class="top-bar"><div><div class="title">Gary's Review</div></div><div style="color:var(--accent)">Diagnostic Complete</div></div><div class="review-content" id="reviewContent"></div></div>
+
+<script>
+const CONFIG={student:"Jacob",grade:6,testId:"jacob_diagnostic_week3_ela_mar2026",testLabel:"Week 2 LEAP Diagnostic \u2014 March 15, 2026",
+webAppUrl:"https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec"};
+
+const PASSAGES={
+passage1:{title:"The Lighthouse Keeper\u2019s Daughter",label:"Literary Narrative",
+text:`<p>Clara pressed her face against the cold window and watched the waves crash against the rocks below. The storm had been building all afternoon, and now, as darkness fell, the wind screamed through every crack in the lighthouse walls. Behind her, her father coughed\u2014a deep, rattling sound that made her stomach tighten with worry.</p>
+<p>\u201CClara.\u201D His voice was barely a whisper. \u201CThe lamp.\u201D</p>
+<p>She turned to look at him. Thomas Marsh had been the keeper of Point Refuge Light for fifteen years, and in all that time, he had never missed a single lighting. But the fever had come on suddenly that morning\u2014first chills, then a heat that left his skin burning to the touch. Now he lay on the narrow cot, too weak to climb the spiral staircase to the lantern room one hundred and sixty-seven steps above.</p>
+<p>\u201CI can do it, Papa,\u201D Clara said, trying to keep her voice steady. She was twelve years old, and she had watched him tend the light hundreds of times. She knew the routine: trim the wick, fill the oil reservoir, polish the Fresnel lens until it gleamed, wind the clockwork mechanism that rotated the lens.</p>
+<p>\u201CThe ships,\u201D her father murmured. \u201CThe Portland and the Berkshire are due tonight. Without the light\u2026\u201D He trailed off, but Clara understood. Point Refuge Light marked a treacherous stretch of coastline where submerged rocks had claimed dozens of ships over the centuries. On a night like this, with visibility near zero and waves tall enough to swallow a vessel whole, the lighthouse beam was the only thing standing between those ships and disaster.</p>
+<p>Clara lit a candle and began the climb. The wind pressed against the tower walls, making the entire structure groan. By the time she reached the lantern room, her legs burned and her hands trembled. The great Fresnel lens sat at the center like a glass beehive, its hundreds of prisms designed to project light for fifteen miles. She trimmed the wick carefully, filled the oil, and wound the clockwork\u2014forty-two turns for a full night\u2019s rotation.</p>
+<p>When she struck the match and touched it to the wick, the flame caught and grew, spreading golden light through the prisms. The lens began its slow rotation, and Clara watched as the beam swept across the churning black ocean. Somewhere out there, sailors would see this light and know they were safe.</p>
+<p>She settled into the keeper\u2019s chair and prepared to wait through the night. She was afraid\u2014she would not pretend otherwise. But fear, she decided, was no excuse for leaving the light unattended. People were counting on her, even if they would never know her name.</p>`},
+
+passage2:{title:"The Navajo Code Talkers of World War II",label:"Informational \u2014 History",
+text:`<p>In the early months of World War II, the United States military faced a critical problem. Japanese intelligence officers had proven remarkably skilled at breaking American codes. Every encrypted message\u2014whether by radio, telephone, or telegraph\u2014was at risk of being decoded by the enemy. The military desperately needed a code that could not be broken.</p>
+<p>The solution came from an unlikely source. In 1942, a civil engineer named Philip Johnston approached the Marine Corps with an extraordinary proposal. Johnston, who had grown up on a Navajo reservation, was one of the few non-Navajo people who spoke the language fluently. The Navajo language was virtually unknown outside the Navajo Nation. It had no written form, and its complex grammar and tonal qualities made it nearly impossible for non-native speakers to learn.</p>
+<p>The first group of twenty-nine Navajo recruits arrived at Camp Pendleton, California, in 1942. Their task was monumental: develop a complete military code based on Navajo. Since Navajo had no words for modern military terms, the code talkers created their own. A submarine became \u201Ciron fish\u201D (besh-lo). A bomber was \u201Cbuzzard\u201D (jay-sho). A tank was \u201Cturtle\u201D (chay-da-gahi). They also developed a letter-substitution system where each English letter had multiple Navajo word equivalents, making frequency analysis virtually impossible.</p>
+<p>The code talkers served with distinction in every major Marine operation in the Pacific theater. During the battle of Iwo Jima, six Navajo code talkers transmitted over eight hundred messages without a single error. Major Howard Connor declared, \u201CWere it not for the Navajos, the Marines would never have taken Iwo Jima.\u201D The Japanese never broke the Navajo code.</p>
+<p>Despite their crucial contributions, the code talkers received little recognition for decades. Their program remained classified until 1968. It was not until 2001 that the original twenty-nine code talkers were awarded the Congressional Gold Medal. Today, the Navajo Code Talkers are remembered as heroes whose unique cultural heritage helped change the course of history.</p>`}
+};
+
+const SECTIONS=[
+{id:'ela',name:'English Language Arts',range:[0,13]},
+{id:'math',name:'Mathematics',range:[14,25]},
+{id:'science',name:'Science',range:[26,35]},
+{id:'ss',name:'Social Studies',range:[36,46]}
+];
+
+const Q=[
+// ========== ELA (Q1-Q15) ==========
+// Passage 1: Lighthouse (5 MC)
+{p:'passage1',sec:'ela',std:'RL.6.2',skill:'Theme',diff:'grade-level',type:'mc',
+text:'What is the central theme of this passage?',
+opts:['Technology eventually makes all jobs easier.','Responsibility means doing what needs to be done, even when it is frightening.','Children should never be left to do adult work.','Lighthouses are no longer necessary in modern times.'],
+cor:1,exp:'Clara overcomes her fear to keep the light burning for sailors\u2019 safety. The theme is about responsibility and courage in the face of fear.',str:'For theme questions, ask: What lesson does the main character learn or demonstrate?'},
+
+{p:'passage1',sec:'ela',std:'RL.6.1',skill:'Textual Evidence',diff:'grade-level',type:'mc',
+text:'Which detail best supports the idea that Clara understands the importance of her task?',
+opts:['"She was twelve years old."','"She lit a candle and began the climb."','"Point Refuge Light marked a treacherous stretch of coastline where submerged rocks had claimed dozens of ships."','"Her legs burned and her hands trembled."'],
+cor:2,exp:'This detail connects Clara\u2019s awareness of the danger to ships with her understanding of why the lighthouse matters.',str:'For evidence questions, find the sentence most directly connected to the claim being made.'},
+
+{p:'passage1',sec:'ela',std:'RL.6.4',skill:'Vocabulary in Context',diff:'grade-level',type:'mc',
+text:'What does "treacherous" mean as used in paragraph 5?',
+opts:['Beautiful but remote','Deep and mysterious','Dangerous and unpredictable','Rocky and steep'],
+cor:2,exp:'The coastline has "claimed dozens of ships," showing it is hazardous. "Treacherous" means dangerous.',str:'Substitute each answer into the sentence. The one that maintains the meaning is correct.'},
+
+{p:'passage1',sec:'ela',std:'RL.6.3',skill:'Plot/Setting',diff:'challenging',type:'mc',
+text:'How does the storm contribute to the plot?',
+opts:['It creates the conflict by making Clara\u2019s task both urgent and difficult.','It provides background about lighthouse construction.','It shows Clara enjoys dangerous weather.','It explains why Thomas became a keeper.'],
+cor:0,exp:'The storm makes the situation urgent (ships need the light) and difficult (climbing in high wind). Without it, there would be no conflict.',str:'Setting questions ask how time/place create or intensify the central problem.'},
+
+{p:'passage1',sec:'ela',std:'RL.6.1',skill:'Inference',diff:'challenging',type:'mc',
+text:'Based on the passage, what can the reader infer about Clara?',
+opts:['She is impulsive and acts without thinking.','She is courageous and takes her responsibilities seriously.','She resents having to help her father.','She plans to become a sailor.'],
+cor:1,exp:'Clara\u2019s actions\u2014climbing the tower despite fear, carefully completing each step, choosing to stay\u2014reveal courage and dedication.',str:'For inference questions, look at what characters DO. Actions reveal character.'},
+
+// Passage 2: Code Talkers (5 MC)
+{p:'passage2',sec:'ela',std:'RI.6.2',skill:'Central Idea',diff:'grade-level',type:'mc',
+text:'What is the central idea of this passage?',
+opts:['Japanese officers were better at code-breaking than Americans.','Philip Johnston single-handedly won World War II.','Navajo Marines used their unique language to create an unbreakable code that helped win key battles.','All Native Americans served as code talkers.'],
+cor:2,exp:'The passage traces how the Navajo language was used to create an unbreakable code contributing to American victories.',str:'The central idea should be supported by ALL sections of the passage.'},
+
+{p:'passage2',sec:'ela',std:'RI.6.3',skill:'Analysis',diff:'challenging',type:'mc',
+text:'Why was the Navajo language well-suited for use as a military code?',
+opts:['It was widely taught in American schools.','It was unknown outside the Navajo Nation, had no written form, and was nearly impossible for outsiders to learn.','It was the simplest language in North America.','The Japanese had never heard of the Navajo people.'],
+cor:1,exp:'Paragraph 2 lists three key features: virtually unknown, no written form, and complex grammar/tonal qualities making it nearly impossible for non-native speakers.',str:'For analysis questions, look for the most complete and accurate answer from the passage.'},
+
+{p:'passage2',sec:'ela',std:'RI.6.4',skill:'Vocabulary in Context',diff:'grade-level',type:'mc',
+text:'What does "monumental" mean as used in paragraph 3?',
+opts:['Related to monuments','Very small and precise','Enormously important and challenging','Outdated'],
+cor:2,exp:'The code talkers had to "develop a complete military code"\u2014an enormous and challenging task.',str:'Don\u2019t pick the most common definition. Choose the meaning that fits THIS sentence.'},
+
+{p:'passage2',sec:'ela',std:'RI.6.1',skill:'Textual Evidence',diff:'grade-level',type:'mc',
+text:'Which detail best supports the claim that the code was effective in battle?',
+opts:['"Johnston approached the Marine Corps with an extraordinary proposal."','"Twenty-nine Navajo recruits arrived at Camp Pendleton."','"Six code talkers transmitted over eight hundred messages without a single error."','"Their program remained classified until 1968."'],
+cor:2,exp:'800 messages with zero errors during Iwo Jima provides concrete evidence of effectiveness. The other options don\u2019t prove combat success.',str:'The strongest evidence is specific and measurable. Numbers and concrete examples beat general statements.'},
+
+{p:'passage2',sec:'ela',std:'RI.6.6',skill:'Author\u2019s Purpose',diff:'challenging',type:'mc',
+text:'Why does the author include the last paragraph about the code talkers\u2019 lack of recognition?',
+opts:['To criticize the Marine Corps','To highlight the injustice the code talkers faced despite their vital contributions','To argue that military codes are no longer necessary','To explain why the Navajo language disappeared'],
+cor:1,exp:'The final paragraph contrasts their "crucial contributions" with decades of obscurity and delayed recognition.',str:'Final paragraphs often reveal the author\u2019s deeper message.'},
+
+// Language & Vocab (3 MC)
+{p:null,sec:'ela',std:'L.6.1',skill:'Semicolons',diff:'grade-level',type:'mc',
+text:'Which sentence correctly uses a semicolon?',
+opts:['Clara was afraid; but she climbed the stairs.','Clara was afraid; she climbed the stairs anyway.','Clara was afraid, she climbed the stairs anyway.','Clara was afraid: she climbed the stairs.'],
+cor:1,exp:'A semicolon joins two complete, closely related sentences without a conjunction.',str:'Semicolons replace a period between closely related sentences. Don\u2019t add "but" or "and" after a semicolon.'},
+
+{p:null,sec:'ela',std:'L.6.3',skill:'Sentence Variety',diff:'challenging',type:'mc',
+text:'Which revision best improves this sentence? "The cave was dark and the explorers went in and they found amazing formations and they took photographs."',
+opts:['"The cave was dark; the explorers went in; they found formations; they took photographs."','"After entering the dark cave, the explorers discovered amazing formations and took photographs."','"The cave, dark, had explorers finding formations and taking photographs."','"Dark was the cave and in went the explorers finding formations."'],
+cor:1,exp:'Option B combines ideas using a subordinate clause and compound predicate, eliminating the choppy repeated "and" structure.',str:'Fix run-on sentences by combining related ideas with subordinate clauses or compound predicates.'},
+
+{p:null,sec:'ela',std:'L.6.4',skill:'Context Clues',diff:'ceiling',type:'mc',
+text:'Read: "The diplomat\u2019s conciliatory tone helped resolve the tense negotiation." What does "conciliatory" most likely mean?',
+opts:['Angry and demanding','Confusing and unclear','Intended to calm or make peace','Loud and commanding'],
+cor:2,exp:'The tone "helped resolve" tension, so it must be calming or peacemaking.',str:'Use cause-and-effect in the sentence. If the tone resolved tension, it must be a peaceful tone.'},
+
+// Writing (1 SCR + 1 ECR)
+{p:'passage2',sec:'ela',std:'W.6.2',skill:'Informative Writing',diff:'challenging',type:'scr',
+text:'Explain how the code talkers adapted the Navajo language for military use. Provide at least two specific examples from the passage.',
+guidance:'Write 3\u20135 sentences. Use specific examples from the passage.',minWords:30},
+
+// ========== MATHEMATICS (Q16-Q27) ==========
+{p:null,sec:'math',std:'6.RP.1',skill:'Ratios',diff:'grade-level',type:'mc',
+text:'A recipe uses 3 cups of flour for every 2 cups of sugar. What is the ratio of flour to sugar?',
+opts:['2:3','3:2','5:3','3:5'],cor:1,exp:'The ratio of flour to sugar is 3 to 2, written as 3:2.',str:'Ratios compare two quantities in order. "A to B" means A:B.'},
+
+{p:null,sec:'math',std:'6.RP.2',skill:'Unit Rates',diff:'grade-level',type:'mc',
+text:'Jacob can read 45 pages in 3 hours. At this rate, how many pages can he read in 1 hour?',
+opts:['12 pages','15 pages','18 pages','45 pages'],cor:1,exp:'Unit rate = 45 \u00f7 3 = 15 pages per hour.',str:'A unit rate is "per one." Divide the total by the number of units.'},
+
+{p:null,sec:'math',std:'6.RP.3',skill:'Proportional Reasoning',diff:'challenging',type:'mc',
+text:'If 4 notebooks cost $10, how much do 10 notebooks cost at the same rate?',
+opts:['$20','$25','$40','$14'],cor:1,exp:'Unit price: $10 \u00f7 4 = $2.50 each. 10 \u00d7 $2.50 = $25.',str:'Find the unit price first, then multiply by the quantity you need.'},
+
+{p:null,sec:'math',std:'6.EE.1',skill:'Expressions',diff:'baseline',type:'mc',
+text:'What is the value of 3\u00b2 + 4 \u00d7 2?',
+opts:['17','26','14','22'],cor:0,exp:'Exponent first: 3\u00b2 = 9. Then multiply: 4 \u00d7 2 = 8. Add: 9 + 8 = 17.',str:'Follow order of operations: exponents, then multiplication, then addition.'},
+
+{p:null,sec:'math',std:'6.EE.5',skill:'Solve Equations',diff:'grade-level',type:'mc',
+text:'Solve: x + 7 = 15',
+opts:['x = 8','x = 22','x = 7','x = 15'],cor:0,exp:'Subtract 7 from both sides: x = 15 \u2212 7 = 8.',str:'To solve for x, do the opposite operation to both sides.'},
+
+{p:null,sec:'math',std:'6.EE.7',skill:'Word Problems to Equations',diff:'challenging',type:'mc',
+text:'Jacob has $50. He buys some books at $8 each and has $18 left. Which equation finds how many books he bought?',
+opts:['50 \u2212 8b = 18','50 + 8b = 18','8b \u2212 50 = 18','50 \u00f7 8 = b'],cor:0,exp:'Start with $50, subtract $8 per book (8b), equals $18 remaining: 50 \u2212 8b = 18.',str:'Translate the story step by step: start amount \u2212 spending = remaining.'},
+
+{p:null,sec:'math',std:'6.NS.5',skill:'Negative Numbers',diff:'grade-level',type:'mc',
+text:'The temperature was \u22125\u00b0F in the morning and rose 12 degrees by noon. What was the temperature at noon?',
+opts:['7\u00b0F','\u221217\u00b0F','17\u00b0F','5\u00b0F'],cor:0,exp:'\u22125 + 12 = 7\u00b0F.',str:'On a number line, start at \u22125 and move 12 to the right.'},
+
+{p:null,sec:'math',std:'6.NS.6',skill:'Coordinate Plane',diff:'grade-level',type:'mc',
+text:'In which quadrant is the point (\u22123, 4) located?',
+opts:['Quadrant I','Quadrant II','Quadrant III','Quadrant IV'],cor:1,exp:'Negative x and positive y = Quadrant II (upper left).',str:'Remember quadrants: I (+,+), II (\u2212,+), III (\u2212,\u2212), IV (+,\u2212). Go counterclockwise from upper right.'},
+
+{p:null,sec:'math',std:'6.G.1',skill:'Area',diff:'grade-level',type:'mc',
+text:'What is the area of a triangle with a base of 10 cm and a height of 6 cm?',
+opts:['60 cm\u00b2','30 cm\u00b2','16 cm\u00b2','36 cm\u00b2'],cor:1,exp:'Area of triangle = \u00bd \u00d7 base \u00d7 height = \u00bd \u00d7 10 \u00d7 6 = 30 cm\u00b2.',str:'Triangle area = \u00bd \u00d7 b \u00d7 h. A triangle is half of a rectangle with the same base and height.'},
+
+{p:null,sec:'math',std:'6.G.2',skill:'Volume',diff:'challenging',type:'mc',
+text:'What is the volume of a rectangular prism that is 8 cm long, 5 cm wide, and 3 cm tall?',
+opts:['16 cm\u00b3','40 cm\u00b3','120 cm\u00b3','80 cm\u00b3'],cor:2,exp:'V = l \u00d7 w \u00d7 h = 8 \u00d7 5 \u00d7 3 = 120 cm\u00b3.',str:'For rectangular prisms: V = length \u00d7 width \u00d7 height.'},
+
+{p:null,sec:'math',std:'6.SP.3',skill:'Mean/Median',diff:'challenging',type:'mc',
+text:'Jacob\u2019s test scores are: 85, 90, 78, 92, 85. What is his mean (average) score?',
+opts:['85','86','88','90'],cor:1,exp:'Sum = 85+90+78+92+85 = 430. Mean = 430 \u00f7 5 = 86.',str:'Mean = sum of all values \u00f7 number of values. Add everything up, then divide.'},
+
+{p:null,sec:'math',std:'6.EE.7',skill:'Problem Solving',diff:'challenging',type:'cr',
+text:'A rectangular garden has a perimeter of 56 feet. The length is 4 feet more than the width.\n\nWrite an equation and solve it to find the length and width of the garden. Show all your work.',
+guidance:'Write an equation. Show each step. State the final answer.',minWords:25},
+
+// ========== SCIENCE (Q28-Q37) ==========
+{p:null,sec:'science',std:'PS.6.1',skill:'Energy',diff:'grade-level',type:'mc',
+text:'Which is an example of energy being transformed from one form to another?',
+opts:['A book sitting on a shelf','A lamp converting electrical energy into light and heat','Water sitting in a glass','A rock on the ground'],
+cor:1,exp:'A lamp transforms electrical energy into light energy and thermal (heat) energy. The other objects are at rest with no transformation.',str:'Energy transformation means energy changes form. Look for something actively changing state.'},
+
+{p:null,sec:'science',std:'PS.6.2',skill:'Forces & Motion',diff:'grade-level',type:'mc',
+text:'If you push a box across the floor and it slows down, what force is causing it to slow?',
+opts:['Gravity','Magnetism','Friction','Inertia'],
+cor:2,exp:'Friction between the box and the floor opposes its motion, causing it to slow down.',str:'Friction is the force that opposes motion between surfaces in contact.'},
+
+{p:null,sec:'science',std:'PS.6.3',skill:'Properties of Matter',diff:'grade-level',type:'mc',
+text:'Which is an example of a chemical change?',
+opts:['Cutting paper into small pieces','Melting an ice cube','Burning a piece of wood','Dissolving sugar in water'],
+cor:2,exp:'Burning wood produces new substances (ash, smoke, CO\u2082). Cutting and melting are physical changes. Dissolving is typically physical.',str:'Chemical changes produce new substances. Clues: burning, rusting, cooking, color change with gas/heat.'},
+
+{p:null,sec:'science',std:'LS.6.1',skill:'Cell Structure',diff:'grade-level',type:'mc',
+text:'What is the main function of the cell membrane?',
+opts:['To produce energy for the cell','To store the cell\u2019s genetic information','To control what enters and leaves the cell','To give the cell its shape'],
+cor:2,exp:'The cell membrane acts as a gatekeeper, controlling which substances can enter and exit the cell.',str:'Think of the cell membrane as a security gate\u2014it controls access in and out.'},
+
+{p:null,sec:'science',std:'LS.6.2',skill:'Ecosystems',diff:'grade-level',type:'mc',
+text:'In a food web, which organisms are producers?',
+opts:['Wolves and eagles','Rabbits and deer','Grass, trees, and algae','Mushrooms and bacteria'],
+cor:2,exp:'Producers make their own food through photosynthesis. Plants and algae are producers. Animals are consumers. Mushrooms are decomposers.',str:'Producers = organisms that make their own food (plants, algae). They form the base of food webs.'},
+
+{p:null,sec:'science',std:'LS.6.3',skill:'Adaptation',diff:'challenging',type:'mc',
+text:'A species of moth in a forest has developed dark coloring over many generations. This is most likely an adaptation to\u2014',
+opts:['attract mates from far away','blend in with dark tree bark to avoid predators','absorb more sunlight for energy','communicate with other moths'],
+cor:1,exp:'Dark coloring helps moths blend in with dark tree bark, making them harder for predators to see. This is natural selection for camouflage.',str:'Adaptations help organisms survive. Camouflage helps avoid predators.'},
+
+{p:null,sec:'science',std:'ES.6.1',skill:'Rock Cycle',diff:'grade-level',type:'mc',
+text:'Which type of rock is formed when layers of sediment are compressed over time?',
+opts:['Igneous','Sedimentary','Metamorphic','Volcanic'],
+cor:1,exp:'Sedimentary rock forms when layers of sediment (sand, silt, shells) are pressed together over thousands of years. Igneous forms from cooled magma. Metamorphic forms from heat and pressure on existing rock.',str:'Sedimentary = layers compressed. Igneous = cooled magma/lava. Metamorphic = existing rock changed by heat/pressure.'},
+
+{p:null,sec:'science',std:'ES.6.2',skill:'Weather & Climate',diff:'challenging',type:'mc',
+text:'What is the main difference between weather and climate?',
+opts:['Weather is always warm; climate is always cold.','Weather describes short-term conditions; climate describes long-term patterns.','Weather only occurs on land; climate only occurs over oceans.','There is no difference between weather and climate.'],
+cor:1,exp:'Weather is what\u2019s happening right now (today\u2019s temperature, rain). Climate is the average weather pattern over decades (Louisiana has a humid subtropical climate).',str:'Weather = short-term, day-to-day. Climate = long-term average patterns.'},
+
+{p:null,sec:'science',std:'ES.6.3',skill:'Solar System',diff:'challenging',type:'mc',
+text:'Why does Earth have seasons?',
+opts:['Because Earth\u2019s distance from the Sun changes throughout the year','Because Earth\u2019s axis is tilted at about 23.5 degrees','Because the Sun gets hotter and cooler throughout the year','Because the Moon blocks sunlight at different times'],
+cor:1,exp:'Earth\u2019s tilted axis causes different hemispheres to receive more direct sunlight at different times of year, creating seasons.',str:'Seasons are caused by Earth\u2019s axial tilt (23.5\u00b0), NOT by distance from the Sun.'},
+
+{p:null,sec:'science',std:'SI.6.1',skill:'Scientific Investigation',diff:'challenging',type:'mc',
+text:'A student wants to test whether plants grow faster with music playing. What is the independent variable in this experiment?',
+opts:['The height of the plants','Whether music is playing or not','The amount of water given','The type of soil used'],
+cor:1,exp:'The independent variable is what the scientist deliberately changes. Here, the student changes whether music plays. Plant height is the dependent variable (what is measured).',str:'Independent variable = what YOU change. Dependent variable = what you MEASURE. Everything else should stay the same (controlled).'},
+
+// ========== SOCIAL STUDIES (Q38-Q48) ==========
+{p:null,sec:'ss',std:'WH.6.1',skill:'Ancient Egypt',diff:'baseline',type:'mc',
+text:'The ancient Egyptians built the pyramids primarily as\u2014',
+opts:['fortresses to defend against invaders','tombs for their pharaohs','temples for daily worship','marketplaces for trade'],
+cor:1,exp:'The Great Pyramids at Giza were built as elaborate tombs for pharaohs, designed to protect their bodies and treasures for the afterlife.',str:'Egyptian pyramids = tombs for pharaohs. They believed in preserving the body for the afterlife.'},
+
+{p:null,sec:'ss',std:'WH.6.2',skill:'Ancient Greece',diff:'grade-level',type:'mc',
+text:'Ancient Athens is often called the "birthplace of democracy" because\u2014',
+opts:['it was the largest city in the ancient world','citizens could vote directly on laws and government decisions','it had the strongest military in Greece','its rulers were chosen by the gods'],
+cor:1,exp:'Athens developed direct democracy where eligible citizens could vote directly on laws in the Assembly. This was a revolutionary idea in the ancient world.',str:'Athens = birthplace of democracy. Citizens voted directly on laws (direct democracy).'},
+
+{p:null,sec:'ss',std:'WH.6.3',skill:'Ancient Rome',diff:'grade-level',type:'mc',
+text:'The Roman Republic had a system of government that included\u2014',
+opts:['a single all-powerful king who made every decision','elected representatives, including senators and consuls, who shared power','rule by religious priests who interpreted the gods\u2019 wishes','no government at all\u2014citizens governed themselves individually'],
+cor:1,exp:'The Roman Republic featured elected officials: the Senate (300+ senators) and two consuls who served as co-leaders. Power was shared, not absolute.',str:'Republic = elected representatives. Rome\u2019s system influenced the U.S. government.'},
+
+{p:null,sec:'ss',std:'WH.6.4',skill:'Middle Ages',diff:'grade-level',type:'mc',
+text:'Under the feudal system in medieval Europe, what did lords provide to their vassals in exchange for military service?',
+opts:['Money and gold coins','Land (called a fief)','Ships for exploration','Freedom from all laws'],
+cor:1,exp:'Feudalism was a land-for-loyalty system. Lords granted land (fiefs) to vassals, who pledged military service and loyalty in return.',str:'Feudalism: King \u2192 Lords \u2192 Knights \u2192 Peasants. Each level provided service in exchange for land and protection.'},
+
+{p:null,sec:'ss',std:'WH.6.5',skill:'Geography',diff:'baseline',type:'mc',
+text:'Which continent is the largest by land area?',
+opts:['Africa','North America','Asia','Europe'],
+cor:2,exp:'Asia is the largest continent, covering about 17.2 million square miles\u2014larger than Africa (11.7 million) and all other continents.',str:'Size order: Asia > Africa > North America > South America > Antarctica > Europe > Australia.'},
+
+{p:null,sec:'ss',std:'GEO.6.1',skill:'Map Skills',diff:'grade-level',type:'mc',
+text:'On a map, what do lines of latitude measure?',
+opts:['Distance east and west of the Prime Meridian','Distance north and south of the Equator','Elevation above sea level','Population density of an area'],
+cor:1,exp:'Latitude lines run east-west but measure distance north or south of the Equator (0\u00b0 to 90\u00b0N/S). Longitude measures east/west of the Prime Meridian.',str:'Latitude = flat lines (like ladder rungs), measure N/S. Longitude = long lines (pole to pole), measure E/W.'},
+
+{p:null,sec:'ss',std:'GEO.6.2',skill:'Geography',diff:'challenging',type:'mc',
+text:'The Nile River was essential to ancient Egyptian civilization primarily because it\u2014',
+opts:['provided a natural barrier against all invaders','flooded annually, depositing rich soil for farming along its banks','was the only source of drinking water in the world','connected Egypt directly to China through trade routes'],
+cor:1,exp:'The Nile\u2019s annual floods deposited nutrient-rich silt along its banks, creating fertile farmland in an otherwise desert region. This made Egyptian civilization possible.',str:'River civilizations depended on flooding for agriculture. The Nile\u2019s predictable floods were key to Egypt\u2019s success.'},
+
+{p:null,sec:'ss',std:'CIV.6.1',skill:'Forms of Government',diff:'challenging',type:'mc',
+text:'What is the key difference between a democracy and a monarchy?',
+opts:['Democracies are always large; monarchies are always small.','In a democracy, citizens choose their leaders; in a monarchy, power is inherited.','Democracies have no laws; monarchies have many laws.','There is no meaningful difference between the two.'],
+cor:1,exp:'In a democracy, leaders are chosen by the people through elections. In a monarchy, the ruler inherits power through family lineage.',str:'Democracy = rule by the people (elected leaders). Monarchy = rule by a king/queen (inherited power).'},
+
+{p:null,sec:'ss',std:'ECON.6.1',skill:'Economics',diff:'grade-level',type:'mc',
+text:'When the supply of a product decreases but the demand stays the same, what usually happens to the price?',
+opts:['The price decreases.','The price stays the same.','The price increases.','The product becomes free.'],
+cor:2,exp:'Less supply + same demand = higher prices. When something becomes scarcer, people compete for it and sellers can charge more.',str:'Supply and demand: Less supply + same demand = higher price. More supply + same demand = lower price.'},
+
+{p:null,sec:'ss',std:'WH.6.6',skill:'World Religions',diff:'challenging',type:'mc',
+text:'Which religion originated in the Middle East and is based on the teachings of Jesus Christ?',
+opts:['Buddhism','Hinduism','Christianity','Confucianism'],
+cor:2,exp:'Christianity began in the Middle East (modern-day Israel/Palestine) based on the life and teachings of Jesus Christ. Buddhism originated in India, Hinduism in India, and Confucianism in China.',str:'Know the origin regions: Christianity \u2192 Middle East, Islam \u2192 Middle East, Buddhism \u2192 India, Hinduism \u2192 India, Confucianism \u2192 China.'},
+
+{p:null,sec:'ss',std:'HT.6.1',skill:'Historical Thinking',diff:'ceiling',type:'mc',
+text:'A historian finds a letter written by a Roman soldier describing daily life in a fort. This letter is an example of a\u2014',
+opts:['secondary source, because it was written long ago','primary source, because it was created by someone who experienced the events','tertiary source, because it describes military life','fictional source, because it tells a story'],
+cor:1,exp:'A primary source is a firsthand account created by someone who was there. The soldier\u2019s letter is a direct record of his experience.',str:'Primary source = created at the time by someone involved. Secondary source = written later by someone studying the topic.'}
+];
+
+// ==================== ENGINE ====================
+let currentQ=0, answers={}, flags=new Set(), startTime=null, timerInterval=null, submitted=false;
+
+function startTest(){
+  const saved=localStorage.getItem('diagnostic_'+CONFIG.testId);
+  if(saved){try{const s=JSON.parse(saved);currentQ=s.currentQ||0;answers=s.answers||{};flags=new Set(s.flags||[]);startTime=s.startTime||Date.now()}catch(e){startTime=Date.now()}}
+  else startTime=Date.now();
+  document.getElementById('welcomeScreen').classList.remove('active');
+  document.getElementById('testScreen').classList.add('active');
+  timerInterval=setInterval(updateTimer,1000);updateTimer();renderNav();renderQuestion();
+}
+function updateTimer(){const e=Math.floor((Date.now()-startTime)/1000),m=Math.floor(e/60),s=e%60;document.getElementById('timerDisplay').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function renderNav(){
+  let h='';Q.forEach((q,i)=>{const sec=SECTIONS.find(s=>i>=s.range[0]&&i<=s.range[1]);
+  if(sec&&i===sec.range[0]&&i>0)h+='<div class="nav-sep"></div>';
+  let c='nav-btn';if(i===currentQ)c+=' current';if(flags.has(i))c+=' flagged';else if(answers[i]!==undefined)c+=' answered';
+  h+=`<button class="${c}" onclick="goQuestion(${i})">${i+1}</button>`});
+  document.getElementById('navigator').innerHTML=h;
+}
+function goQuestion(idx){if(idx<0||idx>=Q.length)return;saveCurrentWriting();currentQ=idx;renderNav();renderQuestion();saveState()}
+function getSection(idx){for(const s of SECTIONS)if(idx>=s.range[0]&&idx<=s.range[1])return s;return SECTIONS[0]}
+
+function renderQuestion(){
+  const q=Q[currentQ],sec=getSection(currentQ);
+  document.getElementById('sectionLabel').textContent=sec.name;
+  const pp=document.getElementById('passagePane'),qp=document.getElementById('questionPane');
+  if(q.p&&PASSAGES[q.p]){
+    pp.style.display='block';qp.classList.remove('full-width');
+    const p=PASSAGES[q.p];
+    pp.innerHTML=`<h3>${p.label}: ${p.title}</h3>${p.text}`;
+  } else {pp.style.display='none';qp.classList.add('full-width')}
+
+  let h=`<div class="q-header"><div class="q-number">Question ${currentQ+1} of ${Q.length}</div>
+    <div class="q-standard">${q.std} \u00b7 ${q.skill}</div>
+    ${q.diff?`<div class="q-diff ${q.diff}">${q.diff}</div>`:''}</div>
+    <div class="q-text">${q.text.replace(/\n/g,'<br>')}</div>`;
+
+  if(q.type==='mc'){h+='<div class="q-options">';const L=['A','B','C','D'];
+    q.opts.forEach((o,i)=>{const sel=answers[currentQ]===i?' selected':'';
+    h+=`<div class="q-option${sel}" onclick="selectOption(${i})"><span class="letter">${L[i]}</span><span>${o}</span></div>`});h+='</div>'}
+  else if(q.type==='scr'||q.type==='cr'){const v=answers[currentQ]||'';
+    h+=`<div class="q-guidance">${q.guidance}</div><textarea class="q-textarea" id="writingArea" placeholder="Type your answer..." oninput="updateWC()">${v}</textarea>
+    <div class="q-wordcount" id="wc">${cw(v)} words</div>`}
+
+  qp.innerHTML=h;qp.scrollTop=0;
+  document.getElementById('prevBtn').disabled=currentQ===0;
+  document.getElementById('nextBtn').textContent=currentQ===Q.length-1?'Review':'Next \u2192';
+  const fb=document.getElementById('flagBtn');fb.classList.toggle('active',flags.has(currentQ));
+  fb.textContent=flags.has(currentQ)?'Unflag':'Flag for Review';
+}
+
+function selectOption(i){answers[currentQ]=i;renderNav();renderQuestion();saveState()}
+function saveCurrentWriting(){const ta=document.getElementById('writingArea');if(ta&&(Q[currentQ].type==='scr'||Q[currentQ].type==='cr')){const t=ta.value.trim();if(t)answers[currentQ]=t;else delete answers[currentQ]}}
+function cw(t){return t?t.trim().split(/\s+/).filter(w=>w.length>0).length:0}
+function updateWC(){const ta=document.getElementById('writingArea'),el=document.getElementById('wc');if(ta&&el)el.textContent=cw(ta.value)+' words'}
+function toggleFlag(){if(flags.has(currentQ))flags.delete(currentQ);else flags.add(currentQ);renderNav();renderQuestion();saveState()}
+function saveState(){localStorage.setItem('diagnostic_'+CONFIG.testId,JSON.stringify({currentQ,answers,flags:Array.from(flags),startTime}))}
+
+function showSubmitModal(){saveCurrentWriting();const t=Q.length,a=Object.keys(answers).length,u=t-a,f=flags.size;
+  let info=`<p>Answered <strong>${a}</strong> of <strong>${t}</strong> questions.</p>`;
+  if(u>0)info+=`<p class="warn">${u} unanswered!</p>`;if(f>0)info+=`<p class="warn">${f} flagged for review.</p>`;
+  if(u===0&&f===0)info+='<p>All questions answered. Ready to submit!</p>';
+  document.getElementById('submitInfo').innerHTML=info;document.getElementById('submitModal').classList.add('active')}
+function closeModal(){document.getElementById('submitModal').classList.remove('active')}
+
+function submitTest(){
+  if(submitted)return;submitted=true;closeModal();clearInterval(timerInterval);saveCurrentWriting();
+  const elapsed=Math.floor((Date.now()-startTime)/1000),today=new Date().toISOString().split('T')[0];
+  const allAns=Q.map((q,i)=>{const a=answers[i];
+    if(q.type==='mc')return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'mc',question:q.text,selectedOption:a!==undefined?a:-1,selectedText:a!==undefined?q.opts[a]:'Not answered',correctOption:q.cor,correctText:q.opts[q.cor]};
+    return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'written',question:q.text,response:a||''}});
+
+  const secSum={};SECTIONS.forEach(sec=>{let c=0,t=0;for(let i=sec.range[0];i<=Math.min(sec.range[1],Q.length-1);i++){if(Q[i]&&Q[i].type==='mc'){t++;if(answers[i]===Q[i].cor)c++}}secSum[sec.id]={correct:c,total:t,pct:t>0?Math.round(c/t*100):0}});
+  const totalMC=Q.filter(q=>q.type==='mc').length,correctMC=Q.filter((q,i)=>q.type==='mc'&&answers[i]===q.cor).length;
+
+  const payload={action:'saveDiagnosticResults',student:CONFIG.student,grade:CONFIG.grade,testId:CONFIG.testId,testLabel:CONFIG.testLabel,timestamp:new Date().toISOString(),answers:allAns,
+    summary:{totalQuestions:Q.length,answeredQuestions:Object.keys(answers).length,totalTimeSeconds:elapsed,effortScore:Math.round(Object.keys(answers).length/Q.length*100),sections:secSum,correctMC,totalMC,percentCorrect:Math.round(correctMC/totalMC*100)}};
+  try{fetch(CONFIG.webAppUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})}catch(e){}
+
+  const signal={completed:true,timestamp:new Date().toISOString(),date:today,testId:CONFIG.testId,testLabel:CONFIG.testLabel,points:15};
+  localStorage.setItem('jacob_diagnostic_week3_signal',JSON.stringify(signal));
+  localStorage.setItem('jacob_diagnostic_signal',JSON.stringify(signal));
+
+  try{const dk='jacob_dashboard_v3',dd=JSON.parse(localStorage.getItem(dk)||'{}');if(!dd.days)dd.days={};if(!dd.days[today])dd.days[today]={};
+  dd.days[today].session=true;dd.days[today].khan=true;dd.days[today].reading=true;dd.days[today].diagnosticComplete=true;dd.days[today].diagnosticPoints=15;localStorage.setItem(dk,JSON.stringify(dd))}catch(e){}
+
+  try{fetch(CONFIG.webAppUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'completeDiagnosticTest',student:CONFIG.student,testId:CONFIG.testId,date:today,points:15})})}catch(e){}
+  localStorage.removeItem('diagnostic_'+CONFIG.testId);
+  showTutorReview(correctMC,totalMC,elapsed,secSum);
+}
+
+function estimateScores(pct){
+  let ptile;if(pct>=97)ptile=97;else if(pct>=93)ptile=92;else if(pct>=88)ptile=84;else if(pct>=82)ptile=75;else if(pct>=75)ptile=65;else if(pct>=70)ptile=55;else if(pct>=65)ptile=46;else if(pct>=60)ptile=38;else if(pct>=55)ptile=30;else if(pct>=50)ptile=24;else if(pct>=40)ptile=15;else ptile=Math.max(5,Math.round(pct*0.35));
+  let msg='';if(ptile>=90)msg='Excellent \u2014 keep pushing';else if(ptile>=75)msg='Strong \u2014 above most peers';else if(ptile>=55)msg='Solid ground';else if(ptile>=35)msg='Room to grow';else msg='Building foundation';
+  const ttp=Math.max(1,Math.round((ptile-15)/0.85)),leap=Math.round(650+(ttp/100)*200);
+  let ll='';if(leap>=790)ll='Advanced';else if(leap>=750)ll='Mastery';else if(leap>=700)ll='Basic';else if(leap>=650)ll='Approaching Basic';else ll='Unsatisfactory';
+  return{leap,ll,ptile,msg,psat:Math.min(1440,Math.max(240,Math.round(240+(ttp/100)*950))),act:Math.min(36,Math.max(1,Math.round(1+(ttp/100)*31))),sat:Math.min(1600,Math.round(Math.min(1440,Math.max(240,Math.round(240+(ttp/100)*950)))*1.05)),hspt:Math.min(800,Math.max(200,Math.round(200+(ttp/100)*500))),ttp};
+}
+
+function showTutorReview(correctMC,totalMC,elapsed,secSum){
+  const pct=Math.round(correctMC/totalMC*100),min=Math.floor(elapsed/60),bm=estimateScores(pct);
+  let gm='';if(pct>=90)gm='Outstanding work, Jacob. Every section shows strength. Keep this up.';else if(pct>=75)gm='Solid performance. You\u2019re showing real ability across all subjects. Let\u2019s sharpen the areas you missed.';else if(pct>=60)gm='Good effort. Let\u2019s review what you missed \u2014 that\u2019s where the growth happens.';else gm='Every missed question is a lesson. Let\u2019s walk through them together.';
+
+  const wrong=[];Q.forEach((q,i)=>{if(q.type==='mc'&&answers[i]!==q.cor)wrong.push({num:i+1,q,ua:answers[i]!==undefined?q.opts[answers[i]]:'Not answered',ca:q.opts[q.cor]})});
+  const skillMap={};Q.forEach((q,i)=>{if(q.type!=='mc')return;if(!skillMap[q.skill])skillMap[q.skill]={c:0,t:0};skillMap[q.skill].t++;if(answers[i]===q.cor)skillMap[q.skill].c++});
+
+  let h=`<div class="review-score"><div class="big">${correctMC}/${totalMC}</div><div class="pct">${pct}% \u00b7 ${min} min</div><div class="tutor-msg">\u201C${gm}\u201D \u2014 Gary</div></div>
+  <div class="points-banner"><div class="pts">+15 points earned</div></div>
+  <div class="review-section"><h3>LEAP Performance Estimate</h3><div class="score-grid">
+    <div class="score-card"><div class="label">Est. LEAP</div><div class="value">${bm.leap}</div><div class="sub">${bm.ll}</div></div>
+    <div class="score-card"><div class="label">Percentile</div><div class="value">${bm.ptile}%</div><div class="sub">${bm.msg}</div></div>
+  </div></div>
+  <div class="review-section"><h3>Score by Subject</h3><div class="score-grid">
+    ${Object.entries(secSum).filter(([k,v])=>v.total>0).map(([k,v])=>{const s=SECTIONS.find(x=>x.id===k);return`<div class="score-card"><div class="label">${s?s.name:k}</div><div class="value">${v.correct}/${v.total}</div><div class="sub">${v.pct}%</div></div>`}).join('')}
+  </div></div>
+  <div class="review-section"><h3>Score Projections</h3><div class="score-grid">
+    <div class="score-card"><div class="label">LEAP</div><div class="value">${bm.leap}</div><div class="sub">${bm.ll}</div></div>
+    <div class="score-card"><div class="label">HSPT</div><div class="value">${bm.hspt}</div><div class="sub">of 800</div></div>
+    <div class="score-card"><div class="label">PSAT 8/9</div><div class="value">${bm.psat}</div><div class="sub">of 1440</div></div>
+    <div class="score-card"><div class="label">ACT</div><div class="value">${bm.act}</div><div class="sub">of 36</div></div>
+    <div class="score-card"><div class="label">SAT</div><div class="value">${bm.sat}</div><div class="sub">of 1600</div></div>
+  </div><div style="color:var(--text-muted);font-size:11px;text-align:center;margin-top:8px;font-style:italic">Early projections. Every diagnostic helps build accuracy.</div></div>
+  <div class="review-section"><h3>Skill Analysis</h3><div class="skill-grid">
+    ${Object.entries(skillMap).map(([sk,d])=>{const p=Math.round(d.c/d.t*100),cls=p>=75?'strong':p>=50?'ok':'weak';return`<div class="skill-item"><span class="sk-name">${sk}</span><span class="sk-score ${cls}">${d.c}/${d.t} (${p}%)</span></div>`}).join('')}
+  </div></div>`;
+
+  if(wrong.length>0){h+=`<div class="review-section"><h3>Gary\u2019s Review \u2014 Questions Missed (${wrong.length})</h3>`;
+    wrong.forEach(w=>{h+=`<div class="wrong-item"><div class="wi-q">Q${w.num} \u00b7 ${w.q.std} \u00b7 ${w.q.skill}</div><div class="wi-text">${w.q.text.replace(/\n/g,'<br>')}</div><div class="wi-yours"><b>Your answer:</b> ${w.ua}</div><div class="wi-correct"><b>Correct:</b> ${w.ca}</div><div class="wi-explain">${w.q.exp}</div>${w.q.str?`<div class="wi-strategy">LEAP Strategy: ${w.q.str}</div>`:''}</div>`});h+='</div>'}
+  else h+='<div class="review-section"><h3 style="color:var(--success)">Perfect Score!</h3></div>';
+
+  h+=`<div style="text-align:center;color:var(--accent2);font-size:14px;font-style:italic;padding:16px;margin-top:12px">\u201CKeep reading, keep thinking, keep pushing. The LEAP is coming \u2014 you\u2019re building something strong.\u201D \u2014 Gary</div>`;
+  h+=`<button class="return-btn" onclick="window.location.href='Jacob_Dashboard.html'">Return to Dashboard</button>`;
+  document.getElementById('testScreen').classList.remove('active');document.getElementById('reviewScreen').classList.add('active');document.getElementById('reviewContent').innerHTML=h;
+}
+</script>
+</body>
+</html>

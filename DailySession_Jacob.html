@@ -1,0 +1,2323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Session — The Archive</title>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            background-color: #1a1510;
+            color: #e8dcc8;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 16px;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header & Navigation */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            gap: 15px;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            color: #c9a84c;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, color 0.2s ease;
+            border-radius: 8px;
+        }
+
+        .back-button:hover {
+            transform: scale(1.1);
+            color: #e8dcc8;
+        }
+
+        .progress-dots {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #3d3428;
+            transition: background-color 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background-color: #c9a84c;
+        }
+
+        .progress-dot.completed {
+            background-color: #7fb069;
+        }
+
+        /* Phase Container */
+        .phase {
+            display: none;
+            animation: fadeIn 0.4s ease;
+            flex: 1;
+        }
+
+        .phase.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Phase 0: Loading */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            gap: 30px;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #3d3428;
+            border-top: 3px solid #c9a84c;
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            color: #c9a84c;
+            text-align: center;
+        }
+
+        /* Phase 1: Topic Selection */
+        .topic-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .topic-header h1 {
+            font-size: 32px;
+            color: #c9a84c;
+            margin-bottom: 10px;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+
+        .topic-header p {
+            color: #a89968;
+            font-size: 14px;
+        }
+
+        .topics-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .topic-card {
+            background-color: #231e17;
+            border: 2px solid #3d3428;
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .topic-card:hover {
+            border-color: #c9a84c;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(201, 168, 76, 0.1);
+        }
+
+        .topic-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .topic-title {
+            font-size: 18px;
+            color: #c9a84c;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .topic-description {
+            font-size: 14px;
+            color: #a89968;
+            margin-bottom: 12px;
+            min-height: 40px;
+        }
+
+        .topic-select-btn {
+            background-color: #c9a84c;
+            color: #1a1510;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: Georgia, 'Times New Roman', serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: flex-start;
+            letter-spacing: 0.5px;
+        }
+
+        .topic-select-btn:hover {
+            background-color: #e8dcc8;
+            transform: scale(1.05);
+        }
+
+        .topic-select-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Phase 2: Reading */
+        .reading-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reading-header {
+            margin-bottom: 20px;
+        }
+
+        .reading-title {
+            font-size: 24px;
+            color: #c9a84c;
+            margin-bottom: 12px;
+            font-weight: 400;
+        }
+
+        .reading-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            color: #a89968;
+        }
+
+        .reading-content {
+            background-color: #231e17;
+            border: 2px solid #3d3428;
+            border-radius: 12px;
+            padding: 24px;
+            line-height: 1.8;
+            margin-bottom: 24px;
+            flex: 1;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .reading-content p {
+            margin-bottom: 16px;
+            text-align: justify;
+        }
+
+        .reading-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .finish-reading-btn {
+            background-color: #7fb069;
+            color: #1a1510;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: Georgia, 'Times New Roman', serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 0.5px;
+        }
+
+        .finish-reading-btn:hover:not(:disabled) {
+            background-color: #8fc77d;
+            transform: translateY(-2px);
+        }
+
+        .finish-reading-btn:disabled {
+            background-color: #3d3428;
+            color: #a89968;
+            cursor: not-allowed;
+        }
+
+        .timer-message {
+            font-size: 13px;
+            color: #a89968;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Phase 3: Comprehension */
+        .comprehension-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .passage-review-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #231e17;
+            border: 1px solid #3d3428;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            color: #a89968;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .passage-review-toggle:hover {
+            background-color: #2a2318;
+            border-color: #5a4a30;
+        }
+
+        .passage-review-toggle .toggle-arrow {
+            transition: transform 0.2s ease;
+            font-size: 12px;
+        }
+
+        .passage-review-toggle.open .toggle-arrow {
+            transform: rotate(90deg);
+        }
+
+        .passage-review-panel {
+            display: none;
+            background-color: #1a1610;
+            border: 1px solid #3d3428;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            line-height: 1.7;
+            color: #c8b888;
+            font-size: 14px;
+        }
+
+        .passage-review-panel.open {
+            display: block;
+        }
+
+        .passage-review-panel p {
+            margin-bottom: 12px;
+        }
+
+        .question-header {
+            margin-bottom: 20px;
+        }
+
+        .question-number {
+            font-size: 13px;
+            color: #a89968;
+            margin-bottom: 8px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            color: #e8dcc8;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .option {
+            background-color: #231e17;
+            border: 2px solid #3d3428;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option:hover:not(.disabled) {
+            border-color: #c9a84c;
+            background-color: #2d2620;
+        }
+
+        .option.selected {
+            border-color: #c9a84c;
+            background-color: #2d2620;
+        }
+
+        .option.correct {
+            border-color: #7fb069;
+            background-color: rgba(127, 176, 105, 0.1);
+        }
+
+        .option.incorrect {
+            border-color: #c44536;
+            background-color: rgba(196, 69, 54, 0.1);
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+        }
+
+        .option-letter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background-color: #3d3428;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 14px;
+            color: #c9a84c;
+            flex-shrink: 0;
+        }
+
+        .option.selected .option-letter {
+            background-color: #c9a84c;
+            color: #1a1510;
+        }
+
+        .option.correct .option-letter {
+            background-color: #7fb069;
+            color: white;
+        }
+
+        .option.incorrect .option-letter {
+            background-color: #c44536;
+            color: white;
+        }
+
+        .option-text {
+            flex: 1;
+            color: #e8dcc8;
+        }
+
+        .feedback-box {
+            background-color: #231e17;
+            border: 2px solid #3d3428;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .feedback-box.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback-box.correct {
+            border-color: #7fb069;
+        }
+
+        .feedback-box.incorrect {
+            border-color: #c44536;
+        }
+
+        .feedback-label {
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .feedback-box.correct .feedback-label {
+            color: #7fb069;
+        }
+
+        .feedback-box.incorrect .feedback-label {
+            color: #c44536;
+        }
+
+        .feedback-text {
+            font-size: 14px;
+            color: #a89968;
+            line-height: 1.6;
+        }
+
+        .next-question-btn {
+            background-color: #5ca4e8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: Georgia, 'Times New Roman', serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 0.5px;
+        }
+
+        .next-question-btn:hover {
+            background-color: #6baef5;
+            transform: translateY(-2px);
+        }
+
+        .next-question-btn:active {
+            transform: scale(0.98);
+        }
+
+        .score-summary {
+            background-color: #231e17;
+            border: 2px solid #3d3428;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .score-summary h2 {
+            font-size: 20px;
+            color: #c9a84c;
+            margin-bottom: 12px;
+            font-weight: 400;
+        }
+
+        .score-display {
+            font-size: 48px;
+            color: #7fb069;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .score-feedback {
+            font-size: 14px;
+            color: #a89968;
+        }
+
+        /* Phase 4: Writing (Wednesday only) */
+        .writing-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .writing-header {
+            margin-bottom: 20px;
+        }
+
+        .writing-header h2 {
+            font-size: 20px;
+            color: #c9a84c;
+            margin-bottom: 8px;
+            font-weight: 400;
+        }
+
+        .writing-prompt {
+            background-color: #231e17;
+            border: 2px solid #3d3428;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #a89968;
+            line-height: 1.6;
+        }
+
+        .writing-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .textarea-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .writing-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 16px;
+            border: 2px solid #3d3428;
+            border-radius: 8px;
+            background-color: #231e17;
+            color: #e8dcc8;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 15px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .writing-textarea:focus {
+            outline: none;
+            border-color: #c9a84c;
+        }
+
+        .writing-textarea::placeholder {
+            color: #5d554a;
+        }
+
+        .word-counter {
+            font-size: 12px;
+            color: #a89968;
+            margin-top: 8px;
+        }
+
+        .word-counter.warning {
+            color: #c44536;
+        }
+
+        .submit-writing-btn {
+            background-color: #c9a84c;
+            color: #1a1510;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: Georgia, 'Times New Roman', serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 0.5px;
+        }
+
+        .submit-writing-btn:hover:not(:disabled) {
+            background-color: #e8dcc8;
+            transform: translateY(-2px);
+        }
+
+        .submit-writing-btn:disabled {
+            background-color: #3d3428;
+            color: #a89968;
+            cursor: not-allowed;
+        }
+
+        .writing-feedback {
+            background-color: #231e17;
+            border: 2px solid #7fb069;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .writing-feedback.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .feedback-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .feedback-title {
+            font-weight: 700;
+            color: #7fb069;
+            margin-bottom: 8px;
+        }
+
+        .feedback-message {
+            font-size: 14px;
+            color: #a89968;
+            line-height: 1.6;
+        }
+
+        /* Phase 5: Summary */
+        .summary-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .summary-title {
+            text-align: center;
+            font-size: 24px;
+            color: #c9a84c;
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
+
+        .summary-card {
+            background-color: #231e17;
+            border: 2px solid #3d3428;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #3d3428;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-icon {
+            font-size: 20px;
+            min-width: 24px;
+        }
+
+        .summary-label {
+            flex: 1;
+            color: #a89968;
+            font-size: 14px;
+        }
+
+        .summary-value {
+            color: #c9a84c;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .summary-value.bonus {
+            color: #5ca4e8;
+        }
+
+        .summary-total {
+            background-color: rgba(201, 168, 76, 0.1);
+            border: 2px solid #c9a84c;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .summary-total-label {
+            font-size: 12px;
+            color: #a89968;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .summary-total-value {
+            font-size: 36px;
+            color: #c9a84c;
+            font-weight: 700;
+        }
+
+        .summary-total-value .points-label {
+            font-size: 14px;
+            margin-left: 4px;
+        }
+
+        .khan-card {
+            background: linear-gradient(135deg, rgba(92, 164, 232, 0.1) 0%, rgba(201, 168, 76, 0.05) 100%);
+            border: 2px solid #5ca4e8;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .khan-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .khan-title {
+            font-size: 14px;
+            color: #5ca4e8;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .khan-content {
+            margin-bottom: 12px;
+        }
+
+        .khan-topic {
+            font-size: 16px;
+            color: #e8dcc8;
+            margin-bottom: 4px;
+        }
+
+        .khan-note {
+            font-size: 12px;
+            color: #a89968;
+        }
+
+        .khan-link {
+            display: inline-block;
+            background-color: #5ca4e8;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: Georgia, 'Times New Roman', serif;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .khan-link:hover {
+            background-color: #6baef5;
+            transform: translateY(-2px);
+        }
+
+        .return-btn {
+            background-color: #c9a84c;
+            color: #1a1510;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: Georgia, 'Times New Roman', serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 0.5px;
+        }
+
+        .return-btn:hover {
+            background-color: #e8dcc8;
+            transform: translateY(-2px);
+        }
+
+        /* Modal for exit confirmation */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #231e17;
+            border: 2px solid #3d3428;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            color: #c9a84c;
+            margin-bottom: 12px;
+            font-weight: 400;
+        }
+
+        .modal-text {
+            color: #a89968;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: Georgia, 'Times New Roman', serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.confirm {
+            background-color: #c44536;
+            color: white;
+        }
+
+        .modal-btn.confirm:hover {
+            background-color: #d85a4f;
+        }
+
+        .modal-btn.cancel {
+            background-color: #3d3428;
+            color: #c9a84c;
+        }
+
+        .modal-btn.cancel:hover {
+            background-color: #4d4a3f;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+
+            .reading-title {
+                font-size: 20px;
+            }
+
+            .topic-header h1 {
+                font-size: 28px;
+            }
+
+            .summary-total-value {
+                font-size: 32px;
+            }
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header & Navigation -->
+        <div class="header">
+            <button class="back-button" id="backBtn" title="Return to Dashboard">←</button>
+            <div class="progress-dots" id="progressDots"></div>
+            <div style="width: 32px;"></div>
+        </div>
+
+        <!-- Phase 0: Loading -->
+        <div class="phase" id="phase0">
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Gary is preparing your session...</div>
+            </div>
+        </div>
+
+        <!-- Phase 1: Topic Selection -->
+        <div class="phase" id="phase1">
+            <div class="topic-header">
+                <h1>Choose Your Path</h1>
+                <p>Select a passage to explore</p>
+            </div>
+            <div class="topics-grid" id="topicsGrid"></div>
+        </div>
+
+        <!-- Phase 2: Reading -->
+        <div class="phase" id="phase2">
+            <div class="reading-container">
+                <div class="reading-header">
+                    <h2 class="reading-title" id="readingTitle"></h2>
+                    <div class="reading-meta">
+                        <span><strong id="wordCount">0</strong> words</span>
+                        <span>~<strong id="readTime">0</strong> min read</span>
+                    </div>
+                </div>
+                <div class="reading-content" id="readingContent"></div>
+                <div class="timer-message" id="timerMessage"></div>
+                <button class="finish-reading-btn" id="finishReadingBtn" disabled>I've Finished Reading</button>
+            </div>
+        </div>
+
+        <!-- Phase 3: Comprehension -->
+        <div class="phase" id="phase3">
+            <div class="comprehension-container">
+                <div class="passage-review-toggle" id="passageReviewToggle" onclick="togglePassageReview()">
+                    <span class="toggle-arrow">&#9654;</span>
+                    <span>Review Passage</span>
+                </div>
+                <div class="passage-review-panel" id="passageReviewPanel"></div>
+                <div class="question-header">
+                    <div class="question-number" id="questionNumber"></div>
+                    <div class="question-text" id="questionText"></div>
+                </div>
+                <div class="options-list" id="optionsList"></div>
+                <div class="feedback-box" id="feedbackBox">
+                    <div class="feedback-label" id="feedbackLabel"></div>
+                    <div class="feedback-text" id="feedbackText"></div>
+                </div>
+                <button class="next-question-btn" id="nextQuestionBtn" style="display: none;">Next Question</button>
+            </div>
+        </div>
+
+        <!-- Phase 4: Writing (Conditional) -->
+        <div class="phase" id="phase4">
+            <div class="writing-container">
+                <div class="writing-header">
+                    <h2>Share Your Thoughts</h2>
+                    <p style="color: #a89968; font-size: 13px; margin-top: 4px;">Available on Wednesdays</p>
+                </div>
+                <div class="writing-prompt" id="writingPrompt"></div>
+                <div class="writing-form">
+                    <div class="textarea-wrapper">
+                        <textarea class="writing-textarea" id="writingTextarea" placeholder="Write your response here..."></textarea>
+                        <div class="word-counter" id="wordCounter">0 words (50 minimum)</div>
+                    </div>
+                    <button class="submit-writing-btn" id="submitWritingBtn" disabled>Submit Response</button>
+                </div>
+                <div class="writing-feedback" id="writingFeedback">
+                    <div class="feedback-icon">✓</div>
+                    <div class="feedback-title">Response Saved</div>
+                    <div class="feedback-message">Your response has been saved! Gary will review it and provide detailed feedback soon.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 5: Summary -->
+        <div class="phase" id="phase5">
+            <div class="summary-container">
+                <h2 class="summary-title">Session Complete</h2>
+
+                <div class="summary-card">
+                    <div class="summary-item">
+                        <span class="summary-icon" id="readingIcon">✓</span>
+                        <span class="summary-label">Reading Passage</span>
+                        <span class="summary-value">+3 pts</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-icon" id="comprehensionIcon">✓</span>
+                        <span class="summary-label" id="comprehensionLabel">Comprehension Questions</span>
+                        <span class="summary-value" id="comprehensionScore">+2 pts</span>
+                    </div>
+                    <div class="summary-item" id="writingSummaryItem" style="display: none;">
+                        <span class="summary-icon" id="writingIcon">✓</span>
+                        <span class="summary-label">Writing Response</span>
+                        <span class="summary-value">+3 pts</span>
+                    </div>
+                    <div class="summary-total">
+                        <div class="summary-total-label">Total Points Earned</div>
+                        <div class="summary-total-value"><span id="totalPointsValue">6</span><span class="points-label">pts</span></div>
+                    </div>
+                </div>
+
+                <div class="khan-card">
+                    <div class="khan-icon">📚</div>
+                    <div class="khan-title">Today's Math Focus</div>
+                    <div class="khan-content">
+                        <div class="khan-topic" id="khantopic">Fractions & Decimals</div>
+                        <div class="khan-note">Based on your recent diagnostic results</div>
+                    </div>
+                    <a href="https://www.khanacademy.org/math/cc-6th-grade-math/cc-6th-fractions-decimals" class="khan-link" target="_blank">Explore on Khan Academy →</a>
+                </div>
+
+                <button class="return-btn" id="returnBtn">Return to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exit Confirmation Modal -->
+    <div class="modal" id="exitModal">
+        <div class="modal-content">
+            <div class="modal-title">Leave Session?</div>
+            <div class="modal-text">You have an active session in progress. Are you sure you want to leave?</div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="cancelExitBtn">Stay</button>
+                <button class="modal-btn confirm" id="confirmExitBtn">Leave</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // CONFIGURATION & STATE
+        // ============================================================================
+
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
+        const SESSION_KEY = 'jacob_session_v1';
+        const TODAY = new Date().toISOString().split('T')[0];
+        const IS_WEDNESDAY = new Date().getDay() === 3;
+
+        let currentPhase = 0;
+        let currentTopic = null;
+        let currentQuestionIndex = 0;
+        let correctAnswers = 0;
+        let sessionStartTime = Date.now();
+        let readingFinishedTime = null;
+        let writingCompleted = false;
+        let totalPointsEarned = 0;
+
+        // Adaptive loop state
+        let roundNumber = 0;
+        let roundScores = []; // [{passageId, score, total, bonusPoints}]
+        let allTopicsUsed = [];
+        const TARGET_MINUTES = 15;
+        const MAX_MINUTES = 25;
+        const MAX_ROUNDS = 5;
+
+        // Cross-session dedup: track which passages/topics have been used recently
+        const USED_TOPICS_KEY = 'jacob_used_topics_v1';
+        function getRecentlyUsedTopics() {
+            try {
+                const stored = JSON.parse(localStorage.getItem(USED_TOPICS_KEY) || '{}');
+                const cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days
+                const filtered = {};
+                Object.entries(stored).forEach(([topic, timestamp]) => {
+                    if (timestamp > cutoff) filtered[topic] = timestamp;
+                });
+                localStorage.setItem(USED_TOPICS_KEY, JSON.stringify(filtered));
+                return Object.keys(filtered);
+            } catch { return []; }
+        }
+        function markTopicUsed(topic) {
+            try {
+                const stored = JSON.parse(localStorage.getItem(USED_TOPICS_KEY) || '{}');
+                stored[topic] = Date.now();
+                localStorage.setItem(USED_TOPICS_KEY, JSON.stringify(stored));
+            } catch {}
+        }
+        const recentlyUsedTopics = getRecentlyUsedTopics();
+
+        // Pre-fetch: generate next passage in background while boy reads current one
+        let prefetchedPassage = null;
+        let prefetchPromise = null;
+
+        // ============================================================================
+        // FALLBACK PASSAGE LIBRARY
+        // ============================================================================
+
+        const FALLBACK_PASSAGES = [
+            {
+                id: 'roman-aqueducts',
+                category: 'Ancient Engineering',
+                icon: '🏛️',
+                title: 'The Engineering Marvels of Roman Aqueducts',
+                description: 'How ancient Romans built massive systems to carry water across continents',
+                passage: `The Roman Empire was one of the greatest civilizations in history, and one of their most impressive achievements was the construction of aqueducts. These were not simple pipes or channels—they were complex engineering systems that transported water from distant sources to cities throughout the empire. The most famous is the Pont du Gard in southern France, which still stands today after nearly 2,000 years.\n\nRoman engineers faced an enormous challenge. They needed to move water from high mountains where sources were pure and reliable, across valleys and through rugged terrain, all the way to cities like Rome, which had hundreds of thousands of people. Without modern machinery, explosives, or electricity, they had to rely on mathematics, geometry, and human ingenuity.\n\nThe key principle was gravity. Instead of using pumps, the Romans designed aqueducts with a very slight downward slope. This slope, called the gradient, was so gradual that it might drop only one meter in height for every hundred meters of distance. This tiny slope was enough to make water flow slowly and steadily from the mountains to the city. Roman surveyors used tools called groma and dioptra to measure angles and maintain this precise slope across miles of terrain.\n\nThe aqueducts themselves were built differently depending on the landscape. In some areas, water flowed through underground tunnels carved through solid rock. In other places, the Romans built raised channels made of stone, cement, and brick. When aqueducts had to cross deep valleys, they built tall bridge-like structures made of multiple arched levels stacked on top of each other—these are the most spectacular examples we see today.\n\nThe Romans mixed volcanic ash with water and limestone to create a cement called pozzolana. This mixture was so strong and durable that many aqueduct sections are still standing. Some of these structures have lasted longer than the empire itself! The engineering principles they used are so sound that modern engineers still study them.\n\nOnce water reached a city, it flowed into large tanks called castellum aquarium. From there, smaller pipes distributed water to fountains, public baths, wealthy homes, and even into the pipes that carried waste away from the city. A single large aqueduct might bring millions of gallons of water to a city every single day.\n\nBuilding these aqueducts required thousands of workers, enormous amounts of materials, and years of construction. Yet the Romans considered them essential. Clean water meant healthier people, which meant a stronger population. That's why emperors spent enormous amounts of money maintaining and expanding the aqueduct systems. By the second century AD, Rome had eleven major aqueducts bringing water into the city from every direction.\n\nThe ingenuity of Roman engineers shows that great achievements don't require modern technology. They require understanding principles like gravity and geometry, careful planning, and the determination to solve impossible problems. The aqueducts are a reminder that human beings have always been capable of creating remarkable structures that last for thousands of years.`,
+                questions: [
+                    {
+                        text: 'What was the main principle that allowed Roman aqueducts to transport water without pumps?',
+                        options: [
+                            'Gravity and a slight downward slope',
+                            'Underground pipes pushed by wind pressure',
+                            'A series of mechanical wheels and pulleys',
+                            'Pressure from water sources in the mountains'
+                        ],
+                        correct: 0,
+                        explanation: 'Correct! The Romans used gravity. They designed aqueducts with a very slight downward slope so water would flow slowly from the mountains to the cities. This was a brilliant solution that required no machinery.'
+                    },
+                    {
+                        text: 'Why would you infer that maintaining the aqueducts was important to Roman emperors?',
+                        options: [
+                            'It was a requirement by the king of all Europe',
+                            'Clean water meant healthier people, which meant a stronger, more stable empire',
+                            'They wanted to impress other countries with large stone structures',
+                            'The aqueducts were used to supply water for Roman armies to drink in battle'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage states that clean water meant healthier people, and a healthier population was stronger. Emperors invested in aqueducts because they understood this connection between water, health, and the empire\'s strength.'
+                    },
+                    {
+                        text: 'What does the term "gradient" mean as it is used in this passage?',
+                        options: [
+                            'A series of steps leading up a mountain',
+                            'The angle at which water flows downhill',
+                            'A measuring tool used by Roman surveyors',
+                            'The slight downward slope designed into the aqueduct'
+                        ],
+                        correct: 3,
+                        explanation: 'Correct! In context, "gradient" refers to the slight downward slope of the aqueduct. The passage tells us the Romans designed this slope so carefully—only one meter drop per hundred meters of distance.'
+                    },
+                    {
+                        text: 'According to the passage, what evidence shows that Roman aqueduct engineering was successful?',
+                        options: [
+                            'The passage states that Rome had eleven major aqueducts by the second century AD',
+                            'Roman soldiers used aqueducts to travel across the empire',
+                            'Some aqueduct structures are still standing today after nearly 2,000 years',
+                            'All of the above'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! The passage specifically notes that "some of these structures have lasted longer than the empire itself" and that the Pont du Gard still stands after nearly 2,000 years. This is clear evidence of how well the Romans built them.'
+                    }
+                ],
+                writingPrompt: 'If you were a Roman engineer tasked with building an aqueduct across a mountain valley, what challenges do you think you would face? Explain at least two problems you\'d need to solve and how you might approach them.'
+            },
+            {
+                id: 'modern-architecture',
+                category: 'Modern Design',
+                icon: '🏗️',
+                title: 'The Burj Khalifa: Reaching for the Sky',
+                description: 'The world\'s tallest building and the engineering that makes it possible',
+                passage: `When Burj Khalifa opened in Dubai, United Arab Emirates, in 2010, it became the tallest building in the world. At 828 meters tall—nearly half a mile into the sky—it held a record that still stands today. But the Burj Khalifa isn't just tall; it's a marvel of modern engineering that pushes the boundaries of what builders thought was possible.\n\nBuilding a structure this tall presents enormous challenges. The higher you go, the harder the wind pushes. At the top of the Burj Khalifa, winds can reach over 200 kilometers per hour. The building must be flexible enough to sway in the wind without breaking—if it were completely rigid, the stress would eventually cause it to fail. Engineers designed the building to sway up to two meters at the top during powerful storms, and this movement is actually healthy for the structure.\n\nWeight is another massive challenge. The building contains 163,000 square meters of office and residential space, plus observation decks, a restaurant, and a hotel. All of this—the concrete, steel, glass, and everything inside—weighs about 500,000 tons. To support this enormous weight, the foundation goes deep underground. The building is anchored to bedrock with massive concrete piles that extend 50 meters below the surface, like roots of a giant tree.\n\nThe building's design actually helps it stay cool and stable. It has a distinctive Y-shape when viewed from above. This shape reduces wind pressure on the building because wind flows around it more smoothly instead of pushing directly against flat sides. The shape also means each apartment gets more natural light and views, which was important for the architects' design philosophy.\n\nCooling a building this size in the desert heat of Dubai is another engineering puzzle. The Burj Khalifa uses sophisticated air conditioning systems that must cool hundreds of offices, residences, and public spaces simultaneously. Interestingly, the system also recovers heat that would normally be wasted and recycles it to heat water for the building's bathrooms. This makes the building more energy-efficient.\n\nGetting people up and down a building this tall requires special attention too. The Burj Khalifa has 57 elevators and 8 escalators. Some elevators are so fast they reach speeds of 17 meters per second—about 60 kilometers per hour. These high-speed elevators use special braking systems to slow down smoothly without jerking passengers. Elevator travel from the lobby to the observation deck on the 124th floor takes just 60 seconds.\n\nConstruction itself was dangerous and complex. The building was constructed layer by layer, with workers and materials transported up hundreds of meters every single day. The project required about 22 million worker hours—that's equivalent to 10,000 people working full-time for an entire year. The project also required innovative construction techniques that had never been used before at such heights.\n\nThe Burj Khalifa represents the intersection of art and engineering. It's beautiful to look at, but it's also a triumph of problem-solving. Engineers had to figure out how to handle wind, weight, temperature, and transportation. They had to invent new techniques and use new materials. Today, the Burj Khalifa stands as a symbol of human ambition and the incredible things we can build when we combine creativity with technical knowledge.`,
+                questions: [
+                    {
+                        text: 'Why is it important that the Burj Khalifa can sway up to two meters at the top?',
+                        options: [
+                            'It makes the building more comfortable for people living and working there',
+                            'It allows the building to be flexible in the wind, preventing stress that could cause failure',
+                            'It saves money because engineers don\'t need to make the building as strong',
+                            'It creates a unique experience for visitors on the observation deck'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage explains that "if it were completely rigid, the stress would eventually cause it to fail." The swaying movement is actually healthy because it allows the building to move with the wind rather than fighting it.'
+                    },
+                    {
+                        text: 'What can you infer about why the Burj Khalifa has a Y-shape design?',
+                        options: [
+                            'It looks more interesting and modern than a rectangle',
+                            'It was easier to build in stages moving outward from the center',
+                            'It reduces wind pressure and provides better light and views while solving engineering problems',
+                            'It was the shape the client requested without considering engineering'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! The passage states that the Y-shape reduces wind pressure because wind flows around it more smoothly, and it also gives apartments more natural light and views. This is good design that solves multiple problems at once.'
+                    },
+                    {
+                        text: 'In this passage, what does "anchor" mean in the context of the building\'s foundation?',
+                        options: [
+                            'A decoration placed at the base of the building',
+                            'To fasten or secure something firmly to a stable base',
+                            'A rope used to hold the building upright',
+                            'The top floor of the building where people gather'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage says the building is "anchored to bedrock with massive concrete piles." To anchor something means to secure it firmly, like anchoring a ship to the ocean floor.'
+                    },
+                    {
+                        text: 'Which detail from the passage best demonstrates that the Burj Khalifa required innovative problem-solving?',
+                        options: [
+                            'It is taller than previous buildings',
+                            'It has 57 elevators and 8 escalators in the building',
+                            'The project required new construction techniques that had never been used before at such heights',
+                            'The building is located in Dubai, which is in the desert'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! The passage specifically states that "the project required innovative construction techniques that had never been used before at such heights." This directly shows that engineers had to invent new solutions for this unprecedented challenge.'
+                    }
+                ],
+                writingPrompt: 'Design a building that would be useful in a place you\'ve never been (a desert, underwater, or on Mars). Describe what problems you\'d need to solve and what special features your building would need to keep people safe and comfortable.'
+            },
+            {
+                id: 'medieval-castles',
+                category: 'Medieval History',
+                icon: '🏰',
+                title: 'Castles: Medieval Fortresses of War and Strategy',
+                description: 'How medieval castles were designed to defend against attack',
+                passage: `Medieval castles weren't just fancy houses for kings and nobles. They were carefully designed military fortresses built to defend against attacks. Every feature—the towers, walls, gates, and layout—had a specific purpose in protecting the people inside and keeping enemies out.\n\nThe first castles were built around 1000 AD in Europe, and they evolved over several hundred years as weapons and warfare techniques changed. Early castles were often simple mounds of earth with wooden walls on top. But as siege weapons became more powerful, castle design became increasingly sophisticated.\n\nThe most distinctive feature of a castle is its stone walls and towers. The walls were typically very thick—sometimes up to seven meters thick at the base—to withstand attacks from catapults and battering rams. The towers served multiple purposes. They allowed defenders to see approaching enemies from far away. They also allowed archers to shoot arrows down at enemies trying to climb the walls. Some towers had multiple levels so defenders could rain arrows and projectiles on attackers from above.\n\nOne of the cleverest features was the moat—a deep ditch filled with water surrounding the castle. Moats served several purposes. They made it difficult for enemies to get close to the walls, and they prevented attackers from using siege towers or ladders to scale the walls. Some moats were stocked with crocodiles or other dangerous animals, though this was actually rare. More commonly, moats simply made it impossible to build the earthen ramps that siege engineers used to reach the top of walls.\n\nThe castle gate was the most vulnerable point, so it was defended with special care. Many castles had multiple gates arranged in a sequence. Even if attackers broke through the first gate, they would find themselves in a confined space called a barbican where they could be attacked from above. If they managed to break through the second gate, they would enter another space with yet more defenses. This arrangement meant attackers could never rest or regroup—they were constantly under fire.\n\nInside the castle walls, the space was carefully organized. The keep or donjon was a large tower in the center where defenders could retreat if the outer walls were breached. The keep was the last line of defense. Around the keep, there were buildings for storage, barracks for soldiers, a kitchen, wells for water, and living quarters for the lord and his family. These were arranged so supplies could last during a long siege.\n\nCastle defenders also had another advantage: height. Arrows and projectiles fall downward due to gravity, so archers shooting down from castle walls had a significant advantage over attackers on the ground. This is why castles were often built on hilltops or raised areas. The higher ground meant enemies had to fight uphill while being attacked from above—a terrible position to be in.\n\nAs siege weapons improved over time, castles changed too. Early castles had tall, thin walls, but when cannons were invented, these walls became vulnerable. Cannons could punch holes through tall stone walls from a distance. So later castle designs had lower, thicker walls that could absorb cannon fire. These walls were also angled so cannons on the castle could fire at approaching enemies from multiple angles.\n\nCastles were also symbols of power and authority. A lord's castle showed his strength and his right to rule. The more impressive the castle, the more powerful the lord appeared. This is why some castles were enormous structures that took decades and enormous amounts of wealth to build. Building a castle was an investment in both military strength and political power.\n\nToday, many medieval castles still stand throughout Europe. Some are in ruins, but others have been restored and are open to visitors. They remind us that medieval people were ingenious engineers who solved complex problems with the tools and knowledge available to them.`,
+                questions: [
+                    {
+                        text: 'What was the primary reason castles had such thick stone walls?',
+                        options: [
+                            'To keep the inside of the castle warmer during winter',
+                            'To make the castle look more impressive and powerful',
+                            'To withstand attacks from siege weapons like catapults and battering rams',
+                            'To provide space for secret rooms and hidden passageways'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! The passage states walls were "typically very thick—sometimes up to seven meters thick at the base—to withstand attacks from catapults and battering rams." The thickness served a defensive, not decorative, purpose.'
+                    },
+                    {
+                        text: 'Based on the passage, why would a castle builder choose to construct their castle on a hilltop?',
+                        options: [
+                            'Because hilltops had better weather and more rainfall',
+                            'Because the higher ground gave defenders an advantage with height and forced enemies to fight uphill while being attacked from above',
+                            'Because there were usually more trees on hilltops to use as building materials',
+                            'Because rivers and moats were easier to dig on hills'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage explains that being higher up was an advantage because "archers shooting down from castle walls had a significant advantage over attackers on the ground" and enemies would "have to fight uphill while being attacked from above."'
+                    },
+                    {
+                        text: 'What does "siege" mean in this passage?',
+                        options: [
+                            'A type of weapon used to defend a castle',
+                            'A military operation in which a castle is surrounded and attacked over a long period',
+                            'The design features inside a castle',
+                            'A group of soldiers marching together'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! From context, a siege is when attackers surround and attack a castle over time. The passage mentions "siege weapons," "siege engineers," and castles designed to "last during a long siege."'
+                    },
+                    {
+                        text: 'What evidence shows that castle design changed as military technology improved?',
+                        options: [
+                            'All castles were built at the same time, so they couldn\'t change',
+                            'Early castles had tall thin walls, but when cannons were invented, later castles had lower, thicker, angled walls that could withstand cannon fire',
+                            'Castles got bigger and taller as time went on',
+                            'Moats became more common because people invented swimming'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage directly explains this evolution: "Early castles had tall, thin walls, but when cannons were invented, these walls became vulnerable... later castle designs had lower, thicker walls." Engineers adapted designs to new threats.'
+                    }
+                ],
+                writingPrompt: 'Imagine you are the architect hired to design a new castle for a medieval lord. Describe three features you would include to defend against attack and explain how each feature would protect the castle and its people.'
+            },
+            {
+                id: 'city-planning',
+                category: 'Urban Design',
+                icon: '🌃',
+                title: 'How Cities Are Designed: Planning the Perfect Urban Space',
+                description: 'The science and art behind creating livable, functional cities',
+                passage: `When you walk through a city, you might not think about it, but nearly everything you see was planned by someone. The layout of streets, the location of parks, where buildings can be built, even where power lines go underground—these are all decisions made by urban planners. City planning is the process of designing how a city will look and function in the future.\n\nCity planners have to solve many complex problems at once. They need to design streets so traffic flows smoothly and people can walk safely. They need to plan where homes, offices, shops, and factories will be located. They need to make sure there are parks for recreation, schools for education, and hospitals for healthcare. They also need to plan for utilities like water, electricity, and sewage systems. And they must do all this while considering environmental impact and making sure the city grows in a sustainable way.\n\nOne important concept in city planning is zoning. Zoning means dividing a city into different areas where different types of activities are allowed. A residential zone is primarily for homes. A commercial zone is for shops and offices. An industrial zone is for factories. By separating these activities, planners can reduce pollution and noise in residential areas, and they can concentrate similar businesses together, which makes transportation and delivery more efficient.\n\nStreet design is another critical element. Wide streets with multiple lanes are good for moving many cars quickly, but they make the city less walkable and pleasant for pedestrians. Narrow, tree-lined streets are pleasant to walk on, but they can get congested with traffic. Good city planners try to find a balance. They create some wide streets for major traffic routes and some narrower streets for neighborhoods where people can walk safely and comfortably.\n\nGreen space is essential to a healthy city. Parks provide places for people to exercise, rest, and enjoy nature. They also improve air quality by filtering pollutants and releasing oxygen. Trees along streets provide shade in summer and make cities more beautiful. Cities with abundant green space are generally healthier and happier places to live. Famous examples include Central Park in New York City and Hyde Park in London—these large parks provide essential recreation space for millions of people.\n\nPublic transportation is another key element of good city planning. If a city is designed so that buses, trains, and subways can efficiently move people around, fewer people need to drive cars. This reduces traffic, pollution, and the need for massive parking lots. Cities like Tokyo and Copenhagen have excellent public transportation systems that allow residents to live without owning cars. These cities are more walkable and have less traffic congestion.\n\nCity planners also think about neighborhoods and community. A good neighborhood has shops, restaurants, parks, and services all within walking distance. People can buy groceries, meet friends, and enjoy recreation without needing a car. This type of design makes communities stronger because people know their neighbors and spend time outdoors together. It's called "mixed-use development" because different types of activities are mixed together.\n\nWhen planning a new city or redesigning an old one, planners also consider history and culture. Historic buildings and neighborhoods should be preserved because they are part of a city's identity and heritage. They also attract tourists and create a sense of community pride. However, cities also need to grow and modernize, so planners must balance preservation with progress.\n\nTechnology is changing how cities are planned. Computers now allow planners to model how changes will affect traffic, pollution, and citizen happiness. Sensors throughout the city collect data about how people use public spaces, and this information helps planners make better decisions. In the future, smart cities might use artificial intelligence to manage traffic, utilities, and emergency services in real-time.\n\nCity planning affects everyone who lives in an urban area. A well-planned city is healthier, safer, more beautiful, and more enjoyable. A poorly planned city becomes congested, polluted, and unpleasant. That's why city planning is so important—it literally shapes where and how we live.`,
+                questions: [
+                    {
+                        text: 'According to the passage, what is the purpose of dividing a city into different zones?',
+                        options: [
+                            'To make it harder for people to travel between different parts of the city',
+                            'To separate different types of activities so pollution and noise are reduced in residential areas and similar businesses are concentrated together',
+                            'To allow the government to charge different taxes in different parts of the city',
+                            'To create boundaries that make the city easier to defend'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage explains that zoning "can reduce pollution and noise in residential areas, and they can concentrate similar businesses together, which makes transportation and delivery more efficient."'
+                    },
+                    {
+                        text: 'Why would a city planner include parks and green spaces in a city design?',
+                        options: [
+                            'Parks are only for decoration and making the city look nice',
+                            'Parks provide recreation, improve air quality, and make the city a healthier and happier place to live',
+                            'Green spaces are required by law in all cities',
+                            'Parks reduce the number of streets needed in a city'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage states that parks provide recreation, and "they also improve air quality by filtering pollutants and releasing oxygen. Cities with abundant green space are generally healthier and happier places to live."'
+                    },
+                    {
+                        text: 'What does "mixed-use development" mean in this passage?',
+                        options: [
+                            'Buildings that can be used for multiple purposes at different times',
+                            'Different types of activities and services mixed together in the same neighborhood so people can walk to shops, restaurants, parks, and services',
+                            'Combining old buildings with new construction',
+                            'Using the same street for both cars and public transportation'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage explains that in mixed-use development, "shops, restaurants, parks, and services all within walking distance" are mixed together so "people can buy groceries, meet friends, and enjoy recreation without needing a car."'
+                    },
+                    {
+                        text: 'Based on the information in the passage, which city would likely be more pleasant to live in without a car?',
+                        options: [
+                            'A city with wide streets and large parking lots',
+                            'A city with abundant green space, excellent public transportation, and mixed-use neighborhoods',
+                            'A city that separated residential and commercial areas far apart',
+                            'A city that prioritized industrial zones in the center'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage states that cities with "excellent public transportation systems" and "mixed-use development" allow residents to "live without owning cars." Tokyo and Copenhagen are given as examples.'
+                    }
+                ],
+                writingPrompt: 'Design a new neighborhood that would be a great place to live. Include at least three features that would make it pleasant, safe, and convenient. Explain why each feature is important.'
+            },
+            {
+                id: 'pompeii-mystery',
+                category: 'Historical Discovery',
+                icon: '🌋',
+                title: 'Frozen in Time: The Mystery of Pompeii',
+                description: 'How a volcanic eruption preserved an entire Roman city',
+                passage: `In 79 AD, Mount Vesuvius erupted in Italy, burying the Roman city of Pompeii under volcanic ash and pumice. For nearly 1,700 years, the city lay hidden underground. When archaeologists finally excavated Pompeii in the 1700s, they uncovered something extraordinary: a snapshot of Roman life frozen in time. Pompeii is one of the most important archaeological sites in the world because it shows us exactly how people lived nearly 2,000 years ago.\n\nPompeii was a thriving city of about 20,000 people before the eruption. It was located near Naples and was known as a center of trade and culture. Wealthy Romans built vacation homes there, attracted by the warm climate and beautiful scenery. The city had theaters, temples, shops, bathhouses, and taverns. It was a bustling, cosmopolitan city filled with people from different parts of the Roman Empire.\n\nOn the morning of August 24, 79 AD, Vesuvius erupted with tremendous force. The eruption sent a column of ash and pumice 33 kilometers into the air. The column collapsed and came down like a pyroclastic flow—a superheated wave of gas and volcanic material moving at tremendous speed. The temperature was so hot it instantly killed anyone it touched. Ash and pumice buried everything in the city, layer after layer, creating a blanket that would protect and preserve what lay beneath.\n\nWhat makes Pompeii so special is that the ash preserved everything. Buildings didn't burn down—the ash came down so fast and thick that fires were smothered. Objects were buried in place. Food was preserved. Even the shapes of people were captured in the ash. When archaeologists found cavities in the ash where bodies had been, they realized they could pour plaster into these spaces to create casts that showed the exact position people were in when they died. These casts are heartbreaking and fascinating—they show families huddled together, people covering their faces, a dog straining against its chain.\n\nThe buildings of Pompeii reveal details of Roman life. In homes, archaeologists found furniture, oil lamps, kitchen utensils, and mosaics on the floors. In shops, they found loaves of bread still on the shelves and jars of preserved fruit. One bakery still had 81 loaves of bread in the oven. In a tavern, archaeologists found wine jars with labels indicating where the wine came from. A thermopolium (a shop selling hot food) still had bowls of nuts and legumes in jars.\n\nIn public spaces, archaeologists discovered election graffiti on walls where citizens had written support for candidates. There was graffiti about love and relationships. Someone wrote a joke about a gladiator. Schoolchildren had carved their lessons into wax tablets. These writings show that Roman people weren't so different from us—they cared about politics, humor, and education.\n\nOne of the most remarkable discoveries was the House of the Vettii, home of a wealthy merchant family. The house contained beautiful frescoes (paintings) on the walls depicting mythological scenes and gardens. The paintings are so well-preserved that the colors are still vibrant. They show us what Roman art looked like and what was considered beautiful in that era.\n\nThe preserved food at Pompeii tells us what Romans ate: bread, fish, olives, walnuts, almonds, cheese, and wine. Archaeologists found that the Roman diet was quite healthy and varied. They also found evidence of diseases—skeletal remains showed signs of arthritis, dental problems, and infections. This gives us insight into Roman health and medicine.\n\nPompeii also reveals uncomfortable truths about Roman society. Archaeologists found evidence of slavery. Some homes had separate quarters for enslaved people. Graffiti showed support for brutal gladiator games. The city also had brothels and other evidence of social divisions between rich and poor.\n\nToday, Pompeii is a UNESCO World Heritage Site and one of the most visited archaeological sites in the world. It remains under constant study and excavation. New technologies like aerial photography and computer scanning are revealing details that earlier archaeologists missed. Pompeii is a time machine that takes us back to ancient Rome and shows us that beneath our differences in technology and culture, human beings have always shared the same hopes, fears, and desires.`,
+                questions: [
+                    {
+                        text: 'Why did the volcanic ash preserve objects and buildings instead of destroying them?',
+                        options: [
+                            'The ash was cold and protected things from heat damage',
+                            'The ash came down so fast and thick that it smothered fires and buried everything in place without burning them',
+                            'Roman buildings were made of materials that couldn\'t burn',
+                            'Vesuvius wasn\'t hot enough to destroy stone buildings'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage states that "the ash came down so fast and thick that fires were smothered" and "buildings didn\'t burn down." The speed and volume of the ash were key to preservation.'
+                    },
+                    {
+                        text: 'What can you infer about Roman people based on the graffiti and writings found in Pompeii?',
+                        options: [
+                            'Romans were not intelligent and couldn\'t write well',
+                            'Romans cared about politics, humor, and education—concerns similar to modern people',
+                            'Romans only wrote things on walls and never used paper',
+                            'All Romans were artists who spent their time creating beautiful writings'
+                        ],
+                        correct: 1,
+                        explanation: 'Correct! The passage notes that "these writings show that Roman people weren\'t so different from us—they cared about politics, humor, and education." This is an inference about their values and priorities.'
+                    },
+                    {
+                        text: 'In this passage, what does "pyroclastic flow" mean?',
+                        options: [
+                            'The initial explosion that sends ash into the air',
+                            'A stream of lava flowing down the side of the volcano',
+                            'A superheated wave of gas and volcanic material moving at tremendous speed',
+                            'The ash settling on the ground after an eruption'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! The passage defines it as "a superheated wave of gas and volcanic material moving at tremendous speed" that had a temperature "so hot it instantly killed anyone it touched."'
+                    },
+                    {
+                        text: 'Which of the following details from the passage best demonstrates what Pompeii reveals about Roman society?',
+                        options: [
+                            'Pompeii was located near Naples and was a center of trade',
+                            'Plaster casts were used to preserve the shapes of bodies',
+                            'Pompeii had evidence of social divisions between rich and poor, slavery, and brutal entertainment, showing uncomfortable truths alongside beautiful artwork and healthy food',
+                            'The House of the Vettii had paintings of mythological scenes'
+                        ],
+                        correct: 2,
+                        explanation: 'Correct! This option encompasses the passage\'s point that Pompeii reveals both positive aspects (art, food, health) and negative aspects (slavery, violence) of Roman society, providing a complete picture.'
+                    }
+                ],
+                writingPrompt: 'Imagine you could send a message in a sealed box that will be discovered in 2,000 years by archaeologists. What would you put in it to help future people understand what life is like today? Explain why you would choose these items.'
+            }
+        ];
+
+        // ============================================================================
+        // DOM ELEMENTS
+        // ============================================================================
+
+        const phases = {
+            0: document.getElementById('phase0'),
+            1: document.getElementById('phase1'),
+            2: document.getElementById('phase2'),
+            3: document.getElementById('phase3'),
+            4: document.getElementById('phase4'),
+            5: document.getElementById('phase5')
+        };
+
+        // ============================================================================
+        // INITIALIZATION
+        // ============================================================================
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            updateProgressDots();
+            showPhase(0);
+            loadSession();
+            setupEventListeners();
+
+            // Start loading
+            setTimeout(() => {
+                fetchPassageChoices();
+            }, 800);
+        }
+
+        function setupEventListeners() {
+            document.getElementById('backBtn').addEventListener('click', handleBack);
+            document.getElementById('finishReadingBtn').addEventListener('click', handleFinishReading);
+            document.getElementById('nextQuestionBtn').addEventListener('click', handleNextQuestion);
+            document.getElementById('submitWritingBtn').addEventListener('click', handleSubmitWriting);
+            document.getElementById('writingTextarea').addEventListener('input', updateWordCount);
+            document.getElementById('returnBtn').addEventListener('click', returnToDashboard);
+            document.getElementById('cancelExitBtn').addEventListener('click', closeExitModal);
+            document.getElementById('confirmExitBtn').addEventListener('click', confirmExit);
+        }
+
+        // ============================================================================
+        // PHASE MANAGEMENT
+        // ============================================================================
+
+        function showPhase(phaseNum) {
+            Object.values(phases).forEach(phase => phase.classList.remove('active'));
+            if (phases[phaseNum]) {
+                phases[phaseNum].classList.add('active');
+            }
+            currentPhase = phaseNum;
+            updateProgressDots();
+            window.scrollTo(0, 0);
+        }
+
+        function updateProgressDots() {
+            const dotsContainer = document.getElementById('progressDots');
+            dotsContainer.innerHTML = '';
+            const totalPhases = 6;
+
+            for (let i = 0; i < totalPhases; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot';
+                if (i === currentPhase) {
+                    dot.classList.add('active');
+                } else if (i < currentPhase) {
+                    dot.classList.add('completed');
+                }
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        // ============================================================================
+        // PHASE 1: TOPIC SELECTION
+        // ============================================================================
+
+        async function fetchPassageChoices() {
+            // Show 3 topic choices: 2 random fallback topics + attempt 1 AI-generated topic
+            // Prioritize passages not used in recent sessions
+            const allExcluded = [...allTopicsUsed, ...recentlyUsedTopics];
+            const freshPassages = FALLBACK_PASSAGES.filter(p =>
+                !allExcluded.includes(p.category) && !allExcluded.includes(p.id)
+            );
+            const pool = freshPassages.length >= 3 ? freshPassages : FALLBACK_PASSAGES;
+            const shuffled = [...pool].sort(() => 0.5 - Math.random());
+            const fallbackChoices = shuffled.slice(0, 3);
+
+            // Try to get an AI-generated topic as the first choice
+            try {
+                const topicIdeas = [
+                    'Roman engineering and architecture',
+                    'Medieval castle design and defense',
+                    'How ancient cities were planned',
+                    'Famous buildings and the architects behind them',
+                    'The history of bridges and how they evolved',
+                    'Ancient Egyptian monuments and construction',
+                    'How the Great Wall of China was built',
+                    'Renaissance art and architecture in Florence',
+                    'Underground cities and hidden architecture',
+                    'How skyscrapers changed modern cities',
+                    'How monks preserved knowledge through the Dark Ages',
+                    'The engineering genius behind Gothic cathedrals',
+                    'Gregor Mendel and the discovery of genetics',
+                    'How medieval universities were founded by the Church'
+                ];
+                const randomTopic = topicIdeas[Math.floor(Math.random() * topicIdeas.length)];
+
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'generatePassage',
+                        student: 'jacob',
+                        topic: randomTopic
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.passage && data.questions && !data.error) {
+                    // Convert API response to match fallback format
+                    const aiTopic = {
+                        id: 'ai-' + Date.now(),
+                        category: 'Gary\'s Pick',
+                        icon: '🏛️',
+                        title: data.title || randomTopic,
+                        description: 'Gary put this one together just for you',
+                        passage: data.passage,
+                        questions: data.questions.map(q => ({
+                            text: q.question,
+                            options: q.options.map(opt => opt.replace(/^[A-D]\)\s*/, '')),
+                            correct: q.correctAnswer,
+                            explanation: q.explanation
+                        })),
+                        writingPrompt: 'Write about what you found most interesting in this passage and explain why it matters.',
+                        source: 'ai'
+                    };
+
+                    // Replace first fallback with AI topic
+                    fallbackChoices[0] = aiTopic;
+                }
+            } catch (error) {
+                console.log('AI passage generation failed, using all fallbacks:', error.message);
+            }
+
+            // Auto-assign first topic (no selection screen)
+            const loadingText = document.querySelector('.loading-text');
+            if (loadingText) loadingText.textContent = 'Gary is preparing your session...';
+            selectTopic(fallbackChoices[0]);
+        }
+
+        function displayTopics(topics) {
+            const grid = document.getElementById('topicsGrid');
+            grid.innerHTML = '';
+
+            topics.forEach(topic => {
+                const card = document.createElement('div');
+                card.className = 'topic-card';
+                card.innerHTML = `
+                    <div class="topic-icon">${topic.icon}</div>
+                    <div class="topic-title">${topic.title}</div>
+                    <div class="topic-description">${topic.description}</div>
+                    <button class="topic-select-btn" data-topic-id="${topic.id}">SELECT</button>
+                `;
+                card.querySelector('button').addEventListener('click', () => selectTopic(topic));
+                grid.appendChild(card);
+            });
+
+            showPhase(1);
+        }
+
+        function selectTopic(topic) {
+            currentTopic = topic;
+            markTopicUsed(topic.category || topic.id);
+            allTopicsUsed.push(topic.category || topic.id);
+            showPhase(2);
+            displayPassage(topic);
+            // Pre-fetch next passage while boy reads (reduces wait between rounds)
+            prefetchNextPassage();
+        }
+
+        async function prefetchNextPassage() {
+            const allExcluded = [...allTopicsUsed, ...recentlyUsedTopics];
+            const topicPool = [
+                'Roman engineering and architecture',
+                'Medieval castle design and defense',
+                'How ancient cities were planned',
+                'Famous buildings and the architects behind them',
+                'The history of bridges and how they evolved',
+                'Ancient Egyptian monuments and construction',
+                'How the Great Wall of China was built',
+                'Renaissance art and architecture in Florence',
+                'Underground cities and hidden architecture',
+                'How skyscrapers changed modern cities',
+                'The science of earthquakes and building safety',
+                'Aztec and Mayan temple engineering',
+                'How lighthouses guided ships through history',
+                'The Panama Canal and its engineering challenges',
+                'How monks preserved knowledge through the Dark Ages',
+                'The engineering genius behind Gothic cathedrals',
+                'Thomas Aquinas and the power of logical thinking',
+                'The invention of concrete and how it changed building',
+                'How the Brooklyn Bridge was built',
+                'The Colosseum and Roman entertainment engineering',
+                'How aqueducts still influence modern water systems',
+                'The science behind domes and arches in architecture',
+                'Leonardo da Vinci as an inventor and engineer',
+                'How the Hoover Dam was built',
+                'The Great Pyramid of Giza construction theories',
+                'How medieval monks created illuminated manuscripts',
+                'Gregor Mendel and the discovery of genetics',
+                'How medieval universities were founded by the Church',
+                'The physics of roller coasters and thrill rides',
+                'How submarines work and their history',
+                'The International Space Station engineering',
+                'How the Transcontinental Railroad was built',
+                'The science of flight from da Vinci to the Wright Brothers',
+                'How ancient Romans built roads that last 2000 years',
+                'The engineering of the London Underground',
+                'How wind turbines generate clean energy'
+            ];
+            const available = topicPool.filter(t => !allExcluded.includes(t));
+            const topic = available.length > 0
+                ? available[Math.floor(Math.random() * available.length)]
+                : topicPool[Math.floor(Math.random() * topicPool.length)];
+
+            prefetchPromise = fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    action: 'generatePassage',
+                    student: 'jacob',
+                    topic: topic
+                })
+            }).then(r => r.json()).then(data => {
+                if (data.passage && data.questions && !data.error) {
+                    prefetchedPassage = {
+                        id: 'ai-prefetch-' + Date.now(),
+                        category: topic,
+                        icon: '🏛️',
+                        title: data.title || topic,
+                        description: '',
+                        passage: data.passage,
+                        questions: data.questions.map(q => ({
+                            text: q.question,
+                            options: q.options.map(opt => opt.replace(/^[A-D]\)\s*/, '')),
+                            correct: q.correctAnswer,
+                            explanation: q.explanation
+                        })),
+                        writingPrompt: 'Write about what you found most interesting in this passage.',
+                        source: 'ai'
+                    };
+                }
+            }).catch(() => { prefetchedPassage = null; });
+        }
+
+        // ============================================================================
+        // PHASE 2: READING
+        // ============================================================================
+
+        function displayPassage(topic) {
+            document.getElementById('readingTitle').textContent = topic.title;
+
+            const wordCount = topic.passage.split(/\s+/).length;
+            const readTime = Math.ceil(wordCount / 200); // Average 200 words per minute
+
+            document.getElementById('wordCount').textContent = wordCount;
+            document.getElementById('readTime').textContent = readTime;
+
+            const contentDiv = document.getElementById('readingContent');
+            contentDiv.innerHTML = '';
+            topic.passage.split('\n').forEach(paragraph => {
+                if (paragraph.trim()) {
+                    const p = document.createElement('p');
+                    p.textContent = paragraph;
+                    contentDiv.appendChild(p);
+                }
+            });
+
+            const finishBtn = document.getElementById('finishReadingBtn');
+            finishBtn.disabled = true;
+
+            const timerMsg = document.getElementById('timerMessage');
+            timerMsg.textContent = '';
+            finishBtn.disabled = false;
+        }
+
+        function handleFinishReading() {
+            readingFinishedTime = Date.now();
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+
+            // Populate passage review panel so student can reference it during questions
+            const reviewPanel = document.getElementById('passageReviewPanel');
+            if (currentTopic && currentTopic.passage) {
+                reviewPanel.innerHTML = '';
+                currentTopic.passage.split('\n').forEach(paragraph => {
+                    if (paragraph.trim()) {
+                        const p = document.createElement('p');
+                        p.textContent = paragraph;
+                        reviewPanel.appendChild(p);
+                    }
+                });
+            }
+            // Reset toggle state (collapsed by default)
+            document.getElementById('passageReviewToggle').classList.remove('open');
+            reviewPanel.classList.remove('open');
+
+            showPhase(3);
+            displayQuestion();
+        }
+
+        function togglePassageReview() {
+            const toggle = document.getElementById('passageReviewToggle');
+            const panel = document.getElementById('passageReviewPanel');
+            toggle.classList.toggle('open');
+            panel.classList.toggle('open');
+        }
+
+        // ============================================================================
+        // PHASE 3: COMPREHENSION
+        // ============================================================================
+
+        function displayQuestion() {
+            if (!currentTopic) return;
+
+            const question = currentTopic.questions[currentQuestionIndex];
+            const totalQuestions = currentTopic.questions.length;
+
+            document.getElementById('questionNumber').textContent = `Question ${currentQuestionIndex + 1} of ${totalQuestions}`;
+            document.getElementById('questionText').textContent = question.text;
+
+            const optionsList = document.getElementById('optionsList');
+            optionsList.innerHTML = '';
+
+            const feedbackBox = document.getElementById('feedbackBox');
+            feedbackBox.classList.remove('show', 'correct', 'incorrect');
+
+            const nextBtn = document.getElementById('nextQuestionBtn');
+            nextBtn.style.display = 'none';
+
+            question.options.forEach((option, index) => {
+                const letter = String.fromCharCode(65 + index); // A, B, C, D
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.innerHTML = `
+                    <div class="option-letter">${letter}</div>
+                    <div class="option-text">${option}</div>
+                `;
+
+                optionDiv.addEventListener('click', () => {
+                    if (!optionDiv.classList.contains('disabled')) {
+                        handleAnswerSelect(index, optionDiv);
+                    }
+                });
+
+                optionsList.appendChild(optionDiv);
+            });
+        }
+
+        function handleAnswerSelect(selectedIndex, optionElement) {
+            const question = currentTopic.questions[currentQuestionIndex];
+            const isCorrect = selectedIndex === question.correct;
+
+            // Mark all options as disabled
+            document.querySelectorAll('.option').forEach(opt => opt.classList.add('disabled'));
+
+            // Show feedback
+            const feedbackBox = document.getElementById('feedbackBox');
+            const feedbackLabel = document.getElementById('feedbackLabel');
+            const feedbackText = document.getElementById('feedbackText');
+
+            if (isCorrect) {
+                correctAnswers++;
+                optionElement.classList.add('correct');
+                feedbackLabel.textContent = 'Correct!';
+                feedbackText.textContent = question.explanation;
+                feedbackBox.classList.add('correct');
+            } else {
+                optionElement.classList.add('incorrect');
+                const correctOption = document.querySelectorAll('.option')[question.correct];
+                correctOption.classList.add('correct');
+                feedbackLabel.textContent = 'Not Quite';
+                feedbackText.textContent = question.explanation;
+                feedbackBox.classList.add('incorrect');
+            }
+
+            feedbackBox.classList.add('show');
+
+            // Show next button
+            const nextBtn = document.getElementById('nextQuestionBtn');
+            if (currentQuestionIndex < currentTopic.questions.length - 1) {
+                nextBtn.textContent = 'Next Question';
+                nextBtn.style.display = 'block';
+            } else {
+                nextBtn.textContent = 'View Results';
+                nextBtn.style.display = 'block';
+            }
+        }
+
+        function handleNextQuestion() {
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < currentTopic.questions.length) {
+                displayQuestion();
+            } else {
+                showComprehensionSummary();
+            }
+        }
+
+        function showComprehensionSummary() {
+            const totalQuestions = currentTopic.questions.length;
+            const percentage = (correctAnswers / totalQuestions) * 100;
+
+            // Calculate bonus points for this round
+            let bonusPoints = 0;
+            if (percentage === 100) {
+                bonusPoints = 2;
+            } else if (percentage >= 75) {
+                bonusPoints = 1;
+            }
+
+            // Track this round
+            roundNumber++;
+            roundScores.push({
+                passageId: currentTopic.id,
+                title: currentTopic.title || 'Passage',
+                score: correctAnswers,
+                total: totalQuestions,
+                bonusPoints: bonusPoints
+            });
+            allTopicsUsed.push(currentTopic.category || currentTopic.id);
+
+            // Show summary for this round
+            const comprehensionContainer = document.querySelector('.comprehension-container');
+            comprehensionContainer.innerHTML = `
+                <div class="score-summary">
+                    <h2>Round ${roundNumber} Results</h2>
+                    <div class="score-display">${correctAnswers}/${totalQuestions}</div>
+                    <div class="score-feedback">
+                        ${percentage === 100 ? 'Perfect! You understood every detail.' : ''}
+                        ${percentage >= 75 && percentage < 100 ? 'Excellent! Great understanding of the material.' : ''}
+                        ${percentage >= 50 && percentage < 75 ? 'Good effort! Review the passage for more details.' : ''}
+                        ${percentage < 50 ? 'Keep practicing! Read more carefully next time.' : ''}
+                    </div>
+                </div>
+            `;
+
+            // Check elapsed time for adaptive loop
+            const elapsedMin = (Date.now() - sessionStartTime) / 60000;
+
+            if (elapsedMin < TARGET_MINUTES && roundNumber < MAX_ROUNDS && elapsedMin < MAX_MINUTES) {
+                // Show round transition, then loop back for another passage
+                setTimeout(() => {
+                    showRoundTransition(elapsedMin);
+                }, 1500);
+            } else {
+                // Session complete — proceed to writing or summary
+                setTimeout(() => {
+                    if (IS_WEDNESDAY) {
+                        showPhase(4);
+                        displayWritingPrompt();
+                    } else {
+                        proceedToSummary();
+                    }
+                }, 1500);
+            }
+        }
+
+        function showRoundTransition(elapsedMin) {
+            const comprehensionContainer = document.querySelector('.comprehension-container');
+            const remaining = Math.max(0, TARGET_MINUTES - elapsedMin);
+            const messages = [
+                "Good work. Gary's got another passage for you — let's keep building.",
+                "Nice job. Ready for the next one? Knowledge compounds.",
+                "Solid round. One more passage to sharpen the mind.",
+                "Well done. Let's keep the momentum going."
+            ];
+            const msg = messages[Math.min(roundNumber - 1, messages.length - 1)];
+
+            comprehensionContainer.innerHTML = `
+                <div class="score-summary" style="text-align:center;">
+                    <h2 style="margin-bottom:16px;">Round ${roundNumber} Complete</h2>
+                    <div style="font-size:14px; color:#a89968; margin-bottom:12px;">
+                        Session time: ${Math.floor(elapsedMin)}:${String(Math.floor((elapsedMin % 1) * 60)).padStart(2, '0')}
+                    </div>
+                    <div style="background:#3d3428; border-radius:8px; height:8px; margin:12px 0; overflow:hidden;">
+                        <div style="height:100%; background:#c9a84c; border-radius:8px; width:${Math.min(100, (elapsedMin / TARGET_MINUTES) * 100)}%; transition:width 0.6s;"></div>
+                    </div>
+                    <div style="font-size:12px; color:#a89968; margin-bottom:20px;">${Math.ceil(remaining)} min to target</div>
+                    <p style="font-size:16px; color:#c9a84c; margin-bottom:24px;">${msg}</p>
+                    <div style="font-size:13px; color:#a89968;">Next passage loading...</div>
+                </div>
+            `;
+
+            // Auto-advance to next round after 3 seconds
+            setTimeout(() => {
+                startNextRound();
+            }, 3000);
+        }
+
+        async function startNextRound() {
+            // Reset per-round state
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            currentTopic = null;
+
+            // For rounds 2+, use pre-fetched passage if available (much faster)
+            showPhase(0); // Show loading
+            const loadingText = document.querySelector('.loading-text');
+            if (loadingText) loadingText.textContent = 'Gary is preparing your next passage...';
+
+            // Wait for pre-fetch if it's still in progress
+            if (prefetchPromise) {
+                try { await prefetchPromise; } catch {}
+            }
+
+            // Use pre-fetched passage if available
+            if (prefetchedPassage) {
+                currentTopic = prefetchedPassage;
+                prefetchedPassage = null;
+                prefetchPromise = null;
+                markTopicUsed(currentTopic.category || currentTopic.id);
+                allTopicsUsed.push(currentTopic.category || currentTopic.id);
+                showPhase(2);
+                displayPassage(currentTopic);
+                // Pre-fetch another one for potential next round
+                prefetchNextPassage();
+                return;
+            }
+
+            // No pre-fetched passage — generate one now
+            const allExcluded = [...allTopicsUsed, ...recentlyUsedTopics];
+            try {
+                const topicIdeas = [
+                    'Roman engineering and architecture',
+                    'Medieval castle design and defense',
+                    'How ancient cities were planned',
+                    'Famous buildings and the architects behind them',
+                    'The history of bridges and how they evolved',
+                    'Ancient Egyptian monuments and construction',
+                    'How the Great Wall of China was built',
+                    'Renaissance art and architecture in Florence',
+                    'Underground cities and hidden architecture',
+                    'How skyscrapers changed modern cities',
+                    'The science of earthquakes and building safety',
+                    'Aztec and Mayan temple engineering',
+                    'How lighthouses guided ships through history',
+                    'The Panama Canal and its engineering challenges',
+                    'How monks preserved knowledge through the Dark Ages',
+                    'The engineering genius behind Gothic cathedrals',
+                    'Thomas Aquinas and the power of logical thinking',
+                    'The invention of concrete and how it changed building',
+                    'How the Brooklyn Bridge was built',
+                    'The Colosseum and Roman entertainment engineering',
+                    'Leonardo da Vinci as an inventor and engineer',
+                    'How the Hoover Dam was built',
+                    'The Great Pyramid of Giza construction theories',
+                    'How medieval monks created illuminated manuscripts',
+                    'The physics of roller coasters and thrill rides',
+                    'How submarines work and their history',
+                    'The International Space Station engineering',
+                    'How the Transcontinental Railroad was built',
+                    'The science of flight from da Vinci to the Wright Brothers',
+                    'How ancient Romans built roads that last 2000 years',
+                    'The engineering of the London Underground',
+                    'How wind turbines generate clean energy'
+                ];
+                const available = topicIdeas.filter(t => !allExcluded.includes(t));
+                const randomTopic = available.length > 0
+                    ? available[Math.floor(Math.random() * available.length)]
+                    : topicIdeas[Math.floor(Math.random() * topicIdeas.length)];
+
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'generatePassage',
+                        student: 'jacob',
+                        topic: randomTopic
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.passage && data.questions && !data.error) {
+                    currentTopic = {
+                        id: 'ai-round' + roundNumber + '-' + Date.now(),
+                        category: randomTopic,
+                        icon: '🏛️',
+                        title: data.title || randomTopic,
+                        description: '',
+                        passage: data.passage,
+                        questions: data.questions.map(q => ({
+                            text: q.question,
+                            options: q.options.map(opt => opt.replace(/^[A-D]\)\s*/, '')),
+                            correct: q.correctAnswer,
+                            explanation: q.explanation
+                        })),
+                        writingPrompt: 'Write about what you found most interesting in this passage.',
+                        source: 'ai'
+                    };
+
+                    markTopicUsed(randomTopic);
+                    allTopicsUsed.push(randomTopic);
+                    showPhase(2);
+                    displayPassage(currentTopic);
+                    prefetchNextPassage();
+                    return;
+                }
+            } catch (error) {
+                console.log('AI generation failed for round ' + (roundNumber + 1) + ':', error.message);
+            }
+
+            // Fallback: pick an unused fallback passage (excluding cross-session used ones too)
+            const unused = FALLBACK_PASSAGES.filter(p =>
+                !allExcluded.includes(p.category) && !allExcluded.includes(p.id)
+            );
+            if (unused.length > 0) {
+                currentTopic = unused[Math.floor(Math.random() * unused.length)];
+                markTopicUsed(currentTopic.category || currentTopic.id);
+                allTopicsUsed.push(currentTopic.category || currentTopic.id);
+                showPhase(2);
+                displayPassage(currentTopic);
+            } else {
+                // Try any unused fallback (even if used in prior sessions)
+                const sessionUnused = FALLBACK_PASSAGES.filter(p =>
+                    !allTopicsUsed.includes(p.category) && !allTopicsUsed.includes(p.id)
+                );
+                if (sessionUnused.length > 0) {
+                    currentTopic = sessionUnused[Math.floor(Math.random() * sessionUnused.length)];
+                    allTopicsUsed.push(currentTopic.category || currentTopic.id);
+                    showPhase(2);
+                    displayPassage(currentTopic);
+                } else {
+                    proceedToSummary();
+                }
+            }
+        }
+
+        // ============================================================================
+        // PHASE 4: WRITING (WEDNESDAY ONLY)
+        // ============================================================================
+
+        function displayWritingPrompt() {
+            if (!currentTopic) return;
+
+            const promptDiv = document.getElementById('writingPrompt');
+            promptDiv.textContent = currentTopic.writingPrompt;
+
+            const textarea = document.getElementById('writingTextarea');
+            textarea.value = '';
+            updateWordCount();
+        }
+
+        function updateWordCount() {
+            const textarea = document.getElementById('writingTextarea');
+            const counter = document.getElementById('wordCounter');
+            const submitBtn = document.getElementById('submitWritingBtn');
+
+            const text = textarea.value.trim();
+            const wordCount = text ? text.split(/\s+/).length : 0;
+
+            counter.textContent = `${wordCount} words (50 minimum)`;
+            counter.classList.toggle('warning', wordCount < 50 && wordCount > 0);
+
+            submitBtn.disabled = wordCount < 50;
+        }
+
+        function handleSubmitWriting() {
+            const textarea = document.getElementById('writingTextarea');
+            const response = textarea.value;
+
+            // Disable further editing
+            textarea.disabled = true;
+            document.getElementById('submitWritingBtn').style.display = 'none';
+
+            // Show feedback
+            const feedbackDiv = document.getElementById('writingFeedback');
+            feedbackDiv.classList.add('show');
+
+            writingCompleted = true;
+
+            // After a delay, proceed to summary
+            setTimeout(() => {
+                proceedToSummary();
+            }, 2000);
+        }
+
+        // ============================================================================
+        // PHASE 5: SUMMARY
+        // ============================================================================
+
+        function proceedToSummary() {
+            calculatePoints();
+            showPhase(5);
+            displaySummary();
+        }
+
+        function calculatePoints() {
+            // Multi-round: 3 base pts per round + comprehension bonus per round
+            totalPointsEarned = 0;
+            roundScores.forEach(round => {
+                totalPointsEarned += 3; // Base per round
+                totalPointsEarned += round.bonusPoints; // Comprehension bonus per round
+            });
+
+            // Writing bonus (if Wednesday)
+            if (IS_WEDNESDAY && writingCompleted) {
+                totalPointsEarned += 3;
+            }
+        }
+
+        function displaySummary() {
+            // Build multi-round summary
+            const totalCorrect = roundScores.reduce((s, r) => s + r.score, 0);
+            const totalQ = roundScores.reduce((s, r) => s + r.total, 0);
+            const totalBonus = roundScores.reduce((s, r) => s + r.bonusPoints, 0);
+            const sessionDuration = Math.round((Date.now() - sessionStartTime) / 60000);
+
+            // Update comprehension summary
+            const compLabel = document.getElementById('comprehensionLabel');
+            const compScore = document.getElementById('comprehensionScore');
+            if (roundScores.length > 1) {
+                compLabel.textContent = `Comprehension (${roundScores.length} rounds: ${totalCorrect}/${totalQ})`;
+            } else {
+                compLabel.textContent = `Comprehension Bonus (${totalCorrect}/${totalQ})`;
+            }
+            compScore.textContent = `+${totalBonus} pts`;
+
+            // Show/hide writing section
+            const writingItem = document.getElementById('writingSummaryItem');
+            if (IS_WEDNESDAY && writingCompleted) {
+                writingItem.style.display = 'flex';
+            } else {
+                writingItem.style.display = 'none';
+            }
+
+            // Add rounds detail before total if multiple rounds
+            if (roundScores.length > 1) {
+                const summaryContainer = document.querySelector('.points-summary');
+                if (summaryContainer) {
+                    const roundsDetail = document.createElement('div');
+                    roundsDetail.style.cssText = 'margin-bottom:16px; padding:12px; background:#231e17; border-radius:8px; font-size:13px; color:#a89968;';
+                    roundsDetail.innerHTML = `
+                        <div style="font-weight:700; color:#c9a84c; margin-bottom:8px;">Session Breakdown (${sessionDuration} min, ${roundScores.length} rounds)</div>
+                        ${roundScores.map((r, i) => `
+                            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #3d3428;">
+                                <span>Round ${i+1}: ${r.title}</span>
+                                <span>${r.score}/${r.total} (+${3 + r.bonusPoints} pts)</span>
+                            </div>
+                        `).join('')}
+                    `;
+                    summaryContainer.insertBefore(roundsDetail, summaryContainer.firstChild);
+                }
+            }
+
+            // Update total
+            document.getElementById('totalPointsValue').textContent = totalPointsEarned;
+
+            // Save session
+            saveSession();
+            syncSession();
+        }
+
+        // ============================================================================
+        // DATA PERSISTENCE
+        // ============================================================================
+
+        function saveSession() {
+            const sessionDurationMin = Math.round((Date.now() - sessionStartTime) / 60000 * 10) / 10;
+            const totalCorrect = roundScores.reduce((s, r) => s + r.score, 0);
+            const totalQ = roundScores.reduce((s, r) => s + r.total, 0);
+            const sessionData = {
+                [TODAY]: {
+                    completed: true,
+                    rounds: roundNumber,
+                    roundScores: roundScores,
+                    passageId: roundScores.length > 0 ? roundScores[0].passageId : (currentTopic ? currentTopic.id : ''),
+                    score: totalCorrect,
+                    totalQuestions: totalQ,
+                    writingCompleted: writingCompleted,
+                    pointsEarned: totalPointsEarned,
+                    durationMinutes: sessionDurationMin
+                }
+            };
+
+            let sessions = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+            sessions = { ...sessions, ...sessionData };
+            localStorage.setItem(SESSION_KEY, JSON.stringify(sessions));
+
+            // Signal to dashboard
+            localStorage.setItem('jacob_session_signal', JSON.stringify({
+                date: TODAY,
+                completed: true,
+                pointsEarned: totalPointsEarned
+            }));
+        }
+
+        async function syncSession() {
+            const sessionDurationMin = Math.round((Date.now() - sessionStartTime) / 60000 * 10) / 10;
+            const totalCorrect = roundScores.reduce((s, r) => s + r.score, 0);
+            const totalQ = roundScores.reduce((s, r) => s + r.total, 0);
+
+            const sessionData = {
+                date: TODAY,
+                topic: roundScores.map(r => r.title).join('; '),
+                title: roundScores.length > 1 ? `${roundScores.length} passages` : (roundScores[0] ? roundScores[0].title : ''),
+                source: 'adaptive',
+                questionsCorrect: totalCorrect,
+                questionsTotal: totalQ,
+                comprehensionPct: totalQ > 0 ? Math.round((totalCorrect / totalQ) * 100) : 0,
+                writingCompleted: writingCompleted,
+                writingScore: 0,
+                pointsEarned: totalPointsEarned,
+                duration: sessionDurationMin
+            };
+
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'saveSession',
+                        student: 'Jacob',
+                        ...sessionData
+                    })
+                });
+
+                // Also update daily tracking
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'saveDailyTracking',
+                        date: TODAY,
+                        student: 'Jacob',
+                        session: true,
+                        comprehensionPct: sessionData.comprehensionPct,
+                        sessionBonus: roundScores.reduce((s, r) => s + r.bonusPoints, 0)
+                    })
+                });
+            } catch (error) {
+                console.log('Sync to Apps Script failed, data saved locally');
+            }
+        }
+
+        function loadSession() {
+            const sessions = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+            if (sessions[TODAY]) {
+                console.log('Session already completed today');
+            }
+        }
+
+        // ============================================================================
+        // NAVIGATION
+        // ============================================================================
+
+        function handleBack() {
+            if (currentPhase > 1) {
+                showExitModal();
+            } else {
+                returnToDashboard();
+            }
+        }
+
+        function showExitModal() {
+            document.getElementById('exitModal').classList.add('show');
+        }
+
+        function closeExitModal() {
+            document.getElementById('exitModal').classList.remove('show');
+        }
+
+        function confirmExit() {
+            returnToDashboard();
+        }
+
+        function returnToDashboard() {
+            window.location.href = 'Jacob_Dashboard.html';
+        }
+    </script>
+</body>
+</html>

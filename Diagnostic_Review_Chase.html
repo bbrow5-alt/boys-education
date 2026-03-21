@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Expedition Debrief — Review with Doug</title>
+    <style>
+        :root {
+            --bg: #1a1208;
+            --card-bg: #1e2416;
+            --accent: #2eaaaa;
+            --secondary: #d4a843;
+            --text: #e8e0d0;
+            --text-muted: #a8988a;
+            --correct: #4ade80;
+            --incorrect: #f87171;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: Georgia, 'Palatino Linotype', serif;
+            overflow-x: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 0.95;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            gap: 10px;
+            background-color: rgba(46, 170, 170, 0.1);
+            border-bottom: 1px solid var(--accent);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: Georgia, serif;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: var(--bg);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(46, 170, 170, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--card-bg);
+            color: var(--accent);
+            border: 2px solid var(--accent);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--accent);
+            color: var(--bg);
+        }
+
+        .main {
+            flex: 1;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .no-results-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .no-results h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--secondary);
+        }
+
+        .no-results p {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .summary {
+            background-color: var(--card-bg);
+            border-left: 5px solid var(--secondary);
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .summary h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: var(--secondary);
+        }
+
+        .score {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .summary-text {
+            color: var(--text);
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        .review-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .review-item {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(212, 168, 67, 0.2);
+        }
+
+        .review-header {
+            background-color: rgba(46, 170, 170, 0.15);
+            padding: 20px;
+            border-bottom: 1px solid var(--accent);
+        }
+
+        .review-question-num {
+            font-size: 12px;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .review-question-text {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .passage {
+            background-color: rgba(46, 170, 170, 0.08);
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .passage-title {
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .review-content {
+            padding: 20px;
+        }
+
+        .answer-row {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .answer-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .answer-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .answer-text {
+            font-size: 14px;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .answer-incorrect {
+            background-color: rgba(248, 113, 113, 0.15);
+            border: 2px solid var(--incorrect);
+            color: var(--text);
+        }
+
+        .answer-correct {
+            background-color: rgba(74, 222, 128, 0.15);
+            border: 2px solid var(--correct);
+            color: var(--text);
+        }
+
+        .tutor-button {
+            background-color: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            font-family: Georgia, serif;
+            transition: all 0.3s ease;
+        }
+
+        .tutor-button:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .tutor-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .tutor-response {
+            background-color: rgba(46, 170, 170, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            margin-top: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .tutor-response.active {
+            display: block;
+        }
+
+        .tutor-label {
+            font-size: 12px;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .tutor-message {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text);
+            margin-bottom: 15px;
+        }
+
+        .tutor-loading {
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        .got-it-btn {
+            background-color: var(--secondary);
+            color: var(--bg);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            transition: all 0.3s ease;
+        }
+
+        .got-it-btn:hover {
+            background-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .completion-message {
+            background-color: rgba(212, 168, 67, 0.15);
+            border: 2px solid var(--secondary);
+            padding: 40px 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .completion-message h3 {
+            font-size: 24px;
+            color: var(--secondary);
+            margin-bottom: 15px;
+        }
+
+        .completion-message p {
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* === PERCENTILE REPORT STYLES === */
+        .percentile-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .percentile-trigger-btn {
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            color: var(--bg);
+            border: none;
+            padding: 18px 40px;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(46, 170, 170, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        .percentile-trigger-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(46, 170, 170, 0.5);
+        }
+
+        .percentile-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 35px 25px;
+            margin-top: 20px;
+            text-align: center;
+            animation: fadeSlideIn 0.6s ease-out;
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .percentile-card h3 {
+            font-size: 22px;
+            color: var(--secondary);
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+
+        .percentile-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 4px 20px rgba(46, 170, 170, 0.3);
+        }
+
+        .percentile-number {
+            font-size: 42px;
+            font-weight: bold;
+            color: var(--bg);
+            line-height: 1;
+        }
+
+        .percentile-suffix {
+            font-size: 16px;
+            color: var(--bg);
+            opacity: 0.9;
+        }
+
+        .percentile-meaning {
+            color: var(--text);
+            font-size: 16px;
+            margin: 15px 0 30px;
+            line-height: 1.5;
+        }
+
+        .section-breakdown {
+            text-align: left;
+            margin: 25px 0;
+        }
+
+        .section-breakdown h4 {
+            font-size: 16px;
+            color: var(--secondary);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .section-bar-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+
+        .section-bar-name {
+            min-width: 130px;
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 24px;
+            background-color: rgba(46, 170, 170, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--bg);
+            transition: width 0.8s ease-out;
+            min-width: 40px;
+        }
+
+        .bar-fill.high { background: linear-gradient(90deg, var(--correct), #2dd870); }
+        .bar-fill.medium { background: linear-gradient(90deg, var(--accent), var(--secondary)); }
+        .bar-fill.low { background: linear-gradient(90deg, #f59e0b, var(--incorrect)); }
+
+        .strength-badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-strength {
+            background-color: rgba(74, 222, 128, 0.2);
+            color: var(--correct);
+            border: 1px solid var(--correct);
+        }
+
+        .badge-growth {
+            background-color: rgba(248, 113, 113, 0.15);
+            color: var(--incorrect);
+            border: 1px solid rgba(248, 113, 113, 0.4);
+        }
+
+        .percentile-tutor-summary {
+            background-color: rgba(46, 170, 170, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            margin-top: 25px;
+            border-radius: 6px;
+            text-align: left;
+        }
+
+        .percentile-tutor-summary .tutor-label {
+            font-size: 12px;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .percentile-tutor-summary .tutor-message {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--text);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .main {
+                padding: 15px;
+            }
+
+            .summary {
+                padding: 20px;
+            }
+
+            .score {
+                gap: 30px;
+            }
+
+            .score-number {
+                font-size: 28px;
+            }
+
+            .review-question-text {
+                font-size: 16px;
+            }
+
+            .answer-text {
+                font-size: 13px;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .section-bar-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
+            .section-bar-name {
+                text-align: left;
+                min-width: auto;
+            }
+
+            .percentile-circle {
+                width: 120px;
+                height: 120px;
+            }
+
+            .percentile-number {
+                font-size: 34px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Expedition Debrief — Review with Doug</h1>
+        <p>Let's learn from your diagnostic results</p>
+    </div>
+
+    <div class="nav-buttons">
+        <button class="btn btn-secondary" onclick="goToDashboard()">← Back to Dashboard</button>
+        <button class="btn btn-secondary" id="skipBtn" onclick="scrollToCompletion()" style="display:none;">Skip to Finish</button>
+    </div>
+
+    <div class="main">
+        <div id="content"></div>
+    </div>
+
+    <script>
+        // Exact SECTIONS array from Diagnostic_Test_Chase_March2026.html
+        const SECTIONS = [
+          {
+            name: "Verbal Skills",
+            description: "Synonyms, antonyms, analogies, and verbal logic. Choose the best answer.",
+            timeLimit: 480,
+            questions: [
+              { text: "Which word means the same as <strong>brave</strong>?", options: ["Scared","Courageous","Careful","Quiet"], correct: 1 },
+              { text: "Which word is the OPPOSITE of <strong>generous</strong>?", options: ["Kind","Wealthy","Selfish","Friendly"], correct: 2 },
+              { text: "<strong>Wheel</strong> is to <strong>bicycle</strong> as <strong>wing</strong> is to:", options: ["Bird","Feather","Nest","Sky"], correct: 0 },
+              { text: "Which word means the same as <strong>enormous</strong>?", options: ["Tiny","Huge","Average","Round"], correct: 1 },
+              { text: "Which word is the OPPOSITE of <strong>shallow</strong>?", options: ["Wide","Narrow","Deep","Empty"], correct: 2 },
+              { text: "<strong>Electricity</strong> is to <strong>wire</strong> as <strong>water</strong> is to:", options: ["Ocean","Pipe","Rain","Ice"], correct: 1 },
+              { text: "Which word means the same as <strong>repair</strong>?", options: ["Break","Fix","Build","Destroy"], correct: 1 },
+              { text: "Choose the word that does NOT belong:", options: ["Motor","Engine","Battery","Sandwich"], correct: 3 },
+              { text: "<strong>Chef</strong> is to <strong>kitchen</strong> as <strong>pilot</strong> is to:", options: ["Airport","Cockpit","Runway","Sky"], correct: 1 },
+              { text: "If all dogs are animals, and all animals need water, then:", options: ["All water is for dogs","All dogs need water","Some dogs don't need water","Water is an animal"], correct: 1 }
+            ]
+          },
+          {
+            name: "Quantitative Skills",
+            description: "Number patterns, sequences, and reasoning. No calculator allowed.",
+            timeLimit: 480,
+            questions: [
+              { text: "What comes next? <strong>5, 10, 15, 20, ___</strong>", options: ["22","24","25","30"], correct: 2 },
+              { text: "What comes next? <strong>2, 4, 8, 16, ___</strong>", options: ["24","28","32","20"], correct: 2 },
+              { text: "If 4 × N = 36, what is N?", options: ["7","8","9","10"], correct: 2 },
+              { text: "What comes next? <strong>50, 45, 40, 35, ___</strong>", options: ["25","28","30","32"], correct: 2 },
+              { text: "Which is bigger: <strong>1/2</strong> or <strong>2/5</strong>?", options: ["1/2","2/5","They are equal","Cannot tell"], correct: 0 },
+              { text: "A square has a perimeter of 20 inches. How long is each side?", options: ["4 inches","5 inches","10 inches","20 inches"], correct: 1 },
+              { text: "What comes next? <strong>1, 3, 6, 10, 15, ___</strong>", options: ["18","20","21","25"], correct: 2 },
+              { text: "50% of 60 is:", options: ["20","25","30","35"], correct: 2 },
+              { text: "How many minutes are in 2.5 hours?", options: ["120","130","140","150"], correct: 3 },
+              { text: "What is 7 × 8?", options: ["54","56","58","63"], correct: 1 }
+            ]
+          },
+          {
+            name: "Reading Comprehension",
+            description: "Read each passage carefully, then answer the questions.",
+            timeLimit: 600,
+            questions: [
+              { text: '<div class="passage">Electric motors work by using magnets and electricity together. When electricity flows through a coil of wire, it creates a magnetic field. This magnetic field pushes against permanent magnets nearby, causing the coil to spin. This spinning motion is what powers everything from ceiling fans to electric bikes.</div>According to the passage, what causes the coil to spin?', options: ["The permanent magnets push the electricity","The electricity heats up the wire","The magnetic field pushes against permanent magnets","The fan blows on the coil"], correct: 2 },
+              { text: '<div class="passage">Electric motors work by using magnets and electricity together. When electricity flows through a coil of wire, it creates a magnetic field. This magnetic field pushes against permanent magnets nearby, causing the coil to spin. This spinning motion is what powers everything from ceiling fans to electric bikes.</div>Which is an example of something powered by an electric motor?', options: ["A campfire","A candle","An electric bike","A paper airplane"], correct: 2 },
+              { text: '<div class="passage">Electric motors work by using magnets and electricity together. When electricity flows through a coil of wire, it creates a magnetic field. This magnetic field pushes against permanent magnets nearby, causing the coil to spin. This spinning motion is what powers everything from ceiling fans to electric bikes.</div>The main purpose of this passage is to:', options: ["Convince you to buy an electric bike","Explain how electric motors work","Describe different types of magnets","Teach you how to build a motor"], correct: 1 },
+              { text: '<div class="passage">William Kamkwamba grew up in Malawi, one of the poorest countries in the world. When a terrible famine hit and his family could no longer afford school fees, 14-year-old William didn\'t give up on learning. He walked to the library and found a book about windmills. Using scrap metal, bicycle parts, and blue gum trees, he built a windmill that generated electricity for his family\'s home.</div>Why did William stop going to school?', options: ["He didn't like school","He was too old","His family couldn't afford the fees","The school closed down"], correct: 2 },
+              { text: '<div class="passage">William Kamkwamba grew up in Malawi, one of the poorest countries in the world. When a terrible famine hit and his family could no longer afford school fees, 14-year-old William didn\'t give up on learning. He walked to the library and found a book about windmills. Using scrap metal, bicycle parts, and blue gum trees, he built a windmill that generated electricity for his family\'s home.</div>What can you infer about William from this passage?', options: ["He was lazy and unmotivated","He was resourceful and determined","He had lots of money for supplies","He had help from many engineers"], correct: 1 },
+              { text: '<div class="passage">The new kid sat alone at lunch again. Jayden noticed and felt a knot in his stomach. He remembered his first week at a new school two years ago — how every lunch period felt like it lasted forever. He picked up his tray. "Hey, mind if I sit here?" The new kid looked up, surprised, then smiled. "Sure."</div>Why did Jayden decide to sit with the new kid?', options: ["His friends told him to","He remembered feeling alone himself","He wanted the new kid's dessert","The teacher made him"], correct: 1 },
+              { text: '<div class="passage">The new kid sat alone at lunch again. Jayden noticed and felt a knot in his stomach. He remembered his first week at a new school two years ago — how every lunch period felt like it lasted forever. He picked up his tray. "Hey, mind if I sit here?" The new kid looked up, surprised, then smiled. "Sure."</div>The phrase "felt a knot in his stomach" means Jayden felt:', options: ["Hungry","Sick","Uncomfortable and sympathetic","Angry"], correct: 2 },
+              { text: '<div class="passage">Honeybees communicate the location of flowers to other bees by doing a "waggle dance." The direction the bee faces while dancing tells other bees which direction to fly. The length of the dance tells them how far away the flowers are. The more excited the dance, the better the food source. Scientists have studied this dance for decades and can now decode exactly what each movement means.</div>According to the passage, how do bees show distance to flowers?', options: ["By the direction they face","By the length of the dance","By how loud they buzz","By the color of their wings"], correct: 1 },
+              { text: '<div class="passage">Honeybees communicate the location of flowers to other bees by doing a "waggle dance." The direction the bee faces while dancing tells other bees which direction to fly. The length of the dance tells them how far away the flowers are. The more excited the dance, the better the food source. Scientists have studied this dance for decades and can now decode exactly what each movement means.</div>What does a more excited dance mean?', options: ["Danger is nearby","The food source is better","The bee is tired","It's time to return to the hive"], correct: 1 },
+              { text: '<div class="passage">Honeybees communicate the location of flowers to other bees by doing a "waggle dance." The direction the bee faces while dancing tells other bees which direction to fly. The length of the dance tells them how far away the flowers are. The more excited the dance, the better the food source. Scientists have studied this dance for decades and can now decode exactly what each movement means.</div>The best title for this passage would be:', options: ["Why Bees Sting","How Bees Talk Through Dance","The Life of a Honeybee","Flowers and Their Pollinators"], correct: 1 }
+            ]
+          },
+          {
+            name: "Mathematics",
+            description: "Math concepts and problem-solving. No calculator allowed.",
+            timeLimit: 600,
+            questions: [
+              { text: "What is 1/4 + 1/4?", options: ["1/8","2/8","1/2","2/4"], correct: 2 },
+              { text: "A toy costs $15. If it's 20% off, what is the sale price?", options: ["$3","$10","$12","$13"], correct: 2 },
+              { text: "What is the area of a rectangle that is 8 cm long and 5 cm wide?", options: ["13 cm²","26 cm²","40 cm²","80 cm²"], correct: 2 },
+              { text: "What is the value of 4 × (3 + 2)?", options: ["14","18","20","24"], correct: 2 },
+              { text: "Which fraction is equal to 0.5?", options: ["1/3","1/4","1/2","1/5"], correct: 2 },
+              { text: "A pizza is cut into 8 equal slices. You eat 3 slices. What fraction is left?", options: ["3/8","5/8","3/5","5/3"], correct: 1 },
+              { text: "What is 10² (10 squared)?", options: ["20","50","100","1000"], correct: 2 },
+              { text: "If a car goes 50 miles per hour, how far does it travel in 3 hours?", options: ["53 miles","100 miles","150 miles","200 miles"], correct: 2 },
+              { text: "Which number is a prime number?", options: ["4","9","15","17"], correct: 3 },
+              { text: "What is the perimeter of a rectangle with length 7 and width 3?", options: ["10","20","21","24"], correct: 1 }
+            ]
+          },
+          {
+            name: "Language & Writing",
+            description: "Grammar, punctuation, usage, and a short writing prompt.",
+            timeLimit: 600,
+            questions: [
+              { text: "Which sentence uses a comma correctly?", options: ["I like pizza, and burgers.","Before the game we ate lunch.","After school, I rode my bike home.","The dog, barked loudly."], correct: 2 },
+              { text: "Choose the correct sentence:", options: ["The boys plays outside.","The boys play outside.","The boys playing outside.","The boys is playing outside."], correct: 1 },
+              { text: "Which sentence is correct?", options: ["Me went to the store.","Her and me went to the store.","She and I went to the store.","Me and her went to the store."], correct: 2 },
+              { text: 'Choose the correct word: "I want to go _____ the park."', options: ["too","to","two","tow"], correct: 1 },
+              { text: "Which word is spelled correctly?", options: ["Becuz","Because","Becuase","Becouse"], correct: 1 },
+              { text: "Which sentence uses an apostrophe correctly?", options: ["The cat chased it's tail.","The boy's bike is red.","The girl's are playing.","Its time to go."], correct: 1 },
+              { text: 'What type of sentence is this? "Close the door."', options: ["Declarative (statement)","Interrogative (question)","Imperative (command)","Exclamatory (exclamation)"], correct: 2 },
+              { text: "Which word is an adjective in this sentence: 'The tall building has bright lights.'", options: ["building","has","tall","lights"], correct: 2 },
+              {
+                text: '<strong>Writing Prompt:</strong> In 3–5 sentences, describe something you have built or would like to build, and explain what makes it cool.',
+                type: "writing"
+              }
+            ]
+          }
+        ];
+
+        const STORAGE_KEY = 'diagnosticResults_targeted_diagnostic_20260306';
+        const PENDING_KEY = 'pending_assessment_comprehensive_diagnostic_20260301';
+        const PENDING_KEY_ALT = 'pending_assessment_March2026';
+        const tutorName = 'Doug';
+        const studentName = 'Chase';
+
+        async function loadResultsFromAPI() {
+            try {
+                // Primary: read from Assessments sheet via getAssessments
+                const res = await fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec?action=getAssessments&student=Chase');
+                if (res.ok) {
+                    const assessments = await res.json();
+                    // Find the diagnostic assessment (Sections is already parsed by API)
+                    const diag = Array.isArray(assessments) && assessments.find(s =>
+                        (s.TestID || '').toLowerCase().includes('diagnostic') ||
+                        (s.TestID || '').toLowerCase().includes('march2026')
+                    );
+                    if (diag && diag.Sections && Array.isArray(diag.Sections)) {
+                        const answers = {};
+                        let totalQuestions = 0;
+                        diag.Sections.forEach((sec, si) => {
+                            answers[si] = {};
+                            if (sec.details) {
+                                sec.details.forEach((d, qi) => {
+                                    totalQuestions++;
+                                    if (d.chosen !== null && d.chosen !== undefined) {
+                                        const q = SECTIONS[si]?.questions[qi];
+                                        if (q && q.options) {
+                                            const idx = q.options.indexOf(d.chosen);
+                                            if (idx >= 0) answers[si][qi] = idx;
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        return { answers, totalQuestions };
+                    }
+                }
+            } catch(e) { console.warn('API fallback failed:', e); }
+            return null;
+        }
+
+        function loadResults() {
+            // Try primary key first (diagnosticResults format)
+            let results = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+            if (results && results.answers) return results;
+
+            // Fallback: try pending_assessment format (flat keys like "0-2")
+            const pending = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null');
+            if (pending && pending.sections) {
+                const answers = {};
+                let totalQuestions = 0;
+                pending.sections.forEach((sec, si) => {
+                    answers[si] = {};
+                    if (sec.details) {
+                        sec.details.forEach((d, qi) => {
+                            totalQuestions++;
+                            if (d.chosen !== null) {
+                                const q = SECTIONS[si]?.questions[qi];
+                                if (q) {
+                                    const idx = q.options.indexOf(d.chosen);
+                                    if (idx >= 0) answers[si][qi] = idx;
+                                }
+                            }
+                        });
+                    }
+                });
+                return { answers, totalQuestions };
+            }
+
+            // Try alternative pending key
+            const pendingAlt = JSON.parse(localStorage.getItem(PENDING_KEY_ALT) || 'null');
+            if (pendingAlt && pendingAlt.sections) {
+                const answers = {};
+                let totalQuestions = 0;
+                pendingAlt.sections.forEach((sec, si) => {
+                    answers[si] = {};
+                    if (sec.details) {
+                        sec.details.forEach((d, qi) => {
+                            totalQuestions++;
+                            if (d.chosen !== null) {
+                                const q = SECTIONS[si]?.questions[qi];
+                                if (q) {
+                                    const idx = q.options.indexOf(d.chosen);
+                                    if (idx >= 0) answers[si][qi] = idx;
+                                }
+                            }
+                        });
+                    }
+                });
+                return { answers, totalQuestions };
+            }
+
+            // Last resort: try flat-key format
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('diagnostic_answers_chase')) {
+                    try {
+                        const flatAnswers = JSON.parse(localStorage.getItem(key));
+                        return convertFlatAnswers(flatAnswers);
+                    } catch(e) {}
+                }
+            }
+
+            return null;
+        }
+
+        function convertFlatAnswers(flatAnswers) {
+            const answers = {};
+            let totalQuestions = 0;
+            SECTIONS.forEach((sec, si) => {
+                answers[si] = {};
+                sec.questions.forEach((q, qi) => {
+                    totalQuestions++;
+                    const key = `${si}-${qi}`;
+                    if (flatAnswers[key] !== undefined) {
+                        answers[si][qi] = flatAnswers[key];
+                    }
+                });
+            });
+            return { answers, totalQuestions };
+        }
+
+        async function init() {
+            let results = loadResults(); // try localStorage first
+            if (!results) {
+                results = await loadResultsFromAPI(); // try API
+            }
+            if (!results) {
+                showNoResults();
+                return;
+            }
+
+            const { answers, totalQuestions } = results;
+            const incorrectQuestions = findIncorrectQuestions(answers);
+            const sectionScores = getSectionScores(answers);
+            const correctCount = totalQuestions - incorrectQuestions.length;
+
+            globalSectionScores = sectionScores;
+            globalCorrectCount = correctCount;
+            globalTotalCount = totalQuestions;
+
+            if (incorrectQuestions.length === 0) {
+                showPerfectScore(sectionScores, totalQuestions);
+                return;
+            }
+
+            renderReview(incorrectQuestions, totalQuestions, sectionScores);
+        }
+
+        function findIncorrectQuestions(answers) {
+            const incorrect = [];
+            let questionIndex = 0;
+
+            SECTIONS.forEach((section, sectionIndex) => {
+                section.questions.forEach((question, qIndex) => {
+                    if (question.type !== 'writing') {
+                        const studentAnswer = answers[sectionIndex]?.[qIndex];
+                        if (studentAnswer !== question.correct) {
+                            incorrect.push({
+                                globalIndex: questionIndex,
+                                sectionIndex,
+                                questionIndex: qIndex,
+                                section: section.name,
+                                question,
+                                studentAnswer,
+                                correctAnswer: question.correct
+                            });
+                        }
+                    }
+                    questionIndex++;
+                });
+            });
+
+            return incorrect;
+        }
+
+        function showNoResults() {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="no-results">
+                    <div class="no-results-icon">⚠️</div>
+                    <h2>No diagnostic results found</h2>
+                    <p>Make sure you're using the same device you took the test on.</p>
+                    <button class="btn btn-primary" onclick="goToDashboard()">Return to Dashboard</button>
+                </div>
+            `;
+        }
+
+        function showPerfectScore(sectionScores, totalQuestions) {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="summary">
+                    <h2>Perfect Score!</h2>
+                    <p class="summary-text">You got every question right on your diagnostic test. Excellent work, adventurer!</p>
+                </div>
+                <div class="percentile-section" id="percentileSection">
+                    <button class="percentile-trigger-btn" id="percentileTriggerBtn"
+                        onclick="showPercentileReport(${totalQuestions || 48}, ${totalQuestions || 48}, globalSectionScores)">
+                        See How I Did
+                    </button>
+                </div>
+                <div class="completion-message">
+                    <h3>🏆 All Systems Go!</h3>
+                    <p>You've mastered this diagnostic challenge. Time to tackle new expeditions!</p>
+                    <button class="btn btn-primary" onclick="goToDashboard()" style="margin-top:20px;">Return to Mission Control</button>
+                </div>
+            `;
+        }
+
+        function renderReview(incorrectQuestions, totalQuestions, sectionScores) {
+            const correct = totalQuestions - incorrectQuestions.length;
+            const content = document.getElementById('content');
+
+            let html = `
+                <div class="summary">
+                    <h2>You got ${correct} out of ${totalQuestions} correct!</h2>
+                    <div class="score">
+                        <div class="score-item">
+                            <div class="score-number">${correct}/${totalQuestions}</div>
+                            <div class="score-label">Correct</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-number">${incorrectQuestions.length}</div>
+                            <div class="score-label">To Review</div>
+                        </div>
+                    </div>
+                    <p class="summary-text">Let's explore the questions you missed together. Every mistake is a discovery!</p>
+                </div>
+
+                <div class="review-container">
+            `;
+
+            incorrectQuestions.forEach((item, idx) => {
+                const q = item.question;
+
+                html += `
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="review-question-num">Question ${item.globalIndex + 1} • ${item.section}</div>
+                            <div class="review-question-text">${q.text}</div>
+                        </div>
+                        <div class="review-content">
+                `;
+
+                html += `
+                    <div class="answer-row">
+                        <div class="answer-label">You chose:</div>
+                        <div class="answer-text answer-incorrect">
+                            ${escapeHtml(q.options[item.studentAnswer])}
+                        </div>
+                    </div>
+                    <div class="answer-row">
+                        <div class="answer-label">Correct answer:</div>
+                        <div class="answer-text answer-correct">
+                            ${escapeHtml(q.options[item.correctAnswer])}
+                        </div>
+                    </div>
+                `;
+
+                html += `
+                    <button class="tutor-button" onclick="askTutor(${idx}, '${escapeHtml(q.text).replace(/'/g, "\\'")}', '${escapeHtml(q.options[item.studentAnswer]).replace(/'/g, "\\'")}', '${escapeHtml(q.options[item.correctAnswer]).replace(/'/g, "\\'")}')" id="askBtn${idx}">
+                        Ask ${tutorName}
+                    </button>
+                    <div class="tutor-response" id="tutor${idx}">
+                        <div class="tutor-label">💬 ${tutorName}'s Explanation</div>
+                        <div class="tutor-message" id="tutorMsg${idx}"></div>
+                        <button class="got-it-btn" onclick="dismissTutor(${idx})">Got it!</button>
+                    </div>
+                `;
+
+                html += `</div></div>`;
+            });
+
+            html += `</div>`;
+
+            // Add percentile report section
+            html += `
+                <div class="percentile-section" id="percentileSection">
+                    <p style="color:var(--text-muted); margin-bottom:15px; font-size:14px;">Done reviewing? See how you compare.</p>
+                    <button class="percentile-trigger-btn" id="percentileTriggerBtn"
+                        onclick="showPercentileReport(${correct}, ${totalQuestions}, globalSectionScores)">
+                        See How I Did
+                    </button>
+                </div>
+            `;
+
+            content.innerHTML = html;
+            document.getElementById('skipBtn').style.display = 'block';
+        }
+
+        function askTutor(index, question, wrongAnswer, correctAnswer) {
+            const tutorDiv = document.getElementById(`tutor${index}`);
+            const msgDiv = document.getElementById(`tutorMsg${index}`);
+            const btn = document.getElementById(`askBtn${index}`);
+
+            msgDiv.innerHTML = '<span class="tutor-loading">Doug is thinking...</span>';
+            tutorDiv.classList.add('active');
+            btn.disabled = true;
+
+            const prompt = `You are Doug, an adventurous and encouraging AI tutor for a 5th grader named Chase. Chase answered this question incorrectly on a diagnostic test:
+
+Question: "${question}"
+Chase chose: "${wrongAnswer}"
+Correct answer: "${correctAnswer}"
+
+Explain in a friendly, adventurous tone why the correct answer is right. If there's a helpful test-taking strategy (like process of elimination or checking your work), mention it. Keep it concise—2-3 sentences for a 5th grader. Make it engaging and encouraging!`;
+
+            fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec', {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'chat',
+                    student: 'Chase',
+                    message: prompt
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                msgDiv.innerHTML = escapeHtml(data.response || data.message || 'Unable to get explanation.');
+                btn.disabled = false;
+            })
+            .catch(err => {
+                msgDiv.innerHTML = 'Unable to reach Doug right now. Please try again later.';
+                btn.disabled = false;
+            });
+        }
+
+        function dismissTutor(index) {
+            document.getElementById(`tutor${index}`).classList.remove('active');
+            document.getElementById(`askBtn${index}`).focus();
+        }
+
+        // === PERCENTILE CALCULATION ===
+        function normalCDF(x) {
+            const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+            const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+            const sign = x < 0 ? -1 : 1;
+            x = Math.abs(x) / Math.sqrt(2);
+            const t = 1.0 / (1.0 + p * x);
+            const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+            return 0.5 * (1.0 + sign * y);
+        }
+
+        function calculatePercentile(pctCorrect) {
+            const mean = 65, sd = 15;
+            const z = (pctCorrect - mean) / sd;
+            let percentile = Math.round(normalCDF(z) * 100);
+            return Math.max(5, Math.min(99, percentile));
+        }
+
+        function getSectionScores(answers) {
+            return SECTIONS.map((section, si) => {
+                let correct = 0, total = 0;
+                section.questions.forEach((q, qi) => {
+                    if (q.type !== 'writing') {
+                        total++;
+                        if (answers[si]?.[qi] === q.correct) correct++;
+                    }
+                });
+                const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+                return { name: section.name, correct, total, pct };
+            });
+        }
+
+        function getOrdinalSuffix(n) {
+            const s = ['th','st','nd','rd'];
+            const v = n % 100;
+            return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        }
+
+        function showPercentileReport(correct, total, sectionScores) {
+            const btn = document.getElementById('percentileTriggerBtn');
+            if (btn) btn.style.display = 'none';
+
+            const pctCorrect = Math.round((correct / total) * 100);
+            const percentile = calculatePercentile(pctCorrect);
+            const ordinal = getOrdinalSuffix(percentile);
+
+            const sorted = [...sectionScores].sort((a, b) => b.pct - a.pct);
+            const strongest = sorted[0];
+            const weakest = sorted[sorted.length - 1];
+
+            let barsHtml = '';
+            sectionScores.forEach(sec => {
+                const level = sec.pct >= 80 ? 'high' : sec.pct >= 50 ? 'medium' : 'low';
+                barsHtml += `
+                    <div class="section-bar-row">
+                        <span class="section-bar-name">${sec.name}</span>
+                        <div class="bar-track">
+                            <div class="bar-fill ${level}" style="width:${Math.max(sec.pct, 8)}%">${sec.correct}/${sec.total}</div>
+                        </div>
+                    </div>`;
+            });
+
+            const cardHtml = `
+                <div class="percentile-card" id="percentileCard">
+                    <h3>Your Expedition Report</h3>
+                    <div class="percentile-circle">
+                        <div class="percentile-number">${ordinal}</div>
+                        <div class="percentile-suffix">percentile</div>
+                    </div>
+                    <p class="percentile-meaning">
+                        I estimate your performance is better than about <strong>${percentile}%</strong> of students at your grade level.
+                    </p>
+                    <div class="strength-badges">
+                        <span class="badge badge-strength">Strongest: ${strongest.name} (${strongest.pct}%)</span>
+                        ${weakest.name !== strongest.name ? `<span class="badge badge-growth">Keep exploring: ${weakest.name} (${weakest.pct}%)</span>` : ''}
+                    </div>
+                    <div class="section-breakdown">
+                        <h4>Section Breakdown</h4>
+                        ${barsHtml}
+                    </div>
+                    <div class="percentile-tutor-summary">
+                        <div class="tutor-label">${tutorName}'s Assessment</div>
+                        <div class="tutor-message" id="percentileTutorMsg">
+                            <span class="tutor-loading">${tutorName} is preparing your expedition report...</span>
+                        </div>
+                    </div>
+                </div>`;
+
+            document.getElementById('percentileSection').innerHTML = cardHtml;
+            requestTutorSummary(correct, total, pctCorrect, percentile, sectionScores);
+        }
+
+        function requestTutorSummary(correct, total, pctCorrect, percentile, sectionScores) {
+            const sorted = [...sectionScores].sort((a, b) => b.pct - a.pct);
+            const sectionSummary = sectionScores.map(s => `${s.name}: ${s.correct}/${s.total} (${s.pct}%)`).join(', ');
+
+            const prompt = `You are ${tutorName}, an adventurous and encouraging AI tutor for a 5th grader named ${studentName}. ${studentName} just completed reviewing a diagnostic test. Here are the results:
+
+Overall: ${correct}/${total} correct (${pctCorrect}%)
+Estimated percentile: ${percentile}th (compared to grade-level peers)
+Section scores: ${sectionSummary}
+Strongest section: ${sorted[0].name} (${sorted[0].pct}%)
+Area for growth: ${sorted[sorted.length-1].name} (${sorted[sorted.length-1].pct}%)
+
+Give ${studentName} a personalized 3-4 sentence performance summary in your adventurous, encouraging tone. Start by telling them their estimated percentile ("I estimate your performance is better than about ${percentile}% of your peers"). Praise their strongest area specifically. Give one concrete, encouraging suggestion for their weakest area. End with motivation. Keep it warm and age-appropriate for a 5th grader.`;
+
+            fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec', {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'chat',
+                    student: studentName,
+                    message: prompt
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                const msg = data.response || data.message || `Great expedition, ${studentName}! Your strongest area was ${sectionScores.sort((a,b) => b.pct - a.pct)[0].name}. Keep exploring and you'll discover even more!`;
+                document.getElementById('percentileTutorMsg').innerHTML = escapeHtml(msg);
+            })
+            .catch(err => {
+                const sorted = [...sectionScores].sort((a, b) => b.pct - a.pct);
+                document.getElementById('percentileTutorMsg').innerHTML =
+                    `Great expedition, ${studentName}! I estimate your performance is better than about ${percentile}% of your peers. Your strongest area was ${sorted[0].name} — awesome exploring there! Keep charting new territory in ${sorted[sorted.length-1].name} and you'll level up even more. Every great explorer started with a first adventure!`;
+            });
+        }
+
+        let globalSectionScores = [];
+        let globalCorrectCount = 0;
+        let globalTotalCount = 0;
+
+        function scrollToCompletion() {
+            const completion = document.querySelector('.completion-message') || document.querySelector('.percentile-section');
+            if (completion) {
+                completion.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function goToDashboard() {
+            window.location.href = 'Chase_Dashboard.html';
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

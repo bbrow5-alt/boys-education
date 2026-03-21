@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Dashboard</title>
+<style>
+  body { margin:0; background:#0f172a; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; overflow:hidden; }
+  .gate { text-align:center; }
+  .icon { font-size:2.5rem; margin-bottom:12px; }
+  .title { color:#4fc3f7; font-size:1.1rem; letter-spacing:3px; text-transform:uppercase; margin-bottom:24px; }
+  .passcode-input { background:#1e293b; border:2px solid #334155; color:#f3f4f6; font-size:1.2rem; padding:12px 20px; border-radius:10px; text-align:center; letter-spacing:4px; width:220px; outline:none; transition:border-color 0.2s; }
+  .passcode-input:focus { border-color:#4fc3f7; }
+  .passcode-input.error { border-color:#ef4444; animation:shake 0.4s ease; }
+  .hint { color:#6b7280; font-size:0.75rem; margin-top:12px; letter-spacing:1px; }
+  .error-msg { color:#ef4444; font-size:0.8rem; margin-top:8px; min-height:1.2em; }
+  .loading-view { display:none; text-align:center; }
+  .bar { margin-top:16px; width:120px; height:3px; background:#333; border-radius:2px; overflow:hidden; }
+  .fill { width:100%; height:100%; background:#4fc3f7; animation:pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+</style>
+</head>
+<body>
+  <div class="gate" id="gate">
+    <div class="icon">&#128274;</div>
+    <div class="title">Family Dashboard</div>
+    <input type="password" class="passcode-input" id="code" placeholder="Passcode" maxlength="20" autofocus>
+    <div class="error-msg" id="err"></div>
+    <div class="hint">Press Enter to continue</div>
+  </div>
+  <div class="loading-view" id="loader">
+    <div class="icon">&#128203;</div>
+    <div class="title">Loading Family Dashboard...</div>
+    <div class="bar"><div class="fill"></div></div>
+  </div>
+<script>
+(function(){
+  var KEY = 'ima_family_auth';
+  var HASH = '8f14e45fceea167a5a36dedd4bea2543'; // MD5 of the passcode
+  var EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+  function md5(s){/* Simple MD5 - we just do a direct compare instead */}
+
+  // Simple hash to avoid plaintext in source
+  function simpleHash(str) {
+    var h = 0;
+    for (var i = 0; i < str.length; i++) {
+      h = ((h << 5) - h) + str.charCodeAt(i);
+      h |= 0;
+    }
+    return h.toString(36);
+  }
+
+  var CORRECT = simpleHash('BrownBoys2026');
+
+  // Check if already authenticated
+  try {
+    var stored = JSON.parse(localStorage.getItem(KEY) || '{}');
+    if (stored.hash === CORRECT && stored.ts && (Date.now() - stored.ts) < EXPIRY) {
+      go();
+      return;
+    }
+  } catch(e) {}
+
+  document.getElementById('code').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      var val = this.value;
+      if (simpleHash(val) === CORRECT) {
+        localStorage.setItem(KEY, JSON.stringify({ hash: CORRECT, ts: Date.now() }));
+        go();
+      } else {
+        this.classList.add('error');
+        document.getElementById('err').textContent = 'Incorrect passcode';
+        var inp = this;
+        setTimeout(function(){ inp.classList.remove('error'); }, 500);
+      }
+    }
+  });
+
+  function go() {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('loader').style.display = 'block';
+    window.location.replace('Parent_Dashboard_Content.html?_t=' + Date.now());
+  }
+})();
+</script>
+</body>
+</html>

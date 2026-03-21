@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Diagnostic Test">
+    <title>Diagnostic Test — Chase Week 2 (March 16, 2026)</title>
+    <style>
+        :root {
+            --primary: #0a0a0f;
+            --accent: #00ff88;
+            --secondary: #00ccff;
+            --warning: #ffaa00;
+            --success: #00ff88;
+            --error: #ff4444;
+            --glow: 0 0 20px rgba(0,255,136,0.1);
+            --glow-strong: 0 0 30px rgba(0,255,136,0.3);
+            --text-primary: #ffffff;
+            --text-secondary: #00ff88;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            color: var(--text-primary);
+            font-family: Courier New, monospace;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, var(--accent), var(--secondary));
+            z-index: 1000;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .status-bar {
+            position: fixed;
+            top: 8px;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: rgba(10, 10, 15, 0.95);
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 999;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+        }
+
+        .section-label {
+            color: var(--accent);
+            flex: 1;
+        }
+
+        .countdown-timer {
+            color: var(--secondary);
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .countdown-timer.warning {
+            color: var(--warning);
+            animation: pulse-warning 1s infinite;
+        }
+
+        @keyframes pulse-warning {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-top: 58px;
+            overflow: hidden;
+        }
+
+        .screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            overflow: auto;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .screen-content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .welcome-screen .screen-content {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .welcome-header {
+            font-size: 32px;
+            color: var(--accent);
+            margin-bottom: 16px;
+            text-shadow: var(--glow-strong);
+        }
+
+        .welcome-subheader {
+            font-size: 24px;
+            color: var(--secondary);
+            margin-bottom: 24px;
+        }
+
+        .welcome-briefing {
+            max-width: 400px;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            border: 2px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: Courier New, monospace;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background: var(--accent);
+            color: var(--primary);
+            box-shadow: var(--glow-strong);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn.secondary {
+            border-color: var(--secondary);
+            color: var(--secondary);
+        }
+
+        .btn.secondary:hover {
+            background: var(--secondary);
+            color: var(--primary);
+            box-shadow: 0 0 30px rgba(0,204,255,0.3);
+        }
+
+        .section-intro {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .section-intro h2 {
+            font-size: 28px;
+            color: var(--accent);
+            margin-bottom: 16px;
+            text-shadow: var(--glow-strong);
+        }
+
+        .section-intro .details {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            line-height: 1.8;
+        }
+
+        .question-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .passage-box {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 16px;
+            max-height: 40%;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .passage-label {
+            font-size: 12px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .options-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .option {
+            padding: 14px;
+            background: rgba(0, 204, 255, 0.08);
+            border: 2px solid rgba(0, 204, 255, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-primary);
+        }
+
+        .option:active {
+            transform: scale(0.98);
+        }
+
+        .option.selected {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: var(--primary);
+            font-weight: bold;
+            box-shadow: var(--glow-strong);
+        }
+
+        .option:hover:not(.selected) {
+            border-color: var(--accent);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .writing-prompt {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid var(--accent);
+            color: var(--text-primary);
+            font-family: Courier New, monospace;
+            font-size: 13px;
+            border-radius: 4px;
+            resize: none;
+            flex: 1;
+            margin-bottom: 12px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 10px rgba(0, 204, 255, 0.3);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            padding: 16px 20px;
+            border-top: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .nav-buttons button {
+            flex: 1;
+        }
+
+        .completion-screen .screen-content {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .completion-header {
+            font-size: 32px;
+            color: var(--success);
+            margin-bottom: 24px;
+            text-shadow: var(--glow-strong);
+        }
+
+        .effort-metric {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin: 12px 0;
+            line-height: 1.6;
+        }
+
+        .effort-metric .value {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 22px;
+        }
+
+        .completion-message {
+            max-width: 400px;
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-top: 32px;
+            line-height: 1.8;
+        }
+
+        .tutor-message {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            padding: 16px;
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+
+        .tutor-message .name {
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: 8px;
+        }
+
+        .question-counter {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary);
+        }
+
+        @media (max-width: 480px) {
+            .welcome-header {
+                font-size: 24px;
+            }
+            .welcome-subheader {
+                font-size: 18px;
+            }
+            .question-text {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="status-bar">
+        <div class="section-label" id="sectionLabel">MISSION BRIEFING</div>
+        <div class="countdown-timer" id="countdownTimer">60:00</div>
+    </div>
+
+    <div class="main-container">
+        <!-- Welcome Screen -->
+        <div class="screen welcome-screen active" id="welcomeScreen">
+            <div class="screen-content">
+                <div class="welcome-header">MISSION BRIEFING</div>
+                <div class="welcome-subheader">COMMANDER CHASE</div>
+                <div class="welcome-briefing">
+                    <p style="margin-bottom: 16px;">Your mission, should you choose to accept it: demonstrate your mastery across ELA, Mathematics, and Social Studies.</p>
+                    <p style="margin-bottom: 16px;">This diagnostic will take approximately 60 minutes. Answer each question to the best of your ability. There are no tricks—only clarity.</p>
+                    <p>Your effort and honest answers help us identify exactly where to focus your training.</p>
+                </div>
+                <button class="btn" id="startBtn">BEGIN MISSION</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            student: "Chase",
+            grade: 5,
+            testId: "chase_diagnostic_week2_mar2026",
+            testLabel: "Week 2 Diagnostic — March 16, 2026",
+            webAppUrl: "https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec"
+        };
+
+        // ELA SECTION
+        const elaPassages = [
+            {
+                id: "passage1",
+                title: "Narrative: First Solo Spacewalk",
+                text: `Maya pressed her gloved hand against the airlock window one last time. Through the reinforced glass, she could see the inky void of space stretching endlessly before her, dotted with stars that seemed to stare back. Her suit's systems beeped softly—a rhythmic reminder that she was alive, breathing recycled air, suspended above Earth by nothing but a tether and her training.
+
+"Houston, this is Explorer-7," she said, her voice steady despite the tremor in her chest. "Ready for EVA checkout."
+
+Commander Pierce's voice crackled through her headset. "Copy, Explorer-7. You're cleared for depressurization. Walk us through your pre-departure checklist."
+
+Maya did exactly that, checking each item with the precision of someone whose life depended on accuracy. She'd trained for eighteen months for this moment—countless hours in the water tanks at Johnson Space Center, simulations in the altitude chamber, scenarios designed to test every possible failure mode. But as the airlock finished cycling and the external hatch opened before her, revealing the raw, airless vacuum of space, no amount of training felt adequate.
+
+The tether. That was her lifeline. She checked it again, then again, then a third time. Some of the other astronauts laughed about her obsessive safety checks. "Maya, you're like a nervous cat," fellow astronaut Derek had joked during last week's briefing. But nervousness meant respect. Respect meant you took the danger seriously. And anyone who didn't respect the vacuum didn't deserve to survive it.
+
+She pushed off from the airlock.
+
+For a moment—just a moment—she forgot to breathe. The Earth hung below her like a blue marble suspended in eternity. She could see the spiral of a hurricane over the Atlantic. She could see her home country, the coastlines she'd memorized a thousand times in maps suddenly rendered in three dimensions and color. The curve of the planet was breathtaking. It was lonely. It was the most beautiful thing she'd ever seen.
+
+"Houston, I'm experiencing visual confirmation of target repair zone," Maya reported. Her hands moved with practiced confidence now, muscle memory overriding the awe. "Beginning approach to solar panel array."
+
+"Copy, Explorer-7. Your vitals are looking good. Heart rate a little elevated, but that's normal for first-timers."
+
+Normal. Maya almost laughed. There was nothing normal about this. Nothing about floating in the void above humanity's only home felt normal. Yet she pressed forward, reaching the damaged section of the solar panel array. The panel was scorched on one side where micrometeorite damage had compromised its efficiency. She'd memorized the repair procedure. Now she executed it.
+
+But then something changed.
+
+A piece of debris—too small to have been caught by orbital tracking, but large enough to matter—streaked past her helmet, close enough that she heard the whisper of its passage. Her instinct screamed at her to panic. In the silence of space, in the isolation of a vacuum suit, panic was death. Maya forced herself to breathe in through her nose, out through her mouth. In. Out. Calm. Focus.
+
+She looked back at the panel. The repair wasn't finished. She wasn't finished. Whatever fear she felt, whatever her primitive brain was shrieking about survivability, she had a job to do. And that job was too important to leave incomplete.
+
+As she worked, Maya realized something profound: the void that had terrified her wasn't empty. It was full of potential. Full of mystery. Full of all the things humanity had yet to discover. Her hesitation had stemmed not from the danger, but from standing on the edge of something so much larger than herself.
+
+She finished the repair with precision. The panel was restored. The mission would continue.
+
+Only then, as she floated back toward the airlock with Earth spinning beneath her, did Maya understand why explorers had always chosen to venture into the unknown, despite the risks. Because the unknown called to something ancient and unquenchable in the human spirit. Because standing at the edge of infinity was terrifying and beautiful and absolutely worth the price of fear.`
+            },
+            {
+                id: "passage2",
+                title: "Informational: The Remarkable Intelligence of Octopuses",
+                text: `The octopus has long captured human imagination. Ancient mariners told stories of massive tentacles dragging ships beneath the waves. Modern aquarium visitors press their faces against glass to watch these creatures move with an alien grace that seems almost supernatural. But the most astonishing thing about octopuses isn't their appearance or their strength—it's their intelligence.
+
+Unlike most invertebrates, octopuses possess a remarkable capacity for problem-solving and learning. In laboratory settings, researchers have observed octopuses opening childproof containers to reach food inside. They've watched octopuses devise novel solutions to obstacles they've never encountered before. Some individuals even demonstrated the ability to recognize individual human researchers and react differently to each person—showing curiosity to some, evasion to others. This suggests not merely reactive behavior, but genuine cognition; the octopus was making judgments about which humans were trustworthy.
+
+The organ of this intelligence is distributed throughout the octopus's body in an unexpected way. Eight arms extend from a central body, and each arm contains approximately two-thirds of the creature's neurons. This means that an octopus's arms can think somewhat independently of its central brain. When an octopus encounters an object, its arms explore and solve problems semi-autonomously, sending information to the central brain while the brain delegates control. This architecture is fundamentally different from vertebrate nervous systems, where the brain controls nearly everything. The octopus brain and arm nervous system work in concert—a biological form of distributed processing.
+
+Camouflage represents perhaps the most visible demonstration of octopus intelligence. These creatures can change color and texture in less than a second, matching their surroundings with extraordinary precision. What makes this feat truly remarkable is that octopuses are colorblind. They possess no color-detecting photoreceptors in their eyes. Yet they can match colors they literally cannot see. How? Researchers believe that specialized proteins in the octopus's skin itself can detect light. The skin "sees" the environment directly, and sends appropriate camouflage signals without requiring the brain to process color information. This elegant system allows the octopus to become nearly invisible even though it cannot perceive color the way humans do.
+
+Tool use in octopuses further illustrates their cognitive abilities. Researchers have documented instances of wild octopuses carrying coconut shells or clamshells as portable shelters, setting them down when needed and retrieving them later. This behavior demonstrates planning, memory, and the ability to use objects in ways that serve future needs—hallmarks of intelligence across many species. Some aquarium octopuses have even learned to open jars, unscrew lids, and manipulate mechanical puzzles. These aren't instinctive behaviors; they represent genuine learning and problem-solving.
+
+The laboratory octopus named Otto, housed in a Berlin aquarium, became famous for his particular problem-solving style. Otto was documented spraying water at lights he disliked, an apparently deliberate form of complaint. He learned to open the lids of containers to access food. He recognized individual staff members and squirted water specifically at those who fed him poorly or handled him roughly. Otto even escaped his tank at night and raided neighboring tanks for food, then returned to his own tank by morning. This suggests complex planning, the ability to remember routes and timing, and deliberate behavior modification based on experience.
+
+But octopus intelligence operates under constraints that vertebrate intelligence does not face. An octopus lives, on average, only a few years. Unlike humans, who accumulate knowledge across decades and pass wisdom to the next generation, each octopus must learn its survival skills within the span of a short life. There is no octopus culture, no traditional knowledge passed from parent to offspring. Each individual octopus must rediscover solutions that others have already solved. And yet, despite this limitation, octopuses have evolved remarkable cognitive abilities that allow them to thrive in complex ocean environments.
+
+Scientists continue to debate what "intelligence" means when applied to creatures with such different neural architecture and lifespans. But few would dispute that the octopus demonstrates something genuine: the capacity to perceive problems, devise solutions, learn from experience, and remember what they've learned. In an ocean filled with countless remarkable creatures, the octopus stands apart as a being whose intelligence rivals that of many vertebrates—achieved through a fundamentally different path of evolution.`
+            },
+            {
+                id: "passage3a",
+                title: "Argument 1: Why Homework Helps Learning",
+                text: `Homework remains one of the most misunderstood educational tools. Critics claim it creates stress and overburdens students, but the research is clear: homework, when assigned thoughtfully, strengthens learning and builds essential skills.
+
+First, homework reinforces concepts taught in class. Repetition is fundamental to memory formation. When students practice problems or review material at home, they move information from short-term memory into long-term storage. This neurological process is not optional—it's how learning actually happens. A student who attends class and hears an explanation but never practices will forget most of what they learned within days. Homework provides the repetition necessary for retention.
+
+Second, homework develops metacognition—the ability to think about one's own thinking. When students encounter a difficult homework problem and must work through confusion to reach understanding, they're learning how to learn. They're discovering which strategies work for them, which don't, and when to ask for help. These metacognitive skills transfer across all subjects and persist into college and professional life.
+
+Third, homework extends learning beyond the classroom. Class time is limited. A teacher can introduce a concept in thirty minutes, but true mastery requires hours of practice. Homework provides that additional practice time without requiring schools to extend the school day—an economically practical solution.
+
+Finally, homework increases communication between home and school. When parents see what their children are learning and review homework together, they become invested in education. This partnership strengthens students' commitment and achievement.`
+            },
+            {
+                id: "passage3b",
+                title: "Argument 2: Why Homework Can Harm Learning",
+                text: `While proponents of homework argue it enhances learning, evidence suggests excessive homework can actually undermine educational goals and student wellbeing.
+
+First, the research on homework's effectiveness is weaker than commonly assumed. Multiple studies show that homework has minimal correlation with academic achievement for elementary and middle school students. When homework becomes excessive, it correlates with stress, anxiety, and reduced motivation. Students become homework-focused rather than learning-focused. They rush through assignments to finish, rather than engage deeply with material. Quality of understanding deteriorates.
+
+Second, homework creates inequality. Students with resources—quiet study spaces, internet access, educated parents who can provide help—complete homework more successfully than students without these advantages. Homework thus widens achievement gaps rather than closing them. A fair educational system should not penalize students for circumstances beyond their control.
+
+Third, excessive homework interferes with other essential development. Students need time for physical activity, creative play, family connection, and sleep. Sleep deprivation in adolescents directly impairs academic performance and emotional regulation. When homework consumes evening hours, these critical needs suffer. Students arrive at school the next day exhausted, their capacity to learn diminished—the opposite of homework's intended effect.
+
+Fourth, homework can damage intrinsic motivation. Students naturally love learning when they control it. When homework becomes mandatory and grades-dependent, it transforms learning from an intrinsic joy into an external obligation. Students begin to study only for grades, not for understanding.`
+            }
+        ];
+
+        const elaQuestions = [
+            // PASSAGE 1 QUESTIONS
+            {
+                passageId: "passage1",
+                text: "Why does Maya check her tether multiple times before beginning her spacewalk?",
+                options: [
+                    "She is showing off her training to Houston and the other astronauts.",
+                    "She respects the danger of space and believes careful preparation ensures survival.",
+                    "She is nervous because Derek made fun of her during the briefing.",
+                    "Houston requires her to check it exactly three times before proceeding."
+                ],
+                correct: 1,
+                explanation: "Maya checks her tether because she takes the danger of space seriously. The text states: 'Some of the other astronauts laughed about her obsessive safety checks... But nervousness meant respect. Respect meant you took the danger seriously.'"
+            },
+            {
+                passageId: "passage1",
+                text: "Which sentence best describes the moment Maya pushes off from the airlock?",
+                options: [
+                    "Maya became afraid and wanted to return to safety immediately.",
+                    "Maya forgot her training and panicked at the sight of Earth.",
+                    "Maya experienced awe at seeing Earth from space, but also felt the enormity of her isolation.",
+                    "Maya was bored by the view because she had seen Earth many times in photographs."
+                ],
+                correct: 2,
+                explanation: "When Maya pushes off, the text says: 'For a moment—just a moment—she forgot to breathe. The Earth hung below her like a blue marble suspended in eternity... It was lonely. It was the most beautiful thing she'd ever seen.' This captures both wonder and isolation."
+            },
+            {
+                passageId: "passage1",
+                text: "What does the word 'primitive' mean as used in this sentence: 'In the silence of space, in the isolation of a vacuum suit, panic was death. Maya forced herself to breathe in through her nose, out through her mouth. In. Out. Calm. Focus. She looked back at the panel. The repair wasn't finished. She wasn't finished. Whatever fear she felt, whatever her primitive brain was shrieking about survivability...'",
+                options: [
+                    "Simple, basic, or belonging to an early stage of development",
+                    "Cruel or violent",
+                    "Intelligent or advanced",
+                    "Slow moving or lazy"
+                ],
+                correct: 0,
+                explanation: "In this context, 'primitive brain' refers to the ancient, instinctive part of the brain that reacts to danger without thinking. It's the part that values immediate survival above all else."
+            },
+            {
+                passageId: "passage1",
+                text: "What does Maya realize at the end of her spacewalk about why explorers venture into the unknown?",
+                options: [
+                    "They do it to escape their problems and avoid dealing with difficult issues.",
+                    "They do it for fame and recognition from other people.",
+                    "It appeals to something ancient and unquenchable in human nature, and the danger is worth the experience.",
+                    "They do it because they have no choice; their jobs require it."
+                ],
+                correct: 2,
+                explanation: "Maya concludes: 'Because the unknown called to something ancient and unquenchable in the human spirit. Because standing at the edge of infinity was terrifying and beautiful and absolutely worth the price of fear.'"
+            },
+            {
+                passageId: "passage1",
+                text: "How does Maya respond when a piece of debris nearly strikes her helmet?",
+                options: [
+                    "She screams and immediately returns to the airlock.",
+                    "She forces herself to stay calm and continue with her repair task.",
+                    "She calls Houston and asks for permission to abandon the mission.",
+                    "She uses the debris as an excuse to rest for several minutes."
+                ],
+                correct: 1,
+                explanation: "The text states: 'Maya forced herself to breathe... Calm. Focus. She looked back at the panel. The repair wasn't finished. She wasn't finished... Maya realized something profound: the void that had terrified her wasn't empty.'"
+            },
+            {
+                passageId: "passage1",
+                text: "Which detail from the passage best supports the idea that Maya's hesitation before the spacewalk comes from awe rather than cowardice?",
+                options: [
+                    "She had trained for eighteen months at Johnson Space Center.",
+                    "When she sees Earth, she feels it is 'the most beautiful thing she'd ever seen,' suggesting wonder rather than fear.",
+                    "Derek had joked that she was like a nervous cat.",
+                    "Her heart rate was elevated when she began the mission."
+                ],
+                correct: 1,
+                explanation: "Her emotional response to seeing Earth—describing it as beautiful and calling it 'the most beautiful thing she'd ever seen'—shows wonder and awe, which the passage later confirms when Maya realizes her hesitation came from 'standing on the edge of something so much larger than herself.'"
+            },
+            {
+                passageId: "passage1",
+                text: "What does the author suggest is the central message or theme of this story?",
+                options: [
+                    "Technology is dangerous and astronauts risk their lives unnecessarily.",
+                    "Fear is something that should always be avoided by any reasonable person.",
+                    "Human growth requires facing fear and venturing into the unknown, which holds deep meaning.",
+                    "Space exploration is interesting only to scientists and trained professionals."
+                ],
+                correct: 2,
+                explanation: "The passage concludes with Maya's realization that explorers venture into the unknown because 'it calls to something ancient and unquenchable in the human spirit' and that 'standing at the edge of infinity' is 'worth the price of fear.' This is the central theme."
+            },
+
+            // PASSAGE 2 QUESTIONS
+            {
+                passageId: "passage2",
+                text: "According to the passage, how can an octopus match colors if it is colorblind?",
+                options: [
+                    "It uses a sophisticated color-matching algorithm in its brain.",
+                    "It relies on other animals to tell it what color to become.",
+                    "Specialized proteins in its skin can detect light directly, sending camouflage signals without the brain processing color.",
+                    "It has recently evolved color-detecting receptors that scientists don't yet understand."
+                ],
+                correct: 2,
+                explanation: "The passage explicitly states: 'Specialized proteins in the octopus's skin itself can detect light. The skin 'sees' the environment directly, and sends appropriate camouflage signals without requiring the brain to process color information.'"
+            },
+            {
+                passageId: "passage2",
+                text: "What is the most important structural feature that enables an octopus arm to act somewhat independently?",
+                options: [
+                    "Each arm has its own tiny brain at the tip.",
+                    "The arm contains approximately two-thirds of the octopus's neurons.",
+                    "The arm is longer than the body, allowing it to explore far away.",
+                    "The arm has special muscles that contract without any nervous system input."
+                ],
+                correct: 1,
+                explanation: "The passage states: 'Eight arms extend from a central body, and each arm contains approximately two-thirds of the creature's neurons. This means that an octopus's arms can think somewhat independently of its central brain.'"
+            },
+            {
+                passageId: "passage2",
+                text: "What does the word 'distributed' mean as used in this phrase: 'This architecture is fundamentally different from vertebrate nervous systems, where the brain controls nearly everything. The octopus brain and arm nervous system work in concert—a biological form of distributed processing'?",
+                options: [
+                    "Spread out or divided among multiple locations rather than centralized in one place",
+                    "Delivered or handed out to different people",
+                    "Scattered randomly with no organization or pattern",
+                    "Copied or reproduced many times over"
+                ],
+                correct: 0,
+                explanation: "In this context, 'distributed processing' means that thinking and control are spread throughout the octopus's body rather than centralized in the brain. The arms process information semi-independently."
+            },
+            {
+                passageId: "passage2",
+                text: "What does the behavior of Otto, the octopus in the Berlin aquarium, demonstrate about octopus intelligence?",
+                options: [
+                    "Octopuses can only learn simple behaviors like spraying water.",
+                    "Octopuses are capable of planning, memory, route navigation, and behavioral adaptation based on experience.",
+                    "Octopuses are generally peaceful and avoid all conflict with other creatures.",
+                    "Octopuses become less intelligent in captivity compared to the wild."
+                ],
+                correct: 1,
+                explanation: "The passage details Otto's behaviors—escaping his tank at night, raiding neighboring tanks, returning by morning—and concludes: 'This suggests complex planning, the ability to remember routes and timing, and deliberate behavior modification based on experience.'"
+            },
+            {
+                passageId: "passage2",
+                text: "Which of the following does NOT serve as evidence of octopus intelligence in this passage?",
+                options: [
+                    "Opening childproof containers and solving novel problems",
+                    "Recognizing individual humans and reacting differently to each person",
+                    "Changing color and texture in less than a second to match surroundings",
+                    "Having a longer lifespan than most other marine invertebrates"
+                ],
+                correct: 3,
+                explanation: "The passage actually states that an octopus's SHORT lifespan is a constraint, not evidence of intelligence. It's discussed as a limitation (living only a few years), not as proof of cognitive ability."
+            },
+            {
+                passageId: "passage2",
+                text: "Based on the passage, what is the primary difference between how octopus intelligence develops and how human intelligence develops?",
+                options: [
+                    "Humans are always more intelligent than octopuses because they live longer.",
+                    "Humans accumulate knowledge across decades and pass wisdom to the next generation; octopuses must learn within a few years with no cultural transmission.",
+                    "Octopuses are more intelligent because they solve problems faster.",
+                    "Humans cannot learn from experience the way octopuses can."
+                ],
+                correct: 1,
+                explanation: "The passage explicitly states: 'Unlike humans, who accumulate knowledge across decades and pass wisdom to the next generation, each octopus must learn its survival skills within the span of a short life. There is no octopus culture, no traditional knowledge passed from parent to offspring.'"
+            },
+
+            // PAIRED PASSAGE QUESTIONS (Homework)
+            {
+                passageId: "passage3a",
+                text: "According to Argument 1, how does homework help students retain information?",
+                options: [
+                    "It makes them memorize facts without understanding them.",
+                    "It moves information from short-term memory to long-term storage through practice and repetition.",
+                    "It replaces class time, making learning more efficient.",
+                    "It forces students to work longer hours than necessary."
+                ],
+                correct: 1,
+                explanation: "Argument 1 states: 'Repetition is fundamental to memory formation. When students practice problems or review material at home, they move information from short-term memory into long-term storage.'"
+            },
+            {
+                passageId: "passage3b",
+                text: "Which concern does Argument 2 raise that Argument 1 does not address?",
+                options: [
+                    "That homework requires students to practice their skills.",
+                    "That excessive homework damages intrinsic motivation and turns learning into an external obligation.",
+                    "That teachers assign too little homework.",
+                    "That students enjoy doing homework in the evening."
+                ],
+                correct: 1,
+                explanation: "Argument 2 specifically discusses how homework can damage intrinsic motivation: 'Students begin to study only for grades, not for understanding.' Argument 1 does not address this concern."
+            },
+            {
+                passageId: "passage3a",
+                text: "What evidence does Argument 1 provide to support the claim that homework increases communication between home and school?",
+                options: [
+                    "It provides specific research studies showing improved test scores.",
+                    "It describes how teachers and parents can collaborate through homework review.",
+                    "It explains that parents naturally attend more school events when their children do homework.",
+                    "It does not provide specific evidence; it only states this claim."
+                ],
+                correct: 3,
+                explanation: "Argument 1 states: 'Finally, homework increases communication between home and school. When parents see what their children are learning and review homework together, they become invested in education.' However, it does not provide research evidence supporting this claim."
+            },
+            {
+                passageId: "passage3b",
+                text: "According to Argument 2, how does excessive homework contribute to lower academic performance?",
+                options: [
+                    "It makes students smarter and more competitive.",
+                    "It causes students to be well-rested and focused in class.",
+                    "Sleep deprivation from excessive homework impairs academic performance and emotional regulation the next day.",
+                    "It gives teachers more time to explain concepts in class."
+                ],
+                correct: 2,
+                explanation: "Argument 2 states: 'Students need time for... sleep. Sleep deprivation in adolescents directly impairs academic performance and emotional regulation. When homework consumes evening hours, these critical needs suffer. Students arrive at school the next day exhausted, their capacity to learn diminished.'"
+            },
+            {
+                passageId: "passage3a",
+                text: "Which statement would BOTH authors likely agree with?",
+                options: [
+                    "All homework assignments are equally valuable for student learning.",
+                    "The design and amount of homework matter when considering its educational impact.",
+                    "Students learn best when they have no homework at all.",
+                    "Parents should never review their children's homework."
+                ],
+                correct: 1,
+                explanation: "Argument 1 emphasizes 'homework, when assigned thoughtfully,' while Argument 2 discusses problems with 'excessive homework.' Both imply that homework's value depends on its design and quantity, making the middle option correct."
+            },
+            {
+                passageId: "passage3a",
+                text: "Which strategy does Argument 1 use that Argument 2 does not?",
+                options: [
+                    "Discussing the emotional effects of homework on students.",
+                    "Explaining neurological processes (memory formation) as the basis for its argument.",
+                    "Raising concerns about homework's fairness.",
+                    "Describing how homework affects family relationships."
+                ],
+                correct: 1,
+                explanation: "Argument 1 explains memory formation and neurological processes: 'This neurological process is not optional—it's how learning actually happens.' Argument 2 focuses on social and psychological effects but not on brain science."
+            }
+        ];
+
+        // VOCABULARY, GRAMMAR & WRITING SECTION
+        const vgwQuestions = [
+            // BASELINE (3)
+            {
+                type: "multiple-choice",
+                text: "Which sentence is written correctly?",
+                options: [
+                    "She don't like the taste of the octopus ink.",
+                    "She doesn't like the taste of the octopus ink.",
+                    "She doesn't likes the taste of the octopus ink.",
+                    "She do not like the taste of the octopus ink."
+                ],
+                correct: 1
+            },
+            {
+                type: "multiple-choice",
+                text: "In the sentence 'The astronaut, the engineer, and the pilot were ready for launch,' what is the comma's job?",
+                options: [
+                    "To separate a list of three items (called a series comma).",
+                    "To introduce a quotation.",
+                    "To show where to pause and take a breath.",
+                    "To separate the subject from the verb."
+                ],
+                correct: 0
+            },
+            {
+                type: "multiple-choice",
+                text: "Which sentence uses the word 'camouflage' correctly in context?",
+                options: [
+                    "The octopus's camouflage helped it escape from predators by changing color.",
+                    "The astronaut used a camouflage to repair the solar panel.",
+                    "I wore my camouflage to the grocery store.",
+                    "The homework camouflage made students learn better."
+                ],
+                correct: 0
+            },
+
+            // GRADE-LEVEL (4)
+            {
+                type: "multiple-choice",
+                text: "What does the prefix 'un-' mean, and which word is correctly formed with this prefix?",
+                options: [
+                    "'Un-' means 'not,' and 'unfinish' correctly describes something not finished.",
+                    "'Un-' means 'not,' and 'unhappy' correctly describes a person who is not happy.",
+                    "'Un-' means 'very,' and 'unjoy' correctly describes something very joyful.",
+                    "'Un-' means 'again,' and 'undo' correctly means to do something again."
+                ],
+                correct: 1
+            },
+            {
+                type: "multiple-choice",
+                text: "Which sentence correctly uses an apostrophe?",
+                options: [
+                    "The dog's paws were muddy after it's playtime.",
+                    "The dogs paws were muddy after it's playtime.",
+                    "The dog's paws were muddy after its playtime.",
+                    "The dogs' paws was muddy after its playtime."
+                ],
+                correct: 2
+            },
+            {
+                type: "multiple-choice",
+                text: "Which sentence contains a simile (a comparison using 'like' or 'as')?",
+                options: [
+                    "The octopus is intelligent.",
+                    "The astronaut was brave and courageous.",
+                    "Earth hung below her like a blue marble suspended in eternity.",
+                    "The passage discusses homework's effects on students."
+                ],
+                correct: 2
+            },
+            {
+                type: "multiple-choice",
+                text: "In the phrase 'spinning classroom' from 'When the room began spinning,' the word 'spinning' is used as—",
+                options: [
+                    "A verb describing an action.",
+                    "An adjective describing what the room is doing.",
+                    "A noun that names a thing.",
+                    "An adverb describing how to find the room."
+                ],
+                correct: 1
+            },
+
+            // CHALLENGING (4)
+            {
+                type: "multiple-choice",
+                text: "The word 'distributed' can have multiple meanings. In the sentence 'The octopus nervous system is distributed throughout its body,' what does 'distributed' mean?",
+                options: [
+                    "Given out or shared among recipients.",
+                    "Spread out or spread over a wide area.",
+                    "Passed around in a circle.",
+                    "Explained in great detail."
+                ],
+                correct: 1
+            },
+            {
+                type: "multiple-choice",
+                text: "Which revision of this sentence corrects a parallel structure error? Original: 'The test required reading passages, solving math problems, and to answer social studies questions.'",
+                options: [
+                    "'The test required reading passages, solving math problems, and answering social studies questions.'",
+                    "'The test required to read passages, solve math problems, and answer social studies questions.'",
+                    "'The test required reading passages, math problem solving, and to answer social studies questions.'",
+                    "'The test required passages to be read, math problems solved, and social studies questions answered.'"
+                ],
+                correct: 0
+            },
+            {
+                type: "multiple-choice",
+                text: "Which revision BEST improves this weak sentence? Original: 'The homework was hard and I didn't like doing it because it was difficult.'",
+                options: [
+                    "'The homework was hard and difficult and I didn't like it.'",
+                    "'I found the homework frustratingly difficult and overwhelming.'",
+                    "'The homework was hard because it was hard.'",
+                    "'Doing homework was a thing I had to do and it was hard.'"
+                ],
+                correct: 1
+            },
+            {
+                type: "multiple-choice",
+                text: "In this sentence, which word choice would make the writing more formal? 'The scientists discovered that octopuses are really, really smart.'",
+                options: [
+                    "'The scientists discovered that octopuses are very, very intelligent.'",
+                    "'The scientists discovered that octopuses are genuinely quite intelligent.'",
+                    "'The scientists found out that octopuses are seriously smart.'",
+                    "'The scientists discovered that octopuses are actually super intelligent.'"
+                ],
+                correct: 1
+            },
+
+            // CEILING (2)
+            {
+                type: "multiple-choice",
+                text: "Which sentence best identifies the organizational flaw in this paragraph? 'Octopuses are found in oceans around the world. They can live in coral reefs or deep sea environments. Astronauts conduct spacewalks to repair satellites. Octopuses eat crabs, fish, and other small creatures.'",
+                options: [
+                    "The second sentence contradicts the first sentence.",
+                    "The third sentence is off-topic and doesn't belong with information about octopuses.",
+                    "The fourth sentence uses incorrect grammar.",
+                    "The paragraph does not have a clear topic sentence."
+                ],
+                correct: 1
+            },
+            {
+                type: "multiple-choice",
+                text: "Which revision best corrects this sentence for clarity and tone? 'Homework, which many students do, is something that helps with learning, or so people say.'",
+                options: [
+                    "'Homework is something students do and it helps with learning.'",
+                    "'Students do homework, and homework is claimed by some to help with learning.'",
+                    "'Research suggests that homework, when well-designed, supports student learning.'",
+                    "'Homework is done by students because it helps learning.'"
+                ],
+                correct: 2
+            },
+
+            // WRITING PROMPTS (2)
+            {
+                type: "writing",
+                text: "Based on the passage about octopuses, explain in 3-4 sentences why you think an octopus would or would not make a good pet. Use at least one specific detail from the passage to support your answer.",
+                example: "An octopus would not make a good pet. First, octopuses are highly intelligent and need complex environments to stay mentally stimulated. According to the passage, Otto even escaped his tank at night, which shows they are escape artists. Second, keeping an intelligent creature in captivity might cause stress. Octopuses naturally solve problems and explore, so a typical aquarium would be too boring for them."
+            },
+            {
+                type: "writing",
+                text: "Here is a paragraph that needs improvement: 'School is important. Students go to school and learn things. Teachers teach students. It is good to go to school because you learn stuff.' Rewrite this paragraph to make it clearer, more detailed, and more persuasive. You may add your own ideas.",
+                example: "Education shapes our future in profound ways. Regular school attendance exposes students to diverse ideas, fosters critical thinking skills, and builds relationships with peers from different backgrounds. Through structured learning, students discover their strengths and develop the knowledge they'll need for careers and personal growth. Additionally, schools provide safe environments where young people can develop independence, resilience, and collaboration skills—abilities essential for success in any field."
+            }
+        ];
+
+        // MATHEMATICS SECTION
+        const mathQuestions = [
+            // BASELINE (3)
+            {
+                type: "multiple-choice",
+                text: "Which fraction is larger: 1/2 or 1/3?",
+                options: ["1/2", "1/3", "They are the same size.", "Cannot be determined."],
+                correct: 0
+            },
+            {
+                type: "multiple-choice",
+                text: "What is 12 × 7?",
+                options: ["84", "90", "72", "85"],
+                correct: 0
+            },
+            {
+                type: "multiple-choice",
+                text: "Maria has 15 stickers. She buys 8 more stickers. How many stickers does Maria have now?",
+                options: ["7", "23", "15", "20"],
+                correct: 1
+            },
+
+            // GRADE-LEVEL (5)
+            {
+                type: "multiple-choice",
+                text: "What is 3/4 + 1/4?",
+                options: ["4/8", "4/4 or 1", "2/4", "3/8"],
+                correct: 1
+            },
+            {
+                type: "multiple-choice",
+                text: "What is 2.5 ÷ 0.5?",
+                options: ["1.25", "5", "2.0", "12.5"],
+                correct: 1
+            },
+            {
+                type: "multiple-choice",
+                text: "Which decimal is equivalent to 3/5?",
+                options: ["0.3", "0.5", "0.6", "0.35"],
+                correct: 2
+            },
+            {
+                type: "multiple-choice",
+                text: "A rectangular field has a length of 8 meters and a width of 5 meters. What is the area of the field?",
+                options: ["13 square meters", "26 square meters", "40 square meters", "80 square meters"],
+                correct: 2
+            },
+            {
+                type: "multiple-choice",
+                text: "Which of the following equals 25%?",
+                options: ["1/2", "1/4", "1/5", "2/5"],
+                correct: 1
+            },
+
+            // CHALLENGING (4)
+            {
+                type: "multiple-choice",
+                text: "Chase has 2 1/2 cups of flour. He uses 3/4 of a cup for a recipe. How much flour does he have left?",
+                options: ["1 3/4 cups", "2 1/4 cups", "1 1/4 cups", "2 cups"],
+                correct: 1
+            },
+            {
+                type: "multiple-choice",
+                text: "A swimming pool is 30 meters long, 15 meters wide, and 2 meters deep. What is the volume of the pool?",
+                options: ["47 cubic meters", "92 cubic meters", "900 cubic meters", "450 cubic meters"],
+                correct: 2
+            },
+            {
+                type: "multiple-choice",
+                text: "Look at this pattern: 2, 5, 10, 17, 26, ? What number comes next?",
+                options: ["30", "35", "37", "40"],
+                correct: 2
+            },
+            {
+                type: "multiple-choice",
+                text: "If a shirt costs $24 and is on sale for 25% off, what is the sale price?",
+                options: ["$18", "$19", "$20", "$6"],
+                correct: 0
+            },
+
+            // CEILING (3)
+            {
+                type: "multiple-choice",
+                text: "On a coordinate plane, point A is at (3, 5) and point B is at (7, 5). Which statement is true?",
+                options: [
+                    "The points are on a vertical line.",
+                    "The points are on a horizontal line.",
+                    "Point B is 4 units down from point A.",
+                    "Point A is to the right of point B."
+                ],
+                correct: 1
+            },
+            {
+                type: "multiple-choice",
+                text: "A movie starts at 2:45 PM and ends at 5:20 PM. How long is the movie?",
+                options: ["2 hours 35 minutes", "2 hours 45 minutes", "3 hours 20 minutes", "3 hours 35 minutes"],
+                correct: 0
+            },
+            {
+                type: "multiple-choice",
+                text: "Based on this data: Monday 10 students studied, Tuesday 15 students studied, Wednesday 12 students studied, Thursday 18 students studied. If the pattern continues, how many students are likely to study on Friday?",
+                options: ["16 students", "20 students", "15 students", "22 students"],
+                correct: 2
+            }
+        ];
+
+        // SOCIAL STUDIES SECTION
+        const ssQuestions = [
+            // EASY (3)
+            {
+                type: "multiple-choice",
+                text: "Which state borders Louisiana?",
+                options: ["Texas", "Mississippi", "Arkansas", "All of the above"],
+                correct: 3
+            },
+            {
+                type: "multiple-choice",
+                text: "How many branches does the U.S. government have?",
+                options: ["1", "2", "3", "5"],
+                correct: 2
+            },
+            {
+                type: "multiple-choice",
+                text: "Which explorer sailed across the Atlantic Ocean in 1492?",
+                options: ["Hernando de Soto", "Christopher Columbus", "Francisco Pizarro", "Jacques Cartier"],
+                correct: 1
+            },
+
+            // MEDIUM (4)
+            {
+                type: "multiple-choice",
+                text: "What was the primary significance of the Louisiana Purchase (1803)?",
+                options: [
+                    "It ended the Revolutionary War.",
+                    "It doubled the size of the United States and gave control of the Mississippi River.",
+                    "It freed all enslaved people.",
+                    "It created the first state west of the Mississippi River."
+                ],
+                correct: 1
+            },
+            {
+                type: "multiple-choice",
+                text: "Which was a major cause of the American Revolution?",
+                options: [
+                    "The British wanted to explore new lands.",
+                    "Colonists were angry about unfair taxes and lack of representation.",
+                    "France was attacking American settlements.",
+                    "The colonies wanted to create a new religion."
+                ],
+                correct: 1
+            },
+            {
+                type: "multiple-choice",
+                text: "Looking at this timeline: 1607 (Jamestown founded) → 1776 (Declaration of Independence) → 1783 (Treaty of Paris). Which event occurred first?",
+                options: [
+                    "Treaty of Paris",
+                    "Declaration of Independence",
+                    "Jamestown founded",
+                    "Cannot determine from timeline."
+                ],
+                correct: 2
+            },
+            {
+                type: "multiple-choice",
+                text: "Which of the following is a right protected by the Bill of Rights?",
+                options: [
+                    "The right to own slaves.",
+                    "The right to free speech and religion.",
+                    "The right to own unlimited property.",
+                    "The right to vote without any restrictions."
+                ],
+                correct: 1
+            },
+
+            // HARD (3)
+            {
+                type: "multiple-choice",
+                text: "How were the New England colonies and Southern colonies DIFFERENT in their development?",
+                options: [
+                    "The New England colonies relied heavily on slavery; the Southern colonies did not.",
+                    "The Southern colonies developed farms and plantations; the New England colonies developed smaller farms and trade.",
+                    "The New England colonies never interacted with Native Americans.",
+                    "The Southern colonies had no schools or education."
+                ],
+                correct: 1
+            },
+            {
+                type: "multiple-choice",
+                text: "Read this primary source excerpt: 'We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness.' What document is this from, and what was its main purpose?",
+                options: [
+                    "The Constitution; it created the three branches of government.",
+                    "The Bill of Rights; it protected individual freedoms.",
+                    "The Declaration of Independence; it declared that the colonies were independent from Britain.",
+                    "The Emancipation Proclamation; it freed enslaved people."
+                ],
+                correct: 2
+            },
+            {
+                type: "multiple-choice",
+                text: "What was the cause-and-effect relationship in westward expansion? (Cause → Effect)",
+                options: [
+                    "Colonists wanted new land → Native Americans moved east.",
+                    "Railroads were built → Gold was discovered in California.",
+                    "Americans believed in Manifest Destiny → They expanded westward and displaced Native Americans.",
+                    "The Civil War ended → The United States stopped expanding west."
+                ],
+                correct: 2
+            }
+        ];
+
+        // APPLICATION STATE
+        let currentSection = 0;
+        let currentQuestion = 0;
+        let testStartTime = null;
+        let answers = [];
+        let sectionStartTimes = {};
+        const sections = [
+            { id: "ela", name: "ELA — READING COMPREHENSION", duration: 1200, questions: elaQuestions },
+            { id: "vgw", name: "ELA — VOCAB, GRAMMAR & WRITING", duration: 720, questions: vgwQuestions },
+            { id: "math", name: "MATHEMATICS", duration: 720, questions: mathQuestions },
+            { id: "ss", name: "SOCIAL STUDIES", duration: 480, questions: ssQuestions }
+        ];
+
+        const totalQuestions = elaQuestions.length + vgwQuestions.length + mathQuestions.length + ssQuestions.length;
+        const totalTimeSeconds = 3120; // 52 minutes
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateProgress() {
+            const totalAnswered = answers.length;
+            const progress = (totalAnswered / totalQuestions) * 100;
+            document.getElementById("progressBar").style.transform = `scaleX(${progress / 100})`;
+        }
+
+        function updateTimer() {
+            if (!testStartTime) return;
+            const elapsed = Math.floor((Date.now() - testStartTime) / 1000);
+            const remaining = Math.max(0, totalTimeSeconds - elapsed);
+            const timerEl = document.getElementById("countdownTimer");
+            timerEl.textContent = formatTime(remaining);
+            if (remaining < 300) {
+                timerEl.classList.add("warning");
+            }
+            if (remaining === 0) {
+                submitTest();
+            }
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+            document.getElementById(screenId).classList.add("active");
+        }
+
+        function showSectionIntro() {
+            const section = sections[currentSection];
+            showScreen("mainContainer");
+            const container = document.querySelector(".screen.active .screen-content");
+            container.innerHTML = `
+                <div class="section-intro">
+                    <h2>${section.name}</h2>
+                    <div class="details">
+                        <p>${section.questions.length} questions</p>
+                        <p>${Math.floor(section.duration / 60)} minutes</p>
+                    </div>
+                    <button class="btn" onclick="showQuestion()">BEGIN SECTION</button>
+                </div>
+            `;
+        }
+
+        function showQuestion() {
+            const section = sections[currentSection];
+            const question = section.questions[currentQuestion];
+
+            showScreen("mainContainer");
+            const container = document.querySelector(".screen.active .screen-content");
+
+            const questionNum = answers.filter(a => a.section === section.id).length + 1;
+            const sectionTotal = section.questions.length;
+
+            let html = `
+                <div class="question-counter">Question ${questionNum} of ${sectionTotal} (${section.name})</div>
+            `;
+
+            if (question.passageId) {
+                const passage = elaPassages.find(p => p.id === question.passageId);
+                html += `
+                    <div class="passage-box">
+                        <div class="passage-label">${passage.title}</div>
+                        ${passage.text}
+                    </div>
+                `;
+            }
+
+            if (question.type === "multiple-choice") {
+                html += `
+                    <div class="question-text">${question.text}</div>
+                    <div class="options-container">
+                        ${question.options.map((opt, idx) => `
+                            <div class="option" onclick="selectOption(${idx}, '${opt.replace(/'/g, "\\'")}', ${question.correct})">${opt}</div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (question.type === "writing") {
+                const savedAnswer = answers.find(a => a.section === section.id && a.questionIndex === currentQuestion);
+                html += `
+                    <div class="question-text">${question.text}</div>
+                    <div class="writing-prompt">Example response length: ${question.example ? question.example.split(' ').length : 'varies'} words</div>
+                    <textarea id="writingArea" placeholder="Type your response here...">${savedAnswer ? savedAnswer.selectedText : ''}</textarea>
+                    <button class="btn" onclick="submitWriting('${section.id}', ${currentQuestion})">SAVE & CONTINUE</button>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function selectOption(idx, text, correct) {
+            const section = sections[currentSection];
+
+            const existingIdx = answers.findIndex(a =>
+                a.section === section.id && a.questionIndex === currentQuestion
+            );
+
+            const answer = {
+                section: section.id,
+                questionIndex: currentQuestion,
+                question: section.questions[currentQuestion].text,
+                selectedOption: idx,
+                selectedText: text,
+                correctOption: correct,
+                correctText: section.questions[currentQuestion].options[correct],
+                type: 'multiple-choice'
+            };
+
+            if (existingIdx >= 0) {
+                answers[existingIdx] = answer;
+            } else {
+                answers.push(answer);
+            }
+
+            updateProgress();
+            nextQuestion();
+        }
+
+        function submitWriting(sectionId, qIdx) {
+            const text = document.getElementById("writingArea").value.trim();
+            const section = sections.find(s => s.id === sectionId);
+
+            const existingIdx = answers.findIndex(a =>
+                a.section === sectionId && a.questionIndex === qIdx
+            );
+
+            const answer = {
+                section: sectionId,
+                questionIndex: qIdx,
+                question: section.questions[qIdx].text,
+                selectedOption: null,
+                selectedText: text,
+                correctOption: null,
+                correctText: null,
+                type: 'writing'
+            };
+
+            if (existingIdx >= 0) {
+                answers[existingIdx] = answer;
+            } else {
+                answers.push(answer);
+            }
+
+            updateProgress();
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            const section = sections[currentSection];
+            currentQuestion++;
+
+            if (currentQuestion >= section.questions.length) {
+                currentSection++;
+                currentQuestion = 0;
+                if (currentSection >= sections.length) {
+                    submitTest();
+                } else {
+                    showSectionIntro();
+                }
+            } else {
+                showQuestion();
+            }
+        }
+
+        function submitTest() {
+            const elapsed = Math.floor((Date.now() - testStartTime) / 1000);
+            const payload = {
+                action: 'saveDiagnosticResults',
+                student: CONFIG.student,
+                grade: CONFIG.grade,
+                testId: CONFIG.testId,
+                testLabel: CONFIG.testLabel,
+                timestamp: new Date().toISOString(),
+                answers: answers,
+                summary: {
+                    totalQuestions: totalQuestions,
+                    answeredQuestions: answers.length,
+                    totalTimeSeconds: elapsed,
+                    effortScore: Math.round((answers.length / totalQuestions) * 100)
+                }
+            };
+
+            console.log("Test submission:", payload);
+            fetch(CONFIG.webAppUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(payload)
+            }).catch(() => {});
+
+            // Write localStorage signal for dashboard to detect completion
+            const today = new Date().toISOString().split('T')[0];
+            const signal = {
+                completed: true,
+                timestamp: new Date().toISOString(),
+                date: today,
+                testId: CONFIG.testId,
+                testLabel: CONFIG.testLabel,
+                points: 15
+            };
+            localStorage.setItem('chase_diagnostic_week2_signal', JSON.stringify(signal));
+            localStorage.setItem('chase_diagnostic_signal', JSON.stringify(signal));
+
+            // Also update dashboard local data so tasks show as complete
+            const dashKey = 'chase_dashboard_v3';
+            try {
+                const dashData = JSON.parse(localStorage.getItem(dashKey) || '{}');
+                if (!dashData.days) dashData.days = {};
+                if (!dashData.days[today]) dashData.days[today] = {};
+                dashData.days[today].session = true;
+                dashData.days[today].khan = true;
+                dashData.days[today].reading = true;
+                dashData.days[today].diagnosticComplete = true;
+                dashData.days[today].diagnosticPoints = 15;
+                localStorage.setItem(dashKey, JSON.stringify(dashData));
+            } catch(e) { console.log('Could not update dashboard data'); }
+
+            // POST completeDiagnosticTest to Apps Script for points
+            try {
+                fetch(CONFIG.webAppUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        action: 'completeDiagnosticTest',
+                        student: CONFIG.student,
+                        testId: CONFIG.testId,
+                        date: today,
+                        points: 15
+                    })
+                });
+            } catch(e) { console.log('Points POST failed'); }
+
+            showCompletion();
+        }
+
+        function showCompletion() {
+            showScreen("mainContainer");
+            const container = document.querySelector(".screen.active .screen-content");
+
+            const effortScore = Math.round((answers.length / totalQuestions) * 100);
+            const timeSpent = Math.floor((Date.now() - testStartTime) / 1000);
+            const mins = Math.floor(timeSpent / 60);
+            const secs = timeSpent % 60;
+
+            container.innerHTML = `
+                <div class="completion-header">MISSION COMPLETE</div>
+                <div class="effort-metric">
+                    Questions Attempted: <span class="value">${answers.length} / ${totalQuestions}</span>
+                </div>
+                <div class="effort-metric">
+                    Time Spent: <span class="value">${mins}m ${secs}s</span>
+                </div>
+                <div class="effort-metric">
+                    Effort Score: <span class="value">${effortScore}%</span>
+                </div>
+                <div class="completion-message">
+                    <p>Your responses have been recorded. Your tutor Doug will review your performance and identify specific areas for focus.</p>
+                </div>
+                <div class="tutor-message">
+                    <div class="name">— Doug, AI Tutor</div>
+                    <p>Great work, Chase. I'm reviewing your answers now to see exactly where we need to focus our training. Week 3's diagnostic will measure your growth in those specific areas. You're building the precision this mission requires.</p>
+                </div>
+            `;
+        }
+
+        // INITIALIZATION
+        document.getElementById("startBtn").addEventListener("click", () => {
+            testStartTime = Date.now();
+            showSectionIntro();
+            setInterval(updateTimer, 1000);
+        });
+
+        document.getElementById("sectionLabel").textContent = "MISSION BRIEFING";
+    </script>
+</body>
+</html>

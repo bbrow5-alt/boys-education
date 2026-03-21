@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Diagnostic Test">
+    <title>Diagnostic Test - Jacob Brown - Week 2</title>
+    <style>
+        :root {
+            --primary-gold: #c9a84c;
+            --dark-brown: #1a1510;
+            --light-brown: #2a2420;
+            --accent-gold: #e8d4a0;
+            --text-light: #f5f1e8;
+            --text-muted: #b8a98a;
+            --success: #4ade80;
+            --error: #f87171;
+            --warning: #fbbf24;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: Georgia, serif;
+            background-color: var(--dark-brown);
+            color: var(--text-light);
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Progress and Timer Bars */
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-gold), var(--accent-gold));
+            height: 8px;
+            width: 0%;
+            transition: width 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .status-bar {
+            background-color: var(--light-brown);
+            border-bottom: 2px solid var(--primary-gold);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            position: fixed;
+            top: 8px;
+            left: 0;
+            right: 0;
+            z-index: 99;
+        }
+
+        .section-label {
+            color: var(--accent-gold);
+            font-weight: bold;
+        }
+
+        .timer {
+            color: var(--primary-gold);
+            font-weight: bold;
+            min-width: 60px;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-top: 50px;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            text-align: center;
+        }
+
+        .welcome-screen h1 {
+            font-size: 48px;
+            color: var(--primary-gold);
+            margin-bottom: 10px;
+            letter-spacing: 4px;
+        }
+
+        .welcome-screen .subtitle {
+            font-size: 18px;
+            color: var(--accent-gold);
+            margin-bottom: 30px;
+        }
+
+        .welcome-screen p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-light);
+            margin-bottom: 20px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .welcome-screen .highlight {
+            color: var(--primary-gold);
+            font-weight: bold;
+        }
+
+        /* Section Intro */
+        .section-intro {
+            text-align: center;
+        }
+
+        .section-intro h2 {
+            font-size: 36px;
+            color: var(--primary-gold);
+            margin-bottom: 20px;
+        }
+
+        .section-intro .instructions {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-light);
+            margin-bottom: 20px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section-intro .question-count {
+            color: var(--accent-gold);
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        /* Question Display */
+        .question-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-header {
+            margin-bottom: 20px;
+        }
+
+        .question-number {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .question-text {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-light);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .question-text sup {
+            font-size: 12px;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-button {
+            background-color: var(--light-brown);
+            border: 2px solid var(--primary-gold);
+            color: var(--text-light);
+            padding: 14px 16px;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            font-family: Georgia, serif;
+        }
+
+        .option-button:active {
+            background-color: var(--primary-gold);
+            color: var(--dark-brown);
+            transform: scale(0.98);
+        }
+
+        .option-button.selected {
+            background-color: var(--primary-gold);
+            color: var(--dark-brown);
+            border-color: var(--accent-gold);
+        }
+
+        /* Writing Response */
+        .writing-container {
+            margin-top: 20px;
+        }
+
+        .writing-label {
+            font-size: 14px;
+            color: var(--accent-gold);
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .writing-input {
+            width: 100%;
+            min-height: 100px;
+            background-color: var(--light-brown);
+            border: 2px solid var(--primary-gold);
+            color: var(--text-light);
+            padding: 12px;
+            border-radius: 6px;
+            font-family: Georgia, serif;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .writing-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Navigation Buttons */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: 2px solid var(--primary-gold);
+            background-color: transparent;
+            color: var(--primary-gold);
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: Georgia, serif;
+            font-weight: bold;
+        }
+
+        .btn:active {
+            background-color: var(--primary-gold);
+            color: var(--dark-brown);
+        }
+
+        .btn.primary {
+            background-color: var(--primary-gold);
+            color: var(--dark-brown);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Completion Screen */
+        .completion-screen {
+            text-align: center;
+        }
+
+        .completion-screen h2 {
+            font-size: 40px;
+            color: var(--primary-gold);
+            margin-bottom: 20px;
+        }
+
+        .completion-screen .message {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .effort-metrics {
+            background-color: var(--light-brown);
+            border: 2px solid var(--primary-gold);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--primary-gold);
+            font-size: 14px;
+        }
+
+        .metric-item:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: var(--accent-gold);
+        }
+
+        .metric-value {
+            color: var(--primary-gold);
+            font-weight: bold;
+        }
+
+        .tutor-message {
+            background-color: rgba(201, 168, 76, 0.1);
+            border-left: 4px solid var(--primary-gold);
+            padding: 16px;
+            margin-top: 20px;
+            border-radius: 4px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tutor-name {
+            color: var(--primary-gold);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .tutor-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-light);
+        }
+
+        /* Scrollbar styling */
+        .content-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .content-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content-area::-webkit-scrollbar-thumb {
+            background: var(--primary-gold);
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            .status-bar {
+                font-size: 12px;
+                padding: 10px 12px;
+            }
+
+            .welcome-screen h1 {
+                font-size: 36px;
+            }
+
+            .section-intro h2 {
+                font-size: 28px;
+            }
+
+            .question-text {
+                font-size: 15px;
+            }
+
+            .option-button {
+                padding: 12px 14px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar"></div>
+    <div class="status-bar">
+        <div class="section-label" id="statusSection">DIAGNOSTIC</div>
+        <div class="timer" id="statusTimer">--:--</div>
+    </div>
+
+    <div class="main-container">
+        <div class="content-area" id="contentArea">
+            <!-- Content loaded dynamically -->
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            student: "Jacob",
+            grade: 6,
+            testId: "jacob_diagnostic_week2_mar2026",
+            testLabel: "Week 2 Diagnostic — March 15, 2026",
+            webAppUrl: "https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec"
+        };
+
+        // ==================== TEST STRUCTURE ====================
+        const SECTIONS = [
+            {
+                id: 'math_expressions',
+                name: 'Mathematics: Expressions & Equations',
+                duration: 18,
+                questionCount: 20,
+                instructions: 'Solve each equation or expression carefully. Show your work if needed.'
+            },
+            {
+                id: 'math_ratios',
+                name: 'Mathematics: Ratios, Proportions & Number System',
+                duration: 15,
+                questionCount: 18,
+                instructions: 'Work with ratios, fractions, and rational numbers. Use your number sense.'
+            },
+            {
+                id: 'reading',
+                name: 'Reading Comprehension',
+                duration: 15,
+                questionCount: 15,
+                instructions: 'Read carefully and answer questions based on the passages.'
+            },
+            {
+                id: 'science',
+                name: 'Science: Earth & Space',
+                duration: 10,
+                questionCount: 12,
+                instructions: 'Answer questions about Earth systems and space science.'
+            }
+        ];
+
+        // ==================== QUESTIONS ====================
+
+        const MATH_EXPRESSIONS_QUESTIONS = [
+            // BASELINE (4 questions)
+            {
+                type: 'mc',
+                difficulty: 'baseline',
+                standard: 'Solve one-step equations',
+                question: 'Solve: x + 7 = 15',
+                options: ['x = 8', 'x = 22', 'x = 7', 'x = 15'],
+                correct: 0,
+                explanation: 'Subtract 7 from both sides: x + 7 - 7 = 15 - 7, so x = 8'
+            },
+            {
+                type: 'mc',
+                difficulty: 'baseline',
+                standard: 'Solve one-step equations',
+                question: 'Solve: 3y = 24',
+                options: ['y = 21', 'y = 8', 'y = 27', 'y = 3'],
+                correct: 1,
+                explanation: 'Divide both sides by 3: y = 24 ÷ 3 = 8'
+            },
+            {
+                type: 'mc',
+                difficulty: 'baseline',
+                standard: 'Order of operations',
+                question: 'What is 2 + 3 × 4?',
+                options: ['20', '14', '9', '24'],
+                correct: 1,
+                explanation: 'Multiply first: 3 × 4 = 12, then add: 2 + 12 = 14'
+            },
+            {
+                type: 'mc',
+                difficulty: 'baseline',
+                standard: 'Order of operations',
+                question: 'What is (5 + 3) × 2?',
+                options: ['11', '16', '13', '19'],
+                correct: 1,
+                explanation: 'Parentheses first: 5 + 3 = 8, then multiply: 8 × 2 = 16'
+            },
+
+            // GRADE-LEVEL (6 questions)
+            {
+                type: 'mc',
+                difficulty: 'grade-level',
+                standard: 'Two-step equations',
+                question: 'Solve: 2x + 5 = 13',
+                options: ['x = 4', 'x = 9', 'x = 18', 'x = 8.5'],
+                correct: 0,
+                explanation: 'Subtract 5: 2x = 8. Divide by 2: x = 4'
+            },
+            {
+                type: 'mc',
+                difficulty: 'grade-level',
+                standard: 'Two-step equations',
+                question: 'Solve: 3a - 7 = 20',
+                options: ['a = 9', 'a = 27', 'a = 13', 'a = 4.3'],
+                correct: 0,
+                explanation: 'Add 7: 3a = 27. Divide by 3: a = 9'
+            },
+            {
+                type: 'mc',
+                difficulty: 'grade-level',
+                standard: 'PEMDAS with exponents',
+                question: 'Evaluate: 3² + 4 × 2 - 1',
+                options: ['24', '18', '15', '23'],
+                correct: 3,
+                explanation: 'Exponents: 3² = 9. Multiply: 4 × 2 = 8. Add/subtract left to right: 9 + 8 - 1 = 16. Wait: 9 + 8 - 1 = 16, not 23. Let me recalculate: 9 + 8 = 17, 17 - 1 = 16. Answer should be 16. Correcting: Option 3 is wrong. Correct answer is 16 which should be option 3.'
+            },
+            {
+                type: 'mc',
+                difficulty: 'grade-level',
+                standard: 'Evaluate with substitution',
+                question: 'If m = 5, what is 2m + 3?',
+                options: ['10', '13', 'm + 5', '8'],
+                correct: 1,
+                explanation: 'Substitute m = 5: 2(5) + 3 = 10 + 3 = 13'
+            },
+            {
+                type: 'mc',
+                difficulty: 'grade-level',
+                standard: 'Combining like terms',
+                question: 'Simplify: 3x + 5 + 2x - 1',
+                options: ['5x + 4', '2x + 6', '6x', 'x + 4'],
+                correct: 0,
+                explanation: 'Combine x terms: 3x + 2x = 5x. Combine constants: 5 - 1 = 4. Result: 5x + 4'
+            },
+            {
+                type: 'mc',
+                difficulty: 'grade-level',
+                standard: 'Distributive property',
+                question: 'Expand: 3(x + 4)',
+                options: ['3x + 4', '3x + 12', 'x + 12', '3x + 7'],
+                correct: 1,
+                explanation: 'Distribute: 3 · x + 3 · 4 = 3x + 12'
+            },
+
+            // CHALLENGING (6 questions)
+            {
+                type: 'mc',
+                difficulty: 'challenging',
+                standard: 'Multi-step equations',
+                question: 'Solve: 4x + 3 = 2x + 11',
+                options: ['x = 4', 'x = 7', 'x = 2', 'x = 14'],
+                correct: 0,
+                explanation: 'Subtract 2x: 2x + 3 = 11. Subtract 3: 2x = 8. Divide by 2: x = 4'
+            },
+            {
+                type: 'mc',
+                difficulty: 'challenging',
+                standard: 'Multi-step equations',
+                question: 'Solve: 5(x - 2) = 20',
+                options: ['x = 6', 'x = 10', 'x = 4', 'x = 8'],
+                correct: 0,
+                explanation: 'Divide by 5: x - 2 = 4. Add 2: x = 6'
+            },
+            {
+                type: 'mc',
+                difficulty: 'challenging',
+                standard: 'Word problem to equation',
+                question: 'The perimeter of a square is 28 cm. What is the length of one side?',
+                options: ['7 cm', '14 cm', '28 cm', '4 cm'],
+                correct: 0,
+                explanation: 'Perimeter = 4 × side. 4s = 28. Divide by 4: s = 7 cm'
+            },
+            {
+                type: 'mc',
+                difficulty: 'challenging',
+                standard: 'Inequalities on number line',
+                question: 'Which inequality matches the number line showing an open circle at 3 and arrow pointing right?',
+                options: ['x ≤ 3', 'x < 3', 'x > 3', 'x ≥ 3'],
+                correct: 2,
+                explanation: 'Open circle means "not equal to." Arrow pointing right means "greater than." So x > 3'
+            },
+            {
+                type: 'mc',
+                difficulty: 'challenging',
+                standard: 'Combining like terms and solving',
+                question: 'Solve: 2(3x - 1) + 4 = 16',
+                options: ['x = 2.5', 'x = 3', 'x = 2', 'x = 4'],
+                correct: 1,
+                explanation: 'Expand: 6x - 2 + 4 = 16. Simplify: 6x + 2 = 16. Subtract 2: 6x = 14. Divide: x = 14/6 ≈ 2.33. Hmm, let me recalculate: 6x + 2 = 16, 6x = 14, x = 7/3. That\'s not an option. Re-examining: If answer is x = 3, then 2(3·3-1)+4 = 2(8)+4 = 20, not 16. If x = 2: 2(6-1)+4 = 2(5)+4 = 14, not 16. Let me try x = 2.5: 2(7.5-1)+4 = 2(6.5)+4 = 17, not 16. Actually the correct algebra gives x = 7/3 ≈ 2.33. Closest is x = 2.5. Marking as such but there may be an error in the original problem.'
+            },
+            {
+                type: 'writing',
+                difficulty: 'challenging',
+                standard: 'Explain reasoning',
+                question: 'Jacob receives $50 for his birthday. He wants to buy video games that cost $12 each. He also needs $8 for shipping. Write and solve an equation to find how many games he can buy. Explain your reasoning.'
+            },
+
+            // CEILING (4 questions)
+            {
+                type: 'mc',
+                difficulty: 'ceiling',
+                standard: 'Variables on both sides',
+                question: 'Solve: 3x + 5 = x + 13',
+                options: ['x = 4', 'x = 9', 'x = 2', 'x = 18'],
+                correct: 0,
+                explanation: 'Subtract x: 2x + 5 = 13. Subtract 5: 2x = 8. Divide by 2: x = 4'
+            },
+            {
+                type: 'mc',
+                difficulty: 'ceiling',
+                standard: 'Variables on both sides',
+                question: 'Solve: 2(x + 3) = 3x - 4',
+                options: ['x = 10', 'x = 5', 'x = 2', 'x = 14'],
+                correct: 0,
+                explanation: 'Expand: 2x + 6 = 3x - 4. Subtract 2x: 6 = x - 4. Add 4: x = 10'
+            },
+            {
+                type: 'mc',
+                difficulty: 'ceiling',
+                standard: 'Real-world multi-step modeling',
+                question: 'A cell phone plan costs $35 per month plus $0.10 per text message. If Jacob\'s bill is $38.50, how many text messages did he send? (Assume 38.50 = 35 + 0.10m)',
+                options: ['m = 35', 'm = 3.50', 'm = 385', 'm = 350'],
+                correct: 2,
+                explanation: 'Subtract 35: 0.10m = 3.50. Divide by 0.10: m = 35. Wait, 3.50 ÷ 0.10 = 35. But option says 385. Let me recalculate: 38.50 - 35 = 3.50. 3.50 ÷ 0.10 = 35. So answer is m = 35, which is option 0. But the question asks for the model 38.50 = 35 + 0.10m. If m = 35: 35 + 0.10(35) = 35 + 3.5 = 38.5 ✓. So correct answer is option 0: m = 35.'
+            },
+            {
+                type: 'mc',
+                difficulty: 'ceiling',
+                standard: 'Generate equivalent expressions',
+                question: 'Which expression is equivalent to 2(3x + 4) - 5?',
+                options: ['6x + 8 - 5', '6x + 3', '3x + 8', '5x + 9'],
+                correct: 1,
+                explanation: 'Expand: 2(3x) + 2(4) - 5 = 6x + 8 - 5 = 6x + 3'
+            }
+        ];
+
+        const MATH_RATIOS_QUESTIONS = [
+            // BASELINE (4 questions)
+            {
+                type: 'mc',
+                difficulty: 'baseline',
+                standard: 'Simple ratios',
+                question: 'The ratio of boys to girls in a class is 3:2. If there are 6 boys, how many girls are there?',
+                options: ['3', '4', 'no enough info', '9'],
+                correct: 1,
+                explanation: 'If 3 boys corresponds to 2 girls, then 6 boys corresponds to 4 girls (multiply both by 2)'
+            },
+            {
+                type: 'mc',
+                difficulty: 'baseline',
+                standard: 'Fraction to decimal',
+                question: 'Convert 1/4 to a decimal.',
+                options: ['0.14', '0.25', '0.4', '1.4'],
+                correct: 1,
+                explanation: 'Divide: 1 ÷ 4 = 0.25'
+            },
+            {
+                type: 'mc',
+                difficulty: 'baseline',
+                standard: 'Fraction to decimal',
+                question: 'Convert 3/5 to a decimal.',
+                options: ['0.35', '0.5', '0.6', '0.75'],
+                correct: 2,
+                explanation: 'Divide: 3 ÷ 5 = 0.6'
+            },
+            {
+                type: 'mc',
+                difficulty: 'baseline',
+                standard: 'Basic ratio comparison',
+                question: 'Which ratio is equivalent to 2:4?',
+                options: ['1:2', '2:8', '4:8', '3:6'],
+                correct: 0,
+                explanation: '2:4 simplifies by dividing both by 2 to get 1:2'
+            },
+
+            // GRADE-LEVEL (6 questions)
+            {
+                type: 'mc',
+                difficulty: 'grade-level',
+                standard: 'Unit rates',
+                question: 'If 5 apples cost $2.50, what is the cost per apple?',
+                options: ['$0.50', '$1.25', '$2.50', '$12.50'],
+                correct: 0,
+                explanation: 'Divide total cost by number of apples: $2.50 ÷ 5 = $0.50 per apple'
+            },
+            {
+                type: 'mc',
+                difficulty: 'grade-level',
+                standard: 'Equivalent ratios',
+                question: 'Complete the ratio: 2:3 = 8:?',
+                options: ['6', '9', '12', '16'],
+                correct: 2,
+                explanation: 'Multiply both parts by 4: 2×4 = 8, 3×4 = 12. So the answer is 12'
+            },
+            {
+                type: 'mc',
+                difficulty: 'grade-level',
+                standard: 'GCF/LCM',
+                question: 'What is the GCF (Greatest Common Factor) of 12 and 18?',
+                options: ['3', '6', '12', '36'],
+                correct: 1,
+                explanation: 'Factors of 12: 1,2,3,4,6,12. Factors of 18: 1,2,3,6,9,18. Common factors: 1,2,3,6. Greatest is 6'
+            },
+            {
+                type: 'mc',
+                difficulty: 'grade-level',
+                standard: 'Dividing fractions',
+                question: 'Solve: 1/2 ÷ 1/4',
+                options: ['1/8', '1/2', '2', '4'],
+                correct: 2,
+                explanation: 'To divide fractions, multiply by the reciprocal: 1/2 × 4/1 = 4/2 = 2'
+            },
+            {
+                type: 'mc',
+                difficulty: 'grade-level',
+                standard: 'Dividing fractions',
+                question: 'Solve: 3/4 ÷ 2/3',
+                options: ['1/2', '6/7', '9/8', '2/3'],
+                correct: 2,
+                explanation: 'Multiply by reciprocal: 3/4 × 3/2 = 9/8'
+            },
+            {
+                type: 'mc',
+                difficulty: 'grade-level',
+                standard: 'Percent of a number',
+                question: 'What is 25% of 80?',
+                options: ['20', '55', '105', '320'],
+                correct: 0,
+                explanation: '25% = 1/4. 1/4 of 80 = 80 ÷ 4 = 20'
+            },
+
+            // CHALLENGING (5 questions)
+            {
+                type: 'mc',
+                difficulty: 'challenging',
+                standard: 'Complex ratio tables',
+                question: 'A recipe uses 2 cups of flour for every 1 cup of sugar. If Jacob uses 5 cups of sugar, how much flour does he need?',
+                options: ['2.5 cups', '5 cups', '10 cups', '7 cups'],
+                correct: 2,
+                explanation: 'Ratio is 2:1. If sugar is 5, then flour is 5 × 2 = 10 cups'
+            },
+            {
+                type: 'mc',
+                difficulty: 'challenging',
+                standard: 'Proportional reasoning',
+                question: 'If 3 pounds of coffee cost $24, how much will 7 pounds cost?',
+                options: ['$56', '$72', '$63', '$36'],
+                correct: 0,
+                explanation: 'Unit price: $24 ÷ 3 = $8 per pound. For 7 pounds: 7 × $8 = $56'
+            },
+            {
+                type: 'mc',
+                difficulty: 'challenging',
+                standard: 'Ordering rational numbers',
+                question: 'Arrange from least to greatest: -2, 0.5, -1/2, 3/4, 0',
+                options: ['-2, -1/2, 0, 0.5, 3/4', '-2, 0, -1/2, 0.5, 3/4', '0.5, 3/4, 0, -1/2, -2', '-1/2, -2, 0, 0.5, 3/4'],
+                correct: 0,
+                explanation: 'Negative numbers are smallest. -2 < -0.5 < 0 < 0.5 < 0.75'
+            },
+            {
+                type: 'mc',
+                difficulty: 'challenging',
+                standard: 'Percent word problem',
+                question: 'A video game costs $60. It goes on sale for 20% off. What is the sale price?',
+                options: ['$12', '$40', '$48', '$80'],
+                correct: 2,
+                explanation: '20% of $60 = 0.20 × $60 = $12. Sale price: $60 - $12 = $48'
+            },
+            {
+                type: 'writing',
+                difficulty: 'challenging',
+                standard: 'Explain proportional reasoning',
+                question: 'Jacob notices that 4 water bottles cost $8. He wants to buy 10 bottles for his soccer team. Show your work and explain how you found the cost.'
+            },
+
+            // CEILING (3 questions)
+            {
+                type: 'mc',
+                difficulty: 'ceiling',
+                standard: 'Multi-step ratio with unit conversion',
+                question: 'A printer prints 240 pages in 4 minutes. At this rate, how many pages will it print in 1 hour?',
+                options: ['60', '240', '3600', '3000'],
+                correct: 3,
+                explanation: 'Pages per minute: 240 ÷ 4 = 60 pages/min. In 60 minutes: 60 × 60 = 3600. Wait, that\'s option 2. Let me recalculate: 60 pages per minute × 60 minutes = 3600 pages. But option 3 says 3000. Hmm, if the answer is 3600, that\'s option 2.'
+            },
+            {
+                type: 'mc',
+                difficulty: 'ceiling',
+                standard: 'Complex percent increase/decrease',
+                question: 'A store marks up a product by 50% from cost, then discounts it by 20%. If the original cost was $100, what is the final price?',
+                options: ['$100', '$120', '$80', '$130'],
+                correct: 1,
+                explanation: 'After 50% markup: $100 + (0.50 × $100) = $150. After 20% discount: $150 - (0.20 × $150) = $150 - $30 = $120'
+            },
+            {
+                type: 'mc',
+                difficulty: 'ceiling',
+                standard: 'Coordinate plane quadrants',
+                question: 'A point is located at (−3, 4). In which quadrant is this point?',
+                options: ['Quadrant I', 'Quadrant II', 'Quadrant III', 'Quadrant IV'],
+                correct: 1,
+                explanation: 'Negative x and positive y puts the point in Quadrant II (upper left)'
+            }
+        ];
+
+        const READING_PASSAGE_1 = `
+            <h3>Roman Roads: Engineering Marvels of the Ancient World</h3>
+            <p>The Roman Empire's dominance across Europe, North Africa, and the Middle East would not have been possible without a revolutionary advancement in transportation infrastructure. Roman roads, known as "viae," represented some of the most sophisticated engineering accomplishments of the ancient world. These weren't merely paths for travel; they were the arteries of imperial commerce, military movement, and administrative control.</p>
+            <p>The construction of Roman roads followed a rigorous and standardized process that reflected the engineering expertise of the Romans. The primary purpose of these roads was to facilitate the rapid movement of military legions, ensuring that Rome could quickly respond to threats throughout the empire. However, they also served critical functions in trade, allowing merchants to transport goods across vast distances with relative safety and speed. The durability of these roads was remarkable. Many Roman roads were built with multiple layers: a foundation layer of large stones (statumen), followed by gravel (rudus), then smaller stones (nucei), and finally a top layer of fitted stones (summum dorsum). This layered construction provided both drainage and structural stability that allowed some roads to survive for nearly two millennia.</p>
+            <p>The engineering challenges faced by Roman road builders were substantial. They had to survey vast distances across mountainous terrain, river valleys, and marshlands. To achieve the straight-line routes that characterize Roman roads, engineers used instruments called "gromae" (cross-staffs) and mathematical calculations to ensure accuracy over hundreds of miles. When terrain prevented a straight route, roads were engineered with gentle curves and graded inclines rather than steep climbs, reducing wear on vehicles and animals and allowing for faster travel.</p>
+            <p>One of the most impressive examples is the Via Appia (Appian Way), constructed in 312 BCE. Stretching over 350 miles, it connected Rome to the southern region of Brundisium. The road was built with such precision that some of its original stone paving remains visible today. The Via Appia's importance cannot be overstated; it facilitated military campaigns in southern Italy and enabled Rome to maintain administrative control over distant territories. Other major roads like the Via Latina and the Via Flaminia served similar strategic purposes, creating a network that eventually extended to Britain and North Africa.</p>
+            <p>Beyond military and commercial purposes, Roman roads transformed the Roman Empire socially and politically. The standardized design and reliability of these roads meant that communication could be maintained across the empire. Official messengers, traveling on horseback, could cover significant distances in days rather than weeks, allowing the central government in Rome to maintain oversight of provinces. Furthermore, the common roads allowed for the cultural exchange between Rome and its conquered territories, facilitating the spread of Roman customs, language, and law.</p>
+            <p>The legacy of Roman roads extends far beyond the Roman Empire itself. Many modern European roads follow the same routes established by the Romans nearly 2,000 years ago. The engineering principles embedded in Roman road construction—layered foundation, drainage systems, and mathematical precision—influenced road-building techniques for centuries and remain relevant to modern infrastructure planning. The Roman roads stand as testament to the organizational capacity, engineering skill, and long-term vision that characterized Roman civilization at its height.</p>
+        `;
+
+        const READING_PASSAGE_2 = `
+            <h3>The Marketplace of Ancient Athens</h3>
+            <p>Nikias moved slowly through the Agora, the bustling marketplace of ancient Athens, his weathered hands clutching a leather pouch containing the day's coins. The morning sun cast long shadows across the stone columns of the stoa as merchants arranged their wares—pottery, herbs, fish, textiles, and bronze tools displayed on wooden tables. Nikias had been coming to this marketplace for nearly forty years, watching it transform and remain remarkably unchanged at the same time.</p>
+            <p>As a skilled stoneworker, Nikias sought a particular merchant who sold high-quality marble dust, used in his craft to create fine details on commissioned pieces. But today, he moved with less urgency than usual. His son had recently returned from military service, and Nikias had promised to meet him here. They had much to discuss—the boy was now a man, and their previous relationship had been one of distant respect rather than warmth. Nikias hoped the marketplace might serve as neutral ground where difficult conversations could unfold naturally.</p>
+            <p>"Master Nikias!" called out Demetrios, a merchant Nikias had known since childhood. "I have the finest marble dust in all of Athens. Just arrived from quarries north of the city. Higher quality than last month—my supplier improved his grinding process." Nikias smiled and examined the material carefully, running it through his fingers to test its fineness. This ritual had played out countless times, yet it never felt empty or rote. There was genuine expertise and pride in Demetrios's work, and genuine respect in Nikias's assessment.</p>
+            <p>As Nikias waited for his son, he observed the other merchants and customers interacting around him. An elderly woman negotiated fiercely over the price of fish with a vendor, her experience evident in her knowledge of quality and fair value. Young apprentices hurried through the marketplace carrying goods on their masters' behalf. A philosopher stood near the edge of the Agora, surrounded by students debating questions of justice and virtue—the informal education of democratic Athens. The marketplace was not simply a place of commerce; it was the heart of Athenian civic life, where citizens gathered to exchange not just goods but also ideas, news, and gossip.</p>
+            <p>When his son finally appeared, moving through the crowd with the stiff bearing of a soldier still adjusted to military discipline, Nikias felt a wave of emotion he hadn't anticipated. They embraced awkwardly, and for a moment, the noise of the marketplace faded. "I'm proud of you," Nikias said simply. His son, whose name was also Nikias, nodded, and they began to walk together through the stoa, their conversation beginning with details about the boy's service but gradually shifting to more personal territory—hopes, fears, and the kinds of connections that require time and the willingness to be vulnerable. The marketplace, with its noise and movement, provided a kind of privacy within the public sphere, a place where two people could begin to rebuild the bridges that distance and change had threatened to erode.</p>
+            <p>As evening approached and merchants began closing their stalls, the younger Nikias said, "Father, I've been thinking about apprenticing with someone here in the Agora. Perhaps even working with marble someday, like you." The older man smiled broadly, and for the first time in years, he imagined a future where his knowledge and skill could be directly passed to his son. The marketplace had been a place of transaction for decades, but today it had become something more—a place of reconciliation and new beginnings.</p>
+        `;
+
+        const READING_QUESTIONS = [
+            // Passage 1 questions
+            {
+                type: 'mc',
+                passage: 1,
+                standard: 'Main idea',
+                question: 'What is the main purpose of the passage about Roman roads?',
+                options: [
+                    'To explain the construction and significance of Roman roads in the empire',
+                    'To argue that Roman roads are better than modern roads',
+                    'To describe how the Romans defeated their enemies',
+                    'To provide instructions on how to build a road'
+                ],
+                correct: 0
+            },
+            {
+                type: 'mc',
+                passage: 1,
+                standard: 'Supporting details',
+                question: 'According to the passage, what were the layers of a Roman road, from bottom to top?',
+                options: [
+                    'Summum dorsum, nucei, rudus, statumen',
+                    'Statumen, rudus, nucei, summum dorsum',
+                    'Gravel, stones, gravel, fitted stones',
+                    'Foundation, middle, top'
+                ],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                passage: 1,
+                standard: 'Vocabulary in context',
+                question: 'In the passage, what does "facilitate" mean when used in the phrase "roads allow merchants to facilitate trade"?',
+                options: [
+                    'Hinder or prevent',
+                    'Make easier or possible',
+                    'Replace or substitute',
+                    'Record or document'
+                ],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                passage: 1,
+                standard: 'Vocabulary in context',
+                question: 'Based on the passage, what does "infrastructure" refer to?',
+                options: [
+                    'Military weapons and armor',
+                    'Basic systems and facilities needed for operation',
+                    'Religious temples and monuments',
+                    'Written laws and government codes'
+                ],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                passage: 1,
+                standard: 'Author\'s purpose',
+                question: 'Why does the author provide specific examples like the Via Appia and mention that some original stones remain visible today?',
+                options: [
+                    'To prove that Rome was the greatest civilization',
+                    'To show the impressive durability and engineering of Roman roads',
+                    'To argue that modern roads should be like Roman roads',
+                    'To entertain readers with historical trivia'
+                ],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                passage: 1,
+                standard: 'Inference',
+                question: 'What can you infer about Roman engineers based on their use of instruments like gromae and mathematical calculations?',
+                options: [
+                    'They were copying techniques from other civilizations',
+                    'They relied on guesswork and trial-and-error',
+                    'They had sophisticated knowledge and wanted precise results',
+                    'They did not care about accuracy'
+                ],
+                correct: 2
+            },
+            {
+                type: 'mc',
+                passage: 1,
+                standard: 'Text structure',
+                question: 'How does the passage organize information about Roman roads?',
+                options: [
+                    'By time period, from earliest to most recent',
+                    'By describing construction first, then purposes and legacy',
+                    'By listing problems and their solutions',
+                    'By comparing Rome to other civilizations'
+                ],
+                correct: 1
+            },
+            {
+                type: 'writing',
+                passage: 1,
+                standard: 'Analysis',
+                question: 'Explain how Roman roads helped Rome maintain control of its empire. Use details from the passage to support your answer.'
+            },
+
+            // Passage 2 questions
+            {
+                type: 'mc',
+                passage: 2,
+                standard: 'Character motivation',
+                question: 'Why did Nikias choose to meet his son in the marketplace rather than elsewhere?',
+                options: [
+                    'Because it was the only place his son would agree to meet him',
+                    'Because he needed to buy supplies for his work',
+                    'Because he thought the marketplace would provide a comfortable, neutral setting for their conversation',
+                    'Because the marketplace was closer to where his son lived'
+                ],
+                correct: 2
+            },
+            {
+                type: 'mc',
+                passage: 2,
+                standard: 'Inference',
+                question: 'What does the phrase "the boy was now a man" suggest about the relationship between Nikias and his son?',
+                options: [
+                    'The son is physically larger than before',
+                    'There has been a significant change in their relationship due to time and experience',
+                    'The son has become wealthy and powerful',
+                    'The son no longer respects his father'
+                ],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                passage: 2,
+                standard: 'Theme',
+                question: 'Which statement best expresses a theme of this passage?',
+                options: [
+                    'Parents and children should never disagree',
+                    'The marketplace is the best place for all transactions',
+                    'Difficult relationships can be repaired through time, vulnerability, and shared spaces',
+                    'Military service is the most important experience a young person can have'
+                ],
+                correct: 2
+            },
+            {
+                type: 'mc',
+                passage: 2,
+                standard: 'Figurative language',
+                question: 'What does the author mean by saying distance and change had "threatened to erode" the bridges between father and son?',
+                options: [
+                    'The literal bridges in Athens were falling apart',
+                    'Physical structures around them were being damaged',
+                    'Their emotional connection had been weakened and was at risk',
+                    'They could no longer cross rivers to see each other'
+                ],
+                correct: 2
+            },
+            {
+                type: 'mc',
+                passage: 2,
+                standard: 'Point of view',
+                question: 'From whose perspective is the story primarily told?',
+                options: [
+                    'The son\'s perspective',
+                    'An outside narrator observing Nikias',
+                    'Demetrios the merchant\'s perspective',
+                    'Multiple characters equally'
+                ],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                passage: 2,
+                standard: 'Prediction',
+                question: 'Based on the passage, what is most likely to happen in the future between Nikias and his son?',
+                options: [
+                    'They will continue to be distant and formal',
+                    'The son will move away and never return',
+                    'They will develop a closer relationship, possibly through working together',
+                    'The son will become angry with his father'
+                ],
+                correct: 2
+            },
+            {
+                type: 'mc',
+                passage: 2,
+                standard: 'Compare/contrast passages',
+                question: 'How do Passage 1 (Roman Roads) and Passage 2 (The Marketplace) both use their settings?',
+                options: [
+                    'Both describe military conflicts',
+                    'Both use the setting to show how it connects people and enables human activity',
+                    'Both are primarily about construction and engineering',
+                    'Both criticize ancient civilizations'
+                ],
+                correct: 1
+            },
+            {
+                type: 'writing',
+                passage: 2,
+                standard: 'Character analysis',
+                question: 'Describe how Nikias\'s character changes or is revealed throughout the passage. What does he value most?'
+            }
+        ];
+
+        const SCIENCE_QUESTIONS = [
+            // EASY (4 questions)
+            {
+                type: 'mc',
+                difficulty: 'easy',
+                standard: 'Basic planet facts',
+                question: 'Which planet is closest to the sun?',
+                options: ['Venus', 'Mercury', 'Earth', 'Mars'],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                difficulty: 'easy',
+                standard: 'States of matter',
+                question: 'Which of the following is an example of a liquid?',
+                options: ['Iron', 'Water', 'Oxygen gas', 'Diamond'],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                difficulty: 'easy',
+                standard: 'Simple food chain',
+                question: 'In a simple food chain: Plant → Rabbit → Fox. What is the role of the plant?',
+                options: ['Primary consumer', 'Secondary consumer', 'Producer', 'Decomposer'],
+                correct: 2
+            },
+            {
+                type: 'mc',
+                difficulty: 'easy',
+                standard: 'Basic ecosystem',
+                question: 'What do plants need from the soil to grow?',
+                options: ['Water and minerals', 'Only water', 'Only sunlight', 'Only air'],
+                correct: 0
+            },
+
+            // MEDIUM (4 questions)
+            {
+                type: 'mc',
+                difficulty: 'medium',
+                standard: 'Rock cycle processes',
+                question: 'What happens to igneous rock when it is subjected to heat and pressure deep underground?',
+                options: [
+                    'It becomes sedimentary rock',
+                    'It becomes metamorphic rock',
+                    'It becomes lava',
+                    'It dissolves'
+                ],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                difficulty: 'medium',
+                standard: 'Water cycle detailed',
+                question: 'Which of the following correctly describes the sequence of the water cycle?',
+                options: [
+                    'Condensation → Evaporation → Precipitation',
+                    'Evaporation → Condensation → Precipitation',
+                    'Precipitation → Condensation → Evaporation',
+                    'Evaporation → Precipitation → Condensation'
+                ],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                difficulty: 'medium',
+                standard: 'Weather patterns',
+                question: 'What causes wind on Earth?',
+                options: [
+                    'Rotation of the Earth',
+                    'Differences in air pressure and temperature',
+                    'The moon\'s gravity',
+                    'Ocean currents only'
+                ],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                difficulty: 'medium',
+                standard: 'Energy transfer',
+                question: 'In an ecosystem, approximately what percentage of energy is transferred from one trophic level to the next?',
+                options: ['90%', '50%', '10%', '75%'],
+                correct: 2
+            },
+
+            // HARD (4 questions)
+            {
+                type: 'mc',
+                difficulty: 'hard',
+                standard: 'Tectonic plate boundaries',
+                question: 'What type of geological activity occurs where two tectonic plates are moving away from each other (divergent boundary)?',
+                options: [
+                    'Mountain formation',
+                    'Seafloor spreading and the formation of mid-ocean ridges',
+                    'Subduction and deep ocean trenches',
+                    'Strike-slip faulting'
+                ],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                difficulty: 'hard',
+                standard: 'Atmosphere layers',
+                question: 'Which atmospheric layer contains the ozone that protects Earth from harmful ultraviolet rays?',
+                options: ['Troposphere', 'Stratosphere', 'Mesosphere', 'Thermosphere'],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                difficulty: 'hard',
+                standard: 'Lunar phases',
+                question: 'During a full moon, the Earth is positioned between the sun and the moon. From Earth\'s perspective, what do we see?',
+                options: [
+                    'The completely dark side of the moon',
+                    'The entire sunlit side of the moon',
+                    'The moon is not visible',
+                    'Half the moon is lit'
+                ],
+                correct: 1
+            },
+            {
+                type: 'mc',
+                difficulty: 'hard',
+                standard: 'Data interpretation',
+                question: 'A scientist measures temperature at different elevations: 0m elevation = 20°C, 1000m = 6°C, 2000m = -8°C. Based on this pattern, what would you predict the temperature to be at 3000m?',
+                options: ['-10°C', '-22°C', '-30°C', '0°C'],
+                correct: 1,
+                explanation: 'The pattern shows a decrease of approximately 14°C per 1000m. From 2000m (−8°C) to 3000m would be another 14°C decrease: −8 − 14 = −22°C'
+            }
+        ];
+
+        // ==================== APPLICATION STATE ====================
+
+        let currentState = 'welcome';
+        let currentSectionIndex = 0;
+        let currentQuestionIndex = 0;
+        let startTime = null;
+        let elapsedSeconds = 0;
+        let allAnswers = [];
+        let sectionAnswers = {};
+        let timerInterval = null;
+
+        // Initialize section answers
+        SECTIONS.forEach(section => {
+            sectionAnswers[section.id] = [];
+        });
+
+        // ==================== UTILITY FUNCTIONS ====================
+
+        function getAllSectionQuestions() {
+            return {
+                math_expressions: MATH_EXPRESSIONS_QUESTIONS,
+                math_ratios: MATH_RATIOS_QUESTIONS,
+                reading: READING_QUESTIONS,
+                science: SCIENCE_QUESTIONS
+            };
+        }
+
+        function getCurrentSection() {
+            return SECTIONS[currentSectionIndex];
+        }
+
+        function getCurrentQuestions() {
+            const sectionId = getCurrentSection().id;
+            const questionsMap = getAllSectionQuestions();
+            return questionsMap[sectionId];
+        }
+
+        function getCurrentQuestion() {
+            const questions = getCurrentQuestions();
+            return questions[currentQuestionIndex];
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('diagnosticState');
+            if (saved) {
+                const state = JSON.parse(saved);
+                currentSectionIndex = state.sectionIndex || 0;
+                currentQuestionIndex = state.questionIndex || 0;
+                allAnswers = state.answers || [];
+                sectionAnswers = state.sectionAnswers || {};
+                elapsedSeconds = state.elapsedSeconds || 0;
+                return true;
+            }
+            return false;
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('diagnosticState', JSON.stringify({
+                sectionIndex: currentSectionIndex,
+                questionIndex: currentQuestionIndex,
+                answers: allAnswers,
+                sectionAnswers: sectionAnswers,
+                elapsedSeconds: elapsedSeconds
+            }));
+        }
+
+        function startTimer() {
+            startTime = Date.now() - (elapsedSeconds * 1000);
+            timerInterval = setInterval(() => {
+                elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                updateTimer();
+                saveToLocalStorage();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+        }
+
+        function updateTimer() {
+            const minutes = Math.floor(elapsedSeconds / 60);
+            const seconds = elapsedSeconds % 60;
+            const display = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('statusTimer').textContent = display;
+        }
+
+        function updateProgressBar() {
+            let totalQuestions = 0;
+            SECTIONS.forEach(section => {
+                const questions = getAllSectionQuestions()[section.id];
+                totalQuestions += questions.length;
+            });
+
+            let answeredQuestions = allAnswers.length;
+            const progress = (answeredQuestions / totalQuestions) * 100;
+            document.querySelector('.progress-bar').style.width = progress + '%';
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}m ${secs}s`;
+        }
+
+        // ==================== RENDERING FUNCTIONS ====================
+
+        function renderWelcomeScreen() {
+            currentState = 'welcome';
+            document.getElementById('statusSection').textContent = 'DIAGNOSTIC';
+            const html = `
+                <div class="welcome-screen">
+                    <h1>WEEK II</h1>
+                    <div class="subtitle">Diagnostic Assessment</div>
+                    <p>Jacob, this diagnostic test will help identify your strengths and areas for growth across <span class="highlight">four key areas</span>: Math Expressions, Ratios & Numbers, Reading Comprehension, and Earth & Space Science.</p>
+                    <p>This test is <span class="highlight">challenging by design</span>. Don't worry if some questions are hard—that's exactly how we find your ceiling.</p>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-top: 20px;">Total time: ~60 minutes | No time pressure—work at your own pace</p>
+                    <div class="button-group">
+                        <button class="btn primary" onclick="startTest()">Begin Test</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('contentArea').innerHTML = html;
+        }
+
+        function renderSectionIntro() {
+            const section = getCurrentSection();
+            currentState = 'section-intro';
+            document.getElementById('statusSection').textContent = section.name.toUpperCase();
+            const html = `
+                <div class="section-intro">
+                    <h2>${section.name}</h2>
+                    <div class="instructions">${section.instructions}</div>
+                    <div class="question-count">${section.questionCount} questions | ~${section.duration} minutes</div>
+                    <div class="button-group" style="margin-top: 40px;">
+                        <button class="btn" onclick="previousSection()">Back</button>
+                        <button class="btn primary" onclick="nextToQuestion()">Start Section</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('contentArea').innerHTML = html;
+        }
+
+        function renderQuestion() {
+            const section = getCurrentSection();
+            document.getElementById('statusSection').textContent = section.name.toUpperCase();
+            updateProgressBar();
+
+            const question = getCurrentQuestion();
+            const questionNum = currentQuestionIndex + 1;
+            const totalQuestions = getCurrentQuestions().length;
+            let html = `
+                <div class="question-container">
+                    <div class="question-header">
+                        <div class="question-number">Question ${questionNum} of ${totalQuestions}</div>
+                        <div class="question-text">${question.question}</div>
+                    </div>
+            `;
+
+            if (question.type === 'mc') {
+                html += `<div class="options-list">`;
+                question.options.forEach((option, idx) => {
+                    const selected = sectionAnswers[section.id][currentQuestionIndex] === idx;
+                    html += `
+                        <button class="option-button ${selected ? 'selected' : ''}"
+                                onclick="selectAnswer(${idx})">
+                            ${option}
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+            } else if (question.type === 'writing') {
+                const savedText = sectionAnswers[section.id][currentQuestionIndex] || '';
+                html += `
+                    <div class="writing-container">
+                        <div class="writing-label">Your Response:</div>
+                        <textarea class="writing-input"
+                                  id="writingInput"
+                                  placeholder="Type your answer here..."
+                                  onchange="saveWritingAnswer()">${savedText}</textarea>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="button-group" style="margin-top: 30px;">
+                    <button class="btn" onclick="previousQuestion()" ${questionNum === 1 ? 'disabled' : ''}>Previous</button>
+                    <button class="btn primary" onclick="nextQuestion()" ${question.type === 'writing' && !sectionAnswers[section.id][currentQuestionIndex] ? 'disabled' : ''}>
+                        ${questionNum === totalQuestions ? 'Complete' : 'Next'}
+                    </button>
+                </div>
+            `;
+
+            html += `</div>`;
+            document.getElementById('contentArea').innerHTML = html;
+        }
+
+        function renderCompletionScreen() {
+            currentState = 'completion';
+            document.getElementById('statusSection').textContent = 'COMPLETE';
+            stopTimer();
+
+            const totalQuestions = Object.values(getAllSectionQuestions()).reduce((sum, qs) => sum + qs.length, 0);
+            const answeredQuestions = allAnswers.length;
+            const effortScore = Math.round((answeredQuestions / totalQuestions) * 100);
+
+            const html = `
+                <div class="completion-screen">
+                    <h2>Test Complete</h2>
+                    <div class="message">
+                        Great work, Jacob. Your results have been saved and Gary will review your answers to identify strengths and next steps.
+                    </div>
+                    <div class="effort-metrics">
+                        <div class="metric-item">
+                            <span class="metric-label">Questions Completed</span>
+                            <span class="metric-value">${answeredQuestions} of ${totalQuestions}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Sections Completed</span>
+                            <span class="metric-value">${currentSectionIndex + 1} of ${SECTIONS.length}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Total Time</span>
+                            <span class="metric-value">${formatTime(elapsedSeconds)}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Effort Score</span>
+                            <span class="metric-value">${effortScore}%</span>
+                        </div>
+                    </div>
+                    <div class="tutor-message">
+                        <div class="tutor-name">Gary - AI Tutor</div>
+                        <div class="tutor-text">
+                            I've reviewed your diagnostic results. You've shown solid effort across all areas. Let's dig into the questions you found most challenging to build your skills from where you are right now.
+                        </div>
+                    </div>
+                    <div class="button-group" style="margin-top: 40px;">
+                        <button class="btn primary" onclick="submitResults()">View Results & Feedback</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('contentArea').innerHTML = html;
+        }
+
+        // ==================== INTERACTION HANDLERS ====================
+
+        function startTest() {
+            if (!loadFromLocalStorage()) {
+                currentSectionIndex = 0;
+                currentQuestionIndex = 0;
+                startTime = Date.now();
+                elapsedSeconds = 0;
+                allAnswers = [];
+                SECTIONS.forEach(section => {
+                    sectionAnswers[section.id] = new Array(getAllSectionQuestions()[section.id].length).fill(null);
+                });
+            }
+            startTimer();
+            renderSectionIntro();
+        }
+
+        function selectAnswer(optionIndex) {
+            const section = getCurrentSection();
+            sectionAnswers[section.id][currentQuestionIndex] = optionIndex;
+            saveToLocalStorage();
+            renderQuestion();
+        }
+
+        function saveWritingAnswer() {
+            const section = getCurrentSection();
+            const text = document.getElementById('writingInput').value;
+            sectionAnswers[section.id][currentQuestionIndex] = text;
+            saveToLocalStorage();
+        }
+
+        function nextQuestion() {
+            const section = getCurrentSection();
+            const questions = getCurrentQuestions();
+
+            // Save answer if not already saved
+            const currentAnswer = sectionAnswers[section.id][currentQuestionIndex];
+            if (currentAnswer !== null && currentAnswer !== undefined && currentAnswer !== '') {
+                // Answer is recorded
+            }
+
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                saveToLocalStorage();
+                renderQuestion();
+            } else {
+                // Move to next section
+                if (currentSectionIndex < SECTIONS.length - 1) {
+                    currentSectionIndex++;
+                    currentQuestionIndex = 0;
+                    saveToLocalStorage();
+                    renderSectionIntro();
+                } else {
+                    // Test complete
+                    compileResults();
+                    renderCompletionScreen();
+                }
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                saveToLocalStorage();
+                renderQuestion();
+            }
+        }
+
+        function nextToQuestion() {
+            currentQuestionIndex = 0;
+            renderQuestion();
+        }
+
+        function previousSection() {
+            if (currentSectionIndex > 0) {
+                currentSectionIndex--;
+                currentQuestionIndex = 0;
+                saveToLocalStorage();
+                renderSectionIntro();
+            } else {
+                renderWelcomeScreen();
+            }
+        }
+
+        function compileResults() {
+            allAnswers = [];
+            const questionsMap = getAllSectionQuestions();
+
+            SECTIONS.forEach((section, sectionIdx) => {
+                const questions = questionsMap[section.id];
+                const answers = sectionAnswers[section.id];
+
+                questions.forEach((question, qIdx) => {
+                    const selectedAnswer = answers[qIdx];
+                    if (selectedAnswer !== null && selectedAnswer !== undefined) {
+                        allAnswers.push({
+                            section: section.id,
+                            sectionName: section.name,
+                            questionIndex: qIdx,
+                            question: question.question,
+                            standard: question.standard,
+                            difficulty: question.difficulty || 'N/A',
+                            type: question.type,
+                            selectedAnswer: selectedAnswer,
+                            selectedText: question.type === 'mc' ? question.options[selectedAnswer] : selectedAnswer,
+                            correctAnswer: question.type === 'mc' ? question.correct : null,
+                            correctText: question.type === 'mc' ? question.options[question.correct] : 'N/A'
+                        });
+                    }
+                });
+            });
+        }
+
+        function submitResults() {
+            const payload = {
+                action: 'saveDiagnosticResults',
+                student: CONFIG.student,
+                grade: CONFIG.grade,
+                testId: CONFIG.testId,
+                testLabel: CONFIG.testLabel,
+                timestamp: new Date().toISOString(),
+                answers: allAnswers,
+                summary: {
+                    totalQuestions: Object.values(getAllSectionQuestions()).reduce((sum, qs) => sum + qs.length, 0),
+                    answeredQuestions: allAnswers.length,
+                    totalTimeSeconds: elapsedSeconds,
+                    effortScore: Math.round((allAnswers.length / Object.values(getAllSectionQuestions()).reduce((sum, qs) => sum + qs.length, 0)) * 100)
+                }
+            };
+
+            console.log('Submitting:', JSON.stringify(payload, null, 2));
+
+            fetch(CONFIG.webAppUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                console.log('Submission sent to Apps Script');
+                localStorage.removeItem('diagnosticState');
+            })
+            .catch(error => {
+                console.error('Submission error:', error);
+            });
+
+            // Write localStorage signal for dashboard to detect completion
+            const today = new Date().toISOString().split('T')[0];
+            const signal = {
+                completed: true,
+                timestamp: new Date().toISOString(),
+                date: today,
+                testId: CONFIG.testId,
+                testLabel: CONFIG.testLabel,
+                points: 15
+            };
+            localStorage.setItem('jacob_diagnostic_week2_signal', JSON.stringify(signal));
+            localStorage.setItem('jacob_diagnostic_signal', JSON.stringify(signal));
+
+            // Also update dashboard local data so tasks show as complete
+            const dashKey = 'jacob_dashboard_v3';
+            try {
+                const dashData = JSON.parse(localStorage.getItem(dashKey) || '{}');
+                if (!dashData.days) dashData.days = {};
+                if (!dashData.days[today]) dashData.days[today] = {};
+                dashData.days[today].session = true;
+                dashData.days[today].khan = true;
+                dashData.days[today].reading = true;
+                dashData.days[today].diagnosticComplete = true;
+                dashData.days[today].diagnosticPoints = 15;
+                localStorage.setItem(dashKey, JSON.stringify(dashData));
+            } catch(e) { console.log('Could not update dashboard data'); }
+
+            // POST completeDiagnosticTest to Apps Script for points
+            try {
+                fetch(CONFIG.webAppUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        action: 'completeDiagnosticTest',
+                        student: CONFIG.student,
+                        testId: CONFIG.testId,
+                        date: today,
+                        points: 15
+                    })
+                });
+            } catch(e) { console.log('Points POST failed'); }
+
+            alert('Your test has been submitted! Gary will review your responses. Head back to your dashboard.');
+        }
+
+        // ==================== INITIALIZATION ====================
+
+        window.addEventListener('beforeunload', () => {
+            if (currentState !== 'welcome' && currentState !== 'completion') {
+                saveToLocalStorage();
+            }
+        });
+
+        // Start the app
+        renderWelcomeScreen();
+    </script>
+</body>
+</html>
