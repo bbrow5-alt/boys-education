@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>LEAP Diagnostic — Jacob Brown — Week 3</title>
+<style>
+:root{--bg:#1a1510;--card:#231e17;--card-border:#3d3428;--accent:#c9a84c;--accent-dim:#3d3218;--accent2:#8b7355;--success:#4ade80;--error:#f87171;--warning:#fbbf24;--text:#f5f1e8;--text-dim:#b8a98a;--text-muted:#7a6e5d;--blue:#5ca4e8;--blue-dim:#1a2a3d}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:Georgia,serif;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column;overflow:hidden}
+.top-bar{background:var(--card);border-bottom:2px solid var(--accent);padding:10px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:10}
+.top-bar .title{color:var(--accent);font-size:14px;letter-spacing:2px;text-transform:uppercase}
+.top-bar .timer{color:var(--accent);font-size:18px;font-weight:bold;min-width:80px;text-align:right}
+.top-bar .section-name{color:var(--text-dim);font-size:12px;font-style:italic}
+.navigator{background:var(--card);border-bottom:1px solid var(--card-border);padding:8px 12px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;flex-shrink:0;overflow-x:auto}
+.nav-btn{width:30px;height:30px;border:1px solid var(--card-border);border-radius:4px;background:var(--bg);color:var(--text-muted);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;transition:all .15s}
+.nav-btn:hover{border-color:var(--accent);color:var(--text)}
+.nav-btn.answered{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.nav-btn.flagged{background:#3d3218;border-color:var(--warning);color:var(--warning)}
+.nav-btn.current{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);color:var(--accent);font-weight:bold}
+.nav-sep{width:1px;height:22px;background:var(--card-border);margin:0 4px;flex-shrink:0}
+.content-area{flex:1;display:flex;overflow:hidden}
+.passage-pane{flex:1;overflow-y:auto;padding:24px;border-right:2px solid var(--card-border);background:var(--card);line-height:1.8;font-size:15px}
+.passage-pane h3{color:var(--accent);font-size:14px;margin-bottom:12px;letter-spacing:1px;text-transform:uppercase}
+.passage-pane p{margin-bottom:12px;text-indent:24px}
+.passage-pane p:first-of-type{text-indent:0}
+.question-pane{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column}
+.question-pane.full-width{flex:2}
+.q-header{margin-bottom:14px}
+.q-number{color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:2px}
+.q-standard{color:var(--accent-dim);font-size:10px;margin-top:2px;letter-spacing:1px}
+.q-diff{display:inline-block;padding:2px 8px;border-radius:3px;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.q-diff.baseline{background:#1a2a1a;color:#4ade80}.q-diff.grade-level{background:#1a2a3d;color:#5ca4e8}.q-diff.challenging{background:#3d2800;color:#ffaa00}.q-diff.ceiling{background:#2a1210;color:#ff6666}
+.q-text{font-size:15px;line-height:1.6;margin-bottom:18px;color:var(--text);white-space:pre-wrap}
+.q-options{display:flex;flex-direction:column;gap:10px;max-width:620px}
+.q-option{background:var(--bg);border:2px solid var(--card-border);border-radius:6px;padding:12px 16px;cursor:pointer;font-size:14px;line-height:1.5;transition:all .15s;display:flex;align-items:flex-start;gap:10px;font-family:Georgia,serif}
+.q-option:hover{border-color:var(--accent);background:var(--accent-dim)}
+.q-option.selected{border-color:var(--blue);background:var(--blue-dim);color:var(--blue)}
+.q-option .letter{flex-shrink:0;width:24px;height:24px;border-radius:50%;border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}
+.q-option.selected .letter{border-color:var(--blue);background:var(--blue);color:var(--bg)}
+.q-textarea{width:100%;max-width:620px;min-height:120px;background:var(--bg);border:2px solid var(--card-border);border-radius:6px;color:var(--text);font-family:Georgia,serif;font-size:14px;padding:12px;line-height:1.6;resize:vertical}
+.q-textarea:focus{border-color:var(--accent);outline:none}
+.q-guidance{color:var(--text-muted);font-size:12px;margin-bottom:8px;font-style:italic}
+.q-wordcount{color:var(--text-muted);font-size:11px;margin-top:4px}
+.bottom-bar{background:var(--card);border-top:2px solid var(--card-border);padding:10px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.btn{padding:10px 20px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:Georgia,serif;font-size:13px;cursor:pointer;border-radius:4px;transition:all .15s;letter-spacing:1px}
+.btn:hover{background:var(--accent);color:var(--bg)}.btn:disabled{opacity:.3;cursor:default}.btn:disabled:hover{background:transparent;color:var(--accent)}
+.btn.flag{border-color:var(--warning);color:var(--warning)}.btn.flag:hover{background:var(--warning);color:var(--bg)}.btn.flag.active{background:var(--warning);color:var(--bg)}
+.btn.submit{border-color:var(--success);color:var(--success)}.btn.submit:hover{background:var(--success);color:var(--bg)}
+.bottom-left,.bottom-right{display:flex;gap:8px}
+.screen{display:none;flex-direction:column;height:100%}.screen.active{display:flex}
+.welcome-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px}
+.welcome-content h1{color:var(--accent);font-size:36px;margin-bottom:8px;letter-spacing:4px}
+.welcome-content .sub{color:var(--text-dim);font-size:16px;margin-bottom:32px;font-style:italic}
+.welcome-content .info{max-width:500px;font-size:14px;line-height:1.8;color:var(--text);margin-bottom:24px}
+.welcome-content .info strong{color:var(--accent)}
+.welcome-content .start-btn{padding:16px 48px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--bg);border:none;font-family:Georgia,serif;font-size:18px;cursor:pointer;border-radius:6px;letter-spacing:2px}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-overlay.active{display:flex}
+.modal{background:var(--card);border:2px solid var(--accent);border-radius:10px;padding:32px;max-width:420px;width:90%;text-align:center}
+.modal h3{color:var(--accent);margin-bottom:16px}.modal p{color:var(--text);font-size:14px;line-height:1.6;margin-bottom:8px}.modal .warn{color:var(--warning);font-weight:bold}.modal .btn-row{display:flex;gap:12px;justify-content:center;margin-top:20px}
+.review-content{padding:24px;max-width:800px;margin:0 auto;overflow-y:auto;flex:1}
+.review-score{text-align:center;margin-bottom:24px}.review-score .big{font-size:56px;color:var(--accent);font-weight:bold}.review-score .pct{font-size:18px;color:var(--text-dim)}.review-score .tutor-msg{color:var(--accent2);font-style:italic;margin-top:8px;font-size:15px}
+.review-section{margin-bottom:24px}.review-section h3{color:var(--accent);font-size:15px;margin-bottom:12px;border-bottom:1px solid var(--card-border);padding-bottom:6px}
+.score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:16px}
+.score-card{background:var(--card);border:1px solid var(--card-border);border-radius:6px;padding:12px;text-align:center}
+.score-card .label{color:var(--text-muted);font-size:10px;text-transform:uppercase;letter-spacing:1px}
+.score-card .value{color:var(--accent);font-size:22px;font-weight:bold;margin:4px 0}
+.score-card .sub{color:var(--text-muted);font-size:10px}
+.wrong-item{background:var(--card);border-left:3px solid var(--error);border-radius:0 6px 6px 0;padding:14px;margin-bottom:10px}
+.wrong-item .wi-q{color:var(--text-muted);font-size:11px;margin-bottom:4px}
+.wrong-item .wi-text{font-size:13px;margin-bottom:8px}
+.wrong-item .wi-yours{color:var(--error);font-size:12px;margin-bottom:4px}
+.wrong-item .wi-correct{color:var(--success);font-size:12px;margin-bottom:6px}
+.wrong-item .wi-explain{color:var(--text-dim);font-size:12px;line-height:1.5;border-top:1px solid var(--card-border);padding-top:6px}
+.wrong-item .wi-strategy{color:var(--accent-dim);font-size:11px;margin-top:4px;font-style:italic}
+.skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.skill-item{background:var(--card);border-radius:6px;padding:10px;display:flex;justify-content:space-between;align-items:center}
+.skill-item .sk-name{font-size:12px}.skill-item .sk-score{font-size:14px;font-weight:bold}
+.skill-item .sk-score.strong{color:var(--success)}.skill-item .sk-score.weak{color:var(--error)}.skill-item .sk-score.ok{color:var(--warning)}
+.points-banner{text-align:center;padding:12px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:8px;margin-bottom:24px}
+.points-banner .pts{color:var(--accent);font-size:20px;font-weight:bold}
+.return-btn{display:block;width:100%;padding:16px;margin-top:24px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--bg);border:none;border-radius:8px;font-family:Georgia,serif;font-size:16px;cursor:pointer;letter-spacing:2px;text-align:center}
+</style>
+</head>
+<body>
+<div id="welcomeScreen" class="screen active">
+<div class="welcome-content">
+  <h1>LEAP DIAGNOSTIC</h1>
+  <div class="sub">Iron Mind Academy &mdash; Week 3 Official Assessment</div>
+  <div class="info">
+    <strong>Jacob Brown &mdash; 6th Grade</strong><br><br>
+    Comprehensive diagnostic covering all four LEAP subjects:<br>
+    <strong>Mathematics</strong> &middot; <strong>ELA</strong> &middot; <strong>Science</strong> &middot; <strong>Social Studies</strong><br><br>
+    <strong>55 questions</strong> &middot; ~75 minutes<br><br>
+    Navigate freely between questions. Flag items for review. Change answers anytime.
+  </div>
+  <button class="start-btn" onclick="startTest()">Begin Assessment</button>
+</div>
+</div>
+<div id="testScreen" class="screen">
+  <div class="top-bar"><div><div class="title">LEAP Diagnostic</div><div class="section-name" id="sectionLabel"></div></div><div class="timer" id="timerDisplay">00:00</div></div>
+  <div class="navigator" id="navigator"></div>
+  <div class="content-area"><div class="passage-pane" id="passagePane"></div><div class="question-pane" id="questionPane"></div></div>
+  <div class="bottom-bar"><div class="bottom-left"><button class="btn" id="prevBtn" onclick="goQuestion(currentQ-1)">&larr; Previous</button><button class="btn flag" id="flagBtn" onclick="toggleFlag()">Flag for Review</button></div><div class="bottom-right"><button class="btn" id="nextBtn" onclick="goQuestion(currentQ+1)">Next &rarr;</button><button class="btn submit" onclick="showSubmitModal()">Submit Test</button></div></div>
+</div>
+<div class="modal-overlay" id="submitModal"><div class="modal"><h3>Submit Your Test?</h3><p id="submitInfo"></p><div class="btn-row"><button class="btn" onclick="closeModal()">Go Back</button><button class="btn submit" onclick="submitTest()">Submit</button></div></div></div>
+<div id="reviewScreen" class="screen"><div class="top-bar"><div><div class="title">Gary's Review</div></div><div style="color:var(--accent)">Diagnostic Complete</div></div><div class="review-content" id="reviewContent"></div></div>
+
+<script>
+const CONFIG={student:"Jacob",grade:6,testId:"jacob_diagnostic_week3_math_mar2026_v2",testLabel:"Week 3 LEAP Diagnostic \u2014 March 23, 2026",
+webAppUrl:"https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec"};
+
+const PASSAGES={
+passage_lit:{title:"The Cartographer\u2019s Apprentice",label:"Literary Narrative",
+text:`<p>Amara traced her finger along the coastline of the half-finished map, feeling where the ink had dried into tiny ridges. Master Osei had been working on this commission for the merchant guild for three months, and every river, every mountain range, every trade route had to be exact. One misplaced line could send a caravan into the desert instead of toward the oasis at Kidal.</p>
+<p>\u201CYou are pressing too hard again,\u201D Master Osei said without looking up from his own work. He sat at the far end of the long table, hunched over a magnifying lens, painting the miniature compass rose that would anchor the map\u2019s upper corner. His hands, spotted with age and permanently stained with walnut ink, moved with a steadiness that seemed impossible for a man of seventy-three years.</p>
+<p>Amara lifted her pen. She had been assigned the interior borders\u2014the dotted lines that separated the provinces. It was the simplest task on any map, the kind of work given to beginners. She had been Master Osei\u2019s apprentice for two years, and she was still drawing dotted lines.</p>
+<p>\u201CWhen do I get to draw the rivers?\u201D she asked, immediately regretting how impatient she sounded.</p>
+<p>Master Osei set down his brush and looked at her over his spectacles. \u201CBring me yesterday\u2019s practice sheet.\u201D</p>
+<p>Amara retrieved it from the drying rack. She had spent four hours drawing border lines across a blank sheet\u2014rows and rows of evenly spaced dots. She thought they looked good. Master Osei held the sheet up to the window, letting sunlight pass through the thin paper.</p>
+<p>\u201CCount the dots in this row,\u201D he said, pointing. \u201CThen count this one.\u201D</p>
+<p>Amara counted. The first row had forty-seven dots across twelve inches. The second had fifty-one. Her stomach sank.</p>
+<p>\u201CThe spacing is inconsistent,\u201D Master Osei said, not unkindly. \u201CA border that shifts and wanders tells the reader the mapmaker was careless\u2014and if the borders are careless, why trust the rivers? Why trust the roads? Every element on a map is a promise of accuracy. If you cannot keep that promise with dots, you cannot keep it with anything.\u201D</p>
+<p>He returned to his compass rose. Amara stared at the practice sheet, then pulled a fresh one from the stack. She dipped her pen, adjusted her grip slightly, and began again. Forty-seven dots. Twelve inches. No more, no less.</p>`},
+
+passage_info:{title:"The Hidden Cost of Fast Fashion",label:"Informational \u2014 Science/Society",
+text:`<p>Every year, the global fashion industry produces approximately 100 billion garments\u2014roughly 14 for every person on Earth. Of those, an estimated 85 percent will end up in landfills within a single year of purchase. This cycle of rapid production and disposal, known as \u201Cfast fashion,\u201D has transformed clothing from a durable good into something closer to a disposable product, with consequences that extend far beyond overflowing closets.</p>
+<p>The environmental toll begins at the raw material stage. Cotton, the most widely used natural fiber, requires enormous quantities of water. Producing enough cotton for a single T-shirt consumes approximately 2,700 liters of water\u2014enough for one person to drink for two and a half years. Synthetic fabrics like polyester, which now account for over 60 percent of all clothing materials, are derived from petroleum and release microplastic fibers with every wash. Scientists have found these microplastics in ocean sediments, Arctic ice, and even human blood.</p>
+<p>The manufacturing process compounds the damage. Textile dyeing is the second-largest polluter of clean water globally, after agriculture. Factories in major garment-producing countries often discharge untreated wastewater containing heavy metals and toxic chemicals directly into rivers. A 2020 study estimated that the fashion industry is responsible for 10 percent of global carbon emissions\u2014more than international flights and maritime shipping combined.</p>
+<p>Some companies have begun responding to consumer pressure by launching \u201Csustainable\u201D clothing lines, but critics argue these efforts often amount to greenwashing\u2014marketing campaigns designed to appear environmentally responsible without making meaningful changes. True sustainability, experts suggest, requires a fundamental shift: buying fewer, higher-quality garments designed to last, repairing clothing instead of discarding it, and supporting brands that provide transparent information about their supply chains.</p>
+<p>The choices consumers make have real power. Research from the Ellen MacArthur Foundation found that extending the average life of a garment by just nine months reduces its carbon, water, and waste footprint by 20 to 30 percent. The most sustainable garment, many environmental scientists argue, is the one already hanging in your closet.</p>`}
+};
+
+const SECTIONS=[
+{id:'math',name:'Mathematics',range:[0,21]},
+{id:'ela',name:'English Language Arts',range:[22,35]},
+{id:'science',name:'Science',range:[36,45]},
+{id:'ss',name:'Social Studies',range:[46,54]}
+];
+
+const Q=[
+// ========== MATHEMATICS (Q1-Q22) ==========
+
+// --- Baseline (3) ---
+{p:null,sec:'math',std:'6.RP.1',skill:'Ratios',diff:'baseline',type:'mc',
+text:'A bag contains 8 red marbles and 12 blue marbles. What is the ratio of red marbles to total marbles?',
+opts:['8:12','8:20','12:8','20:8'],
+cor:1,exp:'Total marbles = 8 + 12 = 20. The ratio of red to total is 8:20 (which simplifies to 2:5).',str:'Read carefully: "red to total" means red compared to ALL marbles, not red compared to blue.'},
+
+{p:null,sec:'math',std:'6.EE.1',skill:'Order of Operations',diff:'baseline',type:'mc',
+text:'Evaluate: 5 + 3 \u00d7 (10 \u2212 4)',
+opts:['48','23','38','14'],
+cor:1,exp:'Parentheses first: 10 \u2212 4 = 6. Then multiply: 3 \u00d7 6 = 18. Then add: 5 + 18 = 23.',str:'PEMDAS: Parentheses first, then Exponents, Multiplication/Division (left to right), Addition/Subtraction (left to right).'},
+
+{p:null,sec:'math',std:'6.NS.5',skill:'Integers on Number Line',diff:'baseline',type:'mc',
+text:'Which list shows the numbers in order from least to greatest?\n\u22127, 3, \u22122, 0, 5',
+opts:['0, \u22122, 3, 5, \u22127','\u22127, \u22122, 0, 3, 5','5, 3, 0, \u22122, \u22127','\u22122, \u22127, 0, 3, 5'],
+cor:1,exp:'On a number line, numbers increase from left to right. \u22127 is farthest left, then \u22122, then 0, then 3, then 5.',str:'Negative numbers with bigger absolute values are SMALLER. Think of a thermometer: \u22127 is colder (less) than \u22122.'},
+
+// --- Grade-Level (5) ---
+{p:null,sec:'math',std:'6.RP.2',skill:'Unit Rates',diff:'grade-level',type:'mc',
+text:'A car travels 234 miles using 9 gallons of gasoline. What is the car\u2019s fuel efficiency in miles per gallon?',
+opts:['24 mpg','26 mpg','28 mpg','25 mpg'],
+cor:1,exp:'Unit rate = 234 \u00f7 9 = 26 miles per gallon.',str:'Unit rate means "per one." Divide the total quantity by the number of units.'},
+
+{p:null,sec:'math',std:'6.EE.5',skill:'Solving Equations',diff:'grade-level',type:'mc',
+text:'Solve for x: 3x + 7 = 28',
+opts:['x = 7','x = 9','x = 11.67','x = 3'],
+cor:0,exp:'Subtract 7 from both sides: 3x = 21. Divide both sides by 3: x = 7. Check: 3(7) + 7 = 28. \u2713',str:'Isolate the variable: undo addition/subtraction first, then undo multiplication/division.'},
+
+{p:null,sec:'math',std:'6.NS.1',skill:'Division of Fractions',diff:'grade-level',type:'mc',
+text:'What is \u00be \u00f7 \u00bd?',
+opts:['\u00be','1 \u00bd','3/8','\u00bd'],
+cor:1,exp:'Dividing by a fraction means multiplying by its reciprocal: \u00be \u00d7 2/1 = 6/4 = 1 \u00bd.',str:'Keep-Change-Flip: Keep the first fraction, change \u00f7 to \u00d7, flip the second fraction.'},
+
+{p:null,sec:'math',std:'6.G.1',skill:'Area of Polygons',diff:'grade-level',type:'mc',
+text:'A parallelogram has a base of 14 cm and a height of 9 cm. What is its area?',
+opts:['126 cm\u00b2','63 cm\u00b2','46 cm\u00b2','23 cm\u00b2'],
+cor:0,exp:'Area of parallelogram = base \u00d7 height = 14 \u00d7 9 = 126 cm\u00b2.',str:'Parallelogram area = base \u00d7 height (NOT base \u00d7 side). Height must be perpendicular to the base.'},
+
+{p:null,sec:'math',std:'6.SP.3',skill:'Mean and Median',diff:'grade-level',type:'mc',
+text:'A data set contains: 12, 15, 18, 18, 22, 25, 30. What is the median?',
+opts:['18','20','22','15'],
+cor:0,exp:'The data is already in order. There are 7 values, so the median is the 4th value: 18.',str:'Median = middle value when data is ordered. For an odd number of values, it\u2019s the center one. For even, average the two center values.'},
+
+// --- Challenging (8) ---
+{p:null,sec:'math',std:'6.RP.3',skill:'Proportional Reasoning',diff:'challenging',type:'mc',
+text:'A recipe for 24 muffins calls for 3 cups of flour, 2 eggs, and 1.5 cups of milk. Marcus wants to make 40 muffins and he already has 10 eggs in the fridge. How many cups of flour does he need?',
+opts:['4 cups','5 cups','6 cups','7.5 cups'],
+cor:1,exp:'Set up the proportion: 3 cups / 24 muffins = x cups / 40 muffins. Cross multiply: 24x = 120, so x = 5 cups. The information about eggs is irrelevant to the flour calculation.',str:'LEAP often includes extra information to distract you. Identify what the question is actually asking, then set up only the proportion you need.'},
+
+{p:null,sec:'math',std:'6.RP.3',skill:'Percent Problems',diff:'challenging',type:'mc',
+text:'A store marks up a jacket from its wholesale price of $45 by 60%, then offers a 25% discount during a sale. What is the sale price?',
+opts:['$54.00','$48.60','$50.40','$33.75'],
+cor:0,exp:'Markup: $45 \u00d7 1.60 = $72.00 (retail price). Discount: $72 \u00d7 0.75 = $54.00 (sale price). Note: a 60% markup followed by a 25% discount does NOT return to the original price.',str:'Apply percentages one at a time. A markup of 60% means multiply by 1.60. A discount of 25% means multiply by 0.75. Never add/subtract percentages directly.'},
+
+{p:null,sec:'math',std:'6.EE.7',skill:'Writing and Solving Equations',diff:'challenging',type:'mc',
+text:'A gym charges a one-time registration fee of $25 plus $15 per month. After several months, Kayla has paid a total of $175. Which equation represents this situation, and how many months has she been a member?',
+opts:['25 + 15m = 175; m = 10 months','15 + 25m = 175; m = 6.4 months','25m + 15 = 175; m = 6.4 months','25 + 15m = 175; m = 8 months'],
+cor:0,exp:'The one-time fee ($25) plus monthly fee ($15) times months (m) equals total ($175): 25 + 15m = 175. Solve: 15m = 150, m = 10 months.',str:'Translate word problems piece by piece. Fixed cost + (rate \u00d7 variable) = total. Then solve the equation.'},
+
+{p:null,sec:'math',std:'6.EE.9',skill:'Dependent & Independent Variables',diff:'challenging',type:'mc',
+text:'A plumber charges $50 for a house call plus $35 for each hour of work. The equation C = 50 + 35h represents the total cost C for h hours of work. If the plumber works for 4.5 hours, what is the total cost?',
+opts:['$207.50','$192.50','$157.50','$85.00'],
+cor:0,exp:'C = 50 + 35(4.5) = 50 + 157.50 = $207.50.',str:'Substitute the given value into the equation carefully. Watch for decimals when multiplying.'},
+
+{p:null,sec:'math',std:'6.NS.3',skill:'Decimal Operations',diff:'challenging',type:'mc',
+text:'A construction crew needs to cut a steel beam that is 18.75 meters long into pieces that are each 1.25 meters long. How many pieces can they cut?',
+opts:['12 pieces','14 pieces','15 pieces','16 pieces'],
+cor:2,exp:'18.75 \u00f7 1.25 = 15 pieces. You can simplify by multiplying both by 4: 75 \u00f7 5 = 15.',str:'For decimal division, you can multiply both numbers by the same power of 10 to eliminate decimals. 18.75 \u00f7 1.25 = 1875 \u00f7 125.'},
+
+{p:null,sec:'math',std:'6.G.2',skill:'Volume with Fractions',diff:'challenging',type:'mc',
+text:'A rectangular aquarium is 2 \u00bd feet long, 1 \u00bd feet wide, and 1 \u00bc feet tall. What is its volume in cubic feet?',
+opts:['4 11/16 ft\u00b3','5 ft\u00b3','3 \u00be ft\u00b3','4 \u00bd ft\u00b3'],
+cor:0,exp:'Convert to improper fractions: 5/2 \u00d7 3/2 \u00d7 5/4 = 75/16 = 4 11/16 ft\u00b3.',str:'Convert mixed numbers to improper fractions first, then multiply numerators and denominators. Convert back to a mixed number at the end.'},
+
+{p:null,sec:'math',std:'6.SP.5',skill:'Data Interpretation',diff:'challenging',type:'mc',
+text:'In a class of 30 students, the test score data shows: mean = 78, median = 82, and range = 45. One student scored 100 and another scored 55. Which statement is best supported by this data?',
+opts:['Most students scored exactly 78.','The scores are perfectly symmetrical around the mean.','More than half the students scored 82 or above, and the mean is pulled down by some lower scores.','All students scored between 55 and 100.'],
+cor:2,exp:'The median (82) is higher than the mean (78), which indicates the distribution is left-skewed\u2014some low scores pull the mean down. The median tells us at least half scored 82 or above. We only know the range is 45; we cannot confirm the exact min/max are 55 and 100.',str:'When median > mean, the data is skewed left (low outliers pull the mean down). Median represents the "middle" student.'},
+
+{p:null,sec:'math',std:'6.EE.2',skill:'Evaluating Expressions',diff:'challenging',type:'mc',
+text:'Evaluate the expression 4(2a \u2212 3b) + 5b when a = 6 and b = 2.',
+opts:['26','34','38','42'],
+cor:1,exp:'Substitute: 4(2\u00d76 \u2212 3\u00d72) + 5\u00d72 = 4(12 \u2212 6) + 10 = 4(6) + 10 = 24 + 10 = 34.',str:'Substitute values carefully, then follow order of operations. Work inside parentheses first.'},
+
+// --- Ceiling (6) ---
+{p:null,sec:'math',std:'6.RP.3',skill:'Multi-Step Proportions',diff:'ceiling',type:'mc',
+text:'A factory produces widgets at a rate of 360 per hour using 8 machines. Due to maintenance, 3 machines break down at 10:00 AM. The factory needs to complete an order of 2,700 widgets by 6:00 PM, and they had already produced 900 widgets before the breakdown. Assuming all machines produce at the same rate, will they complete the order on time?',
+opts:['Yes, they will finish with exactly 0 widgets to spare.','Yes, they will finish with 200 extra widgets.','No, they will be 150 widgets short.','No, they will be 300 widgets short.'],
+cor:0,exp:'Rate per machine = 360 \u00f7 8 = 45 widgets/hour. After breakdown: 5 machines \u00d7 45 = 225 widgets/hour. Remaining: 2,700 \u2212 900 = 1,800 widgets needed. Time available: 10 AM to 6 PM = 8 hours. Production: 225 \u00d7 8 = 1,800. They produce exactly 1,800 widgets\u2014just barely enough with zero to spare.',str:'Break complex problems into pieces: find the per-machine rate, calculate the new total rate, find remaining work, and check if time \u00d7 rate \u2265 remaining.'},
+
+{p:null,sec:'math',std:'6.EE.7',skill:'Systems of Constraints',diff:'ceiling',type:'mc',
+text:'Mia is buying supplies for a school event. She has exactly $120 to spend. Tables cost $18 each and chairs cost $7 each. She needs exactly 4 times as many chairs as tables, and she must buy at least 2 tables. What is the maximum number of tables she can buy?',
+opts:['2 tables','3 tables','4 tables','5 tables'],
+cor:0,exp:'If t = tables, then chairs = 4t. Total cost: 18t + 7(4t) = 18t + 28t = 46t. Budget: 46t \u2264 120, so t \u2264 2.6. Since t must be a whole number, maximum t = 2. Check: 46 \u00d7 2 = $92 (within budget). 46 \u00d7 3 = $138 (over budget). Maximum is 2 tables and 8 chairs for $92.',str:'Translate constraints into algebra. Combine the cost equation with the relationship between quantities, then solve the inequality for whole numbers.'},
+
+{p:null,sec:'math',std:'6.G.4',skill:'Surface Area & Nets',diff:'ceiling',type:'mc',
+text:'A gift box shaped like a rectangular prism has dimensions 12 inches by 8 inches by 5 inches. Decorative paper costs $0.02 per square inch. The box will be completely wrapped with no overlap. How much will the paper cost?',
+opts:['$3.92','$7.84','$4.80','$9.60'],
+cor:1,exp:'Surface area = 2(lw + lh + wh) = 2(12\u00d78 + 12\u00d75 + 8\u00d75) = 2(96 + 60 + 40) = 2(196) = 392 in\u00b2. Cost: 392 \u00d7 $0.02 = $7.84.',str:'Surface area of a rectangular prism = 2(lw + lh + wh). Calculate each face pair, sum them, then apply the cost per unit area.'},
+
+{p:null,sec:'math',std:'6.SP.5',skill:'Statistical Reasoning',diff:'ceiling',type:'mc',
+text:'Two students tracked their daily reading times (in minutes) for one week:\nAlex: 45, 30, 60, 50, 40, 55, 70 (Mean = 50)\nBriana: 48, 49, 51, 50, 52, 49, 51 (Mean = 50)\n\nBoth have the same mean. Which statement best compares their reading habits?',
+opts:['Alex and Briana have identical reading patterns because their means are equal.','Briana is a more consistent reader because her data has less variability (smaller range and MAD).','Alex is a better reader because his highest value (70) is greater than Briana\u2019s highest (52).','Neither student reads enough because 50 minutes is below average.'],
+cor:1,exp:'Alex\u2019s range = 70 \u2212 30 = 40 minutes. Briana\u2019s range = 52 \u2212 48 = 4 minutes. Despite equal means, Briana\u2019s data clusters tightly around 50, showing much more consistent reading habits. Mean alone doesn\u2019t tell the whole story\u2014variability matters.',str:'Two data sets can have the same mean but very different spreads. Always consider range, MAD, or other measures of variability alongside the mean.'},
+
+{p:null,sec:'math',std:'6.NS.7',skill:'Absolute Value & Ordering',diff:'ceiling',type:'mc',
+text:'A submarine is at an elevation of \u2212480 feet. A weather balloon is at an elevation of 3,200 feet. A scuba diver is at \u221245 feet, and a mountain climber is at 2,750 feet. What is the distance between the submarine and the weather balloon, and which pair of objects has the smallest distance between them?',
+opts:['Distance = 3,680 ft; scuba diver and mountain climber are closest','Distance = 2,720 ft; submarine and scuba diver are closest','Distance = 3,680 ft; submarine and scuba diver are closest','Distance = 3,680 ft; scuba diver and submarine have a distance of 525 ft'],
+cor:2,exp:'Distance between submarine and balloon: |3200 \u2212 (\u2212480)| = |3200 + 480| = 3,680 feet. Now check all pairs: Sub to diver: |\u2212480 \u2212 (\u221245)| = |\u2212435| = 435 ft. Sub to climber: |2750 \u2212 (\u2212480)| = 3,230 ft. Diver to balloon: |3200 \u2212 (\u221245)| = 3,245 ft. Diver to climber: |2750 \u2212 (\u221245)| = 2,795 ft. The smallest distance is 435 ft between submarine and scuba diver.',str:'Distance between two points on a number line = absolute value of their difference. Check ALL pairs systematically when asked for the closest.'},
+
+{p:null,sec:'math',std:'6.EE.8',skill:'Inequalities in Context',diff:'ceiling',type:'mc',
+text:'A school is raising money for a field trip that costs $2,400. They\u2019ve already raised $900 from a bake sale. They plan to hold car washes where they earn $150 each. They also have a recurring monthly donation of $75 that will come in for 3 more months before the trip. How many car washes do they need to hold at minimum?',
+opts:['8 car washes','9 car washes','10 car washes','7 car washes'],
+cor:1,exp:'Donations: 3 \u00d7 $75 = $225. Total from other sources: $900 + $225 = $1,125. Still needed: $2,400 \u2212 $1,125 = $1,275. Car washes: $1,275 \u00f7 $150 = 8.5. Since you can\u2019t hold half a car wash, round up to 9.',str:'In real-world inequality problems, always round UP when the answer must be a whole number and you need "at least" that much. 8.5 car washes means you need 9.'},
+
+// ========== ELA (Q23-Q36) ==========
+// Passage 1: The Cartographer's Apprentice (7 MC including 1 EBSR)
+
+{p:'passage_lit',sec:'ela',std:'RL.6.2',skill:'Theme',diff:'challenging',type:'mc',
+text:'Which statement best expresses the theme of this passage?',
+opts:['Natural talent is more important than practice.','Mastery requires patience with small, precise foundations before advancing to complex work.','Older people are always better at skilled trades than younger people.','Working as an apprentice is boring and unrewarding.'],
+cor:1,exp:'Master Osei refuses to let Amara advance to rivers until she perfects the simplest task\u2014dotted border lines. His lesson is that mastery is built on precise foundations. Amara\u2019s decision to start again shows she understands.',str:'Theme = the big life lesson. Look at what the character learns or accepts by the end of the passage.'},
+
+{p:'passage_lit',sec:'ela',std:'RL.6.1',skill:'Textual Evidence (EBSR Part A)',diff:'challenging',type:'mc',
+text:'Part A: What does the passage suggest about Amara\u2019s character?',
+opts:['She is lazy and avoids difficult work.','She is ambitious but willing to accept correction and try again.','She is angry at Master Osei for holding her back.','She has no real interest in mapmaking.'],
+cor:1,exp:'Amara asks about drawing rivers (ambition), regrets sounding impatient (self-awareness), and immediately begins practicing again after the critique (resilience).',str:'For EBSR Part A, choose the interpretation best supported by the passage as a whole. Then find the evidence in Part B.'},
+
+{p:'passage_lit',sec:'ela',std:'RL.6.1',skill:'Textual Evidence (EBSR Part B)',diff:'challenging',type:'mc',
+text:'Part B: Which detail from the passage best supports your answer to Part A?',
+opts:['"Master Osei had been working on this commission for the merchant guild for three months."','"She dipped her pen, adjusted her grip slightly, and began again. Forty-seven dots. Twelve inches. No more, no less."','"It was the simplest task on any map, the kind of work given to beginners."','"His hands, spotted with age and permanently stained with walnut ink, moved with a steadiness that seemed impossible."'],
+cor:1,exp:'This detail shows Amara immediately returning to practice with precise intention after being corrected\u2014evidence of both ambition (she adjusts her technique) and willingness to try again.',str:'Part B evidence must DIRECTLY support Part A\u2019s claim. The best evidence shows the character trait in action.'},
+
+{p:'passage_lit',sec:'ela',std:'RL.6.4',skill:'Vocabulary in Context',diff:'challenging',type:'mc',
+text:'Read: "Every element on a map is a promise of accuracy." In this sentence, the word "promise" most nearly means\u2014',
+opts:['a verbal agreement between two people','a guarantee or assurance of quality','a prediction about the future','a gift given to show gratitude'],
+cor:1,exp:'Master Osei means that each mark on a map assures the reader it is accurate. "Promise" here means guarantee/assurance, not a spoken pledge or prediction.',str:'In figurative language, familiar words take on deeper meanings. Test each definition in the sentence to see which preserves the author\u2019s intended meaning.'},
+
+{p:'passage_lit',sec:'ela',std:'RL.6.3',skill:'Character Motivation',diff:'ceiling',type:'mc',
+text:'Why does Master Osei ask Amara to count the dots on her practice sheet instead of simply telling her the spacing is wrong?',
+opts:['He is too old to explain things clearly.','He wants her to discover the flaw herself so she truly understands the standard she must meet.','He is trying to embarrass her in front of other apprentices.','He forgot what the correct spacing should be.'],
+cor:1,exp:'By making Amara count the dots herself, Osei forces her to see the inconsistency with her own eyes. This teaching method ensures deeper understanding than simply being told.',str:'Character motivation questions ask WHY someone does something. Look for the teaching purpose behind the action.'},
+
+{p:'passage_lit',sec:'ela',std:'RL.6.5',skill:'Text Structure',diff:'ceiling',type:'mc',
+text:'How does the author structure the passage to develop the central conflict?',
+opts:['By comparing Amara\u2019s skills to those of other apprentices','By presenting Amara\u2019s frustration, then Master Osei\u2019s lesson, then Amara\u2019s response\u2014moving from impatience to understanding','By describing the history of mapmaking in chronological order','By alternating between present events and flashbacks to Amara\u2019s childhood'],
+cor:1,exp:'The passage follows a three-part structure: Amara\u2019s impatience (\u201CWhen do I get to draw the rivers?\u201D), Osei\u2019s lesson (the dot-counting exercise), and Amara\u2019s response (starting again with intention). This structure mirrors her growth.',str:'Text structure questions ask HOW the author organizes ideas. Identify the sequence of major "moves" in the passage.'},
+
+// Passage 2: Fast Fashion (5 MC)
+{p:'passage_info',sec:'ela',std:'RI.6.2',skill:'Central Idea',diff:'challenging',type:'mc',
+text:'Which statement best captures the central idea of this passage?',
+opts:['The fashion industry is the world\u2019s largest employer.','Fast fashion\u2019s cycle of overproduction and disposal causes serious environmental harm at every stage, from raw materials to landfills.','Polyester clothing is always worse for the environment than cotton clothing.','Consumers have no power to change the fashion industry.'],
+cor:1,exp:'The passage traces environmental damage from raw materials (water, petroleum) through manufacturing (dye pollution, carbon emissions) to disposal (landfills). This end-to-end harm is the central idea.',str:'The central idea must be supported by the ENTIRE passage, not just one paragraph. Eliminate answers that are too narrow or contradict the text.'},
+
+{p:'passage_info',sec:'ela',std:'RI.6.8',skill:'Evaluating Arguments',diff:'ceiling',type:'mc',
+text:'The author states that some companies\u2019 sustainability efforts "often amount to greenwashing." Which evidence from the passage best supports this critical claim?',
+opts:['Cotton requires 2,700 liters of water per T-shirt.','85 percent of garments end up in landfills within a year.','The passage says these campaigns are "designed to appear environmentally responsible without making meaningful changes."','Extending a garment\u2019s life by nine months reduces its footprint by 20 to 30 percent.'],
+cor:2,exp:'The phrase "designed to appear environmentally responsible without making meaningful changes" directly defines and supports the greenwashing claim. The other options are about different aspects of the problem.',str:'When asked to support a specific claim, find the sentence that most directly explains or proves that exact claim.'},
+
+{p:'passage_info',sec:'ela',std:'RI.6.4',skill:'Vocabulary in Context',diff:'challenging',type:'mc',
+text:'As used in paragraph 2, the word "compounds" most nearly means\u2014',
+opts:['chemical substances mixed together','buildings within a fenced area','makes worse or adds to','interest earned on savings'],
+cor:2,exp:'The manufacturing process "compounds the damage" means it adds to or worsens the damage already caused by raw material production. The context shows escalating harm.',str:'Words with multiple meanings require careful context reading. "Compounds" here is a verb meaning "intensifies" or "adds to," not a noun.'},
+
+{p:'passage_info',sec:'ela',std:'RI.6.5',skill:'Text Structure',diff:'challenging',type:'mc',
+text:'How is this passage primarily organized?',
+opts:['Chronological order of fashion history','Problem-and-solution: environmental damage followed by possible remedies','Compare-and-contrast between cotton and polyester','Cause-and-effect showing how fast fashion leads to environmental harm at each stage'],
+cor:3,exp:'The passage traces causes (overproduction, water use, toxic dyes, carbon emissions) to effects (landfill waste, water pollution, climate impact) through each stage of the fashion lifecycle. While paragraph 4 mentions solutions, the dominant structure is cause-and-effect.',str:'Identify the DOMINANT structure. A passage may include elements of multiple structures, but one pattern organizes the overall argument.'},
+
+{p:'passage_info',sec:'ela',std:'RI.6.6',skill:'Author\u2019s Purpose',diff:'ceiling',type:'mc',
+text:'What is the author\u2019s primary purpose in writing this passage?',
+opts:['To entertain readers with stories about clothing designers','To inform readers about environmental costs of fast fashion and persuade them to change their buying habits','To explain how to start a sustainable clothing company','To argue that all synthetic fabrics should be banned immediately'],
+cor:1,exp:'The passage combines factual information (statistics, studies) with a persuasive conclusion (buy less, repair, extend garment life). The dual purpose is to inform and persuade.',str:'Author\u2019s purpose often combines functions. Look at both WHAT information is presented and HOW the passage ends (with a call to action, a question, or a conclusion).'},
+
+// Standalone ELA (2 MC)
+{p:null,sec:'ela',std:'L.6.1',skill:'Pronoun-Antecedent Agreement',diff:'challenging',type:'mc',
+text:'Which sentence uses pronouns correctly?',
+opts:['Each of the boys brought their own lunch to school.','Every student must turn in their homework by Friday.','Neither of the girls forgot her permission slip.','The team celebrated their victory by themselves.'],
+cor:2,exp:'"Neither" is singular and requires the singular pronoun "her." Options A and B pair singular subjects with the plural "their" (common in speech but grammatically incorrect in formal writing).',str:'Indefinite pronouns like each, every, neither, and either are SINGULAR. They take singular pronouns (his, her, its) in formal writing.'},
+
+{p:null,sec:'ela',std:'L.6.4',skill:'Greek/Latin Roots',diff:'ceiling',type:'mc',
+text:'The Latin root "bene" means "good" or "well." Based on this knowledge, what does "benevolent" most likely mean?',
+opts:['Wishing harm upon others','Showing kindness and goodwill','Being cautious and careful','Feeling confused or uncertain'],
+cor:1,exp:'"Bene" (good/well) + "volent" (from velle, meaning "to wish") = wishing good upon others = showing kindness and goodwill.',str:'Break unfamiliar words into roots and prefixes. "Bene" = good (benefit, beneficial). "Mal" = bad (malevolent, malicious). Knowing roots unlocks dozens of vocabulary words.'},
+
+{p:null,sec:'ela',std:'W.6.1',skill:'Argument Writing Structure',diff:'ceiling',type:'mc',
+text:'A student writes: "Schools should start later because teenagers need more sleep. According to the American Academy of Pediatrics, adolescents require 8 to 10 hours of sleep per night, yet early start times force many to wake before 6:00 AM." Which element of argumentative writing does this paragraph demonstrate most effectively?',
+opts:['A counterclaim that addresses the opposing viewpoint','A claim supported by evidence from a credible source','A concluding statement that restates the thesis','An emotional appeal designed to manipulate the reader'],
+cor:1,exp:'The paragraph states a clear claim ("schools should start later") and immediately supports it with evidence from a credible authority (American Academy of Pediatrics). This is the core of effective argumentative writing.',str:'Strong arguments have: a clear CLAIM + EVIDENCE from credible sources + REASONING that connects them. Look for all three elements.'},
+
+// ========== SCIENCE (Q37-Q46) ==========
+{p:null,sec:'science',std:'LS.6.1',skill:'Cell Structure',diff:'challenging',type:'mc',
+text:'Both plant cells and animal cells have a cell membrane and a nucleus. Which structure is found ONLY in plant cells?',
+opts:['Mitochondria','Ribosomes','Cell wall','Cytoplasm'],
+cor:2,exp:'The cell wall is a rigid outer layer found only in plant cells (and fungi and bacteria). It provides structural support. Mitochondria, ribosomes, and cytoplasm are found in both plant and animal cells.',str:'Plant-only structures: cell wall, chloroplasts, large central vacuole. Both cells share: membrane, nucleus, mitochondria, ribosomes.'},
+
+{p:null,sec:'science',std:'LS.6.2',skill:'Energy Flow in Ecosystems',diff:'challenging',type:'mc',
+text:'In a food chain: Grass \u2192 Grasshopper \u2192 Frog \u2192 Snake \u2192 Hawk. If a disease killed most of the frogs, what would MOST LIKELY happen in the short term?',
+opts:['The grasshopper population would decrease because frogs are gone.','The grasshopper population would increase and the snake population would decrease.','The hawk population would increase immediately.','The grass population would decrease.'],
+cor:1,exp:'Fewer frogs means fewer predators eating grasshoppers (grasshopper population rises) and less food for snakes (snake population falls). This is a cascading effect through the food chain.',str:'When a species is removed from a food chain, the population BELOW it increases (fewer predators) and the population ABOVE it decreases (less food).'},
+
+// Data table scenario for Q39-Q41
+{p:null,sec:'science',std:'SI.6.1',skill:'Experimental Design',diff:'challenging',type:'mc',
+text:'A student tested how water temperature affects the time it takes sugar to dissolve. She used the same amount of sugar (5 grams) and the same amount of water (200 mL) each time, but changed the water temperature.\n\nResults:\n  20\u00b0C \u2014 sugar dissolved in 45 seconds\n  40\u00b0C \u2014 sugar dissolved in 28 seconds\n  60\u00b0C \u2014 sugar dissolved in 14 seconds\n  80\u00b0C \u2014 sugar dissolved in 7 seconds\n\nWhat is the independent variable in this experiment?',
+opts:['The amount of sugar','The dissolving time','The water temperature','The amount of water'],
+cor:2,exp:'The independent variable is what the experimenter deliberately changes\u2014water temperature. The dependent variable (what is measured) is dissolving time. Sugar amount and water amount are controlled variables.',str:'Independent = what you CHANGE. Dependent = what you MEASURE. Controlled = what stays the SAME.'},
+
+{p:null,sec:'science',std:'SI.6.2',skill:'Data Analysis',diff:'challenging',type:'mc',
+text:'Using the experiment above, which conclusion is best supported by the data?',
+opts:['Sugar dissolves at the same rate regardless of temperature.','Increasing water temperature causes sugar to dissolve faster.','Cold water dissolves sugar better than hot water.','The experiment had too many variables to draw a conclusion.'],
+cor:1,exp:'The data shows a clear pattern: as temperature increases, dissolving time decreases (45s \u2192 28s \u2192 14s \u2192 7s). Higher temperature = faster dissolving.',str:'Look for patterns in data tables. When one variable goes up and the other goes down consistently, that is an inverse relationship.'},
+
+{p:null,sec:'science',std:'SI.6.3',skill:'Experimental Validity',diff:'ceiling',type:'mc',
+text:'Referring to the same experiment, a classmate says: "We should repeat this experiment using salt instead of sugar to see if the results are the same." Why is this a good scientific suggestion?',
+opts:['Because salt is cheaper than sugar.','Because repeating experiments with different materials tests whether the relationship between temperature and dissolving rate applies generally to other solutes.','Because the original experiment was done incorrectly.','Because salt dissolves faster than sugar at all temperatures.'],
+cor:1,exp:'Testing with a different solute (salt) checks whether the temperature-dissolving rate relationship is generalizable or specific to sugar. This is how scientists build broader understanding from specific experiments.',str:'Good experiments are repeated and extended. Testing different materials checks if the finding is a general principle or a specific case.'},
+
+{p:null,sec:'science',std:'PS.6.1',skill:'Energy Transfer',diff:'challenging',type:'mc',
+text:'A metal spoon is placed in a cup of hot soup. After a minute, the handle of the spoon becomes warm. This is an example of heat transfer by\u2014',
+opts:['Radiation','Convection','Conduction','Insulation'],
+cor:2,exp:'Conduction is heat transfer through direct contact between molecules in a solid material. The heat from the soup transfers through the metal of the spoon by conduction.',str:'Conduction = direct contact (solids). Convection = fluid circulation (liquids/gases). Radiation = electromagnetic waves (no medium needed, like sunlight).'},
+
+{p:null,sec:'science',std:'ES.6.1',skill:'Rock Cycle',diff:'challenging',type:'mc',
+text:'Marble is a metamorphic rock that forms from limestone. What conditions are required for this transformation?',
+opts:['Cooling of magma deep underground','Intense heat and pressure over long periods','Erosion and deposition in layers','Rapid cooling of lava at Earth\u2019s surface'],
+cor:1,exp:'Metamorphic rocks form when existing rocks (like limestone) are subjected to intense heat and pressure deep in the Earth\u2019s crust, without melting completely. This transforms the mineral structure.',str:'Metamorphic = "changed form." Think META = change. Heat + pressure transforms existing rock. If it melts completely, it becomes igneous when it cools.'},
+
+{p:null,sec:'science',std:'LS.6.3',skill:'Photosynthesis',diff:'ceiling',type:'mc',
+text:'A scientist grew identical plants in two sealed, clear containers. Container A received 12 hours of light per day. Container B was kept in complete darkness. Both received the same water and temperature. After two weeks, the plant in Container B had died. What is the BEST explanation?',
+opts:['The plant in Container B did not receive enough water.','Without light, the plant in Container B could not perform photosynthesis to produce the glucose it needed for energy.','The plant in Container B died from too much carbon dioxide.','Dark conditions caused the plant to grow too quickly and use up all its resources.'],
+cor:1,exp:'Plants need light energy to drive photosynthesis (light + CO\u2082 + H\u2082O \u2192 glucose + O\u2082). Without light, no glucose is produced for cellular respiration, and the plant eventually starves.',str:'Photosynthesis requires THREE inputs: light energy, carbon dioxide, and water. Remove any one, and the plant cannot produce food.'},
+
+{p:null,sec:'science',std:'ES.6.2',skill:'Weather Systems',diff:'challenging',type:'mc',
+text:'A weather forecast shows a cold front approaching from the northwest. Which sequence of weather changes should residents MOST LIKELY expect?',
+opts:['Gradual warming over several days followed by clear skies','A sudden drop in temperature, possible thunderstorms, then cooler and clearer conditions','Steady rain for two weeks with no temperature change','Fog and calm winds for several days'],
+cor:1,exp:'Cold fronts bring a sharp temperature drop as cold air pushes under warm air. The rapid lifting of warm air often produces thunderstorms along the front, followed by cooler, clearer weather as the cold air mass settles in.',str:'Cold front = fast-moving, sudden change. Warm front = slow-moving, gradual change. Know the sequence of weather events each produces.'},
+
+{p:null,sec:'science',std:'PS.6.2',skill:'Newton\u2019s Laws',diff:'ceiling',type:'mc',
+text:'A 2-kilogram ball and a 5-kilogram ball are both dropped from the same height at the same time in a vacuum (no air resistance). Which statement correctly describes what happens?',
+opts:['The 5 kg ball hits the ground first because it is heavier.','The 2 kg ball hits the ground first because it is lighter.','Both balls hit the ground at the same time because gravity accelerates all objects equally regardless of mass.','Neither ball falls because there is no air in a vacuum.'],
+cor:2,exp:'In a vacuum (no air resistance), all objects experience the same gravitational acceleration (9.8 m/s\u00b2) regardless of mass. Both balls fall at the same rate and land simultaneously. This was famously demonstrated by Galileo.',str:'Without air resistance, gravity pulls all objects at the same rate. Mass does NOT affect the speed of falling in a vacuum. Air resistance is what makes a feather fall slower than a bowling ball in everyday life.'},
+
+// ========== SOCIAL STUDIES (Q47-Q55) ==========
+{p:null,sec:'ss',std:'WH.6.1',skill:'River Valley Civilizations',diff:'challenging',type:'mc',
+text:'Ancient civilizations in Mesopotamia, Egypt, India, and China all developed near major rivers. What is the BEST explanation for why rivers were so important to early civilizations?',
+opts:['Rivers provided protection from all invaders.','Rivers supplied water for irrigation, fertile soil from flooding, transportation routes, and drinking water\u2014meeting multiple survival needs.','Rivers were considered sacred by all ancient religions.','Rivers made it easy to build stone monuments.'],
+cor:1,exp:'Rivers served multiple critical functions: irrigation for farming, fertile silt deposits from flooding, transportation for trade, fresh water for drinking, and fish as a food source. No single reason explains it\u2014it was the combination.',str:'When LEAP asks for the "best" explanation, choose the most complete answer. Single-reason answers are usually too narrow.'},
+
+{p:null,sec:'ss',std:'WH.6.2',skill:'Greek vs. Roman Government',diff:'challenging',type:'mc',
+text:'In ancient Athens, citizens voted directly on laws in the Assembly. In the Roman Republic, citizens elected senators to make laws on their behalf. What is the key difference between these two systems?',
+opts:['Athens had no government; Rome had a strong one.','Athens used direct democracy (citizens vote on laws); Rome used representative democracy (citizens elect lawmakers).','Rome allowed women to vote; Athens did not.','Athens was a monarchy; Rome was an empire.'],
+cor:1,exp:'Athens practiced direct democracy\u2014eligible citizens voted on laws themselves. Rome used a republic (representative democracy)\u2014citizens elected representatives to make decisions. Both excluded women, slaves, and non-citizens.',str:'Direct democracy = citizens vote on issues themselves. Republic/Representative democracy = citizens vote for people who make decisions. The U.S. is a republic.'},
+
+{p:null,sec:'ss',std:'GEO.6.1',skill:'Human-Environment Interaction',diff:'challenging',type:'mc',
+text:'The ancient Inca Empire built terraces carved into steep mountain slopes in the Andes. What was the PRIMARY purpose of these terraces?',
+opts:['To create flat areas for farming on otherwise unusable mountainous terrain','To build defensive walls against invading armies','To mine precious metals from the mountain rock','To create roads connecting different cities'],
+cor:0,exp:'The Andes Mountains have very little flat land. The Inca carved step-like terraces into the slopes to create flat farming surfaces, prevent soil erosion, and manage water drainage. This is a classic example of humans adapting their environment.',str:'Human-environment interaction = how people modify their surroundings to meet their needs. Terrace farming is a key example of adaptation to mountainous geography.'},
+
+{p:null,sec:'ss',std:'CIV.6.1',skill:'Separation of Powers',diff:'challenging',type:'mc',
+text:'The U.S. Constitution divides the federal government into three branches. Why did the Founders create this structure?',
+opts:['To make the government more confusing and harder to understand','To prevent any single branch from becoming too powerful by creating a system of checks and balances','To give the President total control over lawmaking','To ensure that only wealthy citizens could participate in government'],
+cor:1,exp:'The Founders, influenced by Montesquieu and their experience with British monarchy, deliberately separated power among legislative, executive, and judicial branches so each could check the others. No single branch can dominate.',str:'Separation of powers = prevents tyranny. Each branch checks the others: Congress makes laws, the President enforces them, the courts interpret them.'},
+
+{p:null,sec:'ss',std:'ECON.6.1',skill:'Opportunity Cost',diff:'ceiling',type:'mc',
+text:'A city government has $5 million in its budget for one new project. Option A is a new public library that would serve 15,000 residents. Option B is a road repair project that would reduce commute times for 40,000 drivers. If the city chooses the road project, what is the opportunity cost?',
+opts:['$5 million','The new public library that was not built','40,000 fewer drivers with shorter commutes','The city has no opportunity cost because it made a choice'],
+cor:1,exp:'Opportunity cost is the value of the NEXT BEST alternative you give up when making a choice. By choosing roads, the city gives up the library. The opportunity cost is the library\u2014not the money (which would be spent either way).',str:'Opportunity cost \u2260 the money spent. It\u2019s the best alternative you DIDN\u2019T choose. Every choice has an opportunity cost.'},
+
+{p:null,sec:'ss',std:'WH.6.3',skill:'Fall of Rome',diff:'ceiling',type:'mc',
+text:'Historians cite many factors in the fall of the Western Roman Empire in 476 CE. Which answer identifies MULTIPLE contributing causes rather than a single event?',
+opts:['A barbarian named Odoacer overthrew the last emperor.','Military overextension, economic troubles from inflation and heavy taxation, political corruption, and invasions by Germanic tribes all weakened the empire over centuries.','The invention of gunpowder made Roman weapons obsolete.','Rome fell because it switched from a republic to an empire.'],
+cor:1,exp:'The fall of Rome was a gradual process caused by interconnected factors: military overstretch, economic decline, internal corruption, and external invasions. No single cause explains it. Option A describes the final event, not the underlying causes.',str:'LEAP rewards answers that show cause-and-effect reasoning and recognize complexity. Major historical events usually have MULTIPLE interrelated causes.'},
+
+{p:null,sec:'ss',std:'GEO.6.2',skill:'Climate & Geography',diff:'ceiling',type:'mc',
+text:'Two cities are at the same latitude (30\u00b0N). City X is on the coast and City Y is 500 miles inland. Which statement about their climates is most likely true?',
+opts:['Both cities have identical temperatures year-round because they are at the same latitude.','City X has milder temperature extremes (cooler summers, warmer winters) because large bodies of water moderate temperature.','City Y has milder temperatures because inland areas receive more rainfall.','Latitude has no effect on climate, so no comparison can be made.'],
+cor:1,exp:'Water has a high heat capacity\u2014it heats and cools slowly. Coastal cities benefit from this moderating effect: water keeps summers cooler and winters warmer compared to inland cities at the same latitude, which experience more extreme temperature swings.',str:'Maritime (coastal) vs. continental (inland) climates: water moderates temperature. Same latitude does NOT mean same climate\u2014proximity to water, elevation, and ocean currents all matter.'},
+
+{p:null,sec:'ss',std:'HT.6.1',skill:'Historical Thinking',diff:'ceiling',type:'mc',
+text:'A student reads two accounts of the same battle. Account A was written by a general who led the winning army. Account B was written by a journalist who visited the battlefield 50 years later. Which statement best evaluates these sources?',
+opts:['Account A is completely unreliable because the general is biased.','Account B is more accurate because it was written later.','Account A is a primary source with possible bias; Account B is a secondary source that may offer broader perspective but lacks firsthand experience.','Neither account can be trusted because all historical writing is fiction.'],
+cor:2,exp:'Account A is a primary source (firsthand) but may be biased (the general may exaggerate his success). Account B is a secondary source (researched later) with broader perspective but no direct experience. Both have strengths and limitations.',str:'Evaluate sources by asking: Who wrote it? When? Why? What might they gain from a certain version of events? Primary \u2260 always better. Secondary \u2260 always worse. Both have trade-offs.'},
+
+{p:null,sec:'ss',std:'ECON.6.2',skill:'Supply and Demand',diff:'challenging',type:'mc',
+text:'A popular video game console is released in limited quantities during the holiday season. Stores sell out within hours, and people begin reselling them online at double the retail price. Which economic principle BEST explains the higher resale prices?',
+opts:['The consoles are of higher quality when purchased from resellers.','When demand greatly exceeds supply, prices rise. Limited supply combined with high demand drives up the market price.','The government sets the resale price for all electronics.','The resale price increases because the consoles depreciate quickly.'],
+cor:1,exp:'This is a classic supply-and-demand scenario. Limited supply (stores sold out) + high demand (everyone wants one during holidays) = prices rise above retail. Resellers exploit this imbalance.',str:'Supply and demand: when demand > supply, prices rise. When supply > demand, prices fall. This applies to goods, services, and even labor markets.'}
+];
+
+// ==================== ENGINE ====================
+let currentQ=0, answers={}, flags=new Set(), startTime=null, timerInterval=null, submitted=false;
+
+function startTest(){
+  const saved=localStorage.getItem('diagnostic_'+CONFIG.testId);
+  if(saved){try{const s=JSON.parse(saved);currentQ=s.currentQ||0;answers=s.answers||{};flags=new Set(s.flags||[]);startTime=s.startTime||Date.now()}catch(e){startTime=Date.now()}}
+  else startTime=Date.now();
+  document.getElementById('welcomeScreen').classList.remove('active');
+  document.getElementById('testScreen').classList.add('active');
+  timerInterval=setInterval(updateTimer,1000);updateTimer();renderNav();renderQuestion();
+}
+function updateTimer(){const e=Math.floor((Date.now()-startTime)/1000),m=Math.floor(e/60),s=e%60;document.getElementById('timerDisplay').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function renderNav(){
+  let h='';Q.forEach((q,i)=>{const sec=SECTIONS.find(s=>i>=s.range[0]&&i<=s.range[1]);
+  if(sec&&i===sec.range[0]&&i>0)h+='<div class="nav-sep"></div>';
+  let c='nav-btn';if(i===currentQ)c+=' current';if(flags.has(i))c+=' flagged';else if(answers[i]!==undefined)c+=' answered';
+  h+=`<button class="${c}" onclick="goQuestion(${i})">${i+1}</button>`});
+  document.getElementById('navigator').innerHTML=h;
+}
+function goQuestion(idx){if(idx<0||idx>=Q.length)return;saveCurrentWriting();currentQ=idx;renderNav();renderQuestion();saveState()}
+function getSection(idx){for(const s of SECTIONS)if(idx>=s.range[0]&&idx<=s.range[1])return s;return SECTIONS[0]}
+
+function renderQuestion(){
+  const q=Q[currentQ],sec=getSection(currentQ);
+  document.getElementById('sectionLabel').textContent=sec.name;
+  const pp=document.getElementById('passagePane'),qp=document.getElementById('questionPane');
+  if(q.p&&PASSAGES[q.p]){
+    pp.style.display='block';qp.classList.remove('full-width');
+    const p=PASSAGES[q.p];
+    pp.innerHTML=`<h3>${p.label}: ${p.title}</h3>${p.text}`;
+  } else {pp.style.display='none';qp.classList.add('full-width')}
+
+  let h=`<div class="q-header"><div class="q-number">Question ${currentQ+1} of ${Q.length}</div>
+    <div class="q-standard">${q.std} \u00b7 ${q.skill}</div>
+    ${q.diff?`<div class="q-diff ${q.diff}">${q.diff}</div>`:''}</div>
+    <div class="q-text">${q.text.replace(/\n/g,'<br>')}</div>`;
+
+  if(q.type==='mc'){h+='<div class="q-options">';const L=['A','B','C','D'];
+    q.opts.forEach((o,i)=>{const sel=answers[currentQ]===i?' selected':'';
+    h+=`<div class="q-option${sel}" onclick="selectOption(${i})"><span class="letter">${L[i]}</span><span>${o}</span></div>`});h+='</div>'}
+  else if(q.type==='scr'||q.type==='cr'){const v=answers[currentQ]||'';
+    h+=`<div class="q-guidance">${q.guidance}</div><textarea class="q-textarea" id="writingArea" placeholder="Type your answer..." oninput="updateWC()">${v}</textarea>
+    <div class="q-wordcount" id="wc">${cw(v)} words</div>`}
+
+  qp.innerHTML=h;qp.scrollTop=0;
+  document.getElementById('prevBtn').disabled=currentQ===0;
+  document.getElementById('nextBtn').textContent=currentQ===Q.length-1?'Review':'Next \u2192';
+  const fb=document.getElementById('flagBtn');fb.classList.toggle('active',flags.has(currentQ));
+  fb.textContent=flags.has(currentQ)?'Unflag':'Flag for Review';
+}
+
+function selectOption(i){answers[currentQ]=i;renderNav();renderQuestion();saveState()}
+function saveCurrentWriting(){const ta=document.getElementById('writingArea');if(ta&&(Q[currentQ].type==='scr'||Q[currentQ].type==='cr')){const t=ta.value.trim();if(t)answers[currentQ]=t;else delete answers[currentQ]}}
+function cw(t){return t?t.trim().split(/\s+/).filter(w=>w.length>0).length:0}
+function updateWC(){const ta=document.getElementById('writingArea'),el=document.getElementById('wc');if(ta&&el)el.textContent=cw(ta.value)+' words'}
+function toggleFlag(){if(flags.has(currentQ))flags.delete(currentQ);else flags.add(currentQ);renderNav();renderQuestion();saveState()}
+function saveState(){localStorage.setItem('diagnostic_'+CONFIG.testId,JSON.stringify({currentQ,answers,flags:Array.from(flags),startTime}))}
+
+function showSubmitModal(){saveCurrentWriting();const t=Q.length,a=Object.keys(answers).length,u=t-a,f=flags.size;
+  let info=`<p>Answered <strong>${a}</strong> of <strong>${t}</strong> questions.</p>`;
+  if(u>0)info+=`<p class="warn">${u} unanswered!</p>`;if(f>0)info+=`<p class="warn">${f} flagged for review.</p>`;
+  if(u===0&&f===0)info+='<p>All questions answered. Ready to submit!</p>';
+  document.getElementById('submitInfo').innerHTML=info;document.getElementById('submitModal').classList.add('active')}
+function closeModal(){document.getElementById('submitModal').classList.remove('active')}
+
+function submitTest(){
+  if(submitted)return;submitted=true;closeModal();clearInterval(timerInterval);saveCurrentWriting();
+  const elapsed=Math.floor((Date.now()-startTime)/1000),today=new Date().toISOString().split('T')[0];
+  const allAns=Q.map((q,i)=>{const a=answers[i];
+    if(q.type==='mc')return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'mc',question:q.text,selectedOption:a!==undefined?a:-1,selectedText:a!==undefined?q.opts[a]:'Not answered',correctOption:q.cor,correctText:q.opts[q.cor]};
+    return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'written',question:q.text,response:a||''}});
+
+  const secSum={};SECTIONS.forEach(sec=>{let c=0,t=0;for(let i=sec.range[0];i<=Math.min(sec.range[1],Q.length-1);i++){if(Q[i]&&Q[i].type==='mc'){t++;if(answers[i]===Q[i].cor)c++}}secSum[sec.id]={correct:c,total:t,pct:t>0?Math.round(c/t*100):0}});
+  const totalMC=Q.filter(q=>q.type==='mc').length,correctMC=Q.filter((q,i)=>q.type==='mc'&&answers[i]===q.cor).length;
+
+  const payload={action:'saveDiagnosticResults',student:CONFIG.student,grade:CONFIG.grade,testId:CONFIG.testId,testLabel:CONFIG.testLabel,timestamp:new Date().toISOString(),answers:allAns,
+    summary:{totalQuestions:Q.length,answeredQuestions:Object.keys(answers).length,totalTimeSeconds:elapsed,effortScore:Math.round(Object.keys(answers).length/Q.length*100),sections:secSum,correctMC,totalMC,percentCorrect:Math.round(correctMC/totalMC*100)}};
+  try{fetch(CONFIG.webAppUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})}catch(e){}
+
+  const signal={completed:true,timestamp:new Date().toISOString(),date:today,testId:CONFIG.testId,testLabel:CONFIG.testLabel,points:15};
+  localStorage.setItem('jacob_diagnostic_week3_v2_signal',JSON.stringify(signal));
+  localStorage.setItem('jacob_diagnostic_signal',JSON.stringify(signal));
+
+  try{const dk='jacob_dashboard_v3',dd=JSON.parse(localStorage.getItem(dk)||'{}');if(!dd.days)dd.days={};if(!dd.days[today])dd.days[today]={};
+  dd.days[today].session=true;dd.days[today].khan=true;dd.days[today].reading=true;dd.days[today].diagnosticComplete=true;dd.days[today].diagnosticPoints=15;localStorage.setItem(dk,JSON.stringify(dd))}catch(e){}
+
+  try{fetch(CONFIG.webAppUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'completeDiagnosticTest',student:CONFIG.student,testId:CONFIG.testId,date:today,points:15})})}catch(e){}
+  localStorage.removeItem('diagnostic_'+CONFIG.testId);
+  showTutorReview(correctMC,totalMC,elapsed,secSum);
+}
+
+function estimateScores(pct){
+  let ptile;if(pct>=97)ptile=97;else if(pct>=93)ptile=92;else if(pct>=88)ptile=84;else if(pct>=82)ptile=75;else if(pct>=75)ptile=65;else if(pct>=70)ptile=55;else if(pct>=65)ptile=46;else if(pct>=60)ptile=38;else if(pct>=55)ptile=30;else if(pct>=50)ptile=24;else if(pct>=40)ptile=15;else ptile=Math.max(5,Math.round(pct*0.35));
+  let msg='';if(ptile>=90)msg='Excellent \u2014 keep pushing';else if(ptile>=75)msg='Strong \u2014 above most peers';else if(ptile>=55)msg='Solid ground';else if(ptile>=35)msg='Room to grow';else msg='Building foundation';
+  const ttp=Math.max(1,Math.round((ptile-15)/0.85)),leap=Math.round(650+(ttp/100)*200);
+  let ll='';if(leap>=790)ll='Advanced';else if(leap>=750)ll='Mastery';else if(leap>=700)ll='Basic';else if(leap>=650)ll='Approaching Basic';else ll='Unsatisfactory';
+  return{leap,ll,ptile,msg,psat:Math.min(1440,Math.max(240,Math.round(240+(ttp/100)*950))),act:Math.min(36,Math.max(1,Math.round(1+(ttp/100)*31))),sat:Math.min(1600,Math.round(Math.min(1440,Math.max(240,Math.round(240+(ttp/100)*950)))*1.05)),hspt:Math.min(800,Math.max(200,Math.round(200+(ttp/100)*500))),ttp};
+}
+
+function showTutorReview(correctMC,totalMC,elapsed,secSum){
+  const pct=Math.round(correctMC/totalMC*100),min=Math.floor(elapsed/60),bm=estimateScores(pct);
+  let gm='';if(pct>=90)gm='Outstanding work, Jacob. This was the hardest test yet and you crushed it. Keep this up.';else if(pct>=75)gm='Solid performance on the toughest diagnostic so far. You\u2019re showing real ability. Let\u2019s sharpen the areas you missed.';else if(pct>=60)gm='Good effort on a very challenging test. This was ceiling-level difficulty \u2014 every miss is a growth opportunity.';else gm='This was the hardest test by design. Every question you missed is a lesson. Let\u2019s walk through them \u2014 the tests get easier from here.';
+
+  const wrong=[];Q.forEach((q,i)=>{if(q.type==='mc'&&answers[i]!==q.cor)wrong.push({num:i+1,q,ua:answers[i]!==undefined?q.opts[answers[i]]:'Not answered',ca:q.opts[q.cor]})});
+  const skillMap={};Q.forEach((q,i)=>{if(q.type!=='mc')return;if(!skillMap[q.skill])skillMap[q.skill]={c:0,t:0};skillMap[q.skill].t++;if(answers[i]===q.cor)skillMap[q.skill].c++});
+
+  let h=`<div class="review-score"><div class="big">${correctMC}/${totalMC}</div><div class="pct">${pct}% \u00b7 ${min} min</div><div class="tutor-msg">\u201C${gm}\u201D \u2014 Gary</div></div>
+  <div class="points-banner"><div class="pts">+15 points earned</div></div>
+  <div class="review-section"><h3>LEAP Performance Estimate</h3><div class="score-grid">
+    <div class="score-card"><div class="label">Est. LEAP</div><div class="value">${bm.leap}</div><div class="sub">${bm.ll}</div></div>
+    <div class="score-card"><div class="label">Baseline LEAP</div><div class="value">761</div><div class="sub">Math Mastery (29 pts from Advanced)</div></div>
+    <div class="score-card"><div class="label">Percentile</div><div class="value">${bm.ptile}%</div><div class="sub">${bm.msg}</div></div>
+  </div></div>
+  <div class="review-section"><h3>Score by Subject</h3><div class="score-grid">
+    ${Object.entries(secSum).filter(([k,v])=>v.total>0).map(([k,v])=>{const s=SECTIONS.find(x=>x.id===k);return`<div class="score-card"><div class="label">${s?s.name:k}</div><div class="value">${v.correct}/${v.total}</div><div class="sub">${v.pct}%</div></div>`}).join('')}
+  </div></div>
+  <div class="review-section"><h3>Score Projections</h3><div class="score-grid">
+    <div class="score-card"><div class="label">LEAP</div><div class="value">${bm.leap}</div><div class="sub">${bm.ll}</div></div>
+    <div class="score-card"><div class="label">HSPT</div><div class="value">${bm.hspt}</div><div class="sub">of 800</div></div>
+    <div class="score-card"><div class="label">PSAT 8/9</div><div class="value">${bm.psat}</div><div class="sub">of 1440</div></div>
+    <div class="score-card"><div class="label">ACT</div><div class="value">${bm.act}</div><div class="sub">of 36</div></div>
+    <div class="score-card"><div class="label">SAT</div><div class="value">${bm.sat}</div><div class="sub">of 1600</div></div>
+  </div><div style="color:var(--text-muted);font-size:11px;text-align:center;margin-top:8px;font-style:italic">Early projections. Every diagnostic helps build accuracy.</div></div>
+  <div class="review-section"><h3>Skill Analysis</h3><div class="skill-grid">
+    ${Object.entries(skillMap).map(([sk,d])=>{const p=Math.round(d.c/d.t*100),cls=p>=75?'strong':p>=50?'ok':'weak';return`<div class="skill-item"><span class="sk-name">${sk}</span><span class="sk-score ${cls}">${d.c}/${d.t} (${p}%)</span></div>`}).join('')}
+  </div></div>`;
+
+  if(wrong.length>0){h+=`<div class="review-section"><h3>Gary\u2019s Review \u2014 Questions Missed (${wrong.length})</h3>`;
+    wrong.forEach(w=>{h+=`<div class="wrong-item"><div class="wi-q">Q${w.num} \u00b7 ${w.q.std} \u00b7 ${w.q.skill}</div><div class="wi-text">${w.q.text.replace(/\n/g,'<br>')}</div><div class="wi-yours"><b>Your answer:</b> ${w.ua}</div><div class="wi-correct"><b>Correct:</b> ${w.ca}</div><div class="wi-explain">${w.q.exp}</div>${w.q.str?`<div class="wi-strategy">LEAP Strategy: ${w.q.str}</div>`:''}</div>`});h+='</div>'}
+  else h+='<div class="review-section"><h3 style="color:var(--success)">Perfect Score!</h3></div>';
+
+  h+=`<div style="text-align:center;color:var(--accent2);font-size:14px;font-style:italic;padding:16px;margin-top:12px">\u201CThis was the ceiling test \u2014 the hardest one you\u2019ll take. The tests get progressively easier from here. Every struggle now is strength later.\u201D \u2014 Gary</div>`;
+  h+=`<button class="return-btn" onclick="window.location.href='Jacob_Dashboard.html'">Return to Dashboard</button>`;
+  document.getElementById('testScreen').classList.remove('active');document.getElementById('reviewScreen').classList.add('active');document.getElementById('reviewContent').innerHTML=h;
+}
+</script>
+</body>
+</html>

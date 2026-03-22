@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>LEAP Diagnostic — Chase Brown — Week 3</title>
+<style>
+:root{--bg:#0a0a0f;--card:#12141a;--card-border:#2a2e38;--accent:#00ff88;--accent-dim:#0a3322;--accent2:#00ccff;--success:#00ff88;--error:#ff4444;--warning:#ffaa00;--text:#ffffff;--text-dim:#5a6a7a;--text-muted:#3a4a5a;--blue:#4488ff;--blue-dim:#1a2240;--glow:0 0 20px rgba(0,255,136,0.1)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:'Courier New',monospace;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column;overflow:hidden}
+.top-bar{background:var(--card);border-bottom:2px solid var(--accent);padding:10px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:10;box-shadow:var(--glow)}
+.top-bar .title{color:var(--accent);font-size:14px;letter-spacing:3px;text-transform:uppercase}
+.top-bar .timer{color:var(--accent2);font-size:18px;font-weight:bold;min-width:80px;text-align:right}
+.top-bar .section-name{color:var(--text-dim);font-size:11px;letter-spacing:1px}
+.navigator{background:var(--card);border-bottom:1px solid var(--card-border);padding:8px 12px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;flex-shrink:0;overflow-x:auto}
+.nav-btn{width:30px;height:30px;border:1px solid var(--card-border);border-radius:3px;background:var(--bg);color:var(--text-dim);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Courier New',monospace;transition:all .15s}
+.nav-btn:hover{border-color:var(--accent);color:var(--text)}
+.nav-btn.answered{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.nav-btn.flagged{background:#3d2800;border-color:var(--warning);color:var(--warning)}
+.nav-btn.current{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);color:var(--accent);font-weight:bold}
+.nav-sep{width:1px;height:22px;background:var(--card-border);margin:0 4px;flex-shrink:0}
+.content-area{flex:1;display:flex;overflow:hidden}
+.passage-pane{flex:1;overflow-y:auto;padding:24px;border-right:2px solid var(--card-border);background:var(--card);line-height:1.8;font-size:14px}
+.passage-pane h3{color:var(--accent);font-size:13px;margin-bottom:12px;letter-spacing:2px;text-transform:uppercase}
+.passage-pane p{margin-bottom:12px;text-indent:24px}
+.passage-pane p:first-of-type{text-indent:0}
+.question-pane{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column}
+.question-pane.full-width{flex:2}
+.q-header{margin-bottom:14px}
+.q-number{color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:2px}
+.q-standard{color:var(--accent-dim);font-size:10px;margin-top:2px;letter-spacing:1px}
+.q-diff{display:inline-block;padding:2px 8px;border-radius:3px;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.q-diff.baseline{background:#1a2a1a;color:#4ade80}.q-diff.grade-level{background:#1a2a3d;color:#5ca4e8}.q-diff.challenging{background:#3d2800;color:#ffaa00}.q-diff.ceiling{background:#2a1210;color:#ff6666}
+.q-text{font-size:15px;line-height:1.7;margin-bottom:18px;color:var(--text);white-space:pre-wrap}
+.q-options{display:flex;flex-direction:column;gap:10px;max-width:620px}
+.q-option{background:rgba(255,255,255,0.03);border:2px solid var(--card-border);border-radius:4px;padding:12px 16px;cursor:pointer;font-size:14px;line-height:1.5;transition:all .15s;display:flex;align-items:flex-start;gap:10px;font-family:'Courier New',monospace}
+.q-option:hover{border-color:var(--accent);background:var(--accent-dim)}
+.q-option.selected{border-color:var(--blue);background:var(--blue-dim);color:var(--blue)}
+.q-option .letter{flex-shrink:0;width:24px;height:24px;border-radius:50%;border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold}
+.q-option.selected .letter{border-color:var(--blue);background:var(--blue);color:var(--bg)}
+.q-textarea{width:100%;max-width:620px;min-height:120px;background:rgba(255,255,255,0.03);border:2px solid var(--card-border);border-radius:4px;color:var(--text);font-family:'Courier New',monospace;font-size:13px;padding:12px;line-height:1.6;resize:vertical}
+.q-textarea:focus{border-color:var(--accent);outline:none;box-shadow:var(--glow)}
+.q-guidance{color:var(--text-dim);font-size:12px;margin-bottom:8px}
+.q-wordcount{color:var(--text-dim);font-size:11px;margin-top:4px}
+.bottom-bar{background:var(--card);border-top:2px solid var(--card-border);padding:10px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.btn{padding:10px 20px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'Courier New',monospace;font-size:12px;cursor:pointer;border-radius:3px;transition:all .15s;letter-spacing:1px;text-transform:uppercase}
+.btn:hover{background:var(--accent);color:var(--bg);box-shadow:var(--glow)}
+.btn:disabled{opacity:.3;cursor:default}.btn:disabled:hover{background:transparent;color:var(--accent);box-shadow:none}
+.btn.flag{border-color:var(--warning);color:var(--warning)}.btn.flag:hover{background:var(--warning);color:var(--bg)}.btn.flag.active{background:var(--warning);color:var(--bg)}
+.btn.submit{border-color:var(--success);color:var(--success)}.btn.submit:hover{background:var(--success);color:var(--bg)}
+.bottom-left,.bottom-right{display:flex;gap:8px}
+.screen{display:none;flex-direction:column;height:100%}.screen.active{display:flex}
+.welcome-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px}
+.welcome-content h1{color:var(--accent);font-size:32px;margin-bottom:8px;letter-spacing:4px;text-shadow:0 0 30px rgba(0,255,136,0.3)}
+.welcome-content .sub{color:var(--accent2);font-size:14px;margin-bottom:32px;letter-spacing:2px}
+.welcome-content .info{max-width:500px;font-size:13px;line-height:1.8;color:var(--text);margin-bottom:24px}
+.welcome-content .info strong{color:var(--accent)}
+.welcome-content .start-btn{padding:16px 48px;background:transparent;border:2px solid var(--accent);color:var(--accent);font-family:'Courier New',monospace;font-size:16px;cursor:pointer;border-radius:4px;letter-spacing:3px;text-transform:uppercase;transition:all .2s}
+.welcome-content .start-btn:hover{background:var(--accent);color:var(--bg);box-shadow:0 0 30px rgba(0,255,136,0.3)}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-overlay.active{display:flex}
+.modal{background:var(--card);border:2px solid var(--accent);border-radius:6px;padding:32px;max-width:420px;width:90%;text-align:center}
+.modal h3{color:var(--accent);margin-bottom:16px;letter-spacing:2px}.modal p{color:var(--text);font-size:13px;line-height:1.6;margin-bottom:8px}.modal .warn{color:var(--warning);font-weight:bold}.modal .btn-row{display:flex;gap:12px;justify-content:center;margin-top:20px}
+.review-content{padding:24px;max-width:800px;margin:0 auto;overflow-y:auto;flex:1}
+.review-score{text-align:center;margin-bottom:24px}.review-score .big{font-size:56px;color:var(--accent);font-weight:bold;text-shadow:0 0 30px rgba(0,255,136,0.3)}.review-score .pct{font-size:16px;color:var(--text-dim)}.review-score .tutor-msg{color:var(--accent2);margin-top:8px;font-size:14px}
+.review-section{margin-bottom:24px}.review-section h3{color:var(--accent);font-size:14px;margin-bottom:12px;border-bottom:1px solid var(--card-border);padding-bottom:6px;letter-spacing:1px}
+.score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px}
+.score-card{background:var(--card);border:1px solid var(--card-border);border-radius:4px;padding:12px;text-align:center}
+.score-card .label{color:var(--text-dim);font-size:10px;text-transform:uppercase;letter-spacing:1px}
+.score-card .value{color:var(--accent);font-size:22px;font-weight:bold;margin:4px 0}
+.score-card .sub{color:var(--text-dim);font-size:10px}
+.wrong-item{background:rgba(255,255,255,0.03);border-left:3px solid var(--error);border-radius:0 4px 4px 0;padding:14px;margin-bottom:10px}
+.wrong-item .wi-q{color:var(--text-dim);font-size:11px;margin-bottom:4px}
+.wrong-item .wi-text{font-size:13px;margin-bottom:8px}
+.wrong-item .wi-yours{color:var(--error);font-size:12px;margin-bottom:4px}
+.wrong-item .wi-correct{color:var(--success);font-size:12px;margin-bottom:6px}
+.wrong-item .wi-explain{color:var(--text-dim);font-size:11px;line-height:1.5;border-top:1px solid var(--card-border);padding-top:6px}
+.wrong-item .wi-strategy{color:var(--accent-dim);font-size:10px;margin-top:4px}
+.skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.skill-item{background:var(--card);border-radius:4px;padding:10px;display:flex;justify-content:space-between;align-items:center}
+.skill-item .sk-name{font-size:11px}.skill-item .sk-score{font-size:13px;font-weight:bold}
+.skill-item .sk-score.strong{color:var(--success)}.skill-item .sk-score.weak{color:var(--error)}.skill-item .sk-score.ok{color:var(--warning)}
+.points-banner{text-align:center;padding:12px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);border-radius:6px;margin-bottom:24px}
+.points-banner .pts{color:var(--accent);font-size:18px;font-weight:bold}
+.return-btn{display:block;width:100%;padding:16px;margin-top:24px;background:transparent;border:2px solid var(--accent);color:var(--accent);border-radius:4px;font-family:'Courier New',monospace;font-size:14px;cursor:pointer;letter-spacing:3px;text-transform:uppercase;text-align:center}
+.return-btn:hover{background:var(--accent);color:var(--bg);box-shadow:0 0 30px rgba(0,255,136,0.3)}
+</style>
+</head>
+<body>
+<div id="welcomeScreen" class="screen active">
+<div class="welcome-content">
+  <h1>LEAP DIAGNOSTIC</h1>
+  <div class="sub">Iron Mind Academy &mdash; Week 3 Official Assessment</div>
+  <div class="info">
+    <strong>Chase Brown &mdash; 5th Grade</strong><br><br>
+    Comprehensive diagnostic covering all four LEAP subjects:<br>
+    <strong>ELA</strong> &middot; <strong>Mathematics</strong> &middot; <strong>Science</strong> &middot; <strong>Social Studies</strong><br><br>
+    <strong>55 questions</strong> &middot; ~70 minutes<br><br>
+    Navigate freely between questions. Flag items for review. Change answers anytime.
+  </div>
+  <button class="start-btn" onclick="startTest()">Begin Mission</button>
+</div>
+</div>
+<div id="testScreen" class="screen">
+  <div class="top-bar"><div><div class="title">LEAP Diagnostic</div><div class="section-name" id="sectionLabel"></div></div><div class="timer" id="timerDisplay">00:00</div></div>
+  <div class="navigator" id="navigator"></div>
+  <div class="content-area"><div class="passage-pane" id="passagePane"></div><div class="question-pane" id="questionPane"></div></div>
+  <div class="bottom-bar"><div class="bottom-left"><button class="btn" id="prevBtn" onclick="goQuestion(currentQ-1)">&larr; Previous</button><button class="btn flag" id="flagBtn" onclick="toggleFlag()">Flag for Review</button></div><div class="bottom-right"><button class="btn" id="nextBtn" onclick="goQuestion(currentQ+1)">Next &rarr;</button><button class="btn submit" onclick="showSubmitModal()">Submit Test</button></div></div>
+</div>
+<div class="modal-overlay" id="submitModal"><div class="modal"><h3>Submit Your Test?</h3><p id="submitInfo"></p><div class="btn-row"><button class="btn" onclick="closeModal()">Go Back</button><button class="btn submit" onclick="submitTest()">Submit</button></div></div></div>
+<div id="reviewScreen" class="screen"><div class="top-bar"><div><div class="title">Doug's Review</div></div><div style="color:var(--accent)">Diagnostic Complete</div></div><div class="review-content" id="reviewContent"></div></div>
+
+<script>
+const CONFIG={student:"Chase",grade:5,testId:"chase_diagnostic_week3_ela_mar2026_v2",testLabel:"Week 3 LEAP Diagnostic \u2014 March 22, 2026",
+webAppUrl:"https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec"};
+
+const PASSAGES={
+passage_lit1:{title:"The Mapmaker\u2019s Apprentice",label:"Literary Narrative",
+text:`<p>Emilia pressed the charcoal pencil against the parchment and held her breath. The line had to be perfect\u2014not just straight, but alive. Master Aldric always said that a map without soul was nothing more than a list of directions, and directions alone had never saved anyone lost in the fog.</p>
+<p>She was fourteen years old and had been apprenticed to Master Aldric for three years. In that time, she had learned to grind pigments from minerals, to stretch vellum until it was smooth as cream, and to render coastlines so precisely that sailors swore they could smell the salt air when they unrolled her charts. But none of that mattered today. Today was the Trial of the Compass\u2014the test that would determine whether she could continue her apprenticeship or be sent home to her father\u2019s bakery in the village below.</p>
+<p>The task seemed simple enough: chart the harbor of Aelford from memory. She had studied it for weeks\u2014the curve of the breakwater, the shallow shoals near the eastern inlet, the way the current carved a hidden channel between the twin rock formations the fishermen called the Teeth. But memory was a treacherous thing. It played tricks, swapped left for right, stretched distances, and shrank landmarks.</p>
+<p>Master Aldric sat in the corner of the workshop, pretending to read, though Emilia caught him glancing at her work every few minutes. The other apprentices had already taken their trials. Gregor had drawn a map that was technically flawless but sterile\u2014every measurement precise, yet somehow lifeless. Tomas had drawn with passion but made the harbor twice as wide as it actually was, which would have sent any ship straight onto the rocks.</p>
+<p>\u201CThe sea does not forgive errors,\u201D Master Aldric had told them on the first day. \u201CA beautiful lie is still a lie. But a truthful map that no one can read is equally useless. You must find the place where precision meets art.\u201D</p>
+<p>Emilia closed her eyes and let her mind drift back to the harbor. She remembered standing on the cliff above it, the wind tangling her hair, watching the fishing boats navigate the narrow passage between the Teeth. She remembered how the morning light had revealed the color of the water\u2014dark blue over the deep channel, pale green over the sandy shallows, a muddy brown where the river emptied its burden of silt.</p>
+<p>She opened her eyes and began to draw with a new confidence. She marked the deep channel with bold, sweeping strokes. She used delicate stippling to show where the shallows lay hidden beneath the surface. Near the Teeth, she added tiny wave marks to warn of the turbulent current. And in the margin, she wrote a note in her careful hand: \u201CApproach from the southeast at low tide. The eastern Tooth is submerged at high water.\u201D</p>
+<p>When she finally set down her pencil, her hands were shaking. Master Aldric walked over, his expression unreadable. He studied the map for a long time. Then he did something Emilia had never seen him do in three years of apprenticeship: he smiled.</p>
+<p>\u201CThis,\u201D he said, tapping the margin note, \u201Cis what separates a mapmaker from a copyist. You didn\u2019t just draw the harbor. You understood it.\u201D</p>`},
+
+passage_lit2:{title:"The Road Not Taken (excerpt adapted)",label:"Poetry",
+text:`<p style="text-indent:0;font-style:italic;line-height:2.2">
+Two roads diverged in a yellow wood,<br>
+And sorry I could not travel both<br>
+And be one traveler, long I stood<br>
+And looked down one as far as I could<br>
+To where it bent in the undergrowth;<br><br>
+Then took the other, as just as fair,<br>
+And having perhaps the better claim,<br>
+Because it was grassy and wanted wear;<br>
+Though as for that the passing there<br>
+Had worn them really about the same,<br><br>
+And both that morning equally lay<br>
+In leaves no step had trodden black.<br>
+Oh, I kept the first for another day!<br>
+Yet knowing how way leads on to way,<br>
+I doubted whether I should ever come back.<br><br>
+I shall be telling this with a sigh<br>
+Somewhere ages and ages hence:<br>
+Two roads diverged in a wood, and I\u2014<br>
+I took the one less traveled by,<br>
+And that has made all the difference.
+</p>`},
+
+passage_info1:{title:"The Science of Sleep",label:"Informational Text",
+text:`<p>Every night, as you close your eyes and drift off, your brain embarks on one of the most complex processes in all of biology. Sleep is not simply a period of rest or inactivity. It is an active, highly organized sequence of events during which the brain repairs itself, consolidates memories, and performs critical maintenance that keeps the body functioning properly.</p>
+<p>Scientists have identified two main types of sleep: REM (rapid eye movement) sleep and non-REM sleep. Non-REM sleep has three stages, each progressively deeper. During Stage 1, you are in light sleep and can be easily awakened. In Stage 2, your heart rate slows and your body temperature drops as your brain prepares for deep sleep. Stage 3 is the deepest level of non-REM sleep, sometimes called slow-wave sleep because of the large, slow brain waves detected by monitoring equipment. This is the stage when the body does most of its physical repair\u2014growing new tissue, strengthening the immune system, and releasing growth hormones that are especially important for children and teenagers.</p>
+<p>REM sleep is dramatically different. During REM sleep, the brain becomes almost as active as it is during waking hours. The eyes dart rapidly beneath closed eyelids\u2014hence the name\u2014and most vivid dreaming occurs during this phase. But REM sleep is far more than a time for dreams. Research has shown that REM sleep plays a crucial role in learning and memory. During this phase, the brain sorts through information gathered during the day, strengthening important neural connections and pruning away unnecessary ones. Students who get adequate REM sleep perform significantly better on tests of problem-solving and creative thinking than those who do not.</p>
+<p>A typical night of sleep cycles through non-REM and REM stages multiple times, with each complete cycle lasting roughly ninety minutes. Early in the night, the cycles contain more deep non-REM sleep. As the night progresses, the REM periods grow longer. This is why the last few hours of sleep are particularly important for memory consolidation\u2014cutting your sleep short means losing your longest REM periods.</p>
+<p>The consequences of insufficient sleep are severe and well-documented. Sleep-deprived individuals show impaired judgment, slower reaction times, difficulty concentrating, and weakened immune function. For students, chronic sleep deprivation has been linked to lower grades, increased anxiety, and even changes in mood and behavior. The National Sleep Foundation recommends that children aged six to thirteen get nine to eleven hours of sleep per night, while teenagers need eight to ten hours.</p>
+<p>Despite this evidence, studies indicate that a majority of American students routinely get less sleep than recommended. Screen time before bed, irregular schedules, and early school start times all contribute to what researchers have called a \u201Csleep debt epidemic\u201D among young people. Some school districts have responded by pushing back start times, and early results suggest that even thirty extra minutes of sleep can lead to measurable improvements in attendance, grades, and student well-being.</p>`}
+};
+
+const SECTIONS=[
+{id:'ela',name:'English Language Arts',range:[0,21]},
+{id:'math',name:'Mathematics',range:[22,35]},
+{id:'science',name:'Science',range:[36,45]},
+{id:'ss',name:'Social Studies',range:[46,54]}
+];
+
+const Q=[
+// ========== ELA (Q1-Q22) ==========
+// Passage 1: The Mapmaker's Apprentice — Literary Narrative (8 questions)
+
+{p:'passage_lit1',sec:'ela',std:'RL.5.2',skill:'Theme',diff:'baseline',type:'mc',
+text:'What is one theme of this passage?',
+opts:['Mapmaking is the most important job in the world.','True skill requires both accuracy and deeper understanding.','Apprentices should always obey their masters without question.','Drawing maps is easier than baking bread.'],
+cor:1,exp:'The passage contrasts Gregor (precise but lifeless) and Tomas (passionate but inaccurate) with Emilia, who combines precision with understanding. Master Aldric\'s lesson is that real skill lives where "precision meets art."',str:'Theme = a lesson or message the whole story teaches. It should be supported by multiple parts of the story, not just one detail.'},
+
+{p:'passage_lit1',sec:'ela',std:'RL.5.1',skill:'Textual Evidence',diff:'baseline',type:'mc',
+text:'Which sentence from the passage best shows that Emilia takes her work seriously?',
+opts:['"She was fourteen years old and had been apprenticed to Master Aldric for three years."','"Emilia pressed the charcoal pencil against the parchment and held her breath."','"The other apprentices had already taken their trials."','"Master Aldric sat in the corner of the workshop, pretending to read."'],
+cor:1,exp:'Holding her breath while drawing shows intense concentration and care. The other options describe facts about her age, the other apprentices, or Aldric\u2019s behavior\u2014none reveal Emilia\u2019s own attitude toward her work.',str:'Evidence questions ask for the sentence that BEST proves the claim. Choose the one that directly shows the character\u2019s feelings or actions.'},
+
+{p:'passage_lit1',sec:'ela',std:'RL.5.4',skill:'Vocabulary in Context',diff:'grade-level',type:'mc',
+text:'What does "treacherous" mean as used in paragraph 3?\n\n"But memory was a treacherous thing."',
+opts:['Boring and dull','Extremely helpful','Dangerously unreliable','Perfectly accurate'],
+cor:2,exp:'The passage explains that memory "played tricks, swapped left for right, stretched distances." These are ways memory deceives you, making it dangerously unreliable\u2014treacherous.',str:'Read the sentences around the word. The author explains what memory does wrong right after calling it treacherous. Those details define the word.'},
+
+{p:'passage_lit1',sec:'ela',std:'RL.5.3',skill:'Character Analysis',diff:'grade-level',type:'mc',
+text:'How does Master Aldric\u2019s reaction to Emilia\u2019s map reveal something about his character?',
+opts:['He is easily impressed by any student\u2019s work.','He rarely shows approval, so his smile indicates Emilia achieved something truly exceptional.','He is angry that Emilia wrote a note in the margin.','He prefers Emilia over the other apprentices because she is younger.'],
+cor:1,exp:'The passage says Emilia had "never seen him do in three years of apprenticeship: he smiled." The rarity of his approval makes the smile extremely meaningful\u2014he recognizes genuine excellence.',str:'When a character breaks a pattern (never smiling, then smiling), that break is significant. Ask: Why did the author show this change?'},
+
+{p:'passage_lit1',sec:'ela',std:'RL.5.3',skill:'Compare Characters',diff:'challenging',type:'mc',
+text:'How do Gregor and Tomas serve as contrasts to Emilia in the story?',
+opts:['They both succeeded at the Trial while Emilia failed.','Gregor represents precision without understanding, and Tomas represents passion without accuracy\u2014Emilia combines both qualities.','They are both better mapmakers than Emilia but less likeable.','They represent the same approach to mapmaking that Emilia uses.'],
+cor:1,exp:'Gregor drew "technically flawless but sterile" maps. Tomas drew "with passion" but was wildly inaccurate. Emilia succeeds because she finds what Aldric calls "the place where precision meets art"\u2014combining their separate strengths.',str:'When a story includes contrasting characters, they usually highlight what makes the main character different or special. Look for what each character lacks.'},
+
+// EBSR #1 — Part A
+{p:'passage_lit1',sec:'ela',std:'RL.5.2',skill:'EBSR \u2014 Interpretation',diff:'challenging',type:'mc',
+text:'Part A: What does Master Aldric mean when he says, "A beautiful lie is still a lie"?',
+opts:['He thinks all maps are dishonest.','A map that looks impressive but contains errors is dangerous and unreliable.','He believes beauty is more important than accuracy in mapmaking.','He is warning Emilia not to make her maps too attractive.'],
+cor:1,exp:'Aldric is teaching that a gorgeous map with wrong information will still lead sailors astray. No matter how beautiful the drawing, if the data is wrong, the map is a dangerous "lie."',str:'When interpreting figurative language from a character, think about the context. What is the character teaching? What consequences do they fear?'},
+
+// EBSR #1 — Part B
+{p:'passage_lit1',sec:'ela',std:'RL.5.1',skill:'EBSR \u2014 Evidence',diff:'challenging',type:'mc',
+text:'Part B: Which sentence from the passage best supports your answer to Part A?',
+opts:['"Emilia pressed the charcoal pencil against the parchment and held her breath."','"Tomas had drawn with passion but made the harbor twice as wide as it actually was, which would have sent any ship straight onto the rocks."','"She had learned to grind pigments from minerals."','"Master Aldric walked over, his expression unreadable."'],
+cor:1,exp:'Tomas is the perfect example of a "beautiful lie"\u2014his map was passionate (beautiful) but doubled the harbor\u2019s width (a lie), which would crash ships. This directly illustrates Aldric\u2019s warning.',str:'For Part B of EBSR questions, find the sentence that gives a concrete example of the idea from Part A.'},
+
+{p:'passage_lit1',sec:'ela',std:'RL.5.6',skill:'Point of View',diff:'challenging',type:'mc',
+text:'This story is told from a third-person limited point of view focused on Emilia. How does this affect what the reader knows?',
+opts:['The reader knows every character\u2019s thoughts and feelings equally.','The reader only knows Emilia\u2019s thoughts and must infer what other characters think from their actions and words.','The reader does not know any character\u2019s thoughts at all.','The reader sees the events from Master Aldric\u2019s perspective.'],
+cor:1,exp:'Third-person limited means we see through one character\u2019s eyes. We know Emilia\u2019s feelings (nervous, shaking hands) but can only guess at Aldric\u2019s thoughts from his expression and actions (his smile).',str:'Point of view controls what information the reader gets. Limited = one character\u2019s inner world. Omniscient = everyone\u2019s thoughts. First person = "I" narrator.'},
+
+// Passage 2: The Road Not Taken — Poetry (5 questions)
+
+{p:'passage_lit2',sec:'ela',std:'RL.5.4',skill:'Figurative Language',diff:'grade-level',type:'mc',
+text:'In this poem, the "two roads" most likely represent\u2014',
+opts:['actual hiking trails in a forest','two choices or paths in life','two different maps','two rivers flowing in opposite directions'],
+cor:1,exp:'The roads are a metaphor. The speaker is really talking about life decisions\u2014moments when you must choose between two options and can\u2019t go back.',str:'In poetry, look beyond the literal meaning. When an image represents something bigger (roads = life choices), that\u2019s a metaphor or symbol.'},
+
+{p:'passage_lit2',sec:'ela',std:'RL.5.4',skill:'Figurative Language',diff:'challenging',type:'mc',
+text:'What does the speaker mean by "knowing how way leads on to way, / I doubted whether I should ever come back"?',
+opts:['He is afraid of getting lost in the woods.','He knows that once you make a choice, each new decision leads to another, and you can rarely return to undo the original choice.','He does not like the road he chose.','He plans to come back tomorrow and take the other road.'],
+cor:1,exp:'The speaker understands that life moves forward\u2014one choice leads to the next, and you can\u2019t easily go back to the moment of decision. It\u2019s a reflection on how choices compound over time.',str:'Read the whole stanza together. "Way leads on to way" means each path leads to more paths. The speaker is reflecting on the irreversibility of choices.'},
+
+{p:'passage_lit2',sec:'ela',std:'RL.5.5',skill:'Poem Structure',diff:'ceiling',type:'mc',
+text:'How does the structure of the poem\u2019s final stanza differ from the earlier stanzas, and what effect does this create?',
+opts:['The final stanza describes the present moment, while earlier stanzas look to the future, creating confusion.','The final stanza shifts to the distant future ("ages and ages hence"), suggesting the speaker will look back on this choice as a defining moment in life.','The final stanza introduces a new character who was not mentioned before.','The final stanza uses shorter lines to speed up the rhythm and create excitement.'],
+cor:1,exp:'The earlier stanzas describe the moment of choice. The final stanza leaps forward in time\u2014"ages and ages hence"\u2014showing the speaker imagining how this one decision will shape the story of an entire life.',str:'When a poem shifts time, place, or tone in its final stanza, that shift carries the poem\u2019s deepest meaning. Ask: How does the ending reframe everything before it?'},
+
+{p:'passage_lit2',sec:'ela',std:'RL.5.1',skill:'Inference',diff:'ceiling',type:'mc',
+text:'The speaker says both roads "equally lay / In leaves no step had trodden black." What can you infer about the two choices?',
+opts:['One road was clearly much better than the other.','Both roads were actually very similar in that moment, despite the speaker later claiming to have taken the "less traveled" one.','The roads were covered in darkness and impossible to see.','Neither road had ever been used by anyone before.'],
+cor:1,exp:'The poem says the roads were worn "really about the same" and both lay equally in untrodden leaves. Yet in the final stanza, the speaker claims to have taken the "less traveled" road. This contradiction suggests people tend to rewrite their past choices as more dramatic or meaningful than they actually were.',str:'Strong readers notice contradictions. When a speaker says one thing early on and something different later, that gap is the key to deeper meaning.'},
+
+// Passage 3: The Science of Sleep — Informational (5 questions)
+
+{p:'passage_info1',sec:'ela',std:'RI.5.2',skill:'Central Idea',diff:'grade-level',type:'mc',
+text:'What is the central idea of this passage?',
+opts:['Everyone dreams during REM sleep.','Sleep is an active, essential process that affects physical health, learning, and well-being, yet many students do not get enough.','Schools should never start before 9 AM.','Non-REM sleep is more important than REM sleep.'],
+cor:1,exp:'The passage covers what happens during sleep (active repair and learning), why it matters (health, grades, mood), and the problem (students don\u2019t get enough). The central idea ties all these sections together.',str:'The central idea must be supported by the WHOLE passage, not just one paragraph. If an answer only covers part of the passage, it\u2019s too narrow.'},
+
+{p:'passage_info1',sec:'ela',std:'RI.5.5',skill:'Text Structure',diff:'challenging',type:'mc',
+text:'How does the author organize the information in paragraphs 2 through 4?',
+opts:['By comparing sleep in children versus adults','By presenting a problem and then offering a solution','By describing the sequential stages and cycles of sleep in the order they occur','By listing random facts about the brain in no particular order'],
+cor:2,exp:'Paragraphs 2\u20134 walk through sleep in order: Stage 1 \u2192 Stage 2 \u2192 Stage 3 (non-REM) \u2192 REM \u2192 how cycles repeat through the night. This is sequential/chronological structure.',str:'Text structure = how the author arranges ideas. Sequential structure follows a time order or process step by step.'},
+
+// EBSR #2 — Part A
+{p:'passage_info1',sec:'ela',std:'RI.5.8',skill:'EBSR \u2014 Argument',diff:'ceiling',type:'mc',
+text:'Part A: The author argues that cutting sleep short is especially harmful. What is the main reason given?',
+opts:['You will miss the lightest stage of sleep, which is the most restful.','The longest REM periods occur near the end of the night, so cutting sleep short eliminates the most important time for memory consolidation.','Cutting sleep short only affects physical health, not mental performance.','The body cannot enter any stage of sleep if the night is too short.'],
+cor:1,exp:'Paragraph 4 explicitly states: "the last few hours of sleep are particularly important for memory consolidation\u2014cutting your sleep short means losing your longest REM periods." REM is when the brain strengthens learning.',str:'For argument questions, find the specific evidence the author uses. The claim is that short sleep is harmful; the reason is the loss of late-night REM periods.'},
+
+// EBSR #2 — Part B
+{p:'passage_info1',sec:'ela',std:'RI.5.1',skill:'EBSR \u2014 Evidence',diff:'ceiling',type:'mc',
+text:'Part B: Which detail from the passage best supports your answer to Part A?',
+opts:['"During Stage 1, you are in light sleep and can be easily awakened."','"As the night progresses, the REM periods grow longer."','"The National Sleep Foundation recommends nine to eleven hours of sleep per night."','"Screen time before bed contributes to a sleep debt epidemic."'],
+cor:1,exp:'"REM periods grow longer" as the night goes on directly explains WHY losing end-of-night sleep is so damaging\u2014you lose the biggest chunks of REM, which is when memory consolidation peaks.',str:'Part B evidence must directly explain the mechanism behind Part A\u2019s answer. The growing length of REM periods is the reason late sleep matters most.'},
+
+{p:'passage_info1',sec:'ela',std:'RI.5.4',skill:'Vocabulary in Context',diff:'grade-level',type:'mc',
+text:'What does "consolidates" mean as used in paragraph 1?\n\n"...the brain repairs itself, consolidates memories, and performs critical maintenance..."',
+opts:['Erases or removes','Strengthens and organizes','Ignores completely','Creates brand new'],
+cor:1,exp:'To consolidate memories means to take fragile, new memories and strengthen them\u2014organizing and locking them in so they can be recalled later. The passage describes this as part of the brain\u2019s active work during sleep.',str:'Substitute each answer choice into the sentence. "The brain strengthens and organizes memories" fits the context of repair and maintenance.'},
+
+// Language & Vocabulary (4 questions, no passage)
+
+{p:null,sec:'ela',std:'L.5.2',skill:'Punctuation \u2014 Commas in Series',diff:'baseline',type:'mc',
+text:'Which sentence uses commas correctly?',
+opts:['The scientist studied, rocks minerals, and fossils.','The scientist studied rocks, minerals, and fossils.','The scientist studied rocks minerals and, fossils.','The scientist, studied rocks minerals and fossils.'],
+cor:1,exp:'When listing three or more items in a series, place a comma after each item except the last. "Rocks, minerals, and fossils" follows this rule correctly.',str:'Commas in a series: item, item, and item. The comma before "and" (Oxford comma) is standard in formal writing.'},
+
+{p:null,sec:'ela',std:'L.5.1',skill:'Verb Tense Consistency',diff:'grade-level',type:'mc',
+text:'Which sentence maintains consistent verb tense?',
+opts:['The explorer climbed the mountain and reaches the summit by noon.','The explorer climbed the mountain and reached the summit by noon.','The explorer climbs the mountain and reached the summit by noon.','The explorer will climb the mountain and reached the summit by noon.'],
+cor:1,exp:'Both verbs ("climbed" and "reached") are in past tense, making the sentence consistent. Mixing tenses (climbed/reaches, climbs/reached) creates confusion about when events happened.',str:'Check that all verbs in a sentence are in the same tense unless there is a clear reason to shift (like describing something that happened before something else).'},
+
+{p:null,sec:'ela',std:'L.5.4',skill:'Greek/Latin Roots',diff:'challenging',type:'mc',
+text:'The Latin root "scrib" or "script" means "to write." Based on this, what does "inscription" most likely mean?',
+opts:['A type of painting on a wall','Something written or carved onto a surface','A spoken announcement to a crowd','A mathematical equation'],
+cor:1,exp:'If "scrib/script" means "to write," then "inscription" (in + script + ion) means something written onto or into a surface\u2014like words carved into stone or engraved on a monument.',str:'Break the word apart: in- (on/into) + script (write) + -ion (noun ending) = writing on something. Latin roots unlock vocabulary you\u2019ve never seen before.'},
+
+{p:null,sec:'ela',std:'L.5.5',skill:'Figurative Language \u2014 Idioms',diff:'ceiling',type:'mc',
+text:'Read this sentence: "After weeks of struggling with the math concept, everything suddenly clicked and Marcus felt like a light bulb had gone off in his head."\n\nThe phrase "a light bulb had gone off in his head" means\u2014',
+opts:['Marcus had a headache from studying too much.','Marcus suddenly understood the concept in a flash of insight.','The electricity in Marcus\u2019s house went out.','Marcus decided to stop studying math forever.'],
+cor:1,exp:'This is an idiom. A "light bulb going off" represents a sudden moment of understanding\u2014an "aha" moment. The context ("everything suddenly clicked") confirms this meaning.',str:'Idioms don\u2019t mean what they literally say. Use the surrounding context to figure out the intended meaning. "Clicked" + "light bulb" both suggest sudden understanding.'},
+
+// ========== MATHEMATICS (Q23-Q36) ==========
+
+{p:null,sec:'math',std:'5.NF.1',skill:'Add Unlike Fractions',diff:'challenging',type:'mc',
+text:'What is 3/8 + 5/6?',
+opts:['8/14','29/24','15/48','4/7'],
+cor:1,exp:'LCD of 8 and 6 is 24. 3/8 = 9/24, 5/6 = 20/24. Sum: 9/24 + 20/24 = 29/24 = 1 5/24.',str:'Find the least common denominator (LCD). Convert both fractions. Add numerators. Simplify if possible.'},
+
+{p:null,sec:'math',std:'5.NF.2',skill:'Fraction Word Problem',diff:'ceiling',type:'mc',
+text:'Maria ran 3/4 of a mile on Monday and 7/8 of a mile on Tuesday. How much farther did she run on Tuesday than Monday?',
+opts:['4/8 mile','1/8 mile','1/4 mile','4/12 mile'],
+cor:1,exp:'7/8 \u2212 3/4 = 7/8 \u2212 6/8 = 1/8 mile. Convert 3/4 to eighths (6/8) then subtract.',str:'For "how much farther" questions, subtract the smaller from the larger. Convert to common denominators first.'},
+
+{p:null,sec:'math',std:'5.NF.4',skill:'Multiply Fractions',diff:'challenging',type:'mc',
+text:'A recipe calls for 2/3 cup of sugar. Chase wants to make 3/4 of the recipe. How much sugar does he need?',
+opts:['5/7 cup','6/12 cup','1/2 cup','2/4 cup'],
+cor:2,exp:'2/3 \u00d7 3/4 = 6/12 = 1/2 cup. Multiply numerators (2\u00d73=6), multiply denominators (3\u00d74=12), simplify (6/12 = 1/2).',str:'Finding a fraction OF something means multiply. "3/4 of 2/3" = 3/4 \u00d7 2/3.'},
+
+{p:null,sec:'math',std:'5.NF.7',skill:'Divide with Fractions',diff:'ceiling',type:'mc',
+text:'A board is 5/6 of a yard long. It is cut into pieces that are each 1/12 of a yard. How many pieces are there?',
+opts:['6','10','5','12'],
+cor:1,exp:'5/6 \u00f7 1/12 = 5/6 \u00d7 12/1 = 60/6 = 10 pieces. Flip the divisor and multiply.',str:'Dividing by a fraction: keep the first fraction, flip the second, multiply. 5/6 \u00d7 12/1 = 60/6 = 10.'},
+
+{p:null,sec:'math',std:'5.NBT.5',skill:'Multi-Digit Multiplication',diff:'challenging',type:'mc',
+text:'What is 408 \u00d7 35?',
+opts:['12,240','14,280','13,260','15,300'],
+cor:1,exp:'408 \u00d7 35: 408 \u00d7 5 = 2,040. 408 \u00d7 30 = 12,240. But we need total: 2,040 + 12,240 = 14,280.',str:'Break it apart: multiply by the ones digit, then by the tens digit, then add. Or: 408 \u00d7 35 = 408 \u00d7 30 + 408 \u00d7 5.'},
+
+{p:null,sec:'math',std:'5.NBT.6',skill:'Long Division',diff:'challenging',type:'mc',
+text:'What is 1,764 \u00f7 12?',
+opts:['147','146','148','137'],
+cor:0,exp:'12 \u00d7 147 = 1,764. Step by step: 12 into 17 = 1 (remainder 5), 12 into 56 = 4 (remainder 8), 12 into 84 = 7.',str:'For long division, work digit by digit. Divide, multiply, subtract, bring down. Check by multiplying your answer by the divisor.'},
+
+{p:null,sec:'math',std:'5.NBT.7',skill:'Decimal Operations',diff:'challenging',type:'mc',
+text:'Chase buys 3 items costing $4.75, $12.38, and $6.97. He pays with $30.00. How much change does he receive?',
+opts:['$5.90','$6.10','$5.80','$6.90'],
+cor:0,exp:'Total: $4.75 + $12.38 + $6.97 = $24.10. Change: $30.00 \u2212 $24.10 = $5.90.',str:'Multi-step problem: First add all costs, then subtract from the amount paid. Line up decimal points carefully.'},
+
+{p:null,sec:'math',std:'5.MD.1',skill:'Unit Conversion',diff:'ceiling',type:'mc',
+text:'A swimming pool holds 5,000 gallons. How many quarts is that? (1 gallon = 4 quarts)',
+opts:['1,250 quarts','10,000 quarts','20,000 quarts','2,500 quarts'],
+cor:2,exp:'5,000 gallons \u00d7 4 quarts/gallon = 20,000 quarts. Converting from a larger unit to a smaller unit means multiplying.',str:'Larger to smaller unit = multiply (more small units fit). Smaller to larger = divide. 1 gallon = 4 quarts, so multiply by 4.'},
+
+{p:null,sec:'math',std:'5.MD.5',skill:'Volume \u2014 Composite',diff:'ceiling',type:'mc',
+text:'An L-shaped room is made of two rectangular prisms. Prism A is 10 ft \u00d7 8 ft \u00d7 3 ft. Prism B is 6 ft \u00d7 4 ft \u00d7 3 ft. What is the total volume?',
+opts:['312 ft\u00b3','240 ft\u00b3','288 ft\u00b3','72 ft\u00b3'],
+cor:0,exp:'Volume A = 10 \u00d7 8 \u00d7 3 = 240 ft\u00b3. Volume B = 6 \u00d7 4 \u00d7 3 = 72 ft\u00b3. Total = 240 + 72 = 312 ft\u00b3.',str:'For composite shapes, break them into simpler shapes, find each volume (l \u00d7 w \u00d7 h), then add.'},
+
+{p:null,sec:'math',std:'5.OA.1',skill:'Order of Operations',diff:'challenging',type:'mc',
+text:'What is the value of 48 \u00f7 (2 + 6) \u00d7 3 \u2212 5?',
+opts:['13','19','67','31'],
+cor:0,exp:'Parentheses: 2 + 6 = 8. Then left to right: 48 \u00f7 8 = 6, 6 \u00d7 3 = 18, 18 \u2212 5 = 13.',str:'PEMDAS: Parentheses first. Then multiplication and division left to right. Then addition and subtraction left to right.'},
+
+{p:null,sec:'math',std:'5.G.3',skill:'Classify 2D Shapes',diff:'challenging',type:'mc',
+text:'Which statement is true about ALL rectangles?',
+opts:['All rectangles are squares.','All rectangles have exactly four right angles and two pairs of parallel sides.','All rectangles have four sides of equal length.','All rectangles have exactly one pair of parallel sides.'],
+cor:1,exp:'By definition, every rectangle has four right angles (90\u00b0) and two pairs of parallel sides. Only some rectangles are squares (when all sides are equal). Rectangles always have TWO pairs of parallel sides, not one.',str:'Quadrilateral hierarchy: All squares are rectangles, but not all rectangles are squares. Rectangles must have 4 right angles and 2 pairs of parallel sides.'},
+
+{p:null,sec:'math',std:'5.G.1',skill:'Coordinate Plane',diff:'ceiling',type:'mc',
+text:'Points A(2, 3), B(7, 3), and C(7, 8) form a right triangle on a coordinate grid. What is the area of triangle ABC?',
+opts:['12.5 square units','25 square units','10 square units','35 square units'],
+cor:0,exp:'The base AB runs from (2,3) to (7,3) = 5 units long. The height BC runs from (7,3) to (7,8) = 5 units tall. Area = 1/2 \u00d7 base \u00d7 height = 1/2 \u00d7 5 \u00d7 5 = 12.5 square units.',str:'For right triangles on a grid, the two legs are the base and height. Find their lengths by counting units, then use A = 1/2 \u00d7 b \u00d7 h.'},
+
+{p:null,sec:'math',std:'5.OA.3',skill:'Patterns \u2014 Two Rules',diff:'ceiling',type:'mc',
+text:'Pattern X starts at 0 and follows the rule "add 3." Pattern Y starts at 0 and follows the rule "add 9." When Pattern X equals 12, what does Pattern Y equal?',
+opts:['27','36','48','21'],
+cor:1,exp:'Pattern X: 0, 3, 6, 9, 12 (4 steps to reach 12). Pattern Y after 4 steps: 0, 9, 18, 27, 36. So Y = 36 when X = 12. Also: Y is always 3 times X (9/3 = 3).',str:'Generate both patterns step by step, or notice the relationship: since 9 is 3 times 3, Y is always 3 times X. If X = 12, then Y = 36.'},
+
+// ========== SCIENCE (Q37-Q46) ==========
+
+{p:null,sec:'science',std:'LS.5.3',skill:'Ecosystems \u2014 Energy Flow',diff:'challenging',type:'mc',
+text:'In a forest ecosystem, oak trees capture energy from sunlight. Caterpillars eat the oak leaves. Robins eat the caterpillars. Hawks eat the robins.\n\nWhich organism in this food chain has access to the LEAST amount of energy?',
+opts:['Oak trees','Caterpillars','Robins','Hawks'],
+cor:3,exp:'Energy decreases at each level of a food chain. The oak tree captures the most energy from the sun. Each consumer receives only about 10% of the energy from the level below. The hawk, at the top, has the least energy available.',str:'Energy flows up but shrinks at each level. Producers have the most energy. Top predators have the least. This is why there are fewer hawks than caterpillars.'},
+
+{p:null,sec:'science',std:'LS.5.2',skill:'Inherited vs Learned Traits',diff:'challenging',type:'mc',
+text:'Which of the following is an example of a learned behavior rather than an inherited trait?',
+opts:['A bird\u2019s beak shape','A dog sitting on command','A cat\u2019s fur color','A fish\u2019s ability to breathe underwater through gills'],
+cor:1,exp:'A dog sitting on command is learned through training\u2014it is not born knowing how to do this. Beak shape, fur color, and gill breathing are all inherited traits passed down through DNA.',str:'Inherited = you\u2019re born with it (eye color, beak shape). Learned = you acquire it through experience or practice (tricks, language, hunting techniques).'},
+
+{p:null,sec:'science',std:'PS.5.5',skill:'Mixtures and Solutions',diff:'challenging',type:'mc',
+text:'Chase dissolves 20 grams of salt into 200 grams of water. What is the total mass of the solution?',
+opts:['200 grams, because the salt disappears','180 grams, because some salt evaporates','220 grams, because matter is conserved','More than 220 grams, because dissolving creates new matter'],
+cor:2,exp:'When salt dissolves, it doesn\u2019t disappear\u2014its particles spread out in the water. The total mass is conserved: 20g + 200g = 220g. Matter cannot be created or destroyed.',str:'Conservation of mass: the total mass before mixing equals the total mass after mixing. Dissolving hides the salt but doesn\u2019t remove its mass.'},
+
+{p:null,sec:'science',std:'ES.5.4',skill:'Weathering and Erosion',diff:'challenging',type:'mc',
+text:'A river flows through a valley for thousands of years. Over time, the valley becomes wider and deeper. This is primarily an example of\u2014',
+opts:['deposition','erosion','volcanic activity','condensation'],
+cor:1,exp:'Erosion is the process where water, wind, or ice wears away rock and soil and carries it to new locations. A river carving a valley wider and deeper over time is a classic example of water erosion.',str:'Erosion = wearing away and moving earth material. Deposition = dropping material in a new place. Rivers erode their banks and beds, then deposit sediment downstream.'},
+
+{p:null,sec:'science',std:'ES.5.5',skill:'Earth\u2019s Resources',diff:'ceiling',type:'mc',
+text:'Fossil fuels like coal and oil are considered nonrenewable resources. Which statement best explains why?',
+opts:['They are too expensive to be useful for very long.','They form over millions of years from ancient organisms, so they cannot be replaced within a human lifetime.','They can only be found in a few countries.','They are replaced every time a volcano erupts.'],
+cor:1,exp:'Fossil fuels formed from the remains of organisms that lived millions of years ago, buried under heat and pressure. Since this process takes millions of years, we use them far faster than they can form\u2014making them nonrenewable.',str:'Nonrenewable = cannot be replaced in a human lifetime. Renewable (solar, wind, water) = naturally replenished. Fossil fuels took millions of years to form.'},
+
+{p:null,sec:'science',std:'PS.5.6',skill:'Light and Shadow',diff:'challenging',type:'mc',
+text:'Chase holds a flashlight behind a glass of water, a wooden block, and a piece of wax paper. Which material will allow some light through but scatter it, creating a blurry image?',
+opts:['Glass of water (transparent)','Wooden block (opaque)','Wax paper (translucent)','All three materials will produce the same result'],
+cor:2,exp:'Translucent materials (wax paper, frosted glass) allow some light to pass through but scatter it, so you can\u2019t see a clear image. Transparent lets light through clearly. Opaque blocks all light.',str:'Three types: Transparent = clear (glass). Translucent = blurry/scattered (wax paper). Opaque = blocked (wood). This is about how materials interact with light.'},
+
+{p:null,sec:'science',std:'SI.5.2',skill:'Experimental Design',diff:'ceiling',type:'mc',
+text:'A student wants to test whether the amount of fertilizer affects plant height. She sets up 4 identical plants and gives them different amounts of fertilizer but the same water, soil, and sunlight for 30 days.\n\nWhat is the independent variable in this experiment?',
+opts:['The height of the plants after 30 days','The amount of fertilizer given to each plant','The amount of water given to each plant','The type of soil used'],
+cor:1,exp:'The independent variable is what the scientist deliberately changes\u2014in this case, the amount of fertilizer. Plant height is the dependent variable (what she measures). Water, soil, and sunlight are controlled variables.',str:'Independent variable = what YOU change on purpose. Dependent variable = what you MEASURE as a result. Controlled variables = what you keep the SAME.'},
+
+{p:null,sec:'science',std:'LS.5.4',skill:'Human Body Systems',diff:'ceiling',type:'mc',
+text:'The circulatory system and the respiratory system work together to keep the body functioning. Which statement best describes how these two systems interact?',
+opts:['The respiratory system digests food and the circulatory system absorbs nutrients.','The respiratory system brings oxygen into the lungs, and the circulatory system transports that oxygen through blood to all cells in the body.','The circulatory system sends signals to the brain, and the respiratory system moves muscles.','The respiratory system filters waste from the blood, and the circulatory system exhales carbon dioxide.'],
+cor:1,exp:'The respiratory system handles gas exchange in the lungs (oxygen in, carbon dioxide out). The circulatory system (heart and blood vessels) then carries oxygen-rich blood to every cell. They are partners: one acquires oxygen, the other delivers it.',str:'Body systems work together. Respiratory = breathing (O2 in, CO2 out). Circulatory = transportation (blood carries O2, nutrients, waste). Together they deliver oxygen to cells.'},
+
+{p:null,sec:'science',std:'ES.5.6',skill:'Weather vs Climate',diff:'challenging',type:'mc',
+text:'Which statement describes CLIMATE rather than WEATHER?',
+opts:['It is raining heavily in Dallas this afternoon.','The temperature dropped 15 degrees overnight in Chicago.','The Amazon rainforest receives over 80 inches of rainfall per year on average.','A tornado warning has been issued for central Oklahoma today.'],
+cor:2,exp:'Climate is the average weather pattern over a long period of time (years/decades). The Amazon\u2019s yearly average rainfall describes climate. The other options describe specific, short-term weather events.',str:'Weather = what\u2019s happening RIGHT NOW (today\u2019s rain). Climate = the long-term average pattern (this region is usually hot and wet). "Climate is what you expect; weather is what you get."'},
+
+// ========== SOCIAL STUDIES (Q47-Q55) ==========
+
+{p:null,sec:'ss',std:'USH.5.6',skill:'Causes of Civil War',diff:'challenging',type:'mc',
+text:'Which of the following was a PRIMARY cause of the Civil War?',
+opts:['Disagreements over the national anthem','Conflict between Northern and Southern states over the expansion of slavery into new territories','A dispute over which city should be the nation\u2019s capital','Competition between states to build the tallest buildings'],
+cor:1,exp:'The central conflict was whether slavery would expand into new western territories and states. The North wanted to restrict slavery\u2019s expansion; the South wanted to protect and extend it. This disagreement drove the nation toward war.',str:'The Civil War had many causes, but the core issue was slavery\u2014specifically, whether it would spread to new territories. Economic, political, and moral arguments all connected back to this.'},
+
+{p:null,sec:'ss',std:'USH.5.7',skill:'Reconstruction',diff:'ceiling',type:'mc',
+text:'After the Civil War, the 13th, 14th, and 15th Amendments were added to the Constitution. Together, these amendments\u2014',
+opts:['gave women the right to vote in all elections','abolished slavery, granted citizenship and equal protection to formerly enslaved people, and protected voting rights regardless of race','created the national banking system','established term limits for the President'],
+cor:1,exp:'13th = abolished slavery. 14th = granted citizenship and equal protection under law. 15th = protected the right to vote regardless of race or previous condition of servitude. Together they form the Reconstruction Amendments.',str:'Reconstruction Amendments: 13th (freedom), 14th (citizenship + equal protection), 15th (voting rights). These were meant to secure rights for formerly enslaved people.'},
+
+{p:null,sec:'ss',std:'USH.5.4',skill:'Key Figures \u2014 Revolution',diff:'challenging',type:'mc',
+text:'Thomas Jefferson is primarily remembered for his role in the American Revolution because he\u2014',
+opts:['commanded the Continental Army at Valley Forge','wrote the Declaration of Independence, arguing for the colonies\u2019 right to self-governance','invented the printing press to spread revolutionary ideas','served as the first Chief Justice of the Supreme Court'],
+cor:1,exp:'Jefferson was the principal author of the Declaration of Independence (1776), which laid out the philosophical argument for why the colonies had the right to break from Britain. Washington commanded the army; Franklin was the diplomat.',str:'Key figures: Jefferson = Declaration of Independence. Washington = military commander + 1st President. Franklin = diplomat to France. Adams = argued for independence in Congress.'},
+
+{p:null,sec:'ss',std:'CIV.5.3',skill:'Checks and Balances',diff:'ceiling',type:'mc',
+text:'The President vetoes a bill passed by Congress. Congress then votes and overrides the veto with a two-thirds majority in both chambers. This is an example of\u2014',
+opts:['the President having unlimited power over laws','the system of checks and balances, where each branch can limit the power of the others','the judicial branch declaring a law unconstitutional','Congress having no power against the President'],
+cor:1,exp:'The veto is the executive branch checking the legislative branch. The override is the legislative branch checking the executive branch back. This back-and-forth is exactly what checks and balances is designed to do\u2014prevent any one branch from having too much power.',str:'Checks and balances = each branch can limit the others. President checks Congress (veto). Congress checks President (override, impeachment). Courts check both (judicial review).'},
+
+{p:null,sec:'ss',std:'GEO.5.3',skill:'Human-Environment Interaction',diff:'challenging',type:'mc',
+text:'In the early 1800s, settlers moving westward cut down forests to build farms and towns. This is an example of\u2014',
+opts:['humans adapting to their environment without changing it','humans modifying their environment to meet their needs','the environment forcing humans to move to new locations','humans having no impact on the natural world'],
+cor:1,exp:'Cutting forests to build farms and towns is a direct modification of the environment. Humans changed the landscape to suit their needs for agriculture and shelter. This is human-environment interaction.',str:'Three types of human-environment interaction: 1) Humans ADAPT to environment, 2) Humans MODIFY environment, 3) Humans DEPEND on environment. Clearing land = modifying.'},
+
+{p:null,sec:'ss',std:'ECON.5.2',skill:'Supply and Demand',diff:'ceiling',type:'mc',
+text:'A popular new video game is released, but the manufacturer only produced a small number of copies. What will most likely happen to the price?',
+opts:['The price will decrease because fewer people want it.','The price will stay exactly the same regardless of how many copies exist.','The price will increase because demand is high but supply is low.','The price will increase only if the government raises taxes on video games.'],
+cor:2,exp:'When demand is high (many people want it) and supply is low (few copies available), prices rise. This is the basic law of supply and demand\u2014scarcity drives up price.',str:'Supply and demand: High demand + low supply = higher prices. Low demand + high supply = lower prices. This applies to everything from toys to houses to oil.'},
+
+{p:null,sec:'ss',std:'USH.5.3',skill:'Colonial Economy',diff:'challenging',type:'mc',
+text:'The economy of the Southern colonies in the 1700s was primarily based on\u2014',
+opts:['manufacturing and factory work','fishing and shipbuilding','large-scale agriculture using enslaved labor, growing cash crops like tobacco and rice','fur trading with Native Americans'],
+cor:2,exp:'Southern colonies (Virginia, Carolinas, Georgia) had warm climates and fertile soil suited to plantation agriculture. Cash crops like tobacco, rice, and indigo were grown on large plantations that relied heavily on enslaved labor.',str:'Colonial regional economies: New England = trade, fishing, shipbuilding. Middle = farming (breadbasket), trade. Southern = plantation agriculture (tobacco, rice, indigo) using enslaved labor.'},
+
+{p:null,sec:'ss',std:'USH.5.8',skill:'Westward Expansion',diff:'ceiling',type:'mc',
+text:'The concept of "Manifest Destiny" was used in the 1800s to justify\u2014',
+opts:['ending the practice of slavery throughout the United States','the belief that the United States was destined to expand across the entire North American continent from the Atlantic to the Pacific','returning all territory to Native American nations','building the first railroad connecting New York to Philadelphia'],
+cor:1,exp:'Manifest Destiny was the 19th-century belief that Americans were destined (by God and nature) to spread across the continent. It was used to justify westward expansion, the displacement of Native peoples, and the acquisition of new territories.',str:'Manifest Destiny = "it\u2019s our destiny to expand coast to coast." Used to justify the Louisiana Purchase, Oregon Trail settlement, Mexican-American War, and displacement of Native Americans.'},
+
+{p:null,sec:'ss',std:'CIV.5.4',skill:'Rights and Responsibilities',diff:'challenging',type:'mc',
+text:'Which of the following is a civic RESPONSIBILITY (something citizens should do) rather than a civic RIGHT (something citizens are guaranteed)?',
+opts:['Freedom of speech','The right to a fair trial','Serving on a jury when called','The right to vote in elections'],
+cor:2,exp:'Jury duty is a civic responsibility\u2014citizens are expected to serve when called to help the justice system function. Freedom of speech, fair trial, and voting are rights guaranteed by the Constitution.',str:'Rights = what you ARE GUARANTEED (speech, trial, vote). Responsibilities = what you SHOULD DO (jury duty, pay taxes, obey laws, stay informed). Both are essential to democracy.'}
+];
+
+// ==================== ENGINE ====================
+let currentQ=0, answers={}, flags=new Set(), startTime=null, timerInterval=null, submitted=false;
+
+function startTest(){
+  const saved=localStorage.getItem('diagnostic_'+CONFIG.testId);
+  if(saved){try{const s=JSON.parse(saved);currentQ=s.currentQ||0;answers=s.answers||{};flags=new Set(s.flags||[]);startTime=s.startTime||Date.now()}catch(e){startTime=Date.now()}}
+  else startTime=Date.now();
+  document.getElementById('welcomeScreen').classList.remove('active');
+  document.getElementById('testScreen').classList.add('active');
+  timerInterval=setInterval(updateTimer,1000);updateTimer();renderNav();renderQuestion();
+}
+function updateTimer(){const e=Math.floor((Date.now()-startTime)/1000),m=Math.floor(e/60),s=e%60;document.getElementById('timerDisplay').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function renderNav(){
+  let h='';Q.forEach((q,i)=>{const sec=SECTIONS.find(s=>i>=s.range[0]&&i<=s.range[1]);
+  if(sec&&i===sec.range[0]&&i>0)h+='<div class="nav-sep"></div>';
+  let c='nav-btn';if(i===currentQ)c+=' current';if(flags.has(i))c+=' flagged';else if(answers[i]!==undefined)c+=' answered';
+  h+=`<button class="${c}" onclick="goQuestion(${i})">${i+1}</button>`});
+  document.getElementById('navigator').innerHTML=h;
+}
+function goQuestion(idx){if(idx<0||idx>=Q.length)return;saveCurrentWriting();currentQ=idx;renderNav();renderQuestion();saveState()}
+function getSection(idx){for(const s of SECTIONS)if(idx>=s.range[0]&&idx<=s.range[1])return s;return SECTIONS[0]}
+
+function renderQuestion(){
+  const q=Q[currentQ],sec=getSection(currentQ);
+  document.getElementById('sectionLabel').textContent=sec.name;
+  const pp=document.getElementById('passagePane'),qp=document.getElementById('questionPane');
+  if(q.p&&PASSAGES[q.p]){
+    pp.style.display='block';qp.classList.remove('full-width');
+    const p=PASSAGES[q.p];
+    pp.innerHTML=`<h3>${p.label}: ${p.title}</h3>${p.text}`;
+  } else {pp.style.display='none';qp.classList.add('full-width')}
+
+  let h=`<div class="q-header"><div class="q-number">Question ${currentQ+1} of ${Q.length}</div>
+    <div class="q-standard">${q.std} \u00b7 ${q.skill}</div>
+    ${q.diff?`<div class="q-diff ${q.diff}">${q.diff}</div>`:''}</div>
+    <div class="q-text">${q.text.replace(/\n/g,'<br>')}</div>`;
+
+  if(q.type==='mc'){h+='<div class="q-options">';const L=['A','B','C','D'];
+    q.opts.forEach((o,i)=>{const sel=answers[currentQ]===i?' selected':'';
+    h+=`<div class="q-option${sel}" onclick="selectOption(${i})"><span class="letter">${L[i]}</span><span>${o}</span></div>`});h+='</div>'}
+  else if(q.type==='scr'||q.type==='cr'){const v=answers[currentQ]||'';
+    h+=`<div class="q-guidance">${q.guidance}</div><textarea class="q-textarea" id="writingArea" placeholder="Type your answer..." oninput="updateWC()">${v}</textarea>
+    <div class="q-wordcount" id="wc">${cw(v)} words</div>`}
+
+  qp.innerHTML=h;qp.scrollTop=0;
+  document.getElementById('prevBtn').disabled=currentQ===0;
+  document.getElementById('nextBtn').textContent=currentQ===Q.length-1?'Review':'Next \u2192';
+  const fb=document.getElementById('flagBtn');fb.classList.toggle('active',flags.has(currentQ));
+  fb.textContent=flags.has(currentQ)?'Unflag':'Flag for Review';
+}
+
+function selectOption(i){answers[currentQ]=i;renderNav();renderQuestion();saveState()}
+function saveCurrentWriting(){const ta=document.getElementById('writingArea');if(ta&&(Q[currentQ].type==='scr'||Q[currentQ].type==='cr')){const t=ta.value.trim();if(t)answers[currentQ]=t;else delete answers[currentQ]}}
+function cw(t){return t?t.trim().split(/\s+/).filter(w=>w.length>0).length:0}
+function updateWC(){const ta=document.getElementById('writingArea'),el=document.getElementById('wc');if(ta&&el)el.textContent=cw(ta.value)+' words'}
+function toggleFlag(){if(flags.has(currentQ))flags.delete(currentQ);else flags.add(currentQ);renderNav();renderQuestion();saveState()}
+function saveState(){localStorage.setItem('diagnostic_'+CONFIG.testId,JSON.stringify({currentQ,answers,flags:Array.from(flags),startTime}))}
+
+function showSubmitModal(){saveCurrentWriting();const t=Q.length,a=Object.keys(answers).length,u=t-a,f=flags.size;
+  let info=`<p>Answered <strong>${a}</strong> of <strong>${t}</strong> questions.</p>`;
+  if(u>0)info+=`<p class="warn">${u} unanswered!</p>`;if(f>0)info+=`<p class="warn">${f} flagged for review.</p>`;
+  if(u===0&&f===0)info+='<p>All questions answered. Ready to submit!</p>';
+  document.getElementById('submitInfo').innerHTML=info;document.getElementById('submitModal').classList.add('active')}
+function closeModal(){document.getElementById('submitModal').classList.remove('active')}
+
+function submitTest(){
+  if(submitted)return;submitted=true;closeModal();clearInterval(timerInterval);saveCurrentWriting();
+  const elapsed=Math.floor((Date.now()-startTime)/1000),today=new Date().toISOString().split('T')[0];
+  const allAns=Q.map((q,i)=>{const a=answers[i];
+    if(q.type==='mc')return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'mc',question:q.text,selectedOption:a!==undefined?a:-1,selectedText:a!==undefined?q.opts[a]:'Not answered',correctOption:q.cor,correctText:q.opts[q.cor]};
+    return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'written',question:q.text,response:a||''}});
+
+  const secSum={};SECTIONS.forEach(sec=>{let c=0,t=0;for(let i=sec.range[0];i<=Math.min(sec.range[1],Q.length-1);i++){if(Q[i]&&Q[i].type==='mc'){t++;if(answers[i]===Q[i].cor)c++}}secSum[sec.id]={correct:c,total:t,pct:t>0?Math.round(c/t*100):0}});
+  const totalMC=Q.filter(q=>q.type==='mc').length,correctMC=Q.filter((q,i)=>q.type==='mc'&&answers[i]===q.cor).length;
+
+  const payload={action:'saveDiagnosticResults',student:CONFIG.student,grade:CONFIG.grade,testId:CONFIG.testId,testLabel:CONFIG.testLabel,timestamp:new Date().toISOString(),answers:allAns,
+    summary:{totalQuestions:Q.length,answeredQuestions:Object.keys(answers).length,totalTimeSeconds:elapsed,effortScore:Math.round(Object.keys(answers).length/Q.length*100),sections:secSum,correctMC,totalMC,percentCorrect:Math.round(correctMC/totalMC*100)}};
+  try{fetch(CONFIG.webAppUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})}catch(e){}
+
+  const signal={completed:true,timestamp:new Date().toISOString(),date:today,testId:CONFIG.testId,testLabel:CONFIG.testLabel,points:15};
+  localStorage.setItem('chase_diagnostic_week3_v2_signal',JSON.stringify(signal));
+  localStorage.setItem('chase_diagnostic_signal',JSON.stringify(signal));
+
+  try{const dk='chase_dashboard_v3',dd=JSON.parse(localStorage.getItem(dk)||'{}');if(!dd.days)dd.days={};if(!dd.days[today])dd.days[today]={};
+  dd.days[today].session=true;dd.days[today].khan=true;dd.days[today].reading=true;dd.days[today].diagnosticComplete=true;dd.days[today].diagnosticPoints=15;localStorage.setItem(dk,JSON.stringify(dd))}catch(e){}
+
+  try{fetch(CONFIG.webAppUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'completeDiagnosticTest',student:CONFIG.student,testId:CONFIG.testId,date:today,points:15})})}catch(e){}
+  localStorage.removeItem('diagnostic_'+CONFIG.testId);
+  showTutorReview(correctMC,totalMC,elapsed,secSum);
+}
+
+function estimateScores(pct){
+  let ptile;if(pct>=97)ptile=97;else if(pct>=93)ptile=92;else if(pct>=88)ptile=84;else if(pct>=82)ptile=75;else if(pct>=75)ptile=65;else if(pct>=70)ptile=55;else if(pct>=65)ptile=46;else if(pct>=60)ptile=38;else if(pct>=55)ptile=30;else if(pct>=50)ptile=24;else if(pct>=40)ptile=15;else ptile=Math.max(5,Math.round(pct*0.35));
+  let msg='';if(ptile>=90)msg='Excellent \u2014 keep pushing';else if(ptile>=75)msg='Strong \u2014 above most peers';else if(ptile>=55)msg='Solid ground';else if(ptile>=35)msg='Room to grow';else msg='Building foundation';
+  const ttp=Math.max(1,Math.round((ptile-15)/0.85)),leap=Math.round(650+(ttp/100)*200);
+  let ll='';if(leap>=790)ll='Advanced';else if(leap>=750)ll='Mastery';else if(leap>=700)ll='Basic';else if(leap>=650)ll='Approaching Basic';else ll='Unsatisfactory';
+  return{leap,ll,ptile,msg,psat:Math.min(1440,Math.max(240,Math.round(240+(ttp/100)*950))),act:Math.min(36,Math.max(1,Math.round(1+(ttp/100)*31))),sat:Math.min(1600,Math.round(Math.min(1440,Math.max(240,Math.round(240+(ttp/100)*950)))*1.05)),ttp};
+}
+
+function showTutorReview(correctMC,totalMC,elapsed,secSum){
+  const pct=Math.round(correctMC/totalMC*100),min=Math.floor(elapsed/60),bm=estimateScores(pct);
+  let dm='';if(pct>=90)dm='Outstanding scan results, Chase. All systems running at peak efficiency across every sector. Keep this trajectory!';else if(pct>=75)dm='Solid mission performance. You\u2019re showing real strength across subjects. Let\u2019s calibrate the areas you missed.';else if(pct>=60)dm='Good effort, pilot. Let\u2019s debrief the questions you missed \u2014 that\u2019s how we upgrade your systems.';else dm='Every miss is intel for the next mission. Let\u2019s walk through the debrief and build your skills.';
+
+  const wrong=[];Q.forEach((q,i)=>{if(q.type==='mc'&&answers[i]!==q.cor)wrong.push({num:i+1,q,ua:answers[i]!==undefined?q.opts[answers[i]]:'Not answered',ca:q.opts[q.cor]})});
+  const skillMap={};Q.forEach((q,i)=>{if(q.type!=='mc')return;if(!skillMap[q.skill])skillMap[q.skill]={c:0,t:0};skillMap[q.skill].t++;if(answers[i]===q.cor)skillMap[q.skill].c++});
+
+  let h=`<div class="review-score"><div class="big">${correctMC}/${totalMC}</div><div class="pct">${pct}% \u00b7 ${min} min</div><div class="tutor-msg">\u201C${dm}\u201D \u2014 Doug</div></div>
+  <div class="points-banner"><div class="pts">+15 PTS CREDITED</div></div>
+  <div class="review-section"><h3>LEAP Performance Estimate</h3><div class="score-grid">
+    <div class="score-card"><div class="label">Est. LEAP</div><div class="value">${bm.leap}</div><div class="sub">${bm.ll}</div></div>
+    <div class="score-card"><div class="label">Percentile</div><div class="value">${bm.ptile}%</div><div class="sub">${bm.msg}</div></div>
+    <div class="score-card"><div class="label">Baseline (Apr 2025)</div><div class="value">787</div><div class="sub">Mastery</div></div>
+  </div></div>
+  <div class="review-section"><h3>Score by Subject</h3><div class="score-grid">
+    ${Object.entries(secSum).filter(([k,v])=>v.total>0).map(([k,v])=>{const s=SECTIONS.find(x=>x.id===k);return`<div class="score-card"><div class="label">${s?s.name:k}</div><div class="value">${v.correct}/${v.total}</div><div class="sub">${v.pct}%</div></div>`}).join('')}
+  </div></div>
+  <div class="review-section"><h3>Score Projections</h3><div class="score-grid">
+    <div class="score-card"><div class="label">LEAP</div><div class="value">${bm.leap}</div><div class="sub">${bm.ll}</div></div>
+    <div class="score-card"><div class="label">PSAT 8/9</div><div class="value">${bm.psat}</div><div class="sub">of 1440</div></div>
+    <div class="score-card"><div class="label">ACT</div><div class="value">${bm.act}</div><div class="sub">of 36</div></div>
+    <div class="score-card"><div class="label">SAT</div><div class="value">${bm.sat}</div><div class="sub">of 1600</div></div>
+  </div><div style="color:var(--text-muted);font-size:11px;text-align:center;margin-top:8px">Early projections. Every diagnostic helps build accuracy.</div></div>
+  <div class="review-section"><h3>Skill Analysis</h3><div class="skill-grid">
+    ${Object.entries(skillMap).map(([sk,d])=>{const p=Math.round(d.c/d.t*100),cls=p>=75?'strong':p>=50?'ok':'weak';return`<div class="skill-item"><span class="sk-name">${sk}</span><span class="sk-score ${cls}">${d.c}/${d.t} (${p}%)</span></div>`}).join('')}
+  </div></div>`;
+
+  if(wrong.length>0){h+=`<div class="review-section"><h3>Doug\u2019s Debrief \u2014 Questions Missed (${wrong.length})</h3>`;
+    wrong.forEach(w=>{h+=`<div class="wrong-item"><div class="wi-q">Q${w.num} \u00b7 ${w.q.std} \u00b7 ${w.q.skill}</div><div class="wi-text">${w.q.text.replace(/\n/g,'<br>')}</div><div class="wi-yours"><b>Your answer:</b> ${w.ua}</div><div class="wi-correct"><b>Correct:</b> ${w.ca}</div><div class="wi-explain">${w.q.exp}</div>${w.q.str?`<div class="wi-strategy">LEAP Strategy: ${w.q.str}</div>`:''}</div>`});h+='</div>'}
+  else h+='<div class="review-section"><h3 style="color:var(--success)">Perfect Score!</h3></div>';
+
+  h+=`<div style="text-align:center;color:var(--accent2);font-size:13px;padding:16px;margin-top:12px">\u201CKeep learning, keep observing, keep pushing forward. The LEAP is coming \u2014 you\u2019re building something strong.\u201D \u2014 Doug</div>`;
+  h+=`<button class="return-btn" onclick="window.location.href='Chase_Dashboard.html'">Return to Dashboard</button>`;
+  document.getElementById('testScreen').classList.remove('active');document.getElementById('reviewScreen').classList.add('active');document.getElementById('reviewContent').innerHTML=h;
+}
+</script>
+</body>
+</html>
