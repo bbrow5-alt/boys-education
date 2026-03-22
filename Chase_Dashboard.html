@@ -1774,17 +1774,17 @@ async function loadDiagnosticTests() {
   // Diagnostic tests are managed via hardcoded entries (updated each time a new test is built).
   // The API endpoint returns stale data, so we skip it and use the local definition as source of truth.
   // When a new diagnostic is created, replace this single entry.
-  const signalWeek4 = JSON.parse(localStorage.getItem('chase_diagnostic_week4_signal') || 'null');
-  const isCompletedWeek4 = signalWeek4 && signalWeek4.completed && signalWeek4.testId === 'chase_diagnostic_week4_ela_mar2026';
+  const signalWeek3v2 = JSON.parse(localStorage.getItem('chase_diagnostic_week3_v2_signal') || 'null');
+  const isCompletedWeek3v2 = signalWeek3v2 && signalWeek3v2.completed && signalWeek3v2.testId === 'chase_diagnostic_week3_ela_mar2026_v2';
   diagnosticTests = [
     {
-      TestLabel: 'March 23 Week 4 ELA Diagnostic',
+      TestLabel: 'March 22 Week 3 LEAP Diagnostic — ELA Focus',
       Month: 'March 2026',
-      TestURL: 'Diagnostic_Test_Chase_Week4_ELA_March2026.html',
-      AvailableDate: '2026-03-23',
-      DueDate: '2026-03-24',
-      Completed: isCompletedWeek4 ? 'TRUE' : 'FALSE',
-      CompletedDate: isCompletedWeek4 ? signalWeek4.date : '',
+      TestURL: 'Diagnostic_Test_Chase_Week3_ELA_March2026_v2.html',
+      AvailableDate: '2026-03-22',
+      DueDate: '2026-03-23',
+      Completed: isCompletedWeek3v2 ? 'TRUE' : 'FALSE',
+      CompletedDate: isCompletedWeek3v2 ? signalWeek3v2.date : '',
       PointsAwarded: 15
     }
   ];
