@@ -403,9 +403,11 @@ function finishTest(){
 
   const skillScores={};
   SECTIONS.forEach(sec=>{
-    const sQs=Q.filter((q,i)=>sec.range[0]<=i&&i<=sec.range[1]);
-    const sCorrect=sQs.filter((q,i)=>answers[sec.range[0]+i]===Q[sec.range[0]+i].cor).length;
-    skillScores[sec.name]={correct:sCorrect,total:sQs.length,pct:Math.round((sCorrect/sQs.length)*100)};
+    let c=0,t=0;
+    for(let i=sec.range[0];i<=Math.min(sec.range[1],Q.length-1);i++){
+      if(Q[i]&&Q[i].cor!==undefined){t++;if(answers[i]===Q[i].cor)c++}
+    }
+    skillScores[sec.name]={correct:c,total:t,pct:t>0?Math.round((c/t)*100):0};
   });
 
   const allAns={};
