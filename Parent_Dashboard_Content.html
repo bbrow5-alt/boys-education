@@ -1216,7 +1216,7 @@
                     <div style="font-size:11px; color:#5ca4e8; font-weight:700; text-transform:uppercase; letter-spacing:1px;">LEAP Prep</div>
                     <div style="font-size:18px; color:#f59e0b; font-weight:700;" id="jacobLeapDays"></div>
                   </div>
-                  <div style="font-size:11px; color:#9ca3af;">Jacob's LEAP: May 2, 2026</div>
+                  <div style="font-size:11px; color:#9ca3af;">Jacob's LEAP: April 27, 2026</div>
                 </div>
 
                 <!-- Today's Status -->
@@ -1342,7 +1342,7 @@
                     <div style="font-size:11px; color:#00bfff; font-weight:700; text-transform:uppercase; letter-spacing:1px;">LEAP Prep</div>
                     <div style="font-size:18px; color:#f59e0b; font-weight:700;" id="chaseLeapDays"></div>
                   </div>
-                  <div style="font-size:11px; color:#9ca3af;">Chase's LEAP: April 23, 2026</div>
+                  <div style="font-size:11px; color:#9ca3af;">Chase's LEAP: April 27, 2026</div>
                 </div>
 
                 <!-- Today's Status -->
@@ -3329,8 +3329,8 @@
         // LEAP Countdown
         (function() {
             const today = new Date(); today.setHours(0,0,0,0);
-            const jacobDays = Math.ceil((new Date('2026-05-02') - today) / 86400000);
-            const chaseDays = Math.ceil((new Date('2026-04-23') - today) / 86400000);
+            const jacobDays = Math.ceil((new Date('2026-04-27') - today) / 86400000);
+            const chaseDays = Math.ceil((new Date('2026-04-27') - today) / 86400000);
             const jEl = document.getElementById('jacobLeapDays');
             const cEl = document.getElementById('chaseLeapDays');
             if (jEl) jEl.textContent = jacobDays > 0 ? jacobDays + ' days' : 'DONE';

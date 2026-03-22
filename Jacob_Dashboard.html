@@ -586,12 +586,12 @@
 </div>
 <script>
 (function(){
-  const leapDate = new Date('2026-05-02');
+  const leapDate = new Date('2026-04-27');
   const today = new Date();
   today.setHours(0,0,0,0);
   const days = Math.ceil((leapDate - today) / 86400000);
   document.getElementById('leapDaysLeft').textContent = days + ' days';
-  document.getElementById('leapDateDisplay').textContent = 'LEAP Test: May 2, 2026';
+  document.getElementById('leapDateDisplay').textContent = 'LEAP Test: April 27, 2026';
   if (days <= 0) document.getElementById('leapCountdown').style.display = 'none';
   // Try to load weakness profile
   fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec?action=getWeaknessProfile&student=Jacob')
@@ -614,23 +614,6 @@
       <div class="task-name">The Archive</div>
       <div class="task-detail">Today's Session — ELA, Math, Science & Social Studies (~50 min)</div>
       <a class="task-launch" href="DailySession_Jacob.html" onclick="event.stopPropagation();">Start Session</a>
-    </div>
-  </div>
-  <div class="task-item" id="task-practice">
-    <span class="task-icon">&#9881;</span>
-    <div class="task-check"></div>
-    <div class="task-info">
-      <div class="task-name">The Forge</div>
-      <div class="task-detail">Practice Module — 20 min of targeted math problems</div>
-      <a class="task-launch" href="Practice_Jacob.html" onclick="event.stopPropagation();">Start Practice</a>
-    </div>
-  </div>
-  <div class="task-item" id="task-reading" onclick="toggleTask('reading')">
-    <span class="task-icon">&#128220;</span>
-    <div class="task-check"></div>
-    <div class="task-info">
-      <div class="task-name">The Scroll</div>
-      <div class="task-detail">Reading — 10 minutes daily</div>
     </div>
   </div>
 </div>
@@ -1194,7 +1177,7 @@ function toggleTimer() {
           dayData.reading = true;
           setDayData(today, dayData);
           render();
-          if (dayData.session && dayData.khan && dayData.reading) celebrateCompletion();
+          if (dayData.session) celebrateCompletion();
           // Update button style for bonus mode
           startBtn.classList.add('bonus-style');
         }
@@ -1248,14 +1231,14 @@ function getDayData(date) {
   return raw || { session: false, practice: false, reading: false, sessionBonus: 0 };
 }
 function setDayData(date, dayData) { const data = loadData(); data.days[date] = dayData; saveData(data); }
-function isDayComplete(date) { const d = getDayData(date); return d.session && d.practice && d.reading; }
+function isDayComplete(date) { const d = getDayData(date); return d.session; }
 function dayTaskCount(date) {
   const d = getDayData(date);
-  return (d.session ? 1 : 0) + (d.practice ? 1 : 0) + (d.reading ? 1 : 0);
+  return d.session ? 1 : 0;
 }
 function dayTotalCredits(date) {
   const d = getDayData(date);
-  return (d.session ? 1 : 0) + (d.practice ? 1 : 0) + (d.reading ? 1 : 0);
+  return d.session ? 1 : 0;
 }
 function loadTimerDataForDate(date) {
   try {
@@ -1268,7 +1251,7 @@ function toggleTask(task) {
   const today = getToday(); const dayData = getDayData(today);
   dayData[task] = !dayData[task]; setDayData(today, dayData); render();
   syncDailyTracking(today, dayData);
-  if (dayData.session && dayData.practice && dayData.reading) celebrateCompletion();
+  if (dayData.session) celebrateCompletion();
 }
 
 function addBonus(task) {
@@ -1890,7 +1873,7 @@ function checkSessionReturn() {
     syncDailyTracking(today, dayData);
 
     // Check if all tasks complete
-    if (dayData.session && dayData.khan && dayData.reading) {
+    if (dayData.session) {
       celebrateCompletion();
     }
 

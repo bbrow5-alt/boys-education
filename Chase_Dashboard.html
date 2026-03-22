@@ -607,12 +607,12 @@
 </div>
 <script>
 (function(){
-  const leapDate = new Date('2026-04-23');
+  const leapDate = new Date('2026-04-27');
   const today = new Date();
   today.setHours(0,0,0,0);
   const days = Math.ceil((leapDate - today) / 86400000);
   document.getElementById('leapDaysLeft').textContent = days + ' days';
-  document.getElementById('leapDateDisplay').textContent = 'LEAP Test: April 23, 2026';
+  document.getElementById('leapDateDisplay').textContent = 'LEAP Test: April 27, 2026';
   if (days <= 0) document.getElementById('leapCountdown').style.display = 'none';
   fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec?action=getWeaknessProfile&student=Chase')
     .then(r=>r.json()).then(p=>{
@@ -636,24 +636,7 @@
     </div>
     <div class="task-status">PENDING</div>
   </div>
-  <div class="task-item" id="task-practice">
-    <span class="task-icon">&#9881;</span>
-    <div class="task-check"></div>
-    <div class="task-info">
-      <div class="task-name">The Lab</div>
-      <div class="task-detail">Practice Module — 20 min of targeted ELA problems</div>
-      <a class="task-launch" href="Practice_Chase.html" onclick="event.stopPropagation();">Start Practice</a>
-    </div>
-  </div>
-  <div class="task-item" id="task-reading" onclick="toggleTask('reading')">
-    <span class="task-icon">&#128225;</span>
-    <div class="task-check"></div>
-    <div class="task-info">
-      <div class="task-name">Captain's Log</div>
-      <div class="task-detail">Reading — 10 min daily — Log Time</div>
-    </div>
-    <div class="task-status">PENDING</div>
-  </div>
+
 </div>
 
 <!-- BONUS PRACTICE — Always Available -->
@@ -1185,7 +1168,7 @@ function toggleTimer() {
           dayData.reading = true;
           setDayData(today, dayData);
           render();
-          if (dayData.session && dayData.practice && dayData.reading) celebrateCompletion();
+          if (dayData.session) celebrateCompletion();
           document.getElementById('timerStart').classList.add('bonus-style');
         }
       } else {
@@ -1236,21 +1219,21 @@ function getDayData(date) {
   return raw || { session: false, practice: false, reading: false, sessionBonus: 0 };
 }
 function setDayData(date, dayData) { const data = loadData(); data.days[date] = dayData; saveData(data); }
-function isDayComplete(date) { const d = getDayData(date); return d.session && d.practice && d.reading; }
+function isDayComplete(date) { const d = getDayData(date); return d.session; }
 function dayTaskCount(date) {
   const d = getDayData(date);
-  return (d.session ? 1 : 0) + (d.practice ? 1 : 0) + (d.reading ? 1 : 0);
+  return d.session ? 1 : 0;
 }
 function dayTotalCredits(date) {
   const d = getDayData(date);
-  return (d.session ? 1 : 0) + (d.practice ? 1 : 0) + (d.reading ? 1 : 0);
+  return d.session ? 1 : 0;
 }
 
 function toggleTask(task) {
   const today = getToday(); const dayData = getDayData(today);
   dayData[task] = !dayData[task]; setDayData(today, dayData); render();
   syncDailyTracking(today, dayData);
-  if (dayData.session && dayData.practice && dayData.reading) celebrateCompletion();
+  if (dayData.session) celebrateCompletion();
 }
 
 function addBonus(task) {
@@ -1882,7 +1865,7 @@ function checkSessionReturn() {
     }
     setDayData(today, dayData);
     syncDailyTracking(today, dayData);
-    if (dayData.session && dayData.practice && dayData.reading) {
+    if (dayData.session) {
       celebrateCompletion();
     }
     localStorage.removeItem('chase_session_signal');
@@ -1902,7 +1885,7 @@ function checkPracticeReturn() {
     dayData.practice = true;
     setDayData(today, dayData);
     syncDailyTracking(today, dayData);
-    if (dayData.session && dayData.practice && dayData.reading) {
+    if (dayData.session) {
       celebrateCompletion();
     }
     localStorage.removeItem('chase_practice_signal');
