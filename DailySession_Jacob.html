@@ -633,13 +633,16 @@
     // ═══════════════════════════════════════════════════════════
     // QUESTION DISPLAY & ANSWERING
     // ═══════════════════════════════════════════════════════════
+    // EBSR state tracking
+    let ebsrPartAAnswer = null;
+
     function displayQuestion(index) {
         currentQuestionIndex = index;
         const q = currentQuestions[index];
         if (!q) return;
+        ebsrPartAAnswer = null;
 
         document.getElementById('questionNumber').textContent = 'Question ' + (index + 1) + ' of ' + currentQuestions.length;
-        document.getElementById('questionText').textContent = q.text;
 
         if (q.standard) {
             document.getElementById('standardTag').textContent = q.standard;
@@ -648,20 +651,90 @@
             document.getElementById('standardTag').style.display = 'none';
         }
 
-        const optList = document.getElementById('optionsList');
-        optList.innerHTML = '';
-        const letters = ['A', 'B', 'C', 'D'];
-        q.options.forEach((opt, i) => {
-            const div = document.createElement('div');
-            div.className = 'option';
-            div.innerHTML = '<span class="option-letter">' + letters[i] + '</span><span class="option-text">' + opt + '</span>';
-            div.onclick = () => selectAnswer(i);
-            optList.appendChild(div);
-        });
+        // Handle EBSR (Evidence-Based Selected Response) questions
+        if (q.type === 'ebsr' && q.partA && q.partB) {
+            document.getElementById('questionText').innerHTML = '<div style="font-size:11px;color:#5ca4e8;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Part A</div>' + q.partA.text;
+            renderOptions(q.partA.options, (i) => selectEBSRPartA(i));
+        } else {
+            document.getElementById('questionText').textContent = q.text;
+            renderOptions(q.options, (i) => selectAnswer(i));
+        }
 
         document.getElementById('feedbackBox').className = 'feedback-box';
         document.getElementById('feedbackBox').style.display = 'none';
         document.getElementById('nextBtn').style.display = 'none';
+    }
+
+    function renderOptions(options, onClick) {
+        const optList = document.getElementById('optionsList');
+        optList.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D'];
+        options.forEach((opt, i) => {
+            const div = document.createElement('div');
+            div.className = 'option';
+            div.innerHTML = '<span class="option-letter">' + letters[i] + '</span><span class="option-text">' + opt + '</span>';
+            div.onclick = () => onClick(i);
+            optList.appendChild(div);
+        });
+    }
+
+    function selectEBSRPartA(index) {
+        const q = currentQuestions[currentQuestionIndex];
+        if (ebsrPartAAnswer !== null) return;
+        ebsrPartAAnswer = index;
+
+        const options = document.querySelectorAll('#optionsList .option');
+        const isCorrect = index === q.partA.correct;
+        options.forEach((opt, i) => {
+            opt.classList.add('disabled');
+            if (i === q.partA.correct) opt.classList.add('correct');
+            if (i === index && i !== q.partA.correct) opt.classList.add('incorrect');
+            if (i === index) opt.classList.add('selected');
+        });
+
+        // Show Part A feedback briefly, then transition to Part B
+        const fb = document.getElementById('feedbackBox');
+        fb.className = 'feedback-box show ' + (isCorrect ? 'correct' : 'incorrect');
+        fb.style.display = 'block';
+        document.getElementById('feedbackLabel').textContent = isCorrect ? '✓ Part A Correct' : '✗ Part A Incorrect';
+        document.getElementById('feedbackText').textContent = 'Now answer Part B...';
+
+        setTimeout(() => {
+            fb.style.display = 'none';
+            document.getElementById('questionText').innerHTML = '<div style="font-size:11px;color:#5ca4e8;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Part B</div>' + q.partB.text;
+            renderOptions(q.partB.options, (i) => selectEBSRPartB(i));
+        }, 1500);
+    }
+
+    function selectEBSRPartB(index) {
+        const q = currentQuestions[currentQuestionIndex];
+        if (currentAnswers[currentQuestionIndex] !== undefined) return;
+
+        const partACorrect = ebsrPartAAnswer === q.partA.correct;
+        const partBCorrect = index === q.partB.correct;
+
+        // Scoring: 2 pts both correct, 1 pt Part A only, 0 otherwise
+        let score = 0;
+        if (partACorrect && partBCorrect) score = 2;
+        else if (partACorrect) score = 1;
+        currentAnswers[currentQuestionIndex] = { partA: ebsrPartAAnswer, partB: index, score, isEBSR: true };
+
+        const options = document.querySelectorAll('#optionsList .option');
+        options.forEach((opt, i) => {
+            opt.classList.add('disabled');
+            if (i === q.partB.correct) opt.classList.add('correct');
+            if (i === index && i !== q.partB.correct) opt.classList.add('incorrect');
+            if (i === index) opt.classList.add('selected');
+        });
+
+        const fb = document.getElementById('feedbackBox');
+        const overallCorrect = partACorrect && partBCorrect;
+        fb.className = 'feedback-box show ' + (overallCorrect ? 'correct' : 'incorrect');
+        fb.style.display = 'block';
+        document.getElementById('feedbackLabel').textContent = overallCorrect ? '✓ Both Parts Correct (2/2)' : partACorrect ? '◐ Part A Correct (1/2)' : '✗ Incorrect (0/2)';
+        document.getElementById('feedbackText').textContent = q.explanation || '';
+
+        showNextButton();
     }
 
     function selectAnswer(index) {
@@ -684,10 +757,12 @@
         document.getElementById('feedbackLabel').textContent = isCorrect ? '✓ Correct' : '✗ Incorrect';
         document.getElementById('feedbackText').textContent = q.explanation || '';
 
+        showNextButton();
+    }
+
+    function showNextButton() {
         const btn = document.getElementById('nextBtn');
         const isLast = currentQuestionIndex >= currentQuestions.length - 1;
-
-        // Check if writing is needed after questions for ELA Language on Wednesday
         const phase = PHASES[currentPhaseIndex];
         const showWritingAfter = phase.id === 'ela_language' && IS_WEDNESDAY && currentPassage && currentPassage.writingPrompt;
 
@@ -757,7 +832,10 @@
     // ═══════════════════════════════════════════════════════════
     function completePhase() {
         const phase = PHASES[currentPhaseIndex];
-        const correct = Object.values(currentAnswers).filter((a, i) => a === currentQuestions[i].correct).length;
+        const correct = Object.values(currentAnswers).filter((a, i) => {
+            if (a && a.isEBSR) return a.score === 2;  // EBSR: only full credit counts as "correct"
+            return a === currentQuestions[i].correct;
+        }).length;
         const total = currentQuestions.length;
         const pct = total > 0 ? Math.round(correct / total * 100) : 0;
 
