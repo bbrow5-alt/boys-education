@@ -716,7 +716,7 @@
 <div class="points-section">
   <div class="section-title">— Weekly Payout —</div>
   <div style="text-align:center; margin-bottom:12px;">
-    <div style="font-size:11px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Complete all 3 tasks Mon–Fri to earn:</div>
+    <div style="font-size:11px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Complete your daily session Mon–Fri to earn:</div>
     <div style="font-size:36px; font-weight:bold; color:var(--success);" id="weeklyPayoutAmount">$50.00</div>
     <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">$25 from Dad + $25 from Mom — paid Friday</div>
   </div>
@@ -1340,7 +1340,7 @@ function render() {
   let weekdaysPassed = 0;
   weekDates.forEach(d => {
     const dow = d.getDay();
-    if (dow >= 1 && dow <= 5) { // Mon-Fri
+    if (dow >= 1 && dow <= 5) { // Mon-Fri (Jacob's active days)
       const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       if (d <= todayNow) {
         weekdaysPassed++;
@@ -1381,8 +1381,13 @@ function render() {
     if (isToday) { cls += ' today'; label = '\u00B7'; }
     else if (isFuture) { cls += ' future'; label = ''; }
     else if (complete) { cls += ' complete'; label = '\u2713'; }
-    else if (tasksDone > 0) { cls += ' partial'; label = tasksDone + '/3'; }
-    else { cls += ' missed'; label = '\u2717'; }
+    else if (tasksDone > 0) { cls += ' partial'; label = '~'; }
+    else {
+      // Check if this is an off-day (Sat=6, Sun=0 for Jacob)
+      const dayDow = date.getDay();
+      if (dayDow === 0 || dayDow === 6) { cls += ' future'; label = ''; }
+      else { cls += ' missed'; label = '\u2717'; }
+    }
 
     const bonusLabel = (!isFuture && credits > 3) ? `+${credits - 3}` : '';
 
@@ -1428,8 +1433,13 @@ function renderCalendar() {
     const cd = new Date(calendarYear, calendarMonth, d);
     if (ds === today) cell.classList.add('today-cal');
     const isPast = cd < new Date(new Date().setHours(0,0,0,0));
+    const dayDow = cd.getDay();
+    const isActiveDay = dayDow >= 1 && dayDow <= 5; // Mon-Fri for Jacob
     const tc = dayTaskCount(ds);
-    if (loadData().days[ds] || isPast) {
+    if (!isActiveDay) {
+      cell.classList.add('off-day');
+      cell.style.opacity = '0.3';
+    } else if (loadData().days[ds] || isPast) {
       cell.classList.add('has-data');
       if (isDayComplete(ds)) cell.classList.add('complete');
       else if (tc > 0) cell.classList.add('partial');
@@ -1784,16 +1794,14 @@ function checkDiagnosticReturn() {
     const today = new Date().toISOString().split('T')[0];
     if (signal.date !== today) return;
 
-    // Mark today's tasks as complete (diagnostic replaces daily stack)
-    const dayData = data.days && data.days[today];
-    if (dayData && !dayData.diagnosticComplete) {
+    // Diagnostic replaces daily session — mark day complete
+    const dayData = getDayData(today);
+    if (!dayData.diagnosticComplete) {
       dayData.session = true;
-      dayData.khan = true;
-      dayData.reading = true;
       dayData.diagnosticComplete = true;
       dayData.diagnosticPoints = 15;
-      save();
-      renderTasks();
+      setDayData(today, dayData);
+      render();
     }
   } catch(e) { console.warn('Diagnostic signal check failed:', e); }
 }
