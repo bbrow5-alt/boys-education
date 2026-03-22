@@ -237,7 +237,39 @@
             <div class="summary-container">
                 <h2 class="summary-title">Session Complete</h2>
                 <div class="summary-card" id="summaryCard"></div>
+                <div id="keepGoingOffer" style="background:linear-gradient(135deg, rgba(92,164,232,0.08) 0%, rgba(201,168,76,0.05) 100%); border:1px solid rgba(92,164,232,0.3); border-radius:10px; padding:16px; text-align:center; margin-bottom:12px;">
+                    <div style="font-size:20px; margin-bottom:6px;">&#128293;</div>
+                    <div style="font-size:15px; color:#c9a84c; font-weight:700; margin-bottom:4px;">Want to keep going?</div>
+                    <div style="font-size:12px; color:#a89968; margin-bottom:12px;">Target your weak spots with unlimited bonus questions. No timer, no minimum — just growth.</div>
+                    <button class="btn-secondary" onclick="startBonusPractice()" style="width:auto; padding:10px 24px;">Enter The Crucible</button>
+                </div>
                 <button class="btn-primary" onclick="returnToDashboard()">Return to Dashboard</button>
+            </div>
+        </div>
+
+        <!-- Bonus Practice Screen -->
+        <div class="screen" id="bonusScreen">
+            <div class="subject-header">
+                <div class="subject-icon">&#128293;</div>
+                <h2>The Crucible</h2>
+                <div class="subject-meta">Targeting your weaknesses — no time limit</div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <div style="font-size:13px; color:#a89968;">Bonus questions: <span style="color:#c9a84c; font-weight:700;" id="bonusCount">0</span></div>
+                <div style="font-size:13px; color:#a89968;">Correct: <span style="color:#7fb069; font-weight:700;" id="bonusCorrect">0</span></div>
+                <button onclick="finishBonusPractice()" style="background:none; border:1px solid #a89968; color:#a89968; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-family:Georgia,serif;">Done</button>
+            </div>
+            <div id="bonusQuestionArea">
+                <div class="question-header">
+                    <div class="standard-tag" id="bonusStandardTag" style="display:none;"></div>
+                    <div class="question-text" id="bonusQuestionText"></div>
+                </div>
+                <div class="options-list" id="bonusOptionsList"></div>
+                <div class="feedback-box" id="bonusFeedbackBox">
+                    <div class="feedback-label" id="bonusFeedbackLabel"></div>
+                    <div class="feedback-text" id="bonusFeedbackText"></div>
+                </div>
+                <button class="btn-next" id="bonusNextBtn" onclick="nextBonusQuestion()">Next Question</button>
             </div>
         </div>
     </div>
@@ -987,6 +1019,177 @@
         window.location.href = CONFIG.dashboardUrl;
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // BONUS PRACTICE ("The Crucible")
+    // ═══════════════════════════════════════════════════════════
+    const BONUS_KEY = CONFIG.studentLower + '_bonus_practice';
+    let bonusQuestions = [];
+    let bonusQuestionIndex = 0;
+    let bonusAnswered = 0;
+    let bonusCorrectCount = 0;
+    let bonusStartTime = null;
+
+    function getBonusWeakSubjects() {
+        // Collect subjects where score was below 80% in this session, or from weakness profile
+        const weakSubjects = [];
+        PHASES.forEach(p => {
+            const r = phaseResults[p.id];
+            if (r && r.pct < 80) weakSubjects.push(p.id);
+        });
+        if (weakSubjects.length === 0) {
+            // No session weaknesses — use diagnostic weakness profile or all subjects
+            if (weaknessProfile && weaknessProfile.weaknesses) {
+                Object.keys(weaknessProfile.weaknesses).forEach(s => {
+                    if (weaknessProfile.weaknesses[s].length > 0) weakSubjects.push(s);
+                });
+            }
+        }
+        // If still nothing, practice all subjects
+        return weakSubjects.length > 0 ? weakSubjects : PHASES.map(p => p.id);
+    }
+
+    function buildBonusQuestionPool() {
+        const weakSubjects = getBonusWeakSubjects();
+        const pool = [];
+        weakSubjects.forEach(subId => {
+            const fb = FALLBACK_QUESTIONS[subId] || [];
+            fb.forEach(q => pool.push({ ...q, subject: subId }));
+        });
+        // Also add ELA reading questions from fallback passages
+        if (weakSubjects.includes('ela_reading')) {
+            FALLBACK_PASSAGES.forEach(p => {
+                p.questions.forEach(q => pool.push({ ...q, subject: 'ela_reading' }));
+            });
+        }
+        // Shuffle
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        return pool;
+    }
+
+    function startBonusPractice() {
+        bonusQuestions = buildBonusQuestionPool();
+        bonusQuestionIndex = 0;
+        bonusAnswered = 0;
+        bonusCorrectCount = 0;
+        bonusStartTime = Date.now();
+        document.getElementById('bonusCount').textContent = '0';
+        document.getElementById('bonusCorrect').textContent = '0';
+        showScreen('bonusScreen');
+        displayBonusQuestion();
+    }
+
+    function displayBonusQuestion() {
+        if (bonusQuestionIndex >= bonusQuestions.length) {
+            // Reshuffle and loop
+            bonusQuestions = buildBonusQuestionPool();
+            bonusQuestionIndex = 0;
+        }
+        const q = bonusQuestions[bonusQuestionIndex];
+        if (!q) { finishBonusPractice(); return; }
+
+        document.getElementById('bonusQuestionText').textContent = q.text;
+        if (q.standard) {
+            document.getElementById('bonusStandardTag').textContent = q.standard;
+            document.getElementById('bonusStandardTag').style.display = 'inline-block';
+        } else {
+            document.getElementById('bonusStandardTag').style.display = 'none';
+        }
+
+        const optList = document.getElementById('bonusOptionsList');
+        optList.innerHTML = '';
+        const letters = ['A','B','C','D'];
+        q.options.forEach((opt, i) => {
+            const div = document.createElement('div');
+            div.className = 'option';
+            div.innerHTML = '<span class="option-letter">' + letters[i] + '</span><span class="option-text">' + opt + '</span>';
+            div.onclick = () => selectBonusAnswer(i);
+            optList.appendChild(div);
+        });
+
+        document.getElementById('bonusFeedbackBox').className = 'feedback-box';
+        document.getElementById('bonusFeedbackBox').style.display = 'none';
+        document.getElementById('bonusNextBtn').style.display = 'none';
+    }
+
+    function selectBonusAnswer(index) {
+        const q = bonusQuestions[bonusQuestionIndex];
+        const options = document.querySelectorAll('#bonusOptionsList .option');
+        if (options[0] && options[0].classList.contains('disabled')) return;
+
+        bonusAnswered++;
+        const isCorrect = index === q.correct;
+        if (isCorrect) bonusCorrectCount++;
+
+        options.forEach((opt, i) => {
+            opt.classList.add('disabled');
+            if (i === q.correct) opt.classList.add('correct');
+            if (i === index && i !== q.correct) opt.classList.add('incorrect');
+        });
+
+        document.getElementById('bonusCount').textContent = bonusAnswered;
+        document.getElementById('bonusCorrect').textContent = bonusCorrectCount;
+
+        const fb = document.getElementById('bonusFeedbackBox');
+        fb.className = 'feedback-box show ' + (isCorrect ? 'correct' : 'incorrect');
+        fb.style.display = 'block';
+        document.getElementById('bonusFeedbackLabel').textContent = isCorrect ? '✓ Correct' : '✗ Incorrect';
+        document.getElementById('bonusFeedbackText').textContent = q.explanation || '';
+
+        document.getElementById('bonusNextBtn').style.display = 'block';
+        document.getElementById('bonusNextBtn').textContent = 'Next Question';
+    }
+
+    function nextBonusQuestion() {
+        bonusQuestionIndex++;
+        displayBonusQuestion();
+    }
+
+    function finishBonusPractice() {
+        const duration = Math.round((Date.now() - (bonusStartTime || Date.now())) / 60000);
+        // Save bonus data
+        saveBonusPractice(bonusAnswered, bonusCorrectCount, duration);
+        // Return to summary or dashboard
+        window.location.href = CONFIG.dashboardUrl;
+    }
+
+    function saveBonusPractice(answered, correct, duration) {
+        // Accumulate in localStorage
+        try {
+            const existing = JSON.parse(localStorage.getItem(BONUS_KEY) || '{}');
+            if (!existing[TODAY]) existing[TODAY] = { answered: 0, correct: 0, duration: 0, sessions: 0 };
+            existing[TODAY].answered += answered;
+            existing[TODAY].correct += correct;
+            existing[TODAY].duration += duration;
+            existing[TODAY].sessions += 1;
+            existing[TODAY].timestamp = new Date().toISOString();
+            localStorage.setItem(BONUS_KEY, JSON.stringify(existing));
+
+            // Signal for dashboard
+            localStorage.setItem(CONFIG.studentLower + '_bonus_signal', JSON.stringify({
+                date: TODAY, answered: existing[TODAY].answered, correct: existing[TODAY].correct
+            }));
+        } catch (e) {}
+
+        // Sync to backend
+        try {
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST', mode: 'no-cors',
+                body: JSON.stringify({
+                    action: 'saveDailyTracking',
+                    date: TODAY,
+                    student: CONFIG.student,
+                    bonusPractice: true,
+                    bonusAnswered: answered,
+                    bonusCorrect: correct,
+                    bonusDuration: duration
+                })
+            });
+        } catch (e) {}
+    }
+
     // Save partial session on page exit
     window.addEventListener('beforeunload', () => {
         if (currentPhaseIndex >= 0 && currentPhaseIndex < PHASES.length) {
@@ -995,6 +1198,10 @@
                     date: TODAY, phaseIndex: currentPhaseIndex, phaseResults, timestamp: new Date().toISOString()
                 }));
             } catch (e) {}
+        }
+        // Save any in-progress bonus work
+        if (bonusAnswered > 0 && bonusStartTime) {
+            saveBonusPractice(bonusAnswered, bonusCorrectCount, Math.round((Date.now() - bonusStartTime) / 60000));
         }
     });
     </script>

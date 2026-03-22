@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Crucible — Bonus Practice</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; }
+        body { background-color: #1a1510; color: #e8dcc8; font-family: Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+        .container { max-width: 650px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .back-button { background: none; border: none; color: #c9a84c; font-size: 24px; cursor: pointer; padding: 8px; border-radius: 8px; }
+        .stats-bar { display: flex; gap: 16px; font-size: 13px; color: #a89968; }
+        .stats-bar .val { color: #c9a84c; font-weight: 700; }
+        .stats-bar .correct-val { color: #7fb069; font-weight: 700; }
+
+        .hero { text-align: center; margin-bottom: 24px; }
+        .hero .icon { font-size: 40px; margin-bottom: 8px; }
+        .hero h1 { font-size: 24px; color: #c9a84c; font-weight: 400; margin-bottom: 4px; }
+        .hero p { font-size: 13px; color: #a89968; }
+
+        .subject-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; justify-content: center; }
+        .subject-chip { padding: 6px 14px; border-radius: 20px; border: 1px solid #3d3428; background: #231e17; color: #a89968; font-size: 12px; cursor: pointer; transition: all 0.2s; font-family: Georgia, serif; }
+        .subject-chip.active { border-color: #c9a84c; color: #c9a84c; background: rgba(201,168,76,0.1); }
+        .subject-chip:hover { border-color: #c9a84c; }
+
+        .question-card { background: #231e17; border: 2px solid #3d3428; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+        .standard-tag { display: inline-block; font-size: 11px; color: #5ca4e8; background: rgba(92,164,232,0.1); padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
+        .question-text { font-size: 17px; color: #e8dcc8; margin-bottom: 16px; }
+
+        .options-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+        .option { background: #1a1510; border: 2px solid #3d3428; border-radius: 8px; padding: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 12px; }
+        .option:hover:not(.disabled) { border-color: #c9a84c; background: #2d2620; }
+        .option.correct { border-color: #7fb069; background: rgba(127,176,105,0.1); }
+        .option.incorrect { border-color: #c44536; background: rgba(196,69,54,0.1); }
+        .option.disabled { cursor: not-allowed; }
+        .option-letter { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: #3d3428; border-radius: 50%; font-weight: 700; font-size: 13px; color: #c9a84c; flex-shrink: 0; }
+        .option.correct .option-letter { background: #7fb069; color: white; }
+        .option.incorrect .option-letter { background: #c44536; color: white; }
+        .option-text { flex: 1; color: #e8dcc8; font-size: 14px; }
+
+        .feedback-box { background: #231e17; border: 2px solid #3d3428; border-radius: 8px; padding: 14px; margin-bottom: 16px; display: none; }
+        .feedback-box.show { display: block; }
+        .feedback-box.correct { border-color: #7fb069; }
+        .feedback-box.incorrect { border-color: #c44536; }
+        .feedback-label { font-weight: 700; font-size: 13px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        .feedback-box.correct .feedback-label { color: #7fb069; }
+        .feedback-box.incorrect .feedback-label { color: #c44536; }
+        .feedback-text { font-size: 13px; color: #a89968; }
+
+        .btn-next { background: #5ca4e8; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; font-family: Georgia, serif; cursor: pointer; width: 100%; display: none; transition: all 0.2s; }
+        .btn-next:hover { background: #6baef5; }
+        .btn-done { background: #c9a84c; color: #1a1510; border: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 700; font-family: Georgia, serif; cursor: pointer; width: 100%; margin-top: 12px; transition: all 0.2s; }
+        .btn-done:hover { background: #e8dcc8; }
+
+        .streak-display { text-align: center; margin-bottom: 20px; padding: 12px; background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.2); border-radius: 8px; }
+        .streak-display .big { font-size: 28px; color: #c9a84c; font-weight: 700; }
+        .streak-display .label { font-size: 11px; color: #a89968; text-transform: uppercase; letter-spacing: 1px; }
+
+        @media (max-width: 480px) { .container { padding: 16px; } .hero h1 { font-size: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-button" onclick="finish()">&#8592;</button>
+            <div class="stats-bar">
+                <span>Questions: <span class="val" id="totalCount">0</span></span>
+                <span>Correct: <span class="correct-val" id="correctCount">0</span></span>
+            </div>
+        </div>
+
+        <div class="hero">
+            <div class="icon">&#128293;</div>
+            <h1>The Crucible</h1>
+            <p>Unlimited practice targeting your weak areas. No timer. No minimum. Just growth.</p>
+        </div>
+
+        <div class="subject-picker" id="subjectPicker"></div>
+
+        <div class="streak-display" id="todayStats" style="display:none;">
+            <div class="label">Today's Bonus</div>
+            <div class="big" id="todayBonusCount">0</div>
+            <div class="label">questions answered</div>
+        </div>
+
+        <div class="question-card" id="questionCard">
+            <div class="standard-tag" id="standardTag" style="display:none;"></div>
+            <div class="question-text" id="questionText">Loading...</div>
+            <div class="options-list" id="optionsList"></div>
+            <div class="feedback-box" id="feedbackBox">
+                <div class="feedback-label" id="feedbackLabel"></div>
+                <div class="feedback-text" id="feedbackText"></div>
+            </div>
+            <button class="btn-next" id="nextBtn" onclick="nextQuestion()">Next Question</button>
+        </div>
+
+        <button class="btn-done" onclick="finish()">I'm Done — Return to Dashboard</button>
+    </div>
+
+    <script>
+    const CONFIG = { student: 'Jacob', studentLower: 'jacob', grade: 6, dashboardUrl: 'Jacob_Dashboard.html' };
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
+    const TODAY = new Date().toISOString().split('T')[0];
+    const BONUS_KEY = CONFIG.studentLower + '_bonus_practice';
+
+    const SUBJECTS = [
+        { id: 'ela_reading', name: 'ELA Reading', icon: '📖' },
+        { id: 'ela_language', name: 'ELA Language', icon: '✍️' },
+        { id: 'math', name: 'Math', icon: '🔢' },
+        { id: 'science', name: 'Science', icon: '🔬' },
+        { id: 'social_studies', name: 'Social Studies', icon: '🌍' }
+    ];
+
+    let activeSubjects = new Set(SUBJECTS.map(s => s.id));
+    let weaknessProfile = null;
+    let questionPool = [];
+    let currentIndex = 0;
+    let answered = 0;
+    let correct = 0;
+    let startTime = Date.now();
+
+    // Grade 6 fallback questions (same as DailySession)
+    const FALLBACK = {
+        ela_reading: [
+            { text: 'What is the primary force used to move water through Roman aqueducts?', options: ['Steam power','Gravity','Hand pumps','Wind energy'], correct: 1, explanation: 'Aqueducts used gravity alone to move water.', standard: 'RI.6.1' },
+            { text: 'Which best describes cause and effect text structure?', options: ['Events in time order','Comparing two things','One event leads to another','Listing details'], correct: 2, explanation: 'Cause and effect shows how one event leads to or results in another.', standard: 'RI.6.5' },
+            { text: 'What does it mean to make an inference?', options: ['Copy text directly','Use clues to figure out unstated meaning','Summarize the main idea','Define vocabulary words'], correct: 1, explanation: 'Inference means using text evidence and reasoning to understand something not directly stated.', standard: 'RL.6.1' }
+        ],
+        ela_language: [
+            { text: 'Which sentence uses a semicolon correctly?', options: ['I like dogs; they are loyal.','I like; dogs they are loyal.','I like dogs they; are loyal.','I; like dogs.'], correct: 0, explanation: 'A semicolon joins two related independent clauses.', standard: 'L.6.2' },
+            { text: 'What does "benevolent" most likely mean: "The benevolent king shared his wealth."', options: ['Cruel','Kind and generous','Wealthy','Powerful'], correct: 1, explanation: 'Context clues show benevolent means kind and generous.', standard: 'L.6.4' },
+            { text: 'Which is a synonym for "diligent"?', options: ['Lazy','Hardworking','Careless','Distracted'], correct: 1, explanation: 'Diligent means hardworking and persistent.', standard: 'L.6.5' },
+            { text: 'Identify the correct use: ___ going to the library.', options: ['Their','There','They\'re','Thier'], correct: 2, explanation: '"They\'re" = "they are."', standard: 'L.6.1' }
+        ],
+        math: [
+            { text: 'What is 3 + 4 × 2?', options: ['14','11','10','7'], correct: 1, explanation: 'Order of operations: 4×2=8, then 3+8=11.', standard: '6.EE.1' },
+            { text: 'A recipe needs 2/3 cup flour. For 3 batches?', options: ['2 cups','1 cup','6/3 cups','2/9 cup'], correct: 0, explanation: '2/3 × 3 = 6/3 = 2 cups.', standard: '6.NS.1' },
+            { text: 'Ratio of 15 boys to 20 girls in simplest form?', options: ['15:20','3:5','3:4','5:3'], correct: 2, explanation: 'Divide both by 5: 3:4.', standard: '6.RP.1' },
+            { text: 'Solve: x + 7 = 15', options: ['x=22','x=8','x=7','x=9'], correct: 1, explanation: 'x = 15 - 7 = 8.', standard: '6.EE.7' },
+            { text: 'Area of rectangle: length 8cm, width 5cm?', options: ['13 cm²','26 cm²','40 cm²','80 cm²'], correct: 2, explanation: 'Area = 8 × 5 = 40 cm².', standard: '6.G.1' },
+            { text: 'What is |-7|?', options: ['-7','7','0','1/7'], correct: 1, explanation: 'Absolute value of -7 is 7.', standard: '6.NS.7' }
+        ],
+        science: [
+            { text: 'What is the basic unit of life?', options: ['Atom','Molecule','Cell','Organ'], correct: 2, explanation: 'The cell is the basic unit of all living organisms.', standard: 'MS-LS1' },
+            { text: 'Which layer of Earth is thinnest?', options: ['Inner core','Outer core','Mantle','Crust'], correct: 3, explanation: 'The crust is Earth\'s thinnest layer.', standard: 'MS-ESS2' },
+            { text: 'What happens in a physical change?', options: ['New substances form','Composition changes','Form changes but composition stays same','Atoms are created'], correct: 2, explanation: 'Physical change = form changes, composition stays the same.', standard: 'MS-PS1' },
+            { text: 'Which is a producer in an ecosystem?', options: ['Lion','Mushroom','Grass','Eagle'], correct: 2, explanation: 'Producers like grass make food via photosynthesis.', standard: 'MS-LS2' }
+        ],
+        social_studies: [
+            { text: 'Which civilization built the pyramids at Giza?', options: ['Romans','Greeks','Egyptians','Persians'], correct: 2, explanation: 'Ancient Egyptians built the Giza pyramids.', standard: 'WH.6.1' },
+            { text: 'Direct exchange of goods without money is called?', options: ['Capitalism','Barter','Socialism','Credit'], correct: 1, explanation: 'Bartering = direct exchange without money.', standard: 'ECON.6.1' },
+            { text: 'Government ruled by a king or queen?', options: ['Democracy','Republic','Monarchy','Oligarchy'], correct: 2, explanation: 'Monarchy = government headed by a king/queen.', standard: 'CIV.6.1' },
+            { text: 'Which feature best supports agriculture?', options: ['Desert','Mountain peak','River valley','Dense forest'], correct: 2, explanation: 'River valleys provide fertile soil and water for irrigation.', standard: 'GEO.6.1' }
+        ]
+    };
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+        buildSubjectPicker();
+        loadTodayStats();
+        loadWeaknessProfile().then(() => {
+            buildPool();
+            displayQuestion();
+        });
+    });
+
+    function buildSubjectPicker() {
+        const picker = document.getElementById('subjectPicker');
+        SUBJECTS.forEach(s => {
+            const chip = document.createElement('button');
+            chip.className = 'subject-chip active';
+            chip.textContent = s.icon + ' ' + s.name;
+            chip.dataset.id = s.id;
+            chip.onclick = () => {
+                if (activeSubjects.has(s.id)) { activeSubjects.delete(s.id); chip.classList.remove('active'); }
+                else { activeSubjects.add(s.id); chip.classList.add('active'); }
+                if (activeSubjects.size === 0) { activeSubjects.add(s.id); chip.classList.add('active'); }
+                buildPool(); currentIndex = 0; displayQuestion();
+            };
+            picker.appendChild(chip);
+        });
+    }
+
+    function loadTodayStats() {
+        try {
+            const data = JSON.parse(localStorage.getItem(BONUS_KEY) || '{}');
+            if (data[TODAY] && data[TODAY].answered > 0) {
+                document.getElementById('todayBonusCount').textContent = data[TODAY].answered;
+                document.getElementById('todayStats').style.display = 'block';
+            }
+        } catch (e) {}
+    }
+
+    async function loadWeaknessProfile() {
+        try {
+            const r = await fetch(APPS_SCRIPT_URL + '?action=getWeaknessProfile&student=' + CONFIG.student, { signal: AbortSignal.timeout(8000) });
+            if (r.ok) { weaknessProfile = await r.json(); return; }
+        } catch (e) {}
+        weaknessProfile = null;
+    }
+
+    function buildPool() {
+        questionPool = [];
+        activeSubjects.forEach(subId => {
+            (FALLBACK[subId] || []).forEach(q => questionPool.push({ ...q, subject: subId }));
+        });
+        // Prioritize weakness questions by duplicating them
+        if (weaknessProfile && weaknessProfile.weaknesses) {
+            const weakStandards = new Set();
+            Object.values(weaknessProfile.weaknesses).forEach(arr => {
+                if (Array.isArray(arr)) arr.forEach(w => weakStandards.add(w.standard));
+            });
+            const weakQs = questionPool.filter(q => weakStandards.has(q.standard));
+            questionPool = questionPool.concat(weakQs); // Double weight for weak areas
+        }
+        for (let i = questionPool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [questionPool[i], questionPool[j]] = [questionPool[j], questionPool[i]];
+        }
+    }
+
+    function displayQuestion() {
+        if (currentIndex >= questionPool.length) { buildPool(); currentIndex = 0; }
+        const q = questionPool[currentIndex];
+        if (!q) return;
+        document.getElementById('questionText').textContent = q.text;
+        if (q.standard) { document.getElementById('standardTag').textContent = q.standard; document.getElementById('standardTag').style.display = 'inline-block'; }
+        else { document.getElementById('standardTag').style.display = 'none'; }
+        const optList = document.getElementById('optionsList');
+        optList.innerHTML = '';
+        ['A','B','C','D'].forEach((l, i) => {
+            const div = document.createElement('div');
+            div.className = 'option';
+            div.innerHTML = '<span class="option-letter">' + l + '</span><span class="option-text">' + q.options[i] + '</span>';
+            div.onclick = () => selectAnswer(i);
+            optList.appendChild(div);
+        });
+        document.getElementById('feedbackBox').className = 'feedback-box'; document.getElementById('feedbackBox').style.display = 'none';
+        document.getElementById('nextBtn').style.display = 'none';
+    }
+
+    function selectAnswer(index) {
+        const q = questionPool[currentIndex];
+        const opts = document.querySelectorAll('#optionsList .option');
+        if (opts[0] && opts[0].classList.contains('disabled')) return;
+        answered++; const ok = index === q.correct; if (ok) correct++;
+        opts.forEach((o, i) => { o.classList.add('disabled'); if (i === q.correct) o.classList.add('correct'); if (i === index && !ok) o.classList.add('incorrect'); });
+        document.getElementById('totalCount').textContent = answered;
+        document.getElementById('correctCount').textContent = correct;
+        const fb = document.getElementById('feedbackBox');
+        fb.className = 'feedback-box show ' + (ok ? 'correct' : 'incorrect'); fb.style.display = 'block';
+        document.getElementById('feedbackLabel').textContent = ok ? '✓ Correct' : '✗ Incorrect';
+        document.getElementById('feedbackText').textContent = q.explanation || '';
+        document.getElementById('nextBtn').style.display = 'block';
+    }
+
+    function nextQuestion() { currentIndex++; displayQuestion(); }
+
+    function finish() {
+        if (answered > 0) save();
+        window.location.href = CONFIG.dashboardUrl;
+    }
+
+    function save() {
+        const duration = Math.round((Date.now() - startTime) / 60000);
+        try {
+            const existing = JSON.parse(localStorage.getItem(BONUS_KEY) || '{}');
+            if (!existing[TODAY]) existing[TODAY] = { answered: 0, correct: 0, duration: 0, sessions: 0 };
+            existing[TODAY].answered += answered; existing[TODAY].correct += correct;
+            existing[TODAY].duration += duration; existing[TODAY].sessions += 1;
+            existing[TODAY].timestamp = new Date().toISOString();
+            localStorage.setItem(BONUS_KEY, JSON.stringify(existing));
+            localStorage.setItem(CONFIG.studentLower + '_bonus_signal', JSON.stringify({ date: TODAY, answered: existing[TODAY].answered, correct: existing[TODAY].correct }));
+        } catch (e) {}
+        try {
+            fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({
+                action: 'saveDailyTracking', date: TODAY, student: CONFIG.student,
+                bonusPractice: true, bonusAnswered: answered, bonusCorrect: correct, bonusDuration: duration
+            }) });
+        } catch (e) {}
+    }
+
+    window.addEventListener('beforeunload', () => { if (answered > 0) save(); });
+    </script>
+</body>
+</html>

@@ -635,6 +635,33 @@
   </div>
 </div>
 
+<!-- BONUS PRACTICE — Always Available -->
+<div style="background:linear-gradient(135deg, rgba(92,164,232,0.06) 0%, rgba(201,168,76,0.03) 100%); border:1px solid rgba(92,164,232,0.2); border-radius:10px; padding:14px 16px; margin-bottom:16px;">
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+    <span style="font-size:24px;">&#128293;</span>
+    <div>
+      <div style="font-size:15px; color:var(--accent); font-weight:700;">The Crucible</div>
+      <div style="font-size:12px; color:var(--text-dim);">Unlimited bonus practice — targets your weak areas</div>
+    </div>
+  </div>
+  <div id="bonusStatsDisplay" style="font-size:12px; color:var(--text-dim); margin-bottom:10px; display:none;">
+    Today: <span style="color:var(--accent); font-weight:700;" id="bonusTodayCount">0</span> questions answered
+  </div>
+  <a href="BonusPractice_Jacob.html" style="display:inline-block; padding:8px 20px; background:var(--accent); color:var(--bg); text-decoration:none; border-radius:6px; font-size:13px; font-weight:700; font-family:Georgia,serif; letter-spacing:0.5px;">Launch The Crucible</a>
+</div>
+<script>
+(function(){
+  try {
+    const d = JSON.parse(localStorage.getItem('jacob_bonus_practice') || '{}');
+    const today = new Date().toISOString().split('T')[0];
+    if (d[today] && d[today].answered > 0) {
+      document.getElementById('bonusTodayCount').textContent = d[today].answered;
+      document.getElementById('bonusStatsDisplay').style.display = 'block';
+    }
+  } catch(e){}
+})();
+</script>
+
 <!-- KHAN ACADEMY — BONUS (Optional) -->
 <div class="books-section" style="margin-top: 0;">
   <div class="books-toggle" id="khanBonusToggle" onclick="toggleKhanBonus()">

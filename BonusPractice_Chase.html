@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overtime Ops — Bonus Practice</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; }
+        body { background-color: #0a0e13; color: #c8d8e8; font-family: 'Courier New', Courier, monospace; font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+        .container { max-width: 650px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .back-button { background: none; border: none; color: #00ff41; font-size: 24px; cursor: pointer; padding: 8px; border-radius: 8px; }
+        .stats-bar { display: flex; gap: 16px; font-size: 13px; color: #5a6a7a; }
+        .stats-bar .val { color: #00ff41; font-weight: 700; }
+        .stats-bar .correct-val { color: #00cc33; font-weight: 700; }
+
+        .hero { text-align: center; margin-bottom: 24px; }
+        .hero .icon { font-size: 40px; margin-bottom: 8px; }
+        .hero h1 { font-size: 24px; color: #00ff41; font-weight: 400; margin-bottom: 4px; }
+        .hero p { font-size: 13px; color: #5a6a7a; }
+
+        .subject-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; justify-content: center; }
+        .subject-chip { padding: 6px 14px; border-radius: 20px; border: 1px solid #1e2d3d; background: #111820; color: #5a6a7a; font-size: 12px; cursor: pointer; transition: all 0.2s; font-family: 'Courier New', monospace; }
+        .subject-chip.active { border-color: #00ff41; color: #00ff41; background: rgba(0,255,65,0.08); }
+        .subject-chip:hover { border-color: #00ff41; }
+
+        .question-card { background: #111820; border: 2px solid #1e2d3d; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+        .standard-tag { display: inline-block; font-size: 11px; color: #00bfff; background: rgba(0,191,255,0.1); padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
+        .question-text { font-size: 17px; color: #c8d8e8; margin-bottom: 16px; }
+
+        .options-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+        .option { background: #0a0e13; border: 2px solid #1e2d3d; border-radius: 8px; padding: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 12px; }
+        .option:hover:not(.disabled) { border-color: #00ff41; background: #152028; }
+        .option.correct { border-color: #00cc33; background: rgba(0,204,51,0.1); }
+        .option.incorrect { border-color: #ff4444; background: rgba(255,68,68,0.1); }
+        .option.disabled { cursor: not-allowed; }
+        .option-letter { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: #1e2d3d; border-radius: 50%; font-weight: 700; font-size: 13px; color: #00ff41; flex-shrink: 0; }
+        .option.correct .option-letter { background: #00cc33; color: white; }
+        .option.incorrect .option-letter { background: #ff4444; color: white; }
+        .option-text { flex: 1; color: #c8d8e8; font-size: 14px; }
+
+        .feedback-box { background: #111820; border: 2px solid #1e2d3d; border-radius: 8px; padding: 14px; margin-bottom: 16px; display: none; }
+        .feedback-box.show { display: block; }
+        .feedback-box.correct { border-color: #00cc33; }
+        .feedback-box.incorrect { border-color: #ff4444; }
+        .feedback-label { font-weight: 700; font-size: 13px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        .feedback-box.correct .feedback-label { color: #00cc33; }
+        .feedback-box.incorrect .feedback-label { color: #ff4444; }
+        .feedback-text { font-size: 13px; color: #5a6a7a; }
+
+        .btn-next { background: #00bfff; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; font-family: 'Courier New', monospace; cursor: pointer; width: 100%; display: none; transition: all 0.2s; }
+        .btn-next:hover { background: #33ccff; }
+        .btn-done { background: #00ff41; color: #0a0e13; border: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 700; font-family: 'Courier New', monospace; cursor: pointer; width: 100%; margin-top: 12px; transition: all 0.2s; }
+        .btn-done:hover { background: #33ff66; }
+
+        .streak-display { text-align: center; margin-bottom: 20px; padding: 12px; background: rgba(0,255,65,0.04); border: 1px solid rgba(0,255,65,0.2); border-radius: 8px; }
+        .streak-display .big { font-size: 28px; color: #00ff41; font-weight: 700; }
+        .streak-display .label { font-size: 11px; color: #5a6a7a; text-transform: uppercase; letter-spacing: 1px; }
+
+        @media (max-width: 480px) { .container { padding: 16px; } .hero h1 { font-size: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-button" onclick="finish()">&#8592;</button>
+            <div class="stats-bar">
+                <span>Questions: <span class="val" id="totalCount">0</span></span>
+                <span>Correct: <span class="correct-val" id="correctCount">0</span></span>
+            </div>
+        </div>
+
+        <div class="hero">
+            <div class="icon">&#9889;</div>
+            <h1>Overtime Ops</h1>
+            <p>Unlimited practice targeting your weak areas. No timer. No minimum. Just growth.</p>
+        </div>
+
+        <div class="subject-picker" id="subjectPicker"></div>
+
+        <div class="streak-display" id="todayStats" style="display:none;">
+            <div class="label">Today's Bonus</div>
+            <div class="big" id="todayBonusCount">0</div>
+            <div class="label">questions answered</div>
+        </div>
+
+        <div class="question-card" id="questionCard">
+            <div class="standard-tag" id="standardTag" style="display:none;"></div>
+            <div class="question-text" id="questionText">Loading...</div>
+            <div class="options-list" id="optionsList"></div>
+            <div class="feedback-box" id="feedbackBox">
+                <div class="feedback-label" id="feedbackLabel"></div>
+                <div class="feedback-text" id="feedbackText"></div>
+            </div>
+            <button class="btn-next" id="nextBtn" onclick="nextQuestion()">Next Question</button>
+        </div>
+
+        <button class="btn-done" onclick="finish()">I'm Done — Return to Dashboard</button>
+    </div>
+
+    <script>
+    const CONFIG = { student: 'Chase', studentLower: 'chase', grade: 5, dashboardUrl: 'Chase_Dashboard.html' };
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
+    const TODAY = new Date().toISOString().split('T')[0];
+    const BONUS_KEY = CONFIG.studentLower + '_bonus_practice';
+
+    const SUBJECTS = [
+        { id: 'ela_reading', name: 'ELA Reading', icon: '\u{1F4D6}' },
+        { id: 'ela_language', name: 'ELA Language', icon: '\u270D\uFE0F' },
+        { id: 'math', name: 'Math', icon: '\u{1F522}' },
+        { id: 'science', name: 'Science', icon: '\u{1F52C}' },
+        { id: 'social_studies', name: 'Social Studies', icon: '\u{1F30D}' }
+    ];
+
+    let activeSubjects = new Set(SUBJECTS.map(s => s.id));
+    let weaknessProfile = null;
+    let questionPool = [];
+    let currentIndex = 0;
+    let answered = 0;
+    let correct = 0;
+    let startTime = Date.now();
+
+    const FALLBACK = {
+        ela_reading: [
+            { text: 'Why is building a walking robot harder than a wheeled robot?', options: ['Walking robots cost more','Legs must adjust to uneven terrain','Wheels are newer','Walking robots need bigger batteries'], correct: 1, explanation: 'Legs must constantly adjust to uneven ground.', standard: 'RI.5.1' },
+            { text: 'What does making an inference mean?', options: ['Copying text','Using clues to understand unstated meaning','Summarizing','Defining words'], correct: 1, explanation: 'Inference = using evidence and reasoning for unstated meaning.', standard: 'RL.5.1' },
+            { text: 'What is the main idea of a passage?', options: ['The first sentence','The most important point the author makes','A minor detail','The title'], correct: 1, explanation: 'Main idea is the central point the author communicates.', standard: 'RI.5.2' }
+        ],
+        ela_language: [
+            { text: 'Which has correct subject-verb agreement?', options: ['The dogs runs fast.','The dogs run fast.','The dogs is running.','The dogs be fast.'], correct: 1, explanation: 'Plural "dogs" requires plural "run."', standard: 'L.5.1' },
+            { text: 'What does the prefix "un-" mean in "unhappy"?', options: ['Very','Not','Again','Before'], correct: 1, explanation: '"un-" means "not."', standard: 'L.5.4' },
+            { text: 'Which is an antonym of "generous"?', options: ['Kind','Selfish','Giving','Wealthy'], correct: 1, explanation: 'Antonym = opposite. Selfish is opposite of generous.', standard: 'L.5.5' },
+            { text: 'Choose the correctly punctuated sentence.', options: ['Lets go said Mom.','Let\'s go," said Mom.','Let\'s go, said Mom.','"Let\'s go," said Mom.'], correct: 3, explanation: 'Direct quotes need quotation marks with comma before tag.', standard: 'L.5.2' }
+        ],
+        math: [
+            { text: 'What is 3/4 + 1/2?', options: ['4/6','1','5/4','1 1/4'], correct: 2, explanation: '3/4 + 2/4 = 5/4.', standard: '5.NF.1' },
+            { text: 'What is 45.6 \u00d7 10?', options: ['4.56','456','4,560','45.60'], correct: 1, explanation: 'Move decimal one place right: 456.', standard: '5.NBT.2' },
+            { text: 'Volume of 4cm \u00d7 3cm \u00d7 2cm rectangular prism?', options: ['9 cm\u00b3','18 cm\u00b3','24 cm\u00b3','26 cm\u00b3'], correct: 2, explanation: 'V = 4\u00d73\u00d72 = 24 cm\u00b3.', standard: '5.MD.5' },
+            { text: 'Which equals 3 \u00d7 (4 + 5)?', options: ['3\u00d74+5','3\u00d74+3\u00d75','12+5','3+4\u00d75'], correct: 1, explanation: 'Distributive: 3(4+5) = 12+15 = 27.', standard: '5.OA.1' },
+            { text: 'Round 3.847 to nearest tenth.', options: ['3.8','3.85','3.9','4.0'], correct: 0, explanation: 'Hundredths=4, <5 so round down: 3.8.', standard: '5.NBT.4' },
+            { text: 'What fraction of an hour is 15 minutes?', options: ['1/2','1/3','1/4','1/5'], correct: 2, explanation: '15/60 = 1/4.', standard: '5.NF.3' }
+        ],
+        science: [
+            { text: 'What do plants need for photosynthesis?', options: ['Water, soil, darkness','Sunlight, water, CO2','Only sunlight','Oxygen and sugar'], correct: 1, explanation: 'Photosynthesis needs sunlight, water, and CO2.', standard: '5-LS1' },
+            { text: 'What causes day and night?', options: ['Moon blocking sun','Earth orbiting sun','Earth rotating on axis','Sun moving'], correct: 2, explanation: 'Earth rotates on its axis every 24 hours.', standard: '5-ESS1' },
+            { text: 'Which is a chemical change?', options: ['Ice melting','Paper cut','Wood burning','Water evaporating'], correct: 2, explanation: 'Burning creates new substances = chemical change.', standard: '5-PS1' },
+            { text: 'What does a decomposer do?', options: ['Produce food','Hunt animals','Break down dead organisms','Eat plants'], correct: 2, explanation: 'Decomposers break down dead matter, returning nutrients.', standard: '5-LS2' }
+        ],
+        social_studies: [
+            { text: 'Which declared independence from Britain?', options: ['Constitution','Bill of Rights','Declaration of Independence','Magna Carta'], correct: 2, explanation: 'Declaration of Independence, July 4, 1776.', standard: 'USH.5.2' },
+            { text: 'Three branches of U.S. government?', options: ['President, Congress, Army','Legislative, Executive, Judicial','Federal, State, Local','Senate, House, Court'], correct: 1, explanation: 'Legislative, Executive, Judicial.', standard: 'CIV.5.1' },
+            { text: 'What is supply and demand?', options: ['A tax','How much is available vs. wanted','A law','A trade deal'], correct: 1, explanation: 'Supply = available, demand = wanted. Together they set prices.', standard: 'ECON.5.1' },
+            { text: 'Which U.S. region has the most mountains?', options: ['Southeast','Midwest','West','Northeast'], correct: 2, explanation: 'Western U.S. has Rockies, Sierra Nevada, Cascades.', standard: 'GEO.5.1' }
+        ]
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        buildSubjectPicker();
+        loadTodayStats();
+        loadWeaknessProfile().then(() => { buildPool(); displayQuestion(); });
+    });
+
+    function buildSubjectPicker() {
+        const picker = document.getElementById('subjectPicker');
+        SUBJECTS.forEach(s => {
+            const chip = document.createElement('button');
+            chip.className = 'subject-chip active';
+            chip.textContent = s.icon + ' ' + s.name;
+            chip.dataset.id = s.id;
+            chip.onclick = () => {
+                if (activeSubjects.has(s.id)) { activeSubjects.delete(s.id); chip.classList.remove('active'); }
+                else { activeSubjects.add(s.id); chip.classList.add('active'); }
+                if (activeSubjects.size === 0) { activeSubjects.add(s.id); chip.classList.add('active'); }
+                buildPool(); currentIndex = 0; displayQuestion();
+            };
+            picker.appendChild(chip);
+        });
+    }
+
+    function loadTodayStats() {
+        try {
+            const data = JSON.parse(localStorage.getItem(BONUS_KEY) || '{}');
+            if (data[TODAY] && data[TODAY].answered > 0) {
+                document.getElementById('todayBonusCount').textContent = data[TODAY].answered;
+                document.getElementById('todayStats').style.display = 'block';
+            }
+        } catch (e) {}
+    }
+
+    async function loadWeaknessProfile() {
+        try {
+            const r = await fetch(APPS_SCRIPT_URL + '?action=getWeaknessProfile&student=' + CONFIG.student, { signal: AbortSignal.timeout(8000) });
+            if (r.ok) { weaknessProfile = await r.json(); return; }
+        } catch (e) {}
+        weaknessProfile = null;
+    }
+
+    function buildPool() {
+        questionPool = [];
+        activeSubjects.forEach(subId => { (FALLBACK[subId] || []).forEach(q => questionPool.push({ ...q, subject: subId })); });
+        if (weaknessProfile && weaknessProfile.weaknesses) {
+            const weakStds = new Set();
+            Object.values(weaknessProfile.weaknesses).forEach(arr => { if (Array.isArray(arr)) arr.forEach(w => weakStds.add(w.standard)); });
+            const weakQs = questionPool.filter(q => weakStds.has(q.standard));
+            questionPool = questionPool.concat(weakQs);
+        }
+        for (let i = questionPool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [questionPool[i], questionPool[j]] = [questionPool[j], questionPool[i]]; }
+    }
+
+    function displayQuestion() {
+        if (currentIndex >= questionPool.length) { buildPool(); currentIndex = 0; }
+        const q = questionPool[currentIndex];
+        if (!q) return;
+        document.getElementById('questionText').textContent = q.text;
+        if (q.standard) { document.getElementById('standardTag').textContent = q.standard; document.getElementById('standardTag').style.display = 'inline-block'; }
+        else { document.getElementById('standardTag').style.display = 'none'; }
+        const optList = document.getElementById('optionsList');
+        optList.innerHTML = '';
+        ['A','B','C','D'].forEach((l, i) => {
+            const div = document.createElement('div');
+            div.className = 'option';
+            div.innerHTML = '<span class="option-letter">' + l + '</span><span class="option-text">' + q.options[i] + '</span>';
+            div.onclick = () => selectAnswer(i);
+            optList.appendChild(div);
+        });
+        document.getElementById('feedbackBox').className = 'feedback-box'; document.getElementById('feedbackBox').style.display = 'none';
+        document.getElementById('nextBtn').style.display = 'none';
+    }
+
+    function selectAnswer(index) {
+        const q = questionPool[currentIndex];
+        const opts = document.querySelectorAll('#optionsList .option');
+        if (opts[0] && opts[0].classList.contains('disabled')) return;
+        answered++; const ok = index === q.correct; if (ok) correct++;
+        opts.forEach((o, i) => { o.classList.add('disabled'); if (i === q.correct) o.classList.add('correct'); if (i === index && !ok) o.classList.add('incorrect'); });
+        document.getElementById('totalCount').textContent = answered;
+        document.getElementById('correctCount').textContent = correct;
+        const fb = document.getElementById('feedbackBox');
+        fb.className = 'feedback-box show ' + (ok ? 'correct' : 'incorrect'); fb.style.display = 'block';
+        document.getElementById('feedbackLabel').textContent = ok ? '\u2713 Correct' : '\u2717 Incorrect';
+        document.getElementById('feedbackText').textContent = q.explanation || '';
+        document.getElementById('nextBtn').style.display = 'block';
+    }
+
+    function nextQuestion() { currentIndex++; displayQuestion(); }
+
+    function finish() {
+        if (answered > 0) save();
+        window.location.href = CONFIG.dashboardUrl;
+    }
+
+    function save() {
+        const duration = Math.round((Date.now() - startTime) / 60000);
+        try {
+            const existing = JSON.parse(localStorage.getItem(BONUS_KEY) || '{}');
+            if (!existing[TODAY]) existing[TODAY] = { answered: 0, correct: 0, duration: 0, sessions: 0 };
+            existing[TODAY].answered += answered; existing[TODAY].correct += correct;
+            existing[TODAY].duration += duration; existing[TODAY].sessions += 1;
+            existing[TODAY].timestamp = new Date().toISOString();
+            localStorage.setItem(BONUS_KEY, JSON.stringify(existing));
+            localStorage.setItem(CONFIG.studentLower + '_bonus_signal', JSON.stringify({ date: TODAY, answered: existing[TODAY].answered, correct: existing[TODAY].correct }));
+        } catch (e) {}
+        try {
+            fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({
+                action: 'saveDailyTracking', date: TODAY, student: CONFIG.student,
+                bonusPractice: true, bonusAnswered: answered, bonusCorrect: correct, bonusDuration: duration
+            }) });
+        } catch (e) {}
+    }
+
+    window.addEventListener('beforeunload', () => { if (answered > 0) save(); });
+    </script>
+</body>
+</html>
