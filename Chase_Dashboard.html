@@ -594,13 +594,44 @@
 <!-- Diagnostic Test Notification -->
 <div id="diagnosticSection" style="display:none;"></div>
 
+<!-- LEAP Countdown -->
+<div id="leapCountdown" style="background:linear-gradient(135deg, rgba(0,191,255,0.08) 0%, rgba(0,255,65,0.04) 100%); border:1px solid rgba(0,191,255,0.3); border-radius:10px; padding:14px 16px; margin-bottom:16px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <div style="font-size:11px; color:#00bfff; font-weight:700; text-transform:uppercase; letter-spacing:1px;">LEAP Prep Mode</div>
+    <div style="font-size:22px; color:var(--accent); font-weight:700;" id="leapDaysLeft"></div>
+  </div>
+  <div style="font-size:12px; color:var(--text-dim);" id="leapDateDisplay"></div>
+  <div id="leapWeaknessAreas" style="margin-top:8px; font-size:12px; color:#00bfff; display:none;">
+    <strong>Focus Areas:</strong> <span id="leapWeaknessList"></span>
+  </div>
+</div>
+<script>
+(function(){
+  const leapDate = new Date('2026-04-23');
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const days = Math.ceil((leapDate - today) / 86400000);
+  document.getElementById('leapDaysLeft').textContent = days + ' days';
+  document.getElementById('leapDateDisplay').textContent = 'LEAP Test: April 23, 2026';
+  if (days <= 0) document.getElementById('leapCountdown').style.display = 'none';
+  fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec?action=getWeaknessProfile&student=Chase')
+    .then(r=>r.json()).then(p=>{
+      if(p&&p.weaknesses){
+        const areas=[];
+        Object.values(p.weaknesses).forEach(w=>{if(Array.isArray(w))w.forEach(x=>{if(x.skill)areas.push(x.skill)})});
+        if(areas.length>0){document.getElementById('leapWeaknessList').textContent=areas.slice(0,5).join(', ');document.getElementById('leapWeaknessAreas').style.display='block';}
+      }
+    }).catch(()=>{});
+})();
+</script>
+
 <div class="daily-stack">
   <div class="task-item" id="task-session" onclick="startSession()" style="margin-top:8px;">
     <span class="task-icon">&#128214;</span>
     <div class="task-check"></div>
     <div class="task-info">
       <div class="task-name">Today's Discovery</div>
-      <div class="task-detail">Your daily adventure — Reading, Questions & Writing</div>
+      <div class="task-detail">Today's Mission — ELA, Math, Science & Social Studies (~50 min)</div>
       <a class="task-launch" href="DailySession_Chase.html" onclick="event.stopPropagation();">Begin Expedition</a>
     </div>
     <div class="task-status">PENDING</div>

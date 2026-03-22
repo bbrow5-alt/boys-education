@@ -1210,6 +1210,15 @@
 
             <!-- JACOB TAB -->
             <div id="jacob" class="tab-content active">
+                <!-- LEAP Countdown -->
+                <div id="jacobLeapCountdown" style="background:linear-gradient(135deg, rgba(92,164,232,0.08) 0%, rgba(201,168,76,0.05) 100%); border:1px solid rgba(92,164,232,0.3); border-radius:10px; padding:12px 16px; margin-bottom:16px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-size:11px; color:#5ca4e8; font-weight:700; text-transform:uppercase; letter-spacing:1px;">LEAP Prep</div>
+                    <div style="font-size:18px; color:#f59e0b; font-weight:700;" id="jacobLeapDays"></div>
+                  </div>
+                  <div style="font-size:11px; color:#9ca3af;">Jacob's LEAP: May 2, 2026</div>
+                </div>
+
                 <!-- Today's Status -->
                 <div class="section-title">Today's Status</div>
                 <div class="today-status">
@@ -1327,6 +1336,15 @@
 
             <!-- CHASE TAB -->
             <div id="chase" class="tab-content">
+                <!-- LEAP Countdown -->
+                <div id="chaseLeapCountdown" style="background:linear-gradient(135deg, rgba(0,191,255,0.08) 0%, rgba(0,255,65,0.04) 100%); border:1px solid rgba(0,191,255,0.3); border-radius:10px; padding:12px 16px; margin-bottom:16px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-size:11px; color:#00bfff; font-weight:700; text-transform:uppercase; letter-spacing:1px;">LEAP Prep</div>
+                    <div style="font-size:18px; color:#f59e0b; font-weight:700;" id="chaseLeapDays"></div>
+                  </div>
+                  <div style="font-size:11px; color:#9ca3af;">Chase's LEAP: April 23, 2026</div>
+                </div>
+
                 <!-- Today's Status -->
                 <div class="section-title">Today's Status</div>
                 <div class="today-status">
@@ -3307,6 +3325,19 @@
             });
             document.getElementById('lastUpdated').textContent = timeStr;
         }
+
+        // LEAP Countdown
+        (function() {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const jacobDays = Math.ceil((new Date('2026-05-02') - today) / 86400000);
+            const chaseDays = Math.ceil((new Date('2026-04-23') - today) / 86400000);
+            const jEl = document.getElementById('jacobLeapDays');
+            const cEl = document.getElementById('chaseLeapDays');
+            if (jEl) jEl.textContent = jacobDays > 0 ? jacobDays + ' days' : 'DONE';
+            if (cEl) cEl.textContent = chaseDays > 0 ? chaseDays + ' days' : 'DONE';
+            if (jacobDays <= 0 && document.getElementById('jacobLeapCountdown')) document.getElementById('jacobLeapCountdown').style.display = 'none';
+            if (chaseDays <= 0 && document.getElementById('chaseLeapCountdown')) document.getElementById('chaseLeapCountdown').style.display = 'none';
+        })();
 
         // Initialize
         loadAllData();
