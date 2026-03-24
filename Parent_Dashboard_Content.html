@@ -1711,7 +1711,7 @@
             return result;
         }
 
-        // Load all data
+        // Load all data — batch endpoint (1 request instead of 22)
         async function loadAllData() {
             const loading = document.getElementById('loading');
             const content = document.getElementById('content');
@@ -1720,35 +1720,73 @@
             content.style.display = 'none';
 
             try {
-                const data = {};
-                for (const student of STUDENTS) {
-                    const [sessionHistory, dailyTracking, leapScores, schoolGrades, assessments, diagnosticResults, paymentBalance, paymentLedger, screenTime, contributorRates, payoutHistory] = await Promise.all([
-                        fetchData('getSessionHistory', student),
-                        fetchData('getDailyTracking', student),
-                        fetchData('getLeapScores', student),
-                        fetchData('getSchoolGrades', student),
-                        fetchData('getAssessments', student),
-                        fetchData('getDiagnosticResults', student),
-                        fetchData('getPaymentBalance', student),
-                        fetchData('getPaymentLedger', student),
-                        fetchData('getScreenTime', student),
-                        fetchData('getContributorRates', student),
-                        fetchData('getPayoutHistory', student)
-                    ]);
+                let data = {};
 
-                    data[student] = {
-                        sessionHistory: sessionHistory || [],
-                        dailyTracking: transformDailyTracking(dailyTracking),
-                        leapScores: leapScores || [],
-                        schoolGrades: schoolGrades || [],
-                        assessments: assessments || [],
-                        diagnosticResults: diagnosticResults || [],
-                        paymentBalance: paymentBalance || {},
-                        paymentLedger: paymentLedger || [],
-                        screenTime: screenTime || [],
-                        contributorRates: contributorRates || [],
-                        payoutHistory: payoutHistory || []
-                    };
+                // Try batch endpoint first (V12+), fall back to individual calls
+                try {
+                    const batchUrl = `${APPS_SCRIPT_URL}?action=getDashboardData&students=${STUDENTS.join(',')}`;
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 30000);
+                    const response = await fetch(batchUrl, { signal: controller.signal });
+                    clearTimeout(timeout);
+                    if (response.ok) {
+                        const batchData = await response.json();
+                        if (batchData && !batchData.error) {
+                            STUDENTS.forEach(student => {
+                                const sd = batchData[student] || {};
+                                data[student] = {
+                                    sessionHistory: sd.sessionHistory || [],
+                                    dailyTracking: transformDailyTracking(sd.dailyTracking),
+                                    leapScores: sd.leapScores || [],
+                                    schoolGrades: sd.schoolGrades || [],
+                                    assessments: sd.assessments || [],
+                                    diagnosticResults: sd.diagnosticResults || [],
+                                    paymentBalance: sd.paymentBalance || {},
+                                    paymentLedger: sd.paymentLedger || [],
+                                    screenTime: sd.screenTime || [],
+                                    contributorRates: sd.contributorRates || [],
+                                    payoutHistory: sd.payoutHistory || []
+                                };
+                            });
+                            console.log('Batch load succeeded (1 request)');
+                        } else {
+                            throw new Error('Batch returned error: ' + (batchData.error || 'unknown'));
+                        }
+                    } else {
+                        throw new Error('Batch HTTP ' + response.status);
+                    }
+                } catch (batchErr) {
+                    console.warn('Batch load failed, falling back to individual calls:', batchErr.message);
+                    // Fallback: individual calls (works with V11 and earlier)
+                    for (const student of STUDENTS) {
+                        const [sessionHistory, dailyTracking, leapScores, schoolGrades, assessments, diagnosticResults, paymentBalance, paymentLedger, screenTime, contributorRates, payoutHistory] = await Promise.all([
+                            fetchData('getSessionHistory', student),
+                            fetchData('getDailyTracking', student),
+                            fetchData('getLeapScores', student),
+                            fetchData('getSchoolGrades', student),
+                            fetchData('getAssessments', student),
+                            fetchData('getDiagnosticResults', student),
+                            fetchData('getPaymentBalance', student),
+                            fetchData('getPaymentLedger', student),
+                            fetchData('getScreenTime', student),
+                            fetchData('getContributorRates', student),
+                            fetchData('getPayoutHistory', student)
+                        ]);
+
+                        data[student] = {
+                            sessionHistory: sessionHistory || [],
+                            dailyTracking: transformDailyTracking(dailyTracking),
+                            leapScores: leapScores || [],
+                            schoolGrades: schoolGrades || [],
+                            assessments: assessments || [],
+                            diagnosticResults: diagnosticResults || [],
+                            paymentBalance: paymentBalance || {},
+                            paymentLedger: paymentLedger || [],
+                            screenTime: screenTime || [],
+                            contributorRates: contributorRates || [],
+                            payoutHistory: payoutHistory || []
+                        };
+                    }
                 }
 
                 allData = data;
