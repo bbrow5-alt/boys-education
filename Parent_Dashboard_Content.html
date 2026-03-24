@@ -1782,17 +1782,12 @@
 
             const todayData = daily[todayStr] || {};
             const sessionComplete = todayData.session === true;
-            const practiceComplete = todayData.practice === true;
-            const readingComplete = todayData.reading === true;
-            const allComplete = sessionComplete && practiceComplete && readingComplete;
+            const allComplete = sessionComplete;
 
-            // Calculate today's points from dailyTracking (3 pts per completed task + bonuses)
+            // Points: session-only since LEAP overhaul (Mar 22)
             let todayPoints = 0;
             if (sessionComplete) todayPoints += 3;
-            if (practiceComplete) todayPoints += 3;
-            if (readingComplete) todayPoints += 2;
             todayPoints += (todayData.sessionBonus || 0) * 3;
-            todayPoints += (todayData.practiceBonus || 0) * 3;
 
             // Calculate streak from dailyTracking — a day counts if ALL 3 tasks are done
             // Skip off-days per student schedule (Jacob: Sat/Sun off, Chase: Fri/Sat off)
@@ -1805,7 +1800,7 @@
                 if (!isActiveSchoolDay(student, dow)) continue;
                 const checkStr = checkDate.toISOString().split('T')[0];
                 const dayData = daily[checkStr];
-                if (dayData && dayData.session && dayData.practice && dayData.reading) {
+                if (dayData && dayData.session) {
                     streak++;
                 } else if (i === 0) {
                     // Today not complete yet — check from yesterday
@@ -1826,15 +1821,7 @@
             const tasksHtml = `
                 <div class="task-item">
                     <span class="task-check ${sessionComplete ? 'complete' : 'incomplete'}">${sessionComplete ? '\u2713' : '\u25CB'}</span>
-                    <span>Daily Session</span>
-                </div>
-                <div class="task-item">
-                    <span class="task-check ${practiceComplete ? 'complete' : 'incomplete'}">${practiceComplete ? '\u2713' : '\u25CB'}</span>
-                    <span>Practice Module</span>
-                </div>
-                <div class="task-item">
-                    <span class="task-check ${readingComplete ? 'complete' : 'incomplete'}">${readingComplete ? '\u2713' : '\u25CB'}</span>
-                    <span>Reading Timer</span>
+                    <span>Daily Session (50 min, 5 subjects)</span>
                 </div>
             `;
             document.getElementById(`${prefix}-tasks`).innerHTML = tasksHtml;
@@ -1863,14 +1850,14 @@
 
                 // Only count active school days per student
                 if (isActiveSchoolDay(student, dow)) {
-                    const allTasksDone = dayData.session && dayData.practice && dayData.reading;
-                    if (allTasksDone) weeklyCompleteCount++;
+                    const dayComplete = !!dayData.session;
+                    if (dayComplete) weeklyCompleteCount++;
 
                     gridHtml += `
                         <div class="day-cell">
                             <div class="day-label">${getDayLabel(dateKey)}</div>
                             <div class="day-value">${formatDate(dateKey).split(' ')[1]}</div>
-                            <div class="day-indicator">${allTasksDone ? '\u2713' : '\u2014'}</div>
+                            <div class="day-indicator">${dayComplete ? '\u2713' : '\u2014'}</div>
                         </div>
                     `;
                 }
@@ -1908,8 +1895,7 @@
                 const dow = cellDate.getDay();
 
                 if (isActiveSchoolDay(student, dow)) {
-                    const allTasksDone = dayData.session && dayData.practice && dayData.reading;
-                    if (allTasksDone) {
+                    if (dayData.session) {
                         weeklyCompleteCount++;
                     } else {
                         missedDays.push(getDayLabel(dateKey));
@@ -2047,7 +2033,7 @@
                 const dd = daily[d];
                 if (dd) {
                     totalDays++;
-                    if (dd.session && dd.practice && dd.reading) completeDays++;
+                    if (dd.session) completeDays++;
                 }
             });
             const weekCompletionRate = totalDays > 0 ? Math.round((completeDays / totalDays) * 100) : 0;
@@ -2186,7 +2172,7 @@
                     const dow = new Date(d + 'T00:00:00').getDay();
                     dayOfWeekTotal[dow]++;
                     const dd = daily[d];
-                    if (dd && dd.session && dd.practice && dd.reading) dayOfWeekCompletion[dow]++;
+                    if (dd && dd.session) dayOfWeekCompletion[dow]++;
                 });
 
                 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -2513,7 +2499,7 @@
 
                     if (isActiveSchoolDay(student, dow)) {
                         totalDays++;
-                        if (dd.session && dd.practice && dd.reading) {
+                        if (dd.session) {
                             totalComplete++;
                             currentStreak++;
                             if (currentStreak > longestStreak) longestStreak = currentStreak;
@@ -2574,7 +2560,7 @@
                 if (!weeks[weekKey]) weeks[weekKey] = { complete: 0, total: 0 };
                 weeks[weekKey].total++;
                 const dd = daily[d];
-                if (dd.session && dd.practice && dd.reading) weeks[weekKey].complete++;
+                if (dd.session) weeks[weekKey].complete++;
             });
 
             const sortedWeeks = Object.keys(weeks).sort();
@@ -2622,7 +2608,7 @@
                 const dow = dt.getDay();
                 // Only count active school days for streak
                 if (isActiveSchoolDay(student, dow)) {
-                    if (dd && dd.session && dd.practice && dd.reading) { streak++; } else { streak = 0; }
+                    if (dd && dd.session) { streak++; } else { streak = 0; }
                 }
                 return streak;
             });
@@ -2807,8 +2793,7 @@
                 const dow = cellDate.getDay();
 
                 if (isActiveSchoolDay(student, dow)) {
-                    const allTasksDone = dayData.session && dayData.practice && dayData.reading;
-                    if (allTasksDone) {
+                    if (dayData.session) {
                         weeklyCompleteCount++;
                     } else {
                         missedDays.push(getDayLabel(dateKey));
