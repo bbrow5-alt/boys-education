@@ -1673,7 +1673,7 @@
                     ? `${APPS_SCRIPT_URL}?action=${action}&student=${student}`
                     : `${APPS_SCRIPT_URL}?action=${action}`;
                 const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 10000);
+                const timeout = setTimeout(() => controller.abort(), 30000);
                 const response = await fetch(url, { signal: controller.signal });
                 clearTimeout(timeout);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -2856,6 +2856,7 @@
 
             // Build rate lookup from backend ($/point)
             const rateMap = {};
+            const rates = allData[student]?.contributorRates || [];
             if (Array.isArray(rates) && rates.length > 0) {
                 rates.forEach(r => {
                     const contributor = r.Contributor || r.contributor || r.Payer || '';
