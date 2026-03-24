@@ -284,9 +284,9 @@
     }
 
     const PHASES = [
-        { id: 'ela_reading', name: 'ELA Reading', icon: '\u{1F4D6}', minutes: 15, questionCount: 5,
+        { id: 'ela_reading', name: 'ELA Reading', icon: '\u{1F4D6}', minutes: 15, questionCount: 6,
           description: 'Read a passage and answer comprehension questions' },
-        { id: 'ela_language', name: 'ELA Language', icon: '\u270D\uFE0F', minutes: 8, questionCount: 4,
+        { id: 'ela_language', name: 'ELA Language', icon: '\u270D\uFE0F', minutes: 8, questionCount: 5,
           description: IS_WEDNESDAY ? 'Grammar, vocabulary, and a writing prompt' : 'Grammar, vocabulary, and language skills' },
         { id: 'math', name: 'Mathematics', icon: '\u{1F522}', minutes: 12, questionCount: 6,
           description: 'Grade 5 math problems' },
@@ -328,15 +328,56 @@
                 { text: 'According to the passage, what was the hardest part of teaching Atlas to backflip?', options: ['Building strong enough legs','Programming the flip motion','Teaching it to land without falling','Getting enough speed'], correct: 2, explanation: 'Engineers said "the hardest part wasn\'t the flip itself, but teaching Atlas to land without falling over."', standard: 'RI.5.1' }
             ],
             writingPrompt: 'If you could design a robot to help with one task at home or school, what would it do? Describe how it would work and why it would be useful. Use at least two details about how the robot\'s sensors or systems would function.'
+        },
+        {
+            title: 'The Science of Rocket Fuel',
+            passage: '<p>Getting a rocket off the ground requires an incredible amount of energy. A single Space Shuttle launch burned through 500,000 gallons of liquid fuel in just eight and a half minutes. Understanding why rockets need so much fuel reveals fascinating science about how forces work.</p><p>Rockets operate on Newton\'s Third Law: for every action, there is an equal and opposite reaction. When hot gases shoot downward out of the engine, the rocket is pushed upward. The faster and harder the gases are expelled, the greater the thrust pushing the rocket into the sky.</p><p>Most rockets use two types of fuel that must be mixed together. Liquid hydrogen serves as the fuel, while liquid oxygen serves as the oxidizer — the substance that allows the fuel to burn. In space, there is no air, so rockets must carry their own oxygen supply. This is why rockets are so massive: they\'re mostly fuel tanks.</p><p>Engineers have experimented with alternative propulsion methods. Ion engines use electrically charged particles instead of chemical reactions. They produce very little thrust — about the force of a sheet of paper resting on your hand — but they can run continuously for months or years. NASA\'s Dawn spacecraft used ion engines to visit two asteroids, gradually accelerating to incredible speeds.</p><p>The dream of space exploration depends on solving the fuel problem. Current chemical rockets are powerful but inefficient. Future technologies like nuclear thermal propulsion could cut travel time to Mars in half, making human missions far more practical.</p>',
+            questions: [
+                { text: 'According to the passage, why must rockets carry their own oxygen?', options: ['Oxygen makes the rocket lighter','Astronauts need to breathe','There is no air in space for fuel to burn','It keeps the fuel tanks cold'], correct: 2, explanation: 'The passage states "In space, there is no air, so rockets must carry their own oxygen supply."', standard: 'RI.5.1' },
+                { text: 'What does the word "expelled" most likely mean in this passage?', options: ['Stored inside','Pushed out forcefully','Heated up','Mixed together'], correct: 1, explanation: '"Expelled" means forced out. Context: gases are shot out of the engine to create thrust.', standard: 'RI.5.4' },
+                { type: 'ebsr', standard: 'RI.5.1',
+                  partA: { text: 'Why are ion engines useful despite producing very little thrust?', options: ['They are cheaper to build','They can run continuously for months or years, building up speed','They work better in Earth\'s atmosphere','They use liquid hydrogen'], correct: 1 },
+                  partB: { text: 'Which detail from the passage BEST supports your answer?', options: ['Most rockets use two types of fuel.','A single Space Shuttle launch burned 500,000 gallons.','They produce very little thrust — about the force of a sheet of paper resting on your hand — but they can run continuously for months or years.','Future technologies like nuclear thermal propulsion could cut travel time.'], correct: 2 },
+                  explanation: 'The passage directly explains that ion engines compensate for low thrust with continuous operation over long periods.' },
+                { text: 'What is the main idea of this passage?', options: ['Ion engines are better than chemical rockets.','Rocket fuel science is key to space exploration, and engineers seek better solutions.','The Space Shuttle was the best rocket ever built.','Newton\'s Third Law only applies to rockets.'], correct: 1, explanation: 'The passage covers current fuel challenges and future solutions — the central theme is that fuel technology drives space exploration forward.', standard: 'RI.5.2' },
+                { text: 'How does the author organize the information in this passage?', options: ['By comparing only two types of engines','In chronological order from oldest to newest','By explaining a problem, current solutions, and future possibilities','By listing random facts about space'], correct: 2, explanation: 'The passage moves from the fuel challenge → current technology → alternatives → future solutions.', standard: 'RI.5.5' },
+                { text: 'Based on the passage, what can you infer about the future of space travel?', options: ['Chemical rockets will always be used','New fuel technologies will make longer missions possible','Ion engines will replace all chemical rockets immediately','Space travel will become impossible'], correct: 1, explanation: 'The passage discusses nuclear thermal propulsion cutting Mars travel time in half, implying new technologies will enable longer missions.', standard: 'RI.5.2' }
+            ],
+            writingPrompt: 'If you could design a new type of rocket engine, what would it use for fuel and why? Explain how your design would improve on current rocket technology. Use at least two scientific details from the passage or your own knowledge.'
+        },
+        {
+            title: 'How Bridges Hold Up the World',
+            passage: '<p>Every bridge you cross is a battle against gravity. Engineers must figure out how to support enormous weight — cars, trucks, trains, and the bridge itself — across open space where there is nothing underneath to hold it up. The solutions they have developed over thousands of years are a testament to human ingenuity.</p><p>The simplest type is the beam bridge: a flat structure resting on supports at each end. A plank across a stream is a beam bridge. But beam bridges have a critical limitation — they can only span short distances before sagging under their own weight. This is why highway overpasses, which are beam bridges, need support columns every 100 to 200 feet.</p><p>Arch bridges solve this problem by curving the structure into an arc. The curve distributes weight along the entire span, transferring force into the ground at each end. The Romans mastered arch bridges over 2,000 years ago, and many of their bridges still stand today. The stone arch is incredibly durable because every stone is in compression — being squeezed together — which stone handles extremely well.</p><p>For truly long spans, engineers turn to suspension bridges. Steel cables draped from tall towers support the roadway below. The Golden Gate Bridge spans 4,200 feet using this method. The cables transfer the bridge\'s weight to the towers, which push the force straight down into bedrock. Each of the Golden Gate\'s main cables contains 27,572 individual wires bundled together.</p><p>The most modern approach is the cable-stayed bridge, where cables run directly from towers to the deck without the drooping main cable of a suspension bridge. These bridges are faster and cheaper to build, making them increasingly popular worldwide.</p>',
+            questions: [
+                { text: 'What is the main limitation of beam bridges?', options: ['They are too expensive','They can only span short distances before sagging','They cannot hold any weight','They need too many cables'], correct: 1, explanation: 'The passage states beam bridges "can only span short distances before sagging under their own weight."', standard: 'RI.5.1' },
+                { text: 'What does the word "testament" mean in the first paragraph?', options: ['A type of bridge','A legal document','Proof or evidence of something','A religious text'], correct: 2, explanation: '"Testament" here means evidence/proof. The passage says bridge solutions are "a testament to human ingenuity" — meaning they prove how clever humans are.', standard: 'RI.5.4' },
+                { text: 'Why are Roman stone arch bridges so durable?', options: ['Romans used special cement','Every stone is in compression, which stone handles well','They are very short spans','They were built underground'], correct: 1, explanation: 'The passage explains that in arch bridges, "every stone is in compression — being squeezed together — which stone handles extremely well."', standard: 'RI.5.1' },
+                { text: 'How does a suspension bridge transfer weight to the ground?', options: ['Through underwater tunnels','Cables transfer weight to towers, which push force into bedrock','The road floats on water','Magnets hold it up'], correct: 1, explanation: 'The passage states "cables transfer the bridge\'s weight to the towers, which push the force straight down into bedrock."', standard: 'RI.5.3' },
+                { text: 'What text structure does the author use to organize this passage?', options: ['Cause and effect','Problem and solution','Chronological order of bridge types from simple to complex','Compare and contrast only'], correct: 2, explanation: 'The passage progresses from the simplest (beam) to more complex (arch, suspension, cable-stayed) bridge types — a chronological/sequential structure.', standard: 'RI.5.5' },
+                { text: 'Based on the passage, why are cable-stayed bridges becoming more popular?', options: ['They look more attractive','They are faster and cheaper to build than suspension bridges','They are stronger than all other types','They were invented most recently'], correct: 1, explanation: 'The passage states cable-stayed bridges "are faster and cheaper to build, making them increasingly popular."', standard: 'RI.5.2' }
+            ],
+            writingPrompt: 'If you had to design a bridge to cross a wide river, which type of bridge would you choose and why? Explain the engineering advantages of your choice using details from the passage.'
         }
     ];
 
     const FALLBACK_QUESTIONS = {
         ela_language: [
+            // Vocab-in-context with polysemous words (RI.4/RL.4) — Chase's ELA gap
+            { text: 'The pitcher of water was left on the table all afternoon. What does "pitcher" mean here?', options: ['A baseball player who throws','A container for pouring liquid','A person who sells things','A type of plant'], correct: 1, explanation: '"Pitcher" here means a container for liquid. Context: "of water" and "left on the table" describe a container, not a person.', standard: 'RI.5.4' },
+            { text: 'The explorer had to SCALE the mountain to reach the camp. What does "scale" mean here?', options: ['A device for measuring weight','The outer covering of a fish','To climb up','A system of musical notes'], correct: 2, explanation: '"Scale" as a verb means to climb. Context: reaching a mountain camp requires climbing.', standard: 'RI.5.4' },
+            { text: 'The coach said the team needs to ADDRESS its weaknesses before the big game. What does "address" mean here?', options: ['A location where someone lives','To speak to a group','To deal with or work on','To write on an envelope'], correct: 2, explanation: '"Address" here means to deal with/work on. Context: the team needs to fix their weaknesses.', standard: 'RL.5.4' },
+            { text: 'After the long race, the runner felt completely SPENT. What does "spent" mean here?', options: ['Used money','Exhausted or used up','Moved quickly','Happy and excited'], correct: 1, explanation: '"Spent" here means exhausted — all energy used up. Context: feeling this way after a long race.', standard: 'RL.5.4' },
+            // Subject-verb agreement (L.5.1)
             { text: 'Which sentence has correct subject-verb agreement?', options: ['The dogs runs fast.','The dogs run fast.','The dogs is running fast.','The dogs be fast.'], correct: 1, explanation: 'Plural subject "dogs" requires plural verb "run."', standard: 'L.5.1' },
+            { text: 'Choose the sentence with correct pronoun usage.', options: ['Me and Jake went to the store.','Jake and me went to the store.','Jake and I went to the store.','I and Jake went to the store.'], correct: 2, explanation: 'Use "I" (not "me") as a subject. Put yourself second: "Jake and I."', standard: 'L.5.1' },
+            // Text structure (RI.5)
+            { text: 'Which signal words indicate a compare-and-contrast text structure?', options: ['"Because, therefore, as a result"','"First, next, then, finally"','"However, similarly, on the other hand, unlike"','"The problem is, the solution was"'], correct: 2, explanation: 'Words like "however," "similarly," "unlike," and "on the other hand" signal comparison and contrast.', standard: 'RI.5.5' },
+            // Punctuation (L.5.2)
+            { text: 'Choose the correctly punctuated sentence.', options: ['Lets go to the store said Mom.','Let\'s go to the store," said Mom.','Let\'s go to the store, said Mom.','"Let\'s go to the store," said Mom.'], correct: 3, explanation: 'Direct quotes need quotation marks around the spoken words with comma before the tag.', standard: 'L.5.2' },
+            // Prefix/suffix (L.5.4)
             { text: 'What does the prefix "un-" mean in the word "unhappy"?', options: ['Very','Not','Again','Before'], correct: 1, explanation: 'The prefix "un-" means "not," so unhappy means not happy.', standard: 'L.5.4' },
-            { text: 'Which word is an antonym of "generous"?', options: ['Kind','Selfish','Giving','Wealthy'], correct: 1, explanation: 'An antonym is the opposite. Selfish is the opposite of generous.', standard: 'L.5.5' },
-            { text: 'Choose the correctly punctuated sentence.', options: ['Lets go to the store said Mom.','Let\'s go to the store," said Mom.','Let\'s go to the store, said Mom.','"Let\'s go to the store," said Mom.'], correct: 3, explanation: 'Direct quotes need quotation marks around the spoken words with comma before the tag.', standard: 'L.5.2' }
+            // Antonyms/synonyms (L.5.5)
+            { text: 'Which word is an antonym of "generous"?', options: ['Kind','Selfish','Giving','Wealthy'], correct: 1, explanation: 'An antonym is the opposite. Selfish is the opposite of generous.', standard: 'L.5.5' }
         ],
         math: [
             { text: 'What is 3/4 + 1/2?', options: ['4/6','1','5/4','1 1/4'], correct: 2, explanation: 'Convert 1/2 to 2/4, then 3/4 + 2/4 = 5/4.', standard: '5.NF.1' },
@@ -411,12 +452,32 @@
         document.getElementById(id).classList.add('active');
     }
 
-    async function loadWeaknessProfile() {
+    // AI CONTENT HELPER (GET-based — proven to work with Apps Script CORS)
+    async function aiGet(action, params, timeoutMs) {
+        timeoutMs = timeoutMs || 20000;
         try {
-            const resp = await fetch(APPS_SCRIPT_URL + '?action=getWeaknessProfile&student=' + CONFIG.student, { signal: AbortSignal.timeout(8000) });
-            if (resp.ok) { weaknessProfile = await resp.json(); return; }
+            var url = APPS_SCRIPT_URL + '?action=' + encodeURIComponent(action);
+            var keys = Object.keys(params);
+            for (var i = 0; i < keys.length; i++) {
+                var k = keys[i];
+                var v = params[k];
+                if (v !== undefined && v !== null) {
+                    url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(Array.isArray(v) ? v.join(',') : String(v));
+                }
+            }
+            var resp = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+            if (resp.ok) return await resp.json();
         } catch (e) {}
-        weaknessProfile = { student: CONFIG.student, weaknesses: {}, strengths: {} };
+        return null;
+    }
+
+    async function loadWeaknessProfile() {
+        var data = await aiGet('getWeaknessProfile', { student: CONFIG.student }, 8000);
+        if (data && !data.error) {
+            weaknessProfile = data;
+        } else {
+            weaknessProfile = { student: CONFIG.student, weaknesses: {}, strengths: {} };
+        }
     }
 
     function getTargetStandards(phaseId) {
@@ -470,17 +531,48 @@
 
     async function loadELAReading() {
         document.getElementById('readingArea').style.display = 'block';
-        try {
-            await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({ action: 'generatePassage', student: CONFIG.studentLower, topic: null,
-                    standards: getTargetStandards('ela_reading'), difficulty: getDifficulty('ela_reading'),
-                    includeEBSR: true, mode: CONFIG.mode }) });
-        } catch (e) {}
-        const fb = FALLBACK_PASSAGES[Math.floor(Math.random() * FALLBACK_PASSAGES.length)];
-        currentPassage = fb; currentQuestions = fb.questions;
-        document.getElementById('readingTitle').textContent = fb.title;
-        document.getElementById('readingContent').innerHTML = fb.passage;
-        const words = fb.passage.replace(/<[^>]+>/g, '').split(/\s+/).length;
+        document.getElementById('questionArea').style.display = 'none';
+
+        var passage = null;
+        var standards = getTargetStandards('ela_reading');
+
+        var data = await aiGet('generatePassage', {
+            student: CONFIG.studentLower,
+            standards: standards,
+            difficulty: getDifficulty('ela_reading'),
+            includeEBSR: 'true',
+            mode: CONFIG.mode
+        });
+
+        if (data && data.title && data.questions && data.questions.length > 0) {
+            passage = {
+                title: data.title,
+                passage: data.passage,
+                writingPrompt: data.writingPrompt || null,
+                questions: data.questions.map(function(q) {
+                    return {
+                        text: q.question || q.text,
+                        options: (q.options || []).map(function(o) { return o.replace(/^[A-D]\)\s*/, ''); }),
+                        correct: q.correctAnswer !== undefined ? q.correctAnswer : q.correct,
+                        explanation: q.explanation || '',
+                        standard: q.standard || '',
+                        type: q.type || null,
+                        partA: q.partA || null,
+                        partB: q.partB || null
+                    };
+                })
+            };
+        }
+
+        if (!passage) {
+            passage = FALLBACK_PASSAGES[Math.floor(Math.random() * FALLBACK_PASSAGES.length)];
+        }
+
+        currentPassage = passage;
+        currentQuestions = passage.questions;
+        document.getElementById('readingTitle').textContent = passage.title;
+        document.getElementById('readingContent').innerHTML = passage.passage;
+        var words = passage.passage.replace(/<[^>]+>/g, '').split(/\s+/).length;
         document.getElementById('wordCount').textContent = words;
         document.getElementById('readTime').textContent = Math.max(1, Math.round(words / 200));
     }
@@ -494,29 +586,55 @@
     }
 
     async function loadELALanguage() {
-        try {
-            await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({ action: 'generateContent', student: CONFIG.student, grade: CONFIG.grade,
-                    subject: 'ela_language', standards: getTargetStandards('ela_language'),
-                    difficulty: getDifficulty('ela_language'), mode: CONFIG.mode, count: IS_WEDNESDAY ? 3 : 4 }) });
-        } catch (e) {}
-        if (currentQuestions.length === 0) {
-            currentQuestions = [...FALLBACK_QUESTIONS.ela_language].sort(() => Math.random() - 0.5).slice(0, IS_WEDNESDAY ? 3 : 4);
+        var standards = getTargetStandards('ela_language');
+        var count = IS_WEDNESDAY ? 3 : 5;
+        currentQuestions = [];
+
+        var data = await aiGet('generateContent', {
+            student: CONFIG.student, grade: CONFIG.grade,
+            subject: 'ela_language', standards: standards,
+            difficulty: getDifficulty('ela_language'), mode: CONFIG.mode, count: count
+        });
+
+        if (data && data.questions && data.questions.length > 0) {
+            currentQuestions = data.questions;
         }
-        document.getElementById('questionArea').style.display = 'block';
-        displayQuestion(0);
+
+        if (currentQuestions.length === 0) {
+            var fb = FALLBACK_QUESTIONS.ela_language.slice();
+            for (var i = fb.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = fb[i]; fb[i] = fb[j]; fb[j] = t; }
+            currentQuestions = fb.slice(0, count);
+        }
+
+        if (IS_WEDNESDAY && currentPassage && currentPassage.writingPrompt) {
+            document.getElementById('questionArea').style.display = 'block';
+            displayQuestion(0);
+        } else {
+            document.getElementById('questionArea').style.display = 'block';
+            displayQuestion(0);
+        }
     }
 
     async function loadSubjectQuestions(subjectId, count) {
-        try {
-            await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({ action: 'generateContent', student: CONFIG.student, grade: CONFIG.grade,
-                    subject: subjectId, standards: getTargetStandards(subjectId),
-                    difficulty: getDifficulty(subjectId), mode: CONFIG.mode, count: count }) });
-        } catch (e) {}
-        if (currentQuestions.length === 0) {
-            currentQuestions = [...(FALLBACK_QUESTIONS[subjectId] || [])].sort(() => Math.random() - 0.5).slice(0, count);
+        var standards = getTargetStandards(subjectId);
+        currentQuestions = [];
+
+        var data = await aiGet('generateContent', {
+            student: CONFIG.student, grade: CONFIG.grade,
+            subject: subjectId, standards: standards,
+            difficulty: getDifficulty(subjectId), mode: CONFIG.mode, count: count
+        });
+
+        if (data && data.questions && data.questions.length > 0) {
+            currentQuestions = data.questions;
         }
+
+        if (currentQuestions.length === 0) {
+            var fb = (FALLBACK_QUESTIONS[subjectId] || []).slice();
+            for (var i = fb.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = fb[i]; fb[i] = fb[j]; fb[j] = t; }
+            currentQuestions = fb.slice(0, count);
+        }
+
         document.getElementById('questionArea').style.display = 'block';
         displayQuestion(0);
     }
