@@ -519,19 +519,25 @@
     // ═══════════════════════════════════════════════════════════
     async function aiGet(action, params, timeoutMs) {
         timeoutMs = timeoutMs || 20000;
-        try {
-            var url = APPS_SCRIPT_URL + '?action=' + encodeURIComponent(action);
-            var keys = Object.keys(params);
-            for (var i = 0; i < keys.length; i++) {
-                var k = keys[i];
-                var v = params[k];
-                if (v !== undefined && v !== null) {
-                    url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(Array.isArray(v) ? v.join(',') : String(v));
-                }
+        var url = APPS_SCRIPT_URL + '?action=' + encodeURIComponent(action);
+        var keys = Object.keys(params);
+        for (var i = 0; i < keys.length; i++) {
+            var k = keys[i];
+            var v = params[k];
+            if (v !== undefined && v !== null) {
+                url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(Array.isArray(v) ? v.join(',') : String(v));
             }
-            var resp = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
-            if (resp.ok) return await resp.json();
-        } catch (e) { /* timeout or network error — fall through to null */ }
+        }
+        // Try up to 2 attempts (retry once on 503 / network error)
+        for (var attempt = 0; attempt < 2; attempt++) {
+            try {
+                var resp = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+                if (resp.ok) return await resp.json();
+                if (resp.status === 503 && attempt === 0) { continue; } // retry once on 503
+            } catch (e) { /* timeout or network error */ }
+            if (attempt === 0 && timeoutMs >= 30000) continue; // retry long calls
+            break;
+        }
         return null;
     }
 
@@ -619,20 +625,26 @@
     // ELA READING PHASE
     // ═══════════════════════════════════════════════════════════
     async function loadELAReading() {
-        document.getElementById('readingArea').style.display = 'block';
         document.getElementById('questionArea').style.display = 'none';
+
+        // Show loading state while AI generates the passage
+        document.getElementById('readingArea').style.display = 'block';
+        document.getElementById('readingTitle').textContent = CONFIG.tutor + ' is writing your passage\u2026';
+        document.getElementById('readingContent').innerHTML = '<div style="text-align:center;padding:40px 0;"><div class="loading-spinner" style="margin:0 auto 16px;"></div><div style="color:#a89968;font-size:14px;">Generating a fresh passage just for you</div></div>';
+        document.getElementById('wordCount').textContent = '\u2014';
+        document.getElementById('readTime').textContent = '\u2014';
 
         var passage = null;
         var standards = getTargetStandards('ela_reading');
 
-        // Try AI generation via GET
+        // Try AI generation via GET — give Sonnet up to 45s
         var data = await aiGet('generatePassage', {
             student: CONFIG.studentLower,
             standards: standards,
             difficulty: getDifficulty('ela_reading'),
             includeEBSR: 'true',
             mode: CONFIG.mode
-        });
+        }, 45000);
 
         if (data && data.title && data.questions && data.questions.length > 0) {
             // Map AI response fields to frontend format
