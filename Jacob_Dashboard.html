@@ -636,7 +636,7 @@
 (function(){
   try {
     const d = JSON.parse(localStorage.getItem('jacob_bonus_practice') || '{}');
-    const today = new Date().toISOString().split('T')[0];
+    const _n = new Date(); const today = _n.getFullYear() + '-' + String(_n.getMonth()+1).padStart(2,'0') + '-' + String(_n.getDate()).padStart(2,'0');
     if (d[today] && d[today].answered > 0) {
       document.getElementById('bonusTodayCount').textContent = d[today].answered;
       document.getElementById('bonusStatsDisplay').style.display = 'block';
@@ -791,6 +791,11 @@ const STORAGE_KEY = 'jacob_dashboard_v3';
 const TIMER_KEY = 'jacob_timer_v2';
 const STUDENT_NAME = 'Jacob';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
+
+// Local date helper — avoids UTC offset issues with toISOString()
+function toLocalDateStr(d) {
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
 
 // --- Cloud Sync Module ---
 let SYNC_CONFIG = {
@@ -1791,7 +1796,7 @@ function checkDiagnosticReturn() {
   try {
     const signal = JSON.parse(localStorage.getItem('jacob_diagnostic_signal') || 'null');
     if (!signal || !signal.completed) return;
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDateStr(new Date());
     if (signal.date !== today) return;
 
     // Diagnostic replaces daily session — mark day complete
@@ -1813,7 +1818,7 @@ function renderDiagnosticSection() {
     return;
   }
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = toLocalDateStr(new Date());
 
   // Always show the LAST test in the array (most recent). It stays on the dashboard
   // whether completed or not, until a new test is added (which replaces it).
