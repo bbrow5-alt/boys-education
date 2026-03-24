@@ -1726,7 +1726,7 @@
                 try {
                     const batchUrl = `${APPS_SCRIPT_URL}?action=getDashboardData&students=${STUDENTS.join(',')}`;
                     const controller = new AbortController();
-                    const timeout = setTimeout(() => controller.abort(), 30000);
+                    const timeout = setTimeout(() => controller.abort(), 45000);
                     const response = await fetch(batchUrl, { signal: controller.signal });
                     clearTimeout(timeout);
                     if (response.ok) {
