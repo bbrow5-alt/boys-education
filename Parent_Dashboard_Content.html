@@ -1691,7 +1691,8 @@
             rows.forEach(row => {
                 let dateKey = row.Date;
                 if (dateKey instanceof Date || (typeof dateKey === 'string' && dateKey.includes('T'))) {
-                    dateKey = toLocalDateStr(new Date(dateKey));
+                    // API returns midnight UTC — use UTC date to avoid timezone shift
+                    dateKey = new Date(dateKey).toISOString().split('T')[0];
                 }
                 if (dateKey) {
                     // Support both 'Practice' (new) and 'Khan' (old) fields
