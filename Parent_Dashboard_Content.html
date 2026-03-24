@@ -1619,6 +1619,14 @@
         let chartInstances = {};
         // Analytics rendered per-student (no comparison mode)
 
+        // Local date helper — avoids UTC offset issues with toISOString()
+        function toLocalDateStr(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
         // Colors
         const COLORS = {
             jacob: '#c9a84c',
@@ -1683,7 +1691,7 @@
             rows.forEach(row => {
                 let dateKey = row.Date;
                 if (dateKey instanceof Date || (typeof dateKey === 'string' && dateKey.includes('T'))) {
-                    dateKey = new Date(dateKey).toISOString().split('T')[0];
+                    dateKey = toLocalDateStr(new Date(dateKey));
                 }
                 if (dateKey) {
                     // Support both 'Practice' (new) and 'Khan' (old) fields
@@ -1778,7 +1786,7 @@
             const daily = studentData.dailyTracking || {};
 
             const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
+            const todayStr = toLocalDateStr(today);
 
             const todayData = daily[todayStr] || {};
             const sessionComplete = todayData.session === true;
@@ -1798,7 +1806,7 @@
                 const dow = checkDate.getDay();
                 // Skip off-days — they don't break the streak
                 if (!isActiveSchoolDay(student, dow)) continue;
-                const checkStr = checkDate.toISOString().split('T')[0];
+                const checkStr = toLocalDateStr(checkDate);
                 const dayData = daily[checkStr];
                 if (dayData && dayData.session) {
                     streak++;
@@ -1844,7 +1852,7 @@
             for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
                 const cellDate = new Date(weekStart);
                 cellDate.setDate(cellDate.getDate() + dayOffset);
-                const dateKey = cellDate.toISOString().split('T')[0];
+                const dateKey = toLocalDateStr(cellDate);
                 const dayData = daily[dateKey] || {};
                 const dow = cellDate.getDay();
 
@@ -1890,7 +1898,7 @@
             for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
                 const cellDate = new Date(weekStart);
                 cellDate.setDate(cellDate.getDate() + dayOffset);
-                const dateKey = cellDate.toISOString().split('T')[0];
+                const dateKey = toLocalDateStr(cellDate);
                 const dayData = daily[dateKey] || {};
                 const dow = cellDate.getDay();
 
@@ -2044,7 +2052,7 @@
             for (let i = 0; i < sortedDatesDesc.length; i++) {
                 const expectedDate = new Date();
                 expectedDate.setDate(expectedDate.getDate() - i);
-                const expectedStr = expectedDate.toISOString().split('T')[0];
+                const expectedStr = toLocalDateStr(expectedDate);
                 if (sortedDatesDesc[i] === expectedStr && daily[sortedDatesDesc[i]].session) {
                     streak++;
                 } else {
@@ -2556,7 +2564,7 @@
 
                 const weekStart = new Date(dt);
                 weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-                const weekKey = weekStart.toISOString().split('T')[0];
+                const weekKey = toLocalDateStr(weekStart);
                 if (!weeks[weekKey]) weeks[weekKey] = { complete: 0, total: 0 };
                 weeks[weekKey].total++;
                 const dd = daily[d];
@@ -2788,7 +2796,7 @@
             for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
                 const cellDate = new Date(weekStart);
                 cellDate.setDate(cellDate.getDate() + dayOffset);
-                const dateKey = cellDate.toISOString().split('T')[0];
+                const dateKey = toLocalDateStr(cellDate);
                 const dayData = daily[dateKey] || {};
                 const dow = cellDate.getDay();
 
