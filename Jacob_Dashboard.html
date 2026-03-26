@@ -889,6 +889,10 @@ async function initializeSync() {
     const data = await fetchDailyTrackingFromSheet();
     if (data && Array.isArray(data) && data.length > 0) {
       mergeSheetDataIntoLocalStorage(data);
+      // Re-render after sync so new data shows immediately (not on next page load)
+      if (typeof render === 'function') render();
+      // Re-check diagnostic status now that synced data is in localStorage
+      if (typeof loadDiagnosticTests === 'function') loadDiagnosticTests();
     }
     syncState.isInitialized = true;
     updateSyncIndicator(true);
@@ -1831,6 +1835,11 @@ async function loadDiagnosticTests() {
   // When a new diagnostic is created, replace this single entry.
   const signalWeek3v2 = JSON.parse(localStorage.getItem('jacob_diagnostic_week3_v2_signal') || 'null');
   const isCompletedWeek3v2 = signalWeek3v2 && signalWeek3v2.completed && signalWeek3v2.testId === 'jacob_diagnostic_week3_math_mar2026_v2';
+  // Also check: if the diagnostic date has session=true and we're past the due date, treat as completed
+  // This handles cases where the signal was lost (different browser, cleared cache) but Sheet has the data
+  const diagDayData = getDayData('2026-03-23');
+  const pastDue = new Date() > new Date('2026-03-24');
+  const isCompletedFromSync = pastDue && diagDayData && diagDayData.session === true;
   diagnosticTests = [
     {
       TestLabel: 'March 23 Week 3 LEAP Diagnostic — Math Focus',
@@ -1838,8 +1847,8 @@ async function loadDiagnosticTests() {
       TestURL: 'Diagnostic_Test_Jacob_Week3_Math_March2026_v2.html',
       AvailableDate: '2026-03-23',
       DueDate: '2026-03-24',
-      Completed: isCompletedWeek3v2 ? 'TRUE' : 'FALSE',
-      CompletedDate: isCompletedWeek3v2 ? signalWeek3v2.date : '',
+      Completed: (isCompletedWeek3v2 || isCompletedFromSync) ? 'TRUE' : 'FALSE',
+      CompletedDate: isCompletedWeek3v2 ? signalWeek3v2.date : (isCompletedFromSync ? '2026-03-23' : ''),
       PointsAwarded: 15
     }
   ];

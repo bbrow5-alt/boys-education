@@ -905,6 +905,10 @@ async function initializeSync() {
     const data = await fetchDailyTrackingFromSheet();
     if (data && Array.isArray(data) && data.length > 0) {
       mergeSheetDataIntoLocalStorage(data);
+      // Re-render after sync so new data shows immediately (not on next page load)
+      if (typeof render === 'function') render();
+      // Re-check diagnostic status now that synced data is in localStorage
+      if (typeof loadDiagnosticTests === 'function') loadDiagnosticTests();
     }
     syncState.isInitialized = true;
     updateSyncIndicator(true);
