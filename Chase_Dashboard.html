@@ -946,8 +946,10 @@ function mergeSheetDataIntoLocalStorage(sheetRows) {
   const currentTimerData = JSON.parse(localStorage.getItem(SYNC_CONFIG.timerKey)) || {};
 
   sheetRows.forEach(row => {
-    const date = row.Date;
-    if (!date) return;
+    const rawDate = row.Date;
+    if (!rawDate) return;
+    // API returns ISO strings like "2026-03-23T05:00:00.000Z" — convert to local YYYY-MM-DD
+    const date = toLocalDateStr(new Date(rawDate));
 
     if (!currentData.days[date]) {
       currentData.days[date] = {};
