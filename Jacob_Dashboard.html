@@ -772,8 +772,8 @@
   <div class="section-title">— Weekly Payout —</div>
   <div style="text-align:center; margin-bottom:12px;">
     <div style="font-size:11px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Complete your daily session Mon–Fri to earn:</div>
-    <div style="font-size:36px; font-weight:bold; color:var(--success);" id="weeklyPayoutAmount">$50.00</div>
-    <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">$25 from Dad + $25 from Mom — paid Friday</div>
+    <div style="font-size:36px; font-weight:bold; color:var(--success);" id="weeklyPayoutAmount">$60.00</div>
+    <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">$25 from Dad + $25 from Mom + $10 from Gaga &amp; Papa — paid Friday</div>
   </div>
   <div class="contributor-grid" id="weeklyPayoutGrid">
     <div class="contributor-box">
@@ -783,6 +783,10 @@
     <div class="contributor-box">
       <div class="contributor-name">Mom</div>
       <div class="contributor-amount" id="momPayout">$25.00</div>
+    </div>
+    <div class="contributor-box">
+      <div class="contributor-name">Gaga &amp; Papa</div>
+      <div class="contributor-amount" id="gagaPayout">$10.00</div>
     </div>
   </div>
   <div id="weeklyComplianceStatus" style="text-align:center; padding:12px; margin-top:8px; border-radius:8px; font-size:14px;"></div>
@@ -1423,7 +1427,7 @@ function render() {
   if (weekdayComplete === 5) statusEl.textContent = 'PERFECT WEEK!';
   else if (weekdayComplete >= weekdaysPassed) statusEl.textContent = 'On track';
   else statusEl.textContent = weekdayComplete + ' of ' + weekdaysPassed + ' days done';
-  document.getElementById('meterNote').textContent = weekdayComplete === 5 ? '$50 earned!' : (5 - weekdayComplete) + ' more day(s) to earn $50';
+  document.getElementById('meterNote').textContent = weekdayComplete === 5 ? '$60 earned!' : (5 - weekdayComplete) + ' more day(s) to earn $60';
 
   // Weekly dots
   const dayNames = ['M','T','W','T','F','S','S'];
@@ -1655,7 +1659,7 @@ function renderWeeklyPayout() {
   if (compliance.isFullWeekComplete) {
     statusEl.style.background = 'rgba(127,176,105,0.15)';
     statusEl.style.color = '#7fb069';
-    statusEl.innerHTML = '&#10003; All 5 days complete! $50 earned this week.';
+    statusEl.innerHTML = '&#10003; All 5 days complete! $60 earned this week.';
     missedEl.style.display = 'none';
   } else if (compliance.isPerfect) {
     statusEl.style.background = 'rgba(201,168,76,0.1)';
@@ -1669,6 +1673,7 @@ function renderWeeklyPayout() {
     missedEl.style.display = 'block';
     document.getElementById('dadPayout').textContent = '?';
     document.getElementById('momPayout').textContent = '?';
+    document.getElementById('gagaPayout').textContent = '?';
     document.getElementById('weeklyPayoutAmount').textContent = '?';
   } else {
     statusEl.style.background = 'var(--accent-dim)';

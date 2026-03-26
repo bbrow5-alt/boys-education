@@ -2851,7 +2851,8 @@
             const isFullWeek = weeklyCompleteCount === 5;
             const dadAmount = isFullWeek ? 25.00 : 0.00;
             const momAmount = isFullWeek ? 25.00 : 0.00;
-            const totalAmount = dadAmount + momAmount;
+            const gagaAmount = isFullWeek ? 10.00 : 0.00;
+            const totalAmount = dadAmount + momAmount + gagaAmount;
             const statusText = isFullWeek ? `EARNED: $${totalAmount.toFixed(2)}` : `INCOMPLETE: ${5 - weeklyCompleteCount} days missed`;
 
             // Summary cards — Weekly Compliance View
@@ -2870,6 +2871,11 @@
                     <div class="balance-card">
                         <div class="balance-card-title">Mom</div>
                         <div class="balance-card-value">$${momAmount.toFixed(2)}</div>
+                        <div class="balance-card-secondary">${isFullWeek ? 'Earned' : 'Not earned'}</div>
+                    </div>
+                    <div class="balance-card">
+                        <div class="balance-card-title">Gaga &amp; Papa</div>
+                        <div class="balance-card-value">$${gagaAmount.toFixed(2)}</div>
                         <div class="balance-card-secondary">${isFullWeek ? 'Earned' : 'Not earned'}</div>
                     </div>
                     <div class="balance-card">

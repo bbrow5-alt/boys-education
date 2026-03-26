@@ -789,8 +789,8 @@
   <div class="section-title">— Weekly Payout —</div>
   <div style="text-align:center; margin-bottom:12px;">
     <div style="font-size:11px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Complete your daily session Sun–Thu to earn:</div>
-    <div style="font-size:36px; font-weight:bold; color:var(--success);" id="weeklyPayoutAmount">$50.00</div>
-    <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">$25 from Dad + $25 from Mom — paid Friday</div>
+    <div style="font-size:36px; font-weight:bold; color:var(--success);" id="weeklyPayoutAmount">$60.00</div>
+    <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">$25 from Dad + $25 from Mom + $10 from Gaga &amp; Papa — paid Thursday</div>
   </div>
   <div class="contributor-grid" id="weeklyPayoutGrid">
     <div class="contributor-box">
@@ -800,6 +800,10 @@
     <div class="contributor-box">
       <div class="contributor-name">Mom</div>
       <div class="contributor-amount" id="momPayout">$25.00</div>
+    </div>
+    <div class="contributor-box">
+      <div class="contributor-name">Gaga &amp; Papa</div>
+      <div class="contributor-amount" id="gagaPayout">$10.00</div>
     </div>
   </div>
   <div id="weeklyComplianceStatus" style="text-align:center; padding:12px; margin-top:8px; border-radius:8px; font-size:14px;"></div>
@@ -1419,7 +1423,7 @@ function render() {
     const remaining = 5 - completedDays;
     meterStatus.textContent = `${remaining} DAYS LEFT`;
     meterStatus.style.color = 'var(--text-dim)';
-    meterNote.textContent = remaining > 0 ? `FINISH THE WEEK — ${remaining} MORE DAYS TO $50` : '';
+    meterNote.textContent = remaining > 0 ? `FINISH THE WEEK — ${remaining} MORE DAYS TO $60` : '';
   }
 
   // Weekly dots
@@ -1641,7 +1645,7 @@ function calculateWeeklyCompliance() {
   // Check if all 5 active days (Sun-Thu) are complete
   allDaysComplete = completedDays === 5 && weekdayCount === 5;
 
-  return { completedDays, weekdayCount, allDaysComplete, payoutStatus: allDaysComplete ? '$50.00' : '$0.00' };
+  return { completedDays, weekdayCount, allDaysComplete, payoutStatus: allDaysComplete ? '$60.00' : '$0.00' };
 }
 
 function renderWeeklyPayout() {
@@ -1649,9 +1653,11 @@ function renderWeeklyPayout() {
 
   // Update payout amounts
   const amount = allDaysComplete ? 25.00 : 0.00;
+  const gagaAmount = allDaysComplete ? 10.00 : 0.00;
   document.getElementById('dadPayout').textContent = `$${amount.toFixed(2)}`;
   document.getElementById('momPayout').textContent = `$${amount.toFixed(2)}`;
-  document.getElementById('weeklyPayoutAmount').textContent = allDaysComplete ? '$50.00' : '$0.00';
+  document.getElementById('gagaPayout').textContent = `$${gagaAmount.toFixed(2)}`;
+  document.getElementById('weeklyPayoutAmount').textContent = allDaysComplete ? '$60.00' : '$0.00';
 
   // Update compliance status
   const statusEl = document.getElementById('weeklyComplianceStatus');
