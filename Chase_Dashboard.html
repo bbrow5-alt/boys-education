@@ -560,7 +560,7 @@
   <div style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #2eaaaa; margin-bottom: 6px;">SUMMER 2026 ROAD TRIP</div>
   <div style="font-size: 14px; color: #e2e8f0; margin-bottom: 8px;">
     <span style="font-size: 20px;">&#127956;</span>
-    16 States &bull; 9 National Parks &bull; 40 Adventures
+    16 States &bull; 10 National Parks &bull; 50+ Adventures
   </div>
   <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 10px;">
     <div style="background: rgba(46,170,170,0.1); border: 1px solid rgba(46,170,170,0.3); border-radius: 8px; padding: 6px 12px; min-width: 55px;">
@@ -1851,16 +1851,17 @@ function checkDiagnosticReturn() {
   try {
     const signal = JSON.parse(localStorage.getItem('chase_diagnostic_signal') || 'null');
     if (!signal || !signal.completed) return;
-    const today = toLocalDateStr(new Date());
-    if (signal.date !== today) return;
+    // Use the date the diagnostic was actually completed, not today
+    const completedDate = signal.date;
+    if (!completedDate) return;
 
-    // Diagnostic replaces daily session — mark day complete
-    const dayData = getDayData(today);
+    // Diagnostic replaces daily session — mark that day complete
+    const dayData = getDayData(completedDate);
     if (!dayData.diagnosticComplete) {
       dayData.session = true;
       dayData.diagnosticComplete = true;
       dayData.diagnosticPoints = 15;
-      setDayData(today, dayData);
+      setDayData(completedDate, dayData);
       render();
     }
   } catch(e) { console.warn('Diagnostic signal check failed:', e); }
@@ -1920,10 +1921,18 @@ function checkSessionReturn() {
   try {
     const signal = JSON.parse(localStorage.getItem('chase_session_signal'));
     if (!signal || !signal.completed) return;
-    const today = getToday();
-    if (signal.date !== today) return;
-    const dayData = getDayData(today);
-    if (dayData.session) return;
+    // Use the signal's date, not just today — process even if dashboard wasn't loaded that day
+    const signalDate = signal.date;
+    if (!signalDate) return;
+
+    const dayData = getDayData(signalDate);
+    if (dayData.session) {
+      // Already marked — just clear the signal
+      localStorage.removeItem('chase_session_signal');
+      return;
+    }
+
+    // Mark session complete for the date it was actually done
     dayData.session = true;
     if (signal.pointsEarned) {
       const basePts = 3;
@@ -1931,11 +1940,15 @@ function checkSessionReturn() {
       const comprehensionBonus = Math.max(0, (signal.pointsEarned || 0) - basePts - writingPts);
       dayData.sessionBonus = Math.min(2, comprehensionBonus);
     }
-    setDayData(today, dayData);
-    syncDailyTracking(today, dayData);
-    if (dayData.session) {
+    setDayData(signalDate, dayData);
+    syncDailyTracking(signalDate, dayData);
+
+    // Only celebrate if it's today
+    const today = getToday();
+    if (signalDate === today && dayData.session) {
       celebrateCompletion();
     }
+
     localStorage.removeItem('chase_session_signal');
   } catch (e) {
     console.warn('Error checking session return:', e);
