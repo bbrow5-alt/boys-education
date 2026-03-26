@@ -1835,6 +1835,11 @@ async function loadDiagnosticTests() {
   // When a new diagnostic is created, replace this single entry.
   const signalWeek3v2 = JSON.parse(localStorage.getItem('chase_diagnostic_week3_v2_signal') || 'null');
   const isCompletedWeek3v2 = signalWeek3v2 && signalWeek3v2.completed && signalWeek3v2.testId === 'chase_diagnostic_week3_ela_mar2026_v2';
+  // Also check: if the diagnostic date has session=true and we're past the due date, treat as completed
+  // This handles cases where the signal was lost (different browser, cleared cache) but Sheet has the data
+  const diagDayData = getDayData('2026-03-22');
+  const pastDue = new Date() > new Date('2026-03-23');
+  const isCompletedFromSync = pastDue && diagDayData && diagDayData.session === true;
   diagnosticTests = [
     {
       TestLabel: 'March 22 Week 3 LEAP Diagnostic — ELA Focus',
@@ -1842,8 +1847,8 @@ async function loadDiagnosticTests() {
       TestURL: 'Diagnostic_Test_Chase_Week3_ELA_March2026_v2.html',
       AvailableDate: '2026-03-22',
       DueDate: '2026-03-23',
-      Completed: isCompletedWeek3v2 ? 'TRUE' : 'FALSE',
-      CompletedDate: isCompletedWeek3v2 ? signalWeek3v2.date : '',
+      Completed: (isCompletedWeek3v2 || isCompletedFromSync) ? 'TRUE' : 'FALSE',
+      CompletedDate: isCompletedWeek3v2 ? signalWeek3v2.date : (isCompletedFromSync ? '2026-03-22' : ''),
       PointsAwarded: 15
     }
   ];
