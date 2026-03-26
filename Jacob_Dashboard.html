@@ -526,6 +526,61 @@
 </div>
 <div class="divider"></div>
 
+<!-- ROAD TRIP COUNTDOWN BANNER -->
+<div id="tripBanner" style="
+  background: linear-gradient(135deg, #1a2a3d 0%, #0d1b2a 100%);
+  border: 1px solid #f59e0b;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+">
+  <div style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #f59e0b; margin-bottom: 6px;">SUMMER 2026 ROAD TRIP</div>
+  <div style="font-size: 14px; color: #e2e8f0; margin-bottom: 8px;">
+    <span style="font-size: 20px;">&#127956;</span>
+    16 States &bull; 9 National Parks &bull; 40 Adventures
+  </div>
+  <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 10px;">
+    <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 6px 12px; min-width: 55px;">
+      <div id="tripDays" style="font-family: Georgia, serif; font-size: 22px; color: #f59e0b; line-height: 1;">--</div>
+      <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Days</div>
+    </div>
+    <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 6px 12px; min-width: 55px;">
+      <div id="tripHrs" style="font-family: Georgia, serif; font-size: 22px; color: #f59e0b; line-height: 1;">--</div>
+      <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Hours</div>
+    </div>
+    <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 6px 12px; min-width: 55px;">
+      <div id="tripMin" style="font-family: Georgia, serif; font-size: 22px; color: #f59e0b; line-height: 1;">--</div>
+      <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Min</div>
+    </div>
+  </div>
+  <a href="https://melodic-crisp-167758.netlify.app/jacob.html" target="_blank" style="
+    display: inline-block;
+    background: #f59e0b;
+    color: #000;
+    padding: 8px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  ">View Your Trip &#8594;</a>
+</div>
+<script>
+(function(){
+  function updateTrip(){
+    var t=new Date('2026-05-22T12:00:00-06:00')-new Date();
+    if(t<=0){document.getElementById('tripBanner').style.display='none';return;}
+    document.getElementById('tripDays').textContent=Math.floor(t/864e5);
+    document.getElementById('tripHrs').textContent=Math.floor(t%864e5/36e5);
+    document.getElementById('tripMin').textContent=Math.floor(t%36e5/6e4);
+  }
+  updateTrip();setInterval(updateTrip,60000);
+})();
+</script>
+
 <!-- INTENTIONALITY -->
 <div style="background: var(--card); border: 1px solid var(--card-border); padding: 16px; margin-bottom: 16px;">
   <div style="text-align:center; margin-bottom:12px;">
