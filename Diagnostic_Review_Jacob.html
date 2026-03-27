@@ -738,7 +738,7 @@
         async function loadResultsFromAPI() {
             try {
                 // Primary: read from Assessments sheet via getAssessments
-                const res = await fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec?action=getAssessments&student=Jacob');
+                const res = await fetch('https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec?action=getAssessments&student=Jacob');
                 if (res.ok) {
                     const assessments = await res.json();
                     // Find the diagnostic assessment (Sections is already parsed by API)
@@ -1038,7 +1038,7 @@ Correct answer: "${correctAnswer}"
 
 Explain in a friendly, scholarly tone why the correct answer is right. If there's a helpful test-taking strategy (like process of elimination or checking your work), mention it. Keep it concise\u20142-3 sentences for a 6th grader. Make it engaging and encouraging!`;
 
-            fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec', {
+            fetch('https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec', {
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'chat',
@@ -1174,7 +1174,7 @@ Area for growth: ${sorted[sorted.length-1].name} (${sorted[sorted.length-1].pct}
 
 Give ${studentName} a personalized 3-4 sentence performance summary in your scholarly, encouraging tone. Start by telling them their estimated percentile ("I estimate your performance is better than about ${percentile}% of your peers"). Praise their strongest area specifically. Give one concrete, encouraging suggestion for their weakest area. End with motivation. Keep it warm and age-appropriate for a 6th grader.`;
 
-            fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec', {
+            fetch('https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec', {
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'chat',

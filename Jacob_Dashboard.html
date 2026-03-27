@@ -649,7 +649,7 @@
   document.getElementById('leapDateDisplay').textContent = 'LEAP Test: April 27, 2026';
   if (days <= 0) document.getElementById('leapCountdown').style.display = 'none';
   // Try to load weakness profile
-  fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec?action=getWeaknessProfile&student=Jacob')
+  fetch('https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec?action=getWeaknessProfile&student=Jacob')
     .then(r=>r.json()).then(p=>{
       if(p&&p.weaknesses){
         const areas=[];
@@ -849,7 +849,7 @@
 const STORAGE_KEY = 'jacob_dashboard_v3';
 const TIMER_KEY = 'jacob_timer_v2';
 const STUDENT_NAME = 'Jacob';
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec';
 
 // Local date helper — avoids UTC offset issues with toISOString()
 function toLocalDateStr(d) {
