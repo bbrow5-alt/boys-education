@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEAP Diagnostic - Jacob Brown Week 4</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #1a1510;
+            --fg: #f5f5f0;
+            --accent: #c9a84c;
+            --accent-dark: #a68938;
+            --border: #3a342f;
+            --correct: #2d7a3e;
+            --incorrect: #8b3a3a;
+            --neutral: #4a4440;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--fg);
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 2.2em;
+            color: var(--accent);
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+        .header .subtitle {
+            font-size: 1.1em;
+            color: var(--accent-dark);
+            margin-bottom: 10px;
+        }
+        .header .student-info {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .welcome-screen h2 {
+            font-size: 2.5em;
+            color: var(--accent);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .welcome-screen .subtitle {
+            font-size: 1.3em;
+            color: var(--accent-dark);
+            margin-bottom: 30px;
+        }
+        .welcome-screen .test-info {
+            background: rgba(201, 168, 76, 0.1);
+            border: 1px solid var(--accent);
+            padding: 30px;
+            border-radius: 8px;
+            margin: 30px 0;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .test-info p {
+            margin: 12px 0;
+            font-size: 0.95em;
+        }
+        .test-info strong { color: var(--accent); }
+
+        .button {
+            background: var(--accent);
+            color: var(--bg);
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+        .button:hover { background: var(--accent-dark); }
+        .button.secondary {
+            background: var(--neutral);
+            color: var(--fg);
+        }
+        .button.secondary:hover { background: #5a5450; }
+
+        .test-screen {
+            display: flex;
+            gap: 20px;
+        }
+        .nav-sidebar {
+            width: 250px;
+            background: rgba(58, 52, 47, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+            position: sticky;
+            top: 20px;
+        }
+        .nav-section {
+            margin-bottom: 15px;
+        }
+        .nav-section-title {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+        .nav-btn {
+            padding: 8px;
+            font-size: 0.7em;
+            background: rgba(201, 168, 76, 0.15);
+            border: 1px solid var(--border);
+            color: var(--fg);
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover { background: rgba(201, 168, 76, 0.3); }
+        .nav-btn.active {
+            background: var(--accent);
+            color: var(--bg);
+            font-weight: bold;
+        }
+        .nav-btn.answered { background: rgba(45, 122, 62, 0.4); }
+
+        .main-content {
+            flex: 1;
+        }
+        .timer-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(201, 168, 76, 0.1);
+            border: 1px solid var(--accent);
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        .timer-display {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .question-container {
+            background: rgba(58, 52, 47, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .question-number {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+        .question-meta {
+            font-size: 0.8em;
+            color: #aaa;
+        }
+        .question-text {
+            font-size: 1.05em;
+            margin-bottom: 20px;
+            font-weight: 500;
+            line-height: 1.7;
+        }
+        .passage-ref {
+            font-style: italic;
+            color: var(--accent-dark);
+            margin-bottom: 12px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .option {
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .option:hover { background: rgba(201, 168, 76, 0.2); border-color: var(--accent); }
+        .option.selected {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+            font-weight: bold;
+        }
+        .option.correct { background: rgba(45, 122, 62, 0.6); border-color: #2d7a3e; }
+        .option.incorrect { background: rgba(139, 58, 58, 0.6); border-color: #8b3a3a; }
+
+        .scr-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--fg);
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(201, 168, 76, 0.1);
+            border-left: 3px solid var(--accent);
+            border-radius: 3px;
+            display: none;
+        }
+        .explanation.show { display: block; }
+        .explanation-title {
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .strategy-tip {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(201, 168, 76, 0.3);
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-nav {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.85em;
+            background: var(--neutral);
+            color: var(--fg);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-nav:hover { background: #5a5450; }
+        .btn-nav:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .submit-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .submit-modal.show { display: flex; }
+        .modal-content {
+            background: var(--bg);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 500px;
+            text-align: center;
+        }
+        .modal-content h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        .modal-content p { margin: 10px 0; color: #ccc; }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        .modal-buttons button { flex: 1; }
+
+        .review-screen {
+            max-width: 1000px;
+        }
+        .review-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .review-header h2 {
+            color: var(--accent);
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+        .score-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+        .score-box {
+            background: rgba(58, 52, 47, 0.5);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .score-box .label {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+        .score-box .value {
+            font-size: 2.2em;
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .score-box .percentage {
+            font-size: 1.2em;
+            color: #ccc;
+            margin-top: 8px;
+        }
+
+        .tutor-message {
+            background: rgba(201, 168, 76, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+        .tutor-name {
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .section-summary {
+            background: rgba(58, 52, 47, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .section-summary h4 {
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        .section-summary p {
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        .dashboard-link {
+            display: inline-block;
+            margin-top: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .test-screen { flex-direction: column; }
+            .nav-sidebar { width: 100%; max-height: none; position: static; }
+            .nav-buttons { grid-template-columns: repeat(5, 1fr); }
+            .score-display { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>LEAP DIAGNOSTIC</h1>
+            <div class="subtitle">Iron Mind Academy — Week 4 Official Assessment</div>
+            <div class="student-info">Jacob Brown — 6th Grade | Primary Focus: Physical Science & Scientific Inquiry | 54 questions · ~60 minutes</div>
+        </div>
+
+        <!-- WELCOME SCREEN -->
+        <div id="welcomeScreen" class="screen active">
+            <div class="welcome-screen">
+                <h2>Welcome, Jacob</h2>
+                <div class="subtitle">Week 4 LEAP Science Diagnostic</div>
+                <div class="test-info">
+                    <p><strong>Test Duration:</strong> Approximately 60 minutes</p>
+                    <p><strong>Question Types:</strong> Multiple choice and short constructed response</p>
+                    <p><strong>Content Areas:</strong> Physical Science (primary), Scientific Inquiry, Life Science, Earth & Space Science</p>
+                    <p><strong>Test ID:</strong> jacob_diagnostic_week4_science_mar2026</p>
+                    <p><strong>Date:</strong> March 29, 2026</p>
+                </div>
+                <p style="color: #aaa; font-size: 0.95em;">You can review your answers before submitting. Work through each question carefully and use the LEAP strategies you've learned.</p>
+                <button class="button" onclick="startTest()">Begin Test</button>
+            </div>
+        </div>
+
+        <!-- TEST SCREEN -->
+        <div id="testScreen" class="screen">
+            <div class="timer-bar">
+                <span>Time Remaining: <span class="timer-display" id="timerDisplay">60:00</span></span>
+                <span id="progressDisplay">Question 1 of 50</span>
+            </div>
+
+            <div class="test-screen">
+                <div class="nav-sidebar" id="navSidebar"></div>
+                <div class="main-content">
+                    <div id="questionContainer" class="question-container"></div>
+                    <div class="nav-controls">
+                        <button class="btn-nav" id="prevBtn" onclick="goQuestion(currentQ - 1)">← Previous</button>
+                        <button class="btn-nav" id="nextBtn" onclick="goQuestion(currentQ + 1)">Next →</button>
+                        <button class="button" onclick="showSubmitModal()" style="flex: 0.8;">Submit Test</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REVIEW SCREEN -->
+        <div id="reviewScreen" class="screen">
+            <div class="review-header">
+                <h2>Test Complete!</h2>
+                <p>Review your performance and next steps below.</p>
+            </div>
+
+            <div class="score-display">
+                <div class="score-box">
+                    <div class="label">YOUR SCORE</div>
+                    <div class="value" id="scoreValue">0</div>
+                    <div class="percentage" id="scorePercentage">0%</div>
+                </div>
+                <div class="score-box">
+                    <div class="label">ESTIMATED LEAP SCALE</div>
+                    <div class="value" id="estimatedScale">000</div>
+                    <div class="percentage" id="scaleCategory">-</div>
+                </div>
+            </div>
+
+            <div class="tutor-message">
+                <div class="tutor-name">Gary's Review — Science Diagnostic</div>
+                <div id="tutorReview"></div>
+            </div>
+
+            <div id="sectionReviews"></div>
+
+            <div style="text-align: center;">
+                <a href="Jacob_Dashboard.html" class="button dashboard-link">Return to Dashboard</a>
+            </div>
+        </div>
+
+        <!-- SUBMIT CONFIRMATION MODAL -->
+        <div id="submitModal" class="submit-modal">
+            <div class="modal-content">
+                <h3>Submit Your Test?</h3>
+                <p>You have answered <span id="answeredCount">0</span> of 54 questions.</p>
+                <p>Once submitted, you cannot change your answers.</p>
+                <div class="modal-buttons">
+                    <button class="button secondary" onclick="closeSubmitModal()">Continue Test</button>
+                    <button class="button" onclick="submitTest()">Submit Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            student: "Jacob",
+            grade: 6,
+            testId: "jacob_diagnostic_week4_science_mar2026",
+            testLabel: "Week 4 LEAP Diagnostic — March 29, 2026",
+            webAppUrl: "https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec"
+        };
+
+        const PASSAGES = {
+            passage_physical: {
+                id: "passage_physical",
+                title: "Energy Transformations in a Skateboard Ramp",
+                text: "A skateboarder begins at the top of a curved ramp with no initial speed. As she slides down, gravity pulls her downward, and she speeds up. Her body has potential energy at the top that changes into kinetic energy as she moves. At the bottom of the ramp, she has maximum speed and maximum kinetic energy. If she were to slide back up the other side of the ramp, her kinetic energy would decrease as she slows down, and potential energy would increase again. Energy never disappears—it only changes forms. A small amount of energy is also lost as heat due to friction between the skateboard and the ramp. The skateboarder's mechanical energy (potential plus kinetic) decreases slightly because some energy converts to thermal energy through friction."
+            },
+            passage_inquiry: {
+                id: "passage_inquiry",
+                title: "Plant Growth Experiment with Different Light Conditions",
+                text: "A student designed an experiment to test how light affects plant growth. She planted 20 seeds of the same type in identical pots with equal amounts of soil and water. She placed 5 pots in a dark closet, 5 pots in indirect light, 5 pots in direct sunlight for 6 hours daily, and 5 pots in direct sunlight for 12 hours daily. She measured the height of each plant every 3 days for 3 weeks. Her data showed: Dark closet (average 4 cm), Indirect light (average 12 cm), Direct 6 hours (average 18 cm), Direct 12 hours (average 20 cm). The plants in darkness grew very slowly and appeared pale yellow. Plants with more light grew taller and were green. The student concluded that more light produces taller, healthier plants. She realized that temperature and other variables might also affect growth but kept them the same for all groups."
+            }
+        };
+
+        const SECTIONS = [
+            { id: "phys", name: "Physical Science", range: [0, 22], color: "#c9a84c" },
+            { id: "inq", name: "Scientific Inquiry & Practices", range: [23, 34], color: "#a68938" },
+            { id: "life", name: "Life Science", range: [35, 44], color: "#2d7a3e" },
+            { id: "earth", name: "Earth & Space Science", range: [45, 53], color: "#4a7a99" }
+        ];
+
+        const Q = [
+            // PHYSICAL SCIENCE (25 questions) - Q0-Q24
+            // BASELINE (5 questions)
+            {
+                sec: "phys", std: "6-PS-1", skill: "understand_forces", diff: "baseline",
+                type: "mc", text: "A book sitting on a table is not moving. Which statement best describes the forces on the book?",
+                opts: ["Gravity is pulling down, and the table is pushing up with equal force", "Gravity is pulling the book down with more force than the table pushes up", "The table is pushing up with more force than gravity pulls down", "There are no forces acting on the book"],
+                cor: 0, exp: "When an object is at rest, the forces are balanced. Gravity pulls down, and the normal force from the table pushes up with equal magnitude, resulting in no net force and no acceleration.", str: "Look for 'balanced forces' or 'equal and opposite forces' when an object is not moving or moving at constant speed."
+            },
+            {
+                sec: "phys", std: "6-PS-2", skill: "identify_energy_forms", diff: "baseline",
+                type: "mc", text: "A roller skater is gliding across a smooth floor without pushing. What type of energy does the skater primarily have?",
+                opts: ["Potential energy only", "Kinetic energy only", "Gravitational energy only", "Chemical energy only"],
+                cor: 1, exp: "Kinetic energy is energy of motion. Since the skater is moving, kinetic energy is the primary form. Potential energy would increase if the skater went uphill.", str: "Kinetic = moving, Potential = stored or at height. Which applies to the situation?"
+            },
+            {
+                sec: "phys", std: "6-PS-3", skill: "wave_properties", diff: "baseline",
+                type: "mc", text: "A student plucks a guitar string and hears a sound. Which best explains how the sound reaches the student's ear?",
+                opts: ["Light travels from the string to the ear", "Vibrations create waves that travel through the air", "Heat energy moves from the string to the ear", "The string physically moves through the air"],
+                cor: 1, exp: "Sound is created by vibrations. These vibrations cause nearby air molecules to vibrate, creating sound waves that travel through the air to our ears.", str: "Sound requires a medium (usually air) to travel. Vibrations and waves are key to understanding sound."
+            },
+            {
+                sec: "phys", std: "6-PS-4", skill: "matter_states", diff: "baseline",
+                type: "mc", text: "Ice melts into water when heated. What is this process called?",
+                opts: ["Evaporation", "Condensation", "Melting", "Sublimation"],
+                cor: 2, exp: "Melting is the phase change from solid to liquid when heat is added. Evaporation is liquid to gas, condensation is gas to liquid, and sublimation is solid directly to gas.", str: "Solid → Liquid = Melting. Liquid → Gas = Evaporation. Gas → Liquid = Condensation."
+            },
+            {
+                sec: "phys", std: "6-PS-5", skill: "simple_machines", diff: "baseline",
+                type: "mc", text: "A lever can help you lift a heavy rock. How does a lever make this task easier?",
+                opts: ["It reduces the amount of force you need to apply", "It eliminates the force of gravity", "It changes the direction of your push but doesn't reduce force", "Levers only work for very light objects"],
+                cor: 0, exp: "A lever is a simple machine that provides mechanical advantage. By using a fulcrum, it reduces the force needed to lift an object, though you may need to move your end farther.", str: "Simple machines make work easier by reducing force needed, changing direction, or increasing distance traveled."
+            },
+
+            // GRADE-LEVEL (7-8 questions)
+            {
+                sec: "phys", std: "6-PS-1", skill: "balanced_unbalanced_forces", diff: "grade-level",
+                type: "mc", text: "A soccer ball is kicked and travels across the field. After being kicked, what causes the ball to eventually stop?",
+                opts: ["Gravity stops acting on the ball", "Friction and air resistance are unbalanced forces acting on the ball", "The ball loses all its energy", "Gravity pushes the ball backward"],
+                cor: 1, exp: "Once kicked, the ball has kinetic energy. Friction (between ball and grass) and air resistance act as unbalanced forces opposing motion, eventually stopping the ball.", str: "Unbalanced forces cause changes in motion. Identify what forces oppose motion: friction and air resistance."
+            },
+            {
+                sec: "phys", std: "6-PS-2", skill: "energy_conservation", diff: "grade-level",
+                type: "mc", text: "A ball is dropped from a height of 10 meters. As it falls, what happens to its energy?",
+                opts: ["Potential energy increases and kinetic energy decreases", "Potential energy decreases and kinetic energy increases", "Total energy stays exactly the same", "Both potential and kinetic energy decrease"],
+                cor: 1, exp: "As an object falls, gravitational potential energy (height-based) converts to kinetic energy (motion). The total mechanical energy decreases slightly due to air resistance.", str: "Energy conservation: PE + KE = constant (ignoring friction). As one increases, the other decreases."
+            },
+            {
+                sec: "phys", std: "6-PS-3", skill: "light_properties", diff: "grade-level",
+                type: "mc", text: "Light from a flashlight can be seen in a dark room. What property of light allows us to see the beam?",
+                opts: ["Light is absorbed by all objects in its path", "Light travels in straight lines and bounces off particles", "Light creates sound that we can detect", "Light is only visible in very dark conditions"],
+                cor: 1, exp: "Light travels in straight lines. We see a beam in a dark room because light bounces off dust particles and other materials in the air.", str: "Light travels in straight lines, reflects off surfaces, and refracts through materials."
+            },
+            {
+                sec: "phys", std: "6-PS-4", skill: "chemical_physical_changes", diff: "grade-level",
+                type: "mc", text: "When sugar dissolves in hot water, what kind of change occurs?",
+                opts: ["Chemical change—sugar becomes a new substance", "Physical change—sugar particles spread throughout water but remain sugar", "Both chemical and physical change", "No change occurs because it still looks like water"],
+                cor: 1, exp: "Dissolving is a physical change. The sugar particles separate and disperse in water, but sugar molecules remain unchanged. Heating changes state, not composition.", str: "Physical change: appearance changes but substance identity stays same. Chemical change: new substance forms."
+            },
+            {
+                sec: "phys", std: "6-PS-5", skill: "force_and_motion", diff: "grade-level",
+                type: "mc", text: "A car accelerates from 0 to 60 mph in 8 seconds. Which describes the car's motion?",
+                opts: ["The car is moving at constant velocity", "The car is accelerating—its velocity is increasing", "The car is decelerating", "The car is moving but has no acceleration"],
+                cor: 1, exp: "Acceleration is any change in velocity, including speeding up, slowing down, or changing direction. Here the car's speed increases, so it is accelerating.", str: "Acceleration = change in velocity. Positive acceleration means speeding up; negative means slowing down."
+            },
+            {
+                sec: "phys", std: "6-PS-2", skill: "potential_energy_calculation", diff: "grade-level",
+                type: "mc", text: "Two books of the same mass are placed on shelves at different heights. Which book has more gravitational potential energy?",
+                opts: ["The book on the lower shelf", "The book on the higher shelf", "Both have the same potential energy", "Potential energy depends on the book's color"],
+                cor: 1, exp: "Gravitational potential energy depends on mass and height: PE = mgh. The higher object has greater PE.", str: "Potential energy increases with height and mass. Remember: PE = mgh (mass × gravity × height)."
+            },
+            {
+                sec: "phys", std: "6-PS-3", skill: "sound_vibration", diff: "grade-level",
+                type: "mc", text: "A drum produces sound when it is struck. Which explains the relationship between the drum's vibrations and sound?",
+                opts: ["The drum vibrates and creates waves that travel through the air", "The drum generates heat that produces sound", "Vibrations are not related to sound production", "The drum's color determines the sound quality"],
+                cor: 0, exp: "Sound is produced by vibrations. When a drum is struck, it vibrates rapidly, creating sound waves that travel through air to reach our ears.", str: "Sound source = vibration. Vibrations create waves that propagate through media."
+            },
+
+            // CHALLENGING (7-8 questions)
+            {
+                sec: "phys", std: "6-PS-1", skill: "newtons_laws", diff: "challenging",
+                type: "mc", text: "A truck and a bicycle are both moving at the same speed. Compared to the bicycle, the truck requires more force to bring to a complete stop in the same amount of time. What does this demonstrate?",
+                opts: ["Force and velocity are the same thing", "Objects with greater mass require greater force to change their motion", "The truck has less friction than the bicycle", "Bicycles always move faster than trucks"],
+                cor: 1, exp: "Newton's Second Law: F = ma. The truck has greater mass than the bicycle. To achieve the same deceleration (change in motion) in the same time, more force is needed for the truck.", str: "F = ma: Greater mass requires greater force for the same acceleration. This is Newton's Second Law."
+            },
+            {
+                sec: "phys", std: "6-PS-2", skill: "energy_transformation_analysis", diff: "challenging",
+                type: "mc", text: "A child goes down a slide. The child's gravitational potential energy at the top is 1000 J. If the child reaches the bottom with kinetic energy of 800 J, where did the remaining 200 J go?",
+                opts: ["It disappeared completely", "It was converted to thermal energy due to friction", "The measurement was incorrect", "It was converted back to potential energy"],
+                cor: 1, exp: "Energy is conserved but transforms. The 'missing' 200 J was converted to thermal energy (heat) through friction between the child and the slide.", str: "Energy conservation with friction: PE_initial = KE_final + Heat. Some energy always becomes heat due to friction."
+            },
+            {
+                sec: "phys", std: "6-PS-3", skill: "wave_characteristics", diff: "challenging",
+                type: "mc", text: "Two sound waves have the same frequency but different amplitudes. How would these waves sound different?",
+                opts: ["Different pitches due to frequency differences", "Different loudness due to amplitude differences", "Identical because frequency is the same", "Different colors of light would be produced"],
+                cor: 1, exp: "Frequency determines pitch, amplitude determines loudness. Same frequency means same pitch. Different amplitude means different loudness. Higher amplitude = louder sound.", str: "Wave properties: Frequency = pitch, Amplitude = loudness/intensity. Wavelength determines color in light."
+            },
+            {
+                sec: "phys", std: "6-PS-4", skill: "atomic_structure", diff: "challenging",
+                type: "mc", text: "All matter is made of atoms. Which statement best explains what happens to atoms when a substance undergoes a physical change like melting?",
+                opts: ["Atoms are destroyed and new ones are created", "Atoms themselves remain the same, but their arrangement and spacing change", "The number of atoms decreases significantly", "Atoms gain or lose parts during melting"],
+                cor: 1, exp: "In a physical change, atoms remain unchanged. Their positions and spacing change (like ice to water), but the atoms themselves are not altered.", str: "Physical change: atoms stay same, arrangement changes. Chemical change: atoms bond differently, new substances form."
+            },
+            {
+                sec: "phys", std: "6-PS-5", skill: "work_and_energy", diff: "challenging",
+                type: "mc", text: "A student pushes a heavy box across the floor. She exerts 100 N of force and moves the box 5 meters. How much work did the student do? (Work = Force × Distance)",
+                opts: ["20 J", "105 J", "500 J", "95 J"],
+                cor: 2, exp: "Work = Force × Distance = 100 N × 5 m = 500 J. Work is done when force causes displacement in the direction of the force.", str: "Work formula: W = F × d (only distance in direction of force counts). Result is in Joules (J)."
+            },
+            {
+                sec: "phys", std: "6-PS-1", skill: "velocity_acceleration", diff: "challenging",
+                type: "mc", text: "A car is traveling at 60 mph due north. Suddenly, the car turns and travels at 60 mph due east. Which statement is correct?",
+                opts: ["The car's velocity did not change because the speed is the same", "The car accelerated because its direction changed, even though speed stayed the same", "The car decelerated because it changed direction", "Velocity and speed are always the same thing"],
+                cor: 1, exp: "Velocity includes both speed and direction. Changing direction means velocity changed, which is acceleration. Speed stayed same (60 mph), but velocity changed.", str: "Velocity = speed + direction. Acceleration occurs with any velocity change: speeding up, slowing down, or direction change."
+            },
+            {
+                sec: "phys", std: "6-PS-2", skill: "heat_thermal_energy", diff: "challenging",
+                type: "mc", text: "A cup of hot water cools down in a cold room. Which best explains why the temperature decreases?",
+                opts: ["Heat energy from the water flows to the cooler surroundings", "Cold enters the water and lowers its temperature", "The water loses all its thermal energy", "Temperature and heat are the same, so cooling means less heat"],
+                cor: 0, exp: "Heat is thermal energy that moves from warmer objects to cooler ones. Hot water loses heat to the cooler air, decreasing its temperature.", str: "Heat = energy that flows from hot to cold. Temperature = measure of average kinetic energy of particles."
+            },
+
+            // CEILING (3-4 questions)
+            {
+                sec: "phys", std: "6-PS-1", skill: "momentum_collision", diff: "ceiling",
+                type: "scr", text: "A 5 kg ball moving at 10 m/s collides with a wall and stops in 0.5 seconds. Explain what forces are involved and why the ball stops. Use the concept that Force = (change in momentum) / time.",
+                guidance: "Consider the wall's force on the ball, the ball's momentum before and after, and calculate the force if needed. Address both the source of the force and why the ball's motion changes.",
+                sec: "phys", std: "6-PS-1", skill: "momentum_collision", exp: "Before collision: momentum = 5 × 10 = 50 kg·m/s. After: 0. Change = -50. Force = -50/0.5 = -100 N. The wall exerts an unbalanced force (normal force) opposite to the ball's motion, causing it to decelerate to zero.", str: "Momentum = mv. Collisions involve large forces applied over short times. Use F = Δp/Δt."
+            },
+            {
+                sec: "phys", std: "6-PS-3", skill: "light_refraction", diff: "ceiling",
+                type: "mc", text: "A straw in a glass of water appears bent at the water's surface when viewed from the side. What phenomenon causes this optical illusion?",
+                opts: ["Light is absorbed differently by water", "Light bends (refracts) as it passes between water and air due to different speeds in each medium", "The water is actually bending the straw", "The straw breaks apart in the water"],
+                cor: 1, exp: "Refraction occurs when light changes speed as it enters a different medium (water to air). The change in speed causes light to bend, making the straw appear bent at the surface.", str: "Refraction = light bending at medium boundaries. Light travels at different speeds in different materials (water vs air)."
+            },
+            {
+                sec: "phys", std: "6-PS-4", skill: "molecular_model", diff: "ceiling",
+                type: "mc", text: "According to atomic theory, why is a gas less dense than a liquid made of the same substance (like steam versus water)?",
+                opts: ["Gas molecules are larger than liquid molecules", "Gas molecules are spread much farther apart with more space between them", "Gases have no molecules, only energy", "Density is not related to molecular spacing"],
+                cor: 1, exp: "In liquids, molecules are closely packed. In gases, molecules are far apart with lots of empty space between them, resulting in much lower density.", str: "Kinetic molecular theory: Gas molecules move fast with large spacing → low density. Liquid molecules close together → high density."
+            },
+
+            // SCIENTIFIC INQUIRY & PRACTICES (13 questions) - Q25-Q37
+            // BASELINE (3 questions)
+            {
+                sec: "inq", std: "6-SI-1", skill: "experimental_design", diff: "baseline",
+                type: "mc", text: "A student wants to test if temperature affects how fast sugar dissolves. What should the student keep the same in the experiment?",
+                opts: ["Water temperature", "Amount of sugar and water", "Time allowed to dissolve", "Type of container used"],
+                cor: 1, exp: "To test the effect of temperature, the student must control (keep constant) all other variables: amount of sugar, amount of water, container type, and mixing method. Only temperature changes.", str: "Identify variables: independent (what you change), dependent (what you measure), control (what stays the same)."
+            },
+            {
+                sec: "inq", std: "6-SI-2", skill: "data_collection", diff: "baseline",
+                type: "mc", text: "In a science experiment, what is the dependent variable?",
+                opts: ["The variable the scientist changes on purpose", "The variable being measured or observed as a result", "The conditions kept constant", "The tools used to measure"],
+                cor: 1, exp: "The dependent variable is what is measured or observed—it 'depends' on the independent variable. In 'how temperature affects dissolving time,' dissolving time is dependent.", str: "Independent variable = what you change. Dependent variable = what you measure (the outcome)."
+            },
+            {
+                sec: "inq", std: "6-SI-3", skill: "hypothesis_formulation", diff: "baseline",
+                type: "mc", text: "Which is a good scientific hypothesis?",
+                opts: ["I think the experiment will be fun", "If temperature increases, then sugar will dissolve faster because heat gives molecules more energy", "Sugar dissolves", "Dissolving is interesting"],
+                cor: 1, exp: "A good hypothesis is testable, specific, and usually includes 'if-then' format with a reason. It predicts a relationship between variables.", str: "Hypothesis = 'if-then' prediction with reasoning. Must be testable and based on prior knowledge."
+            },
+
+            // GRADE-LEVEL (5 questions)
+            {
+                sec: "inq", std: "6-SI-1", skill: "experimental_controls", diff: "grade-level",
+                type: "mc", text: "Refer to the plant growth experiment passage. Why did the student keep soil, water, and seed type the same for all plant groups?",
+                opts: ["These variables were not important to the experiment", "To isolate the effect of light and ensure a fair comparison", "To make the experiment easier to do", "These variables don't affect plant growth"],
+                cor: 1, exp: "Controlling variables ensures a fair test. By keeping all factors the same except light, the student can confidently attribute any differences in plant growth to light alone.", str: "Fair test = change one variable, control (keep constant) all others. This proves cause-and-effect."
+            },
+            {
+                sec: "inq", std: "6-SI-2", skill: "reading_graphs", diff: "grade-level",
+                type: "mc", text: "Refer to the plant growth experiment. Which group of plants grew the tallest on average?",
+                opts: ["Dark closet group", "Indirect light group", "Direct 6-hour sunlight group", "Direct 12-hour sunlight group"],
+                cor: 3, exp: "The passage states: Dark (4 cm), Indirect (12 cm), 6-hour direct (18 cm), 12-hour direct (20 cm). The 12-hour group reached 20 cm average height.", str: "Read data carefully: identify numbers, units, groups, and highest/lowest values in tables or graphs."
+            },
+            {
+                sec: "inq", std: "6-SI-3", skill: "drawing_conclusions", diff: "grade-level",
+                type: "mc", text: "Based on the plant growth experiment, what conclusion can the student draw?",
+                opts: ["Dark is always bad for all living things", "More light leads to taller, healthier plants", "All plants need exactly 12 hours of light", "Light has no effect on plant growth"],
+                cor: 1, exp: "The data shows a clear trend: more light produces taller plants. This is a valid conclusion based on the experimental results.", str: "Conclusions must be supported by data. Identify trends or patterns in your results."
+            },
+            {
+                sec: "inq", std: "6-SI-4", skill: "scientific_method", diff: "grade-level",
+                type: "mc", text: "Which is the correct order of the scientific method?",
+                opts: ["Question, Hypothesis, Experiment, Data, Conclusion", "Hypothesis, Question, Conclusion, Data, Experiment", "Experiment, Question, Hypothesis, Data, Conclusion", "Data, Hypothesis, Question, Experiment, Conclusion"],
+                cor: 0, exp: "The scientific method: Ask a question → Form hypothesis → Design experiment → Collect data → Draw conclusions → Communicate results.", str: "Scientific method order: Question → Hypothesis → Experiment → Data → Conclusion. Always starts with a question."
+            },
+            {
+                sec: "inq", std: "6-SI-5", skill: "evidence_reasoning", diff: "grade-level",
+                type: "mc", text: "A scientist claims that salt water freezes at a lower temperature than fresh water. What would best support this claim?",
+                opts: ["A personal opinion about salt water", "Data from cooling both solutions and recording freeze temperatures", "A guess based on intuition", "Information from an unreliable website"],
+                cor: 1, exp: "Scientific claims require evidence—data collected through careful experimentation. Opinions, guesses, and unreliable sources are not valid scientific evidence.", str: "Evidence = measurable data from well-designed experiments. Claims without evidence are not scientific."
+            },
+
+            // CHALLENGING (3-4 questions)
+            {
+                sec: "inq", std: "6-SI-1", skill: "identifying_variables", diff: "challenging",
+                type: "mc", text: "A student notices that her plant grows faster when she talks to it daily. She designs an experiment with one group of plants she talks to and another she ignores. After four weeks, the 'talked to' group grew 2 cm taller. What is the main limitation of this experiment?",
+                opts: ["The difference is too small to measure", "Light, water, temperature, and other factors might have been different between groups, affecting growth", "Plants cannot hear, so the experiment is impossible", "The experiment proves talking helps plants grow"],
+                cor: 1, exp: "Without controlling other variables (light exposure, watering schedule, temperature), the student cannot determine if talking or these other factors caused the growth difference. This confuses cause-and-effect.", str: "Fair test requires controlling all variables except the independent variable. Identify what else might explain results."
+            },
+            {
+                sec: "inq", std: "6-SI-2", skill: "data_analysis", diff: "challenging",
+                type: "scr", text: "Refer to the plant growth passage. Explain why the student included a statement that 'temperature and other variables might also affect growth.' Why is this important for the experiment's validity?",
+                guidance: "Consider what 'validity' means, what it means to control variables, and what this statement suggests about other possible causes for the results.",
+                sec: "inq", std: "6-SI-2", skill: "data_analysis", exp: "This statement shows scientific integrity—acknowledging that other factors (not just light) could influence plant growth. Valid experiments control these confounding variables. By recognizing this, the student shows understanding that correlation doesn't always mean causation.", str: "Validity = experiment actually tests what it claims. Acknowledge limitations and alternative explanations."
+            },
+            {
+                sec: "inq", std: "6-SI-4", skill: "experimental_prediction", diff: "challenging",
+                type: "mc", text: "A student hypothesizes: 'If soil pH increases, then plant growth will increase.' After testing, the data shows no change in plant growth with changing pH. What should the student conclude?",
+                opts: ["The hypothesis was correct but the data was wrong", "The hypothesis was not supported by the data; pH may not affect this plant's growth", "The experiment failed because the hypothesis wasn't proven", "All experiments must support the hypothesis"],
+                cor: 1, exp: "Not all hypotheses are supported by data, and that's part of science. Null results are valuable—they show that the predicted relationship doesn't exist.", str: "Not all hypotheses are correct. 'Not supported' doesn't mean the experiment failed—it's a valid scientific result."
+            },
+
+            // LIFE SCIENCE (9 questions) - Q38-Q46
+            // BASELINE (2 questions)
+            {
+                sec: "life", std: "6-LS-1", skill: "cell_structure", diff: "baseline",
+                type: "mc", text: "All living things are made of cells. Which best describes what a cell is?",
+                opts: ["A tiny animal that lives in your body", "The basic unit of life that carries out all functions", "A type of tissue in organisms", "Only found in plants"],
+                cor: 1, exp: "A cell is the basic structural and functional unit of all living organisms. Every living thing is made of one or more cells.", str: "Cell = basic unit of life. All organisms are composed of cells (unicellular or multicellular)."
+            },
+            {
+                sec: "life", std: "6-LS-2", skill: "organism_classification", diff: "baseline",
+                type: "mc", text: "Which characteristic do all animals share?",
+                opts: ["They all have backbones", "They all live in water", "They all need to eat food to get energy", "They all have fur"],
+                cor: 2, exp: "All animals are heterotrophs, meaning they must consume other organisms for energy. They cannot make their own food like plants do.", str: "Animals = heterotrophs (eat food). Plants = autotrophs (make food through photosynthesis)."
+            },
+
+            // GRADE-LEVEL (4 questions)
+            {
+                sec: "life", std: "6-LS-3", skill: "body_systems", diff: "grade-level",
+                type: "mc", text: "The circulatory system transports blood throughout the body. Which is a main function of blood in this system?",
+                opts: ["To digest food", "To carry oxygen and nutrients to cells and remove waste", "To protect the body from injury", "To store food energy"],
+                cor: 1, exp: "Blood carries oxygen from the lungs and nutrients from the digestive system to all cells, and returns carbon dioxide and other wastes to organs for removal.", str: "Blood delivery system = circulatory system. Blood carries O₂, nutrients, removes CO₂ and waste."
+            },
+            {
+                sec: "life", std: "6-LS-4", skill: "food_webs", diff: "grade-level",
+                type: "mc", text: "In a food web, plants are often called 'producers.' Why are they given this name?",
+                opts: ["They use tools to produce food", "They make their own food through photosynthesis using sunlight", "They are produced by consumers", "They prevent other organisms from growing"],
+                cor: 1, exp: "Plants are producers because they use photosynthesis to convert sunlight, water, and carbon dioxide into chemical energy (glucose) that supports food webs.", str: "Producers = organisms that make own food (plants, photosynthesis). Consumers = eat other organisms."
+            },
+            {
+                sec: "life", std: "6-LS-5", skill: "heredity_traits", diff: "grade-level",
+                type: "mc", text: "Offspring often resemble their parents. Which best explains why?",
+                opts: ["Parents teach their offspring to look like them", "Offspring inherit traits through genes passed from parents", "Offspring are born with random traits unrelated to parents", "Parents' experiences change their offspring's appearance"],
+                cor: 1, exp: "Genes, found in DNA, carry instructions for traits. Offspring inherit genes from parents, resulting in inherited traits like eye color, height, and other characteristics.", str: "Genes = units of heredity. Inherited traits passed parent to offspring. Environment can affect expression."
+            },
+            {
+                sec: "life", std: "6-LS-1", skill: "cell_function", diff: "grade-level",
+                type: "mc", text: "Plant cells have a cell wall in addition to a cell membrane. What advantage does this structure provide?",
+                opts: ["It allows the plant to move around", "It provides structural support and protection to the cell", "It stores glucose for the plant", "It reproduces the cell"],
+                cor: 1, exp: "The cell wall is rigid and cellulose-based, providing structural support and protection. It maintains cell shape and prevents excessive water loss.", str: "Plant cell unique features: Cell wall (support), chloroplasts (photosynthesis), large vacuole (water/nutrient storage)."
+            },
+
+            // CHALLENGING (3 questions)
+            {
+                sec: "life", std: "6-LS-3", skill: "body_systems_interaction", diff: "challenging",
+                type: "mc", text: "How do the respiratory and circulatory systems work together to serve the body?",
+                opts: ["They are independent and don't interact", "The respiratory system gets oxygen into lungs, and the circulatory system delivers that oxygen to all cells", "The circulatory system creates oxygen", "The respiratory system delivers oxygen directly to every cell"],
+                cor: 1, exp: "The respiratory system (lungs) exchanges O₂ and CO₂ with air. The circulatory system (heart/blood) transports oxygen from lungs to cells and removes CO₂ from cells back to lungs.", str: "System integration: Respiratory gets O₂, circulatory delivers O₂, nervous system coordinates. One system alone can't meet cell needs."
+            },
+            {
+                sec: "life", std: "6-LS-4", skill: "ecosystem_energy", diff: "challenging",
+                type: "mc", text: "In an ecosystem, energy enters through producers (plants) and moves through consumers. Why does less energy remain available as you move up the food chain?",
+                opts: ["Energy is lost as heat during organism growth and activity, and not all energy is eaten by the next consumer", "The sun provides less energy to higher trophic levels", "Consumers destroy energy intentionally", "Energy increases at higher levels"],
+                cor: 0, exp: "Energy is lost as metabolic heat when organisms use energy for movement, growth, and maintaining body temperature. Additionally, not all of an organism is consumed. About 10% of energy transfers to the next level.", str: "Trophic energy rule: ~10% transfers up food chain. Energy lost to heat, respiration, decomposition, uneaten parts."
+            },
+            {
+                sec: "life", std: "6-LS-5", skill: "adaptation_selection", diff: "challenging",
+                type: "scr", text: "A polar bear has thick white fur. Explain how this trait is an adaptation to the polar bear's environment and how natural selection supports organisms with such traits.",
+                guidance: "Consider the advantages the trait provides in the harsh arctic environment and explain why bears with this trait are more likely to survive and pass genes to offspring.",
+                sec: "life", std: "6-LS-5", skill: "adaptation_selection", exp: "White fur provides insulation (thick) and camouflage in snow, helping bears stay warm and hunt seals successfully. Bears with this adaptation are more likely to survive, eat, and reproduce, passing the trait to offspring. Over generations, beneficial traits become more common.", str: "Adaptation = trait that improves survival/reproduction. Natural selection = organisms with beneficial traits survive more and pass genes to more offspring."
+            },
+
+            // EARTH & SPACE SCIENCE (8 questions) - Q47-Q54
+            // BASELINE (2 questions)
+            {
+                sec: "earth", std: "6-ES-1", skill: "weather_climate", diff: "baseline",
+                type: "mc", text: "What is the main difference between weather and climate?",
+                opts: ["Weather is rain, climate is snow", "Weather is short-term atmospheric conditions; climate is long-term patterns over decades", "They mean the same thing", "Weather is only in summer, climate is only in winter"],
+                cor: 1, exp: "Weather describes current/short-term conditions (today's temperature, rain). Climate describes patterns over 30+ years (average rainfall per region per season).", str: "Weather = now/today/short-term. Climate = typical/long-term patterns. 'Climate is what you expect, weather is what you get.'"
+            },
+            {
+                sec: "earth", std: "6-ES-2", skill: "earths_layers", diff: "baseline",
+                type: "mc", text: "Earth is divided into layers. Which layer is the thickest?",
+                opts: ["Crust", "Mantle", "Outer core", "Inner core"],
+                cor: 1, exp: "The mantle is the thickest layer, making up most of Earth's volume. The crust is thin (solid outer layer), outer core is liquid iron/nickel, inner core is solid.", str: "Earth layers from outside in: Crust (thin solid), Mantle (thick hot rock), Outer core (liquid iron), Inner core (solid iron)."
+            },
+
+            // GRADE-LEVEL (3 questions)
+            {
+                sec: "earth", std: "6-ES-3", skill: "plate_tectonics", diff: "grade-level",
+                type: "mc", text: "Earth's crust is broken into large pieces called plates that slowly move. What is a result of plate motion?",
+                opts: ["Plates never change positions", "Earthquakes, volcanoes, and mountain formation occur at plate boundaries", "Plates moving causes day and night", "Ocean levels rise and fall with plate movement"],
+                cor: 1, exp: "Plate tectonics drives geological activity. Where plates collide, earthquakes and volcanism occur. Where they diverge, new crust forms. Where they collide, mountains rise.", str: "Plate tectonics = plates move, collide, diverge. Results: earthquakes, volcanoes, mountains, ocean trenches, mid-ocean ridges."
+            },
+            {
+                sec: "earth", std: "6-ES-4", skill: "solar_system", diff: "grade-level",
+                type: "mc", text: "Which planet is known as the 'Red Planet'?",
+                opts: ["Venus", "Mars", "Jupiter", "Saturn"],
+                cor: 1, exp: "Mars appears reddish due to iron oxide (rust) on its surface. Venus is covered in clouds reflecting sunlight, appearing yellowish-white.", str: "Solar system order from sun: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune. Mars = 4th planet, red color."
+            },
+            {
+                sec: "earth", std: "6-ES-5", skill: "water_cycle", diff: "grade-level",
+                type: "mc", text: "Water moves through the water cycle in different forms. Which is the correct sequence?",
+                opts: ["Evaporation → Precipitation → Condensation → Runoff", "Precipitation → Condensation → Evaporation → Runoff", "Evaporation → Condensation → Precipitation → Runoff", "Runoff → Evaporation → Condensation → Precipitation"],
+                cor: 2, exp: "Water cycle: Evaporation (liquid to gas from oceans/lakes), Condensation (gas to liquid forming clouds), Precipitation (rain/snow falls), Runoff (returns to oceans).", str: "Water cycle: Evaporation (sun heats water) → Condensation (cools to clouds) → Precipitation (falls) → Runoff (collects in bodies of water, repeats)."
+            },
+
+            // CHALLENGING (2-3 questions)
+            {
+                sec: "earth", std: "6-ES-1", skill: "climate_factors", diff: "challenging",
+                type: "mc", text: "A coastal city and an inland city at the same latitude have different climates. The coastal city is cooler in summer and warmer in winter. What explains this difference?",
+                opts: ["Coastal cities have more rain", "Water has high heat capacity and moderates temperature changes, while land heats and cools quickly", "The sun is closer to coastal cities in winter", "Coastal areas have higher altitude"],
+                cor: 1, exp: "Water absorbs/releases heat slowly, moderating coastal temperatures. Land heats and cools quickly. Coastal areas remain closer to water temperature year-round.", str: "Water's heat capacity = moderates climate. Coastal areas: smaller temperature swings. Inland: extreme seasonal temperatures."
+            },
+            {
+                sec: "earth", std: "6-ES-3", skill: "geological_timescale", diff: "challenging",
+                type: "scr", text: "Plate tectonics occurs slowly—millimeters per year. Explain why geologists study ancient rocks and fossils to understand plate movement, rather than observing plates moving directly.",
+                guidance: "Consider the scale of time needed to observe significant plate movement and what evidence rocks/fossils provide about past positions and movement.",
+                sec: "earth", std: "6-ES-3", skill: "geological_timescale", exp: "Plates move ~cm/year, making direct observation impossible in human lifespans. But fossils, matching rock formations on distant continents, and seafloor patterns show plates have moved vastly. By studying millions of years of geological evidence (radiometric dating, fossil distribution, continent shape matches), geologists reconstruct plate history.", str: "Geological time = millions of years. Indirect evidence: matching fossils, rock types, continent fit, seafloor spreading patterns reveal plate movement over vast time."
+            },
+            {
+                sec: "earth", std: "6-ES-2", skill: "mantle_convection", diff: "challenging",
+                type: "mc", text: "Heat inside Earth drives convection currents in the mantle. How does this relate to plate movement?",
+                opts: ["Heat is unrelated to plate movement", "Hot mantle rock rises, cools, sinks, pushing plates apart and dragging them together at boundaries", "The mantle cools plates down but doesn't move them", "Only gravity causes plate movement"],
+                cor: 1, exp: "Convection currents in the mantle act like a conveyor belt, transferring heat and energy that moves plates. Rising hot material spreads plates (divergent), sinking cool material drags plates (convergent).", str: "Mantle convection = heat engine driving plates. Rising = divergence (spread), Sinking = convergence (collide). Powers plate tectonics."
+            }
+        ];
+
+        // Verify SECTIONS ranges match Q array
+        if (SECTIONS[SECTIONS.length - 1].range[1] !== Q.length - 1) {
+            console.error("SECTIONS ranges don't match Q array length!");
+        }
+
+        let currentQ = 0;
+        let answers = {};
+        let timeRemaining = 3600; // 60 minutes
+        let timerInterval = null;
+
+        function startTest() {
+            document.getElementById("welcomeScreen").classList.remove("active");
+            document.getElementById("testScreen").classList.add("active");
+            renderNav();
+            renderQuestion();
+            startTimer();
+            saveState();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimer();
+                if (timeRemaining <= 0) clearInterval(timerInterval);
+            }, 1000);
+        }
+
+        function updateTimer() {
+            const mins = Math.floor(timeRemaining / 60);
+            const secs = timeRemaining % 60;
+            document.getElementById("timerDisplay").textContent =
+                mins + ":" + (secs < 10 ? "0" : "") + secs;
+        }
+
+        function renderNav() {
+            const nav = document.getElementById("navSidebar");
+            nav.innerHTML = "";
+            SECTIONS.forEach((sec, idx) => {
+                const secDiv = document.createElement("div");
+                secDiv.className = "nav-section";
+                const title = document.createElement("div");
+                title.className = "nav-section-title";
+                title.textContent = sec.name;
+                secDiv.appendChild(title);
+                const buttons = document.createElement("div");
+                buttons.className = "nav-buttons";
+                for (let i = sec.range[0]; i <= Math.min(sec.range[1], Q.length - 1); i++) {
+                    const btn = document.createElement("button");
+                    btn.className = "nav-btn";
+                    btn.textContent = (i + 1);
+                    if (i === currentQ) btn.classList.add("active");
+                    if (answers[i] !== undefined) btn.classList.add("answered");
+                    btn.onclick = () => goQuestion(i);
+                    buttons.appendChild(btn);
+                }
+                secDiv.appendChild(buttons);
+                nav.appendChild(secDiv);
+            });
+        }
+
+        function goQuestion(q) {
+            if (q < 0 || q >= Q.length) return;
+            currentQ = q;
+            renderQuestion();
+            renderNav();
+            saveState();
+        }
+
+        function renderQuestion() {
+            const q = Q[currentQ];
+            const sec = SECTIONS.find(s => s.id === q.sec);
+            const container = document.getElementById("questionContainer");
+            const qNum = currentQ + 1;
+
+            let html = `
+                <div class="question-header">
+                    <div class="question-number">Question ${qNum} of ${Q.length}</div>
+                    <div class="question-meta">${sec.name} • ${q.diff}</div>
+                </div>
+                <div class="question-text">${q.text}</div>
+            `;
+
+            if (q.type === "mc") {
+                html += '<div class="options">';
+                q.opts.forEach((opt, idx) => {
+                    const letter = String.fromCharCode(65 + idx);
+                    const isSelected = answers[currentQ] === idx;
+                    const cls = isSelected ? "selected" : "";
+                    html += `<div class="option ${cls}" onclick="selectOption(${idx})">${letter}) ${opt}</div>`;
+                });
+                html += '</div>';
+                if (answers[currentQ] !== undefined) {
+                    const expl = `<div class="explanation show">
+                        <div class="explanation-title">Explanation</div>
+                        <p>${q.exp}</p>
+                        <div class="strategy-tip"><strong>LEAP Strategy:</strong> ${q.str}</div>
+                    </div>`;
+                    html += expl;
+                }
+            } else if (q.type === "scr") {
+                const currentAns = answers[currentQ] || "";
+                html += `<textarea class="scr-input" id="scrInput" placeholder="Type your answer here..."></textarea>
+                    <p style="margin-top: 10px; font-size: 0.85em; color: #aaa;">Guidance: ${q.guidance}</p>`;
+                if (currentAns) {
+                    html += `<div class="explanation show">
+                        <div class="explanation-title">Explanation (Sample)</div>
+                        <p>${q.exp}</p>
+                        <div class="strategy-tip"><strong>LEAP Strategy:</strong> ${q.str}</div>
+                    </div>`;
+                }
+            }
+
+            container.innerHTML = html;
+            document.getElementById("progressDisplay").textContent = `Question ${qNum} of ${Q.length}`;
+            document.getElementById("prevBtn").disabled = currentQ === 0;
+            document.getElementById("nextBtn").disabled = currentQ === Q.length - 1;
+
+            if (q.type === "scr") {
+                const input = document.getElementById("scrInput");
+                if (input) {
+                    input.value = answers[currentQ] || "";
+                    input.addEventListener("change", () => {
+                        answers[currentQ] = input.value;
+                        saveState();
+                    });
+                }
+            }
+        }
+
+        function selectOption(idx) {
+            answers[currentQ] = idx;
+            renderQuestion();
+            saveState();
+            document.getElementById("answeredCount").textContent = Object.keys(answers).length;
+        }
+
+        function saveState() {
+            localStorage.setItem("jacob_diagnostic_week4_signal", JSON.stringify({
+                testId: CONFIG.testId,
+                currentQ,
+                answers,
+                timeRemaining
+            }));
+        }
+
+        function showSubmitModal() {
+            document.getElementById("answeredCount").textContent = Object.keys(answers).length;
+            document.getElementById("submitModal").classList.add("show");
+        }
+
+        function closeSubmitModal() {
+            document.getElementById("submitModal").classList.remove("show");
+        }
+
+        function submitTest() {
+            clearInterval(timerInterval);
+            const results = estimateScores();
+
+            // Send to Google Apps Script
+            const payload = {
+                testId: CONFIG.testId,
+                student: CONFIG.student,
+                grade: CONFIG.grade,
+                answers,
+                scores: results,
+                timeSpent: 3600 - timeRemaining
+            };
+
+            fetch(CONFIG.webAppUrl, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            }).catch(e => console.log("Submission logged locally"));
+
+            localStorage.setItem("jacob_dashboard_v3", JSON.stringify({
+                testId: CONFIG.testId,
+                score: results.totalScore,
+                percentage: results.percentage,
+                baseline: 761,
+                scale: results.estimatedScale,
+                category: results.category,
+                timestamp: new Date().toISOString()
+            }));
+
+            showReview(results);
+        }
+
+        function estimateScores() {
+            let correct = 0;
+            let totalMC = 0;
+
+            for (let i = 0; i < Q.length; i++) {
+                if (Q[i] && Q[i].type === "mc") {
+                    totalMC++;
+                    if (answers[i] === Q[i].cor) correct++;
+                }
+            }
+
+            const percentage = Math.round((correct / totalMC) * 100);
+            const estimatedScale = Math.round(700 + (percentage / 100) * 150); // Scale 700-850
+            let category = "Developing";
+            if (percentage >= 80) category = "Mastery";
+            else if (percentage >= 65) category = "Advanced";
+            else if (percentage >= 50) category = "Proficient";
+
+            return {
+                totalScore: correct,
+                totalQuestions: totalMC,
+                percentage,
+                estimatedScale,
+                category
+            };
+        }
+
+        function showReview(results) {
+            document.getElementById("testScreen").classList.remove("active");
+            document.getElementById("reviewScreen").classList.add("active");
+
+            document.getElementById("scoreValue").textContent = results.totalScore;
+            document.getElementById("scorePercentage").textContent = results.percentage + "%";
+            document.getElementById("estimatedScale").textContent = results.estimatedScale;
+            document.getElementById("scaleCategory").textContent = results.category;
+
+            let tutorHtml = `<p>Great work completing the Week 4 Science diagnostic, Jacob! You scored ${results.percentage}% on the multiple choice questions. Let's look at your performance by area:</p>`;
+
+            // Calculate section scores
+            SECTIONS.forEach(sec => {
+                let sectionCorrect = 0, sectionTotal = 0;
+                for (let i = sec.range[0]; i <= Math.min(sec.range[1], Q.length - 1); i++) {
+                    if (Q[i] && Q[i].type === "mc") {
+                        sectionTotal++;
+                        if (answers[i] === Q[i].cor) sectionCorrect++;
+                    }
+                }
+                const secPct = sectionTotal > 0 ? Math.round((sectionCorrect / sectionTotal) * 100) : 0;
+                tutorHtml += `<p><strong>${sec.name}:</strong> ${sectionCorrect}/${sectionTotal} correct (${secPct}%). `;
+                if (secPct >= 80) tutorHtml += "Excellent work here!";
+                else if (secPct >= 60) tutorHtml += "Good foundation, but review some concepts.";
+                else tutorHtml += "Focus on strengthening understanding in this area.";
+                tutorHtml += "</p>";
+            });
+
+            tutorHtml += `<p><strong>Your baseline LEAP Science score is 761</strong> (Mastery — 29 points from Advanced). This diagnostic shows your current readiness. Keep practicing challenging problems to boost your scale score!</p>`;
+
+            document.getElementById("tutorReview").innerHTML = tutorHtml;
+        }
+
+        // Load saved state if available
+        window.addEventListener("load", () => {
+            const saved = localStorage.getItem("jacob_diagnostic_week4_signal");
+            if (saved) {
+                try {
+                    const state = JSON.parse(saved);
+                    currentQ = state.currentQ || 0;
+                    answers = state.answers || {};
+                    timeRemaining = state.timeRemaining || 3600;
+                } catch (e) {
+                    // Reset if corrupted
+                }
+            }
+        });
+    </script>
+</body>
+</html>
