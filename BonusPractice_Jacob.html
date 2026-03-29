@@ -27,7 +27,7 @@
 
         .question-card { background: #231e17; border: 2px solid #3d3428; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
         .standard-tag { display: inline-block; font-size: 11px; color: #5ca4e8; background: rgba(92,164,232,0.1); padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
-        .question-text { font-size: 17px; color: #e8dcc8; margin-bottom: 16px; }
+        .question-text { font-size: 17px; color: #e8dcc8; margin-bottom: 16px; white-space: pre-line; }
 
         .options-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
         .option { background: #1a1510; border: 2px solid #3d3428; border-radius: 8px; padding: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 12px; }
@@ -104,6 +104,7 @@
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec';
     const TODAY = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
     const BONUS_KEY = CONFIG.studentLower + '_bonus_practice';
+    const SEEN_KEY = CONFIG.studentLower + '_bonus_seen';
 
     const SUBJECTS = [
         { id: 'ela_reading', name: 'ELA Reading', icon: '📖' },
@@ -113,6 +114,59 @@
         { id: 'social_studies', name: 'Social Studies', icon: '🌍' }
     ];
 
+    const QUESTION_BANK = [
+      { id:"j_ela_r_1", subject:"ela_reading", text:"Read the following passage, then answer the question.\n\n\"The monarch butterfly's migration is one of nature's most remarkable journeys. Each fall, millions of monarchs travel up to 3,000 miles from Canada and the United States to their winter home in the mountains of central Mexico. Scientists are still studying exactly how the butterflies navigate such vast distances.\"\n\nQuestion: Which statement is best supported by evidence from the passage?", options:["Monarch butterflies migrate because they cannot survive cold winters.","Monarch butterflies travel as far as 3,000 miles during their annual migration.","Scientists fully understand how monarch butterflies navigate during migration.","Monarch butterflies spend their summers in Mexico and winters in Canada."], correct:1, explanation:"Option B is directly supported by the passage, which states monarchs travel 'up to 3,000 miles.' Option A may be true but is not stated. Option C is the opposite of 'still studying.' Option D reverses the direction.", standard:"RI.6.1" },
+      { id:"j_ela_r_2", subject:"ela_reading", text:"Read the following passage, then answer the question.\n\n\"Plastic pollution chokes our oceans. Every year, more than eight million tons of plastic enter the sea, harming fish, seabirds, and marine mammals. Unlike organic waste, plastic does not biodegrade — it simply breaks into smaller particles called microplastics, which enter the food chain and ultimately reach human dinner plates.\"\n\nQuestion: What is the central idea of this passage?", options:["Seabirds are the animals most harmed by plastic pollution.","Humans should stop eating seafood to avoid microplastics.","Plastic pollution in the ocean creates serious environmental and human health problems.","Microplastics are too small to cause any real harm to living organisms."], correct:2, explanation:"The central idea captures the full scope: plastic harms wildlife AND reaches humans. Option A focuses on one detail. Option B is a conclusion not made. Option D contradicts the passage.", standard:"RI.6.2" },
+      { id:"j_ela_r_3", subject:"ela_reading", text:"Read the following passage, then answer the question.\n\n\"The volcano had been dormant for centuries, but geologists warned the region could become active again. Residents found it hard to feel alarm — to them, the peak was simply a benign presence on the horizon, as familiar and unthreatening as an old neighbor.\"\n\nQuestion: As used in the passage, the word 'dormant' most nearly means:", options:["dangerous and unpredictable","inactive or sleeping","recently destroyed","extremely cold"], correct:1, explanation:"The passage says 'dormant for centuries' but 'could become active again,' telling us dormant is the opposite of active — meaning inactive or sleeping.", standard:"RI.6.4" },
+      { id:"j_ela_r_4", subject:"ela_reading", text:"Read the following passage, then answer the question.\n\n\"First, ancient Egyptians mummified the body by removing internal organs and drying it with salt. Next, priests wrapped the body in linen bandages. Then, the wrapped mummy was placed in a decorated coffin. Finally, the coffin was sealed inside a tomb filled with items for the afterlife.\"\n\nQuestion: What text structure does the author use?", options:["Cause and effect","Compare and contrast","Chronological/sequential order","Problem and solution"], correct:2, explanation:"The signal words 'First,' 'Next,' 'Then,' and 'Finally' are classic markers of sequential order.", standard:"RI.6.5" },
+      { id:"j_ela_r_5", subject:"ela_reading", text:"Read the following passage, then answer the question.\n\n\"Some people claim that zoos educate the public and protect endangered species. However, animal rights advocates argue that keeping wild animals in cages robs them of freedom and causes lasting psychological harm.\"\n\nQuestion: What is the author's most likely purpose?", options:["To persuade readers that zoos should be shut down immediately.","To present two different perspectives on whether zoos are beneficial.","To explain the scientific methods zoos use to breed endangered animals.","To entertain readers with funny stories about zoo animals."], correct:1, explanation:"The passage uses 'some people claim... however, advocates argue,' presenting two contrasting viewpoints without taking a clear side.", standard:"RI.6.6" },
+      { id:"j_ela_r_6", subject:"ela_reading", text:"Read the following passage, then answer the question.\n\n\"Maya stood at the edge of the diving board, her knees trembling. Below her, the water shimmered. She had told her friends she would jump, but now every ounce of courage she'd felt an hour ago had evaporated like morning dew.\"\n\nQuestion: Which detail best supports the idea that Maya is afraid?", options:["The water shimmered in the afternoon light.","Her knees were trembling.","Her friends were watching her.","She was standing at the edge of the diving board."], correct:1, explanation:"'Her knees were trembling' is a physical sign of fear. The other options describe the scene but not Maya's emotional state.", standard:"RL.6.1" },
+      { id:"j_ela_r_7", subject:"ela_reading", text:"Read the following passage, then answer the question.\n\n\"At the beginning of the school year, Marcus refused to speak in class and ate lunch alone every day. By November, after joining the robotics team, he always had an idea to share and his laugh echoed down the hallway.\"\n\nQuestion: What causes Marcus to change?", options:["A new teacher encourages him.","His parents move him to a new school.","Joining the robotics team helps him find confidence and connection.","He decides on his own to stop being shy."], correct:2, explanation:"The passage directly connects Marcus's transformation to joining the robotics team.", standard:"RL.6.3" },
+      { id:"j_ela_r_8", subject:"ela_reading", text:"Read the following lines, then answer the question.\n\n\"The old oak stood like a soldier at his post, / Through hurricanes and droughts and summer's boast. / Its roots gripped deep, refusing to let go, / A silent guardian watching empires grow.\"\n\nQuestion: What does 'stood like a soldier at his post' most likely mean?", options:["The oak tree was wearing a military uniform.","The oak tree stood firm and unmoving through difficult conditions.","The oak tree was guarding a military base.","The oak tree was as tall as a soldier."], correct:1, explanation:"This is a simile comparing the oak to a soldier. A soldier at his post stands firm no matter what — the tree endured hardship without yielding.", standard:"RL.6.4" },
+      { id:"j_ela_r_9", subject:"ela_reading", text:"Read the following passage, then answer the question.\n\n\"The gray wolf was once hunted nearly to extinction. In 1995, wolves were reintroduced to Yellowstone. Elk populations, which had overgrazed riverbanks, began moving more. Willows and aspens recovered, bringing back beavers, songbirds, and even changing river courses.\"\n\nQuestion: What happened as a result of wolves being reintroduced?", options:["Elk populations went extinct.","The park was closed to visitors.","Changes in elk behavior led to recovery of plants, animals, and rivers.","Wolves immediately dominated all of North America."], correct:2, explanation:"The passage describes a chain reaction: wolves changed elk behavior, which let plants recover, which brought back other animals and changed rivers.", standard:"RI.6.1" },
+      { id:"j_ela_r_10", subject:"ela_reading", text:"Read the following passage, then answer the question.\n\n\"Unlike noisy gasoline engines, electric vehicles run silently on battery power. While gasoline cars release exhaust fumes, EVs produce zero tailpipe emissions. However, critics note the electricity powering EVs often comes from fossil fuel plants.\"\n\nQuestion: What text structure does the author primarily use?", options:["Chronological order","Problem and solution","Compare and contrast","Description"], correct:2, explanation:"The passage directly compares EVs and gasoline cars point by point. Signal words 'unlike' and 'while' are contrast markers.", standard:"RI.6.5" },
+      { id:"j_ela_l_1", subject:"ela_language", text:"Choose the sentence that uses pronoun-antecedent agreement correctly.", options:["Each of the students forgot their homework.","Each of the students forgot his or her homework.","Each of the students forgot our homework.","Each of the students forgot its homework."], correct:1, explanation:"'Each' is singular, requiring a singular pronoun. 'His or her' is correct. 'Their' with singular antecedent is debated but formally incorrect on LEAP.", standard:"L.6.1" },
+      { id:"j_ela_l_2", subject:"ela_language", text:"Which sentence uses commas correctly?", options:["We packed sandwiches chips and lemonade for the trip.","We packed sandwiches, chips, and lemonade for the trip.","We packed, sandwiches, chips, and lemonade for the trip.","We packed sandwiches chips, and lemonade for the trip."], correct:1, explanation:"Items in a series need commas between each item, including before the conjunction 'and.'", standard:"L.6.2" },
+      { id:"j_ela_l_3", subject:"ela_language", text:"Which revision best improves these sentences?\n\nOriginal: 'The storm was strong. It knocked down many trees.'", options:["The storm was very strong. It knocked down many, many trees.","The powerful storm swept through the neighborhood, toppling dozens of trees.","The storm was strong and it knocked down many trees.","There was a storm. The storm knocked trees down."], correct:1, explanation:"Option B combines ideas into one fluent sentence with stronger verbs and specific detail.", standard:"L.6.3" },
+      { id:"j_ela_l_4", subject:"ela_language", text:"Based on the prefix 'pre-' and the root 'historic,' what does 'prehistoric' mean?", options:["After the time of recorded history","The most important period in history","Before recorded history began","A false or invented version of history"], correct:2, explanation:"The prefix 'pre-' means 'before,' and 'historic' relates to recorded events. Combined: before recorded history.", standard:"L.6.4" },
+      { id:"j_ela_l_5", subject:"ela_language", text:"Which sentence uses dashes correctly?", options:["My dog — a golden retriever — loves to swim in the lake.","My dog — a golden retriever loves to swim in the lake.","My dog a golden retriever — loves to swim in the lake.","My — dog a golden retriever loves to swim — in the lake."], correct:0, explanation:"Dashes are used in pairs to set off extra information. Option A correctly encloses 'a golden retriever' between two dashes.", standard:"L.6.2" },
+      { id:"j_ela_l_6", subject:"ela_language", text:"Read: 'The coach told Marcus that he needed to try harder.'\n\nWhat is the antecedent of the pronoun 'he'?", options:["try","harder","Marcus","coach"], correct:2, explanation:"An antecedent is the noun a pronoun refers to. 'He' refers to Marcus — the person who needs to try harder.", standard:"L.6.1" },
+      { id:"j_ela_l_7", subject:"ela_language", text:"Read: 'After weeks of drought, the rain was a welcome relief.'\n\nWhat context clue best helps you understand 'drought'?", options:["The word 'welcome'","The phrase 'weeks of'","The word 'rain' suggesting drought is the opposite — a dry period","The word 'relief'"], correct:2, explanation:"The best clue is contrast: 'rain was a welcome relief' implies drought is the opposite — a dry period without rain.", standard:"L.6.4" },
+      { id:"j_ela_l_8", subject:"ela_language", text:"Which sentence uses parentheses correctly?", options:["The Amazon River (the world's largest by volume) flows through Brazil.","The Amazon River the world's largest by volume) flows through Brazil.","The Amazon River (the world's largest by volume flows through Brazil.","The Amazon (River the world's largest) by volume flows through Brazil."], correct:0, explanation:"Parentheses enclose additional nonessential information in matching pairs. Option A correctly encloses the extra detail.", standard:"L.6.2" },
+      { id:"j_ela_l_9", subject:"ela_language", text:"Which pair of words has the most different connotations despite similar meanings?", options:["house / home","run / jog","cheap / thrifty","big / large"], correct:2, explanation:"'Cheap' has a negative connotation (stingy, low quality) while 'thrifty' has a positive one (wise with money). The other pairs are similar in feeling.", standard:"L.6.5" },
+      { id:"j_ela_l_10", subject:"ela_language", text:"'Winning the championship was the cherry on top of a perfect season.'\n\nThis is an example of:", options:["Personification","Idiom","Simile","Hyperbole"], correct:1, explanation:"'The cherry on top' is an idiom meaning the best final addition. You can't understand it word by word. No 'like/as' (not simile), no human traits on objects (not personification).", standard:"L.6.5" },
+      { id:"j_math_1", subject:"math", text:"In a class of 30 students, 18 are boys. What is the ratio of girls to boys?", options:["2 to 3","3 to 5","2 to 5","3 to 2"], correct:0, explanation:"Girls = 30 - 18 = 12. Ratio of girls to boys = 12:18. Divide both by 6 = 2:3.", standard:"6.RP.1" },
+      { id:"j_math_2", subject:"math", text:"A car travels 150 miles in 3 hours. At this rate, how many miles in 5 hours?", options:["200 miles","250 miles","300 miles","225 miles"], correct:1, explanation:"Unit rate: 150 ÷ 3 = 50 mph. Then 50 × 5 = 250 miles.", standard:"6.RP.3" },
+      { id:"j_math_3", subject:"math", text:"What is the value of 3⁴?", options:["12","64","81","34"], correct:2, explanation:"3⁴ = 3 × 3 × 3 × 3 = 81. Common mistake: 3 × 4 = 12 (that's multiplication, not exponents).", standard:"6.EE.1" },
+      { id:"j_math_4", subject:"math", text:"Solve for x: 4x + 7 = 31", options:["x = 6","x = 9.5","x = 7","x = 8"], correct:0, explanation:"Subtract 7: 4x = 24. Divide by 4: x = 6. Check: 4(6) + 7 = 31 ✓", standard:"6.EE.7" },
+      { id:"j_math_5", subject:"math", text:"What is the area of a triangle with base 10 cm and height 6 cm?", options:["60 cm²","16 cm²","30 cm²","120 cm²"], correct:2, explanation:"Area = ½ × base × height = ½ × 10 × 6 = 30 cm². Common mistake: forgetting to multiply by ½.", standard:"6.G.1" },
+      { id:"j_math_6", subject:"math", text:"How many ⅓-cup servings are in 4 cups of soup?", options:["1⅓","12","4⅓","3"], correct:1, explanation:"4 ÷ ⅓ = 4 × 3 = 12. When dividing by a fraction, multiply by its reciprocal.", standard:"6.NS.1" },
+      { id:"j_math_7", subject:"math", text:"Evaluate the expression 5n − 3 when n = 4.", options:["8","17","23","37"], correct:1, explanation:"Substitute n = 4: 5(4) − 3 = 20 − 3 = 17.", standard:"6.EE.2" },
+      { id:"j_math_8", subject:"math", text:"A rectangular box has length 5 cm, width 3 cm, and height 4 cm. What is its volume?", options:["24 cm³","47 cm³","60 cm³","94 cm³"], correct:2, explanation:"Volume = length × width × height = 5 × 3 × 4 = 60 cm³.", standard:"6.G.2" },
+      { id:"j_math_9", subject:"math", text:"Test scores: 72, 85, 90, 68, 85. What is the median?", options:["85","80","68","72"], correct:0, explanation:"Order: 68, 72, 85, 85, 90. The middle value (3rd of 5) is 85. The mean (average) would be 80 — that's different from median.", standard:"6.SP.3" },
+      { id:"j_math_10", subject:"math", text:"What is the absolute value of −15?", options:["−15","−1","1","15"], correct:3, explanation:"Absolute value is distance from zero — always positive. |−15| = 15.", standard:"6.NS.7" },
+      { id:"j_sci_1", subject:"science", text:"Which best describes the function of the cell membrane?", options:["It produces energy through photosynthesis.","It controls what substances enter and exit the cell.","It stores the cell's genetic information.","It provides rigid structure to plant cells."], correct:1, explanation:"The cell membrane acts as a selective barrier. Chloroplasts do photosynthesis. The nucleus stores DNA. The cell wall provides rigid structure.", standard:"MS-LS1" },
+      { id:"j_sci_2", subject:"science", text:"Which organelle is the 'powerhouse of the cell'?", options:["Ribosome","Nucleus","Mitochondria","Vacuole"], correct:2, explanation:"Mitochondria convert glucose and oxygen into ATP (energy). Ribosomes build proteins. The nucleus contains DNA. Vacuoles store materials.", standard:"MS-LS1" },
+      { id:"j_sci_3", subject:"science", text:"In a food web, what would most likely happen if all plants disappeared?", options:["Herbivores would thrive without competition.","Carnivores would be unaffected.","Herbivore populations would collapse, then carnivores would follow.","The ecosystem would remain stable."], correct:2, explanation:"Plants are producers — the base of food webs. Without them, herbivores starve, then carnivores lose their food source too. This is a cascade effect.", standard:"MS-LS2" },
+      { id:"j_sci_4", subject:"science", text:"Which statement correctly describes Earth's position in the solar system?", options:["Earth is the closest planet to the Sun.","Earth is in the habitable zone where liquid water can exist.","Earth is the largest planet.","Earth has the shortest year."], correct:1, explanation:"Earth orbits in the 'habitable zone' — not too hot, not too cold — allowing liquid water. Mercury is closest; Jupiter is largest; Mercury has the shortest year.", standard:"MS-ESS1" },
+      { id:"j_sci_5", subject:"science", text:"Which process in the water cycle turns water vapor back into liquid?", options:["Evaporation","Precipitation","Condensation","Transpiration"], correct:2, explanation:"Condensation = vapor cools → liquid (forms clouds). Evaporation = liquid → vapor. Precipitation = water falls from clouds. Transpiration = plants release vapor.", standard:"MS-ESS2" },
+      { id:"j_sci_6", subject:"science", text:"A metal nail left in rain for two weeks turns reddish-brown. What type of change?", options:["Physical — the nail is still metal.","Chemical — rust (iron oxide) is a new substance.","Physical — painting over it would reverse it.","No change occurred."], correct:1, explanation:"Rusting is a chemical change. Iron reacts with oxygen and water to form iron oxide — a new substance. Painting over rust doesn't undo the chemical reaction.", standard:"MS-PS1" },
+      { id:"j_sci_7", subject:"science", text:"According to Newton's First Law, what happens to a soccer ball sitting still on a field if no forces act on it?", options:["It will slowly begin to roll.","It will remain at rest unless an unbalanced force acts on it.","It will eventually accelerate on its own.","It will float upward."], correct:1, explanation:"Newton's First Law: an object at rest stays at rest unless acted on by an unbalanced force. Nothing makes it move without an outside force.", standard:"MS-PS2" },
+      { id:"j_sci_8", subject:"science", text:"Which is the best example of mechanical weathering?", options:["Acid rain dissolving limestone.","Water freezing in rock cracks, expanding and breaking the rock.","Iron in rock reacting with oxygen to form rust.","Carbon dioxide dissolving in rainwater."], correct:1, explanation:"Mechanical weathering breaks rocks WITHOUT changing chemistry. Ice wedging (water freezing in cracks) is a classic example. The other options are chemical weathering.", standard:"MS-ESS2" },
+      { id:"j_sci_9", subject:"science", text:"What is the main difference between plant cells and animal cells?", options:["Animal cells have a nucleus; plant cells do not.","Plant cells have a cell wall and chloroplasts; animal cells have neither.","Plant cells can move freely; animal cells cannot.","Animal cells are always larger."], correct:1, explanation:"Plant cells have cell walls (rigid support) and chloroplasts (photosynthesis). Animal cells have neither. Both have nuclei.", standard:"MS-LS1" },
+      { id:"j_sci_10", subject:"science", text:"Student A pulls with 40N right, Student B pulls with 60N left in tug-of-war. What is the net force?", options:["100 Newtons left","20 Newtons right","20 Newtons left","Zero — forces cancel out"], correct:2, explanation:"Net force = 60 − 40 = 20N in the direction of the larger force (left). Forces only cancel when they're equal.", standard:"MS-PS2" },
+      { id:"j_ss_1", subject:"social_studies", text:"Which TWO rivers were essential to Mesopotamian civilization, giving the region its name 'land between the rivers'?", options:["The Nile and the Congo","The Tigris and the Euphrates","The Indus and the Ganges","The Yangtze and the Yellow River"], correct:1, explanation:"Mesopotamia (Greek: 'between rivers') was between the Tigris and Euphrates in modern Iraq. The Nile is Egypt; Indus/Ganges are South Asia; Yangtze/Yellow are China.", standard:"WH.6.2" },
+      { id:"j_ss_2", subject:"social_studies", text:"The ancient Egyptians built pyramids primarily for what purpose?", options:["To store grain for famine","To serve as temples for daily rituals","To serve as tombs for pharaohs and the afterlife","To demonstrate military power"], correct:2, explanation:"Pyramids were royal tombs. Egyptians mummified pharaohs with treasures for the afterlife. Grain was stored in granaries, not pyramids.", standard:"WH.6.3" },
+      { id:"j_ss_3", subject:"social_studies", text:"What was the significance of Hammurabi's Code?", options:["The world's first written alphabet.","One of the earliest written legal codes with laws and punishments.","A religious creation text.","A military strategy guide."], correct:1, explanation:"Hammurabi's Code (c. 1754 BCE) was 282 laws on a stone pillar — one of history's earliest complete legal codes. The first alphabet was Phoenician.", standard:"WH.6.2" },
+      { id:"j_ss_4", subject:"social_studies", text:"How did Greece's rugged mountains and seas most affect its civilization?", options:["Made Greece easy to unite under one emperor.","Encouraged city-states to develop independently.","Prevented Greeks from trading.","Forced all Greeks to become farmers."], correct:1, explanation:"Mountains created natural barriers, leading to independent city-states (poleis) with different governments. Athens had democracy; Sparta had military oligarchy. Greeks were prolific sea traders.", standard:"WH.6.5" },
+      { id:"j_ss_5", subject:"social_studies", text:"Which event most directly marked the transition from Roman Republic to Roman Empire?", options:["Construction of the Colosseum.","Julius Caesar's assassination in 44 BCE.","Augustus Caesar becoming the first emperor.","The army conquering Greece."], correct:2, explanation:"Augustus became Rome's first emperor around 27 BCE. Caesar's assassination triggered the crisis, but Augustus actually established the Empire.", standard:"WH.6.6" },
+      { id:"j_ss_6", subject:"social_studies", text:"Besides silk, what else traveled along the Silk Road?", options:["Only luxury goods.","Ideas, religions, and diseases, plus goods like spices.","Only Chinese soldiers.","Only Roman exports traveling east."], correct:1, explanation:"The Silk Road spread Buddhism, Islam, papermaking technology, and even the Black Death — far more than just trade goods.", standard:"WH.6.7" },
+      { id:"j_ss_7", subject:"social_studies", text:"What was a major effect of ancient India's caste system?", options:["People could move freely between social groups.","It created a rigid hierarchy determining occupation and marriage.","It eliminated poverty with equal resources.","It was purely religious with no daily-life effects."], correct:1, explanation:"The caste system was hereditary — people were born into a caste (Brahmin, Kshatriya, Vaishya, Shudra, Dalit) and generally couldn't change it.", standard:"WH.6.4" },
+      { id:"j_ss_8", subject:"social_studies", text:"Which best describes a core teaching of Confucianism?", options:["Withdraw from society for spiritual enlightenment.","Harmony comes from people fulfilling proper roles — children obeying parents, subjects respecting rulers.","Government should own all property equally.","Only military power creates stability."], correct:1, explanation:"Confucius taught social harmony through proper relationships (filial piety). Option A describes Daoism. Option D is closer to Legalism.", standard:"WH.6.4" },
+      { id:"j_ss_9", subject:"social_studies", text:"Why did Egyptians consider annual Nile floods a blessing?", options:["Floods provided fish as the primary food source.","Floods deposited rich silt creating fertile farmland.","Floods cooled the desert climate.","Floods formed natural walls against invasion."], correct:1, explanation:"The Nile's annual flooding deposited black silt — nutrient-rich sediment — creating some of the ancient world's most fertile farmland. Egyptians called it the 'Black Land.'", standard:"WH.6.3" },
+      { id:"j_ss_10", subject:"social_studies", text:"What was Socrates' most important teaching method?", options:["Writing extensive textbooks for memorization.","Lectures to large amphitheater audiences.","Questioning and discussion to guide students toward truth (the Socratic method).","Athletic competition."], correct:2, explanation:"Socrates used probing questions to help students examine beliefs and arrive at conclusions through dialogue. Ironically, he wrote nothing — we know his ideas through Plato.", standard:"WH.6.5" }
+    ];
+
     let activeSubjects = new Set(SUBJECTS.map(s => s.id));
     let weaknessProfile = null;
     let questionPool = [];
@@ -120,41 +174,20 @@
     let answered = 0;
     let correct = 0;
     let startTime = Date.now();
+    let totalAnsweredThisSession = 0;
 
-    // Grade 6 fallback questions (same as DailySession)
-    const FALLBACK = {
-        ela_reading: [
-            { text: 'What is the primary force used to move water through Roman aqueducts?', options: ['Steam power','Gravity','Hand pumps','Wind energy'], correct: 1, explanation: 'Aqueducts used gravity alone to move water.', standard: 'RI.6.1' },
-            { text: 'Which best describes cause and effect text structure?', options: ['Events in time order','Comparing two things','One event leads to another','Listing details'], correct: 2, explanation: 'Cause and effect shows how one event leads to or results in another.', standard: 'RI.6.5' },
-            { text: 'What does it mean to make an inference?', options: ['Copy text directly','Use clues to figure out unstated meaning','Summarize the main idea','Define vocabulary words'], correct: 1, explanation: 'Inference means using text evidence and reasoning to understand something not directly stated.', standard: 'RL.6.1' }
-        ],
-        ela_language: [
-            { text: 'Which sentence uses a semicolon correctly?', options: ['I like dogs; they are loyal.','I like; dogs they are loyal.','I like dogs they; are loyal.','I; like dogs.'], correct: 0, explanation: 'A semicolon joins two related independent clauses.', standard: 'L.6.2' },
-            { text: 'What does "benevolent" most likely mean: "The benevolent king shared his wealth."', options: ['Cruel','Kind and generous','Wealthy','Powerful'], correct: 1, explanation: 'Context clues show benevolent means kind and generous.', standard: 'L.6.4' },
-            { text: 'Which is a synonym for "diligent"?', options: ['Lazy','Hardworking','Careless','Distracted'], correct: 1, explanation: 'Diligent means hardworking and persistent.', standard: 'L.6.5' },
-            { text: 'Identify the correct use: ___ going to the library.', options: ['Their','There','They\'re','Thier'], correct: 2, explanation: '"They\'re" = "they are."', standard: 'L.6.1' }
-        ],
-        math: [
-            { text: 'What is 3 + 4 × 2?', options: ['14','11','10','7'], correct: 1, explanation: 'Order of operations: 4×2=8, then 3+8=11.', standard: '6.EE.1' },
-            { text: 'A recipe needs 2/3 cup flour. For 3 batches?', options: ['2 cups','1 cup','6/3 cups','2/9 cup'], correct: 0, explanation: '2/3 × 3 = 6/3 = 2 cups.', standard: '6.NS.1' },
-            { text: 'Ratio of 15 boys to 20 girls in simplest form?', options: ['15:20','3:5','3:4','5:3'], correct: 2, explanation: 'Divide both by 5: 3:4.', standard: '6.RP.1' },
-            { text: 'Solve: x + 7 = 15', options: ['x=22','x=8','x=7','x=9'], correct: 1, explanation: 'x = 15 - 7 = 8.', standard: '6.EE.7' },
-            { text: 'Area of rectangle: length 8cm, width 5cm?', options: ['13 cm²','26 cm²','40 cm²','80 cm²'], correct: 2, explanation: 'Area = 8 × 5 = 40 cm².', standard: '6.G.1' },
-            { text: 'What is |-7|?', options: ['-7','7','0','1/7'], correct: 1, explanation: 'Absolute value of -7 is 7.', standard: '6.NS.7' }
-        ],
-        science: [
-            { text: 'What is the basic unit of life?', options: ['Atom','Molecule','Cell','Organ'], correct: 2, explanation: 'The cell is the basic unit of all living organisms.', standard: 'MS-LS1' },
-            { text: 'Which layer of Earth is thinnest?', options: ['Inner core','Outer core','Mantle','Crust'], correct: 3, explanation: 'The crust is Earth\'s thinnest layer.', standard: 'MS-ESS2' },
-            { text: 'What happens in a physical change?', options: ['New substances form','Composition changes','Form changes but composition stays same','Atoms are created'], correct: 2, explanation: 'Physical change = form changes, composition stays the same.', standard: 'MS-PS1' },
-            { text: 'Which is a producer in an ecosystem?', options: ['Lion','Mushroom','Grass','Eagle'], correct: 2, explanation: 'Producers like grass make food via photosynthesis.', standard: 'MS-LS2' }
-        ],
-        social_studies: [
-            { text: 'Which civilization built the pyramids at Giza?', options: ['Romans','Greeks','Egyptians','Persians'], correct: 2, explanation: 'Ancient Egyptians built the Giza pyramids.', standard: 'WH.6.1' },
-            { text: 'Direct exchange of goods without money is called?', options: ['Capitalism','Barter','Socialism','Credit'], correct: 1, explanation: 'Bartering = direct exchange without money.', standard: 'ECON.6.1' },
-            { text: 'Government ruled by a king or queen?', options: ['Democracy','Republic','Monarchy','Oligarchy'], correct: 2, explanation: 'Monarchy = government headed by a king/queen.', standard: 'CIV.6.1' },
-            { text: 'Which feature best supports agriculture?', options: ['Desert','Mountain peak','River valley','Dense forest'], correct: 2, explanation: 'River valleys provide fertile soil and water for irrigation.', standard: 'GEO.6.1' }
-        ]
-    };
+    function getSeenIds() {
+        try {
+            const arr = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+            return new Set(Array.isArray(arr) ? arr : []);
+        } catch (e) { return new Set(); }
+    }
+
+    function addSeenId(id) {
+        const seen = getSeenIds();
+        seen.add(id);
+        localStorage.setItem(SEEN_KEY, JSON.stringify([...seen]));
+    }
 
     // Init
     document.addEventListener('DOMContentLoaded', () => {
@@ -162,6 +195,7 @@
         loadTodayStats();
         loadWeaknessProfile().then(() => {
             buildPool();
+            replenishFromAPI();
             displayQuestion();
         });
     });
@@ -202,30 +236,55 @@
     }
 
     function buildPool() {
-        questionPool = [];
-        activeSubjects.forEach(subId => {
-            (FALLBACK[subId] || []).forEach(q => questionPool.push({ ...q, subject: subId }));
-        });
-        // Prioritize weakness questions by duplicating them
+        const seenIds = getSeenIds();
+        let available = QUESTION_BANK.filter(q => activeSubjects.has(q.subject));
+
+        // Filter out already-seen questions
+        let unseen = available.filter(q => !seenIds.has(q.id));
+
+        // If all questions for active subjects have been seen, reset and start fresh
+        if (unseen.length === 0) {
+            localStorage.setItem(SEEN_KEY, JSON.stringify([]));
+            unseen = available.slice();
+        }
+
+        questionPool = unseen.map(q => ({ ...q }));
+
+        // Prioritize weakness questions by adding them to the front
         if (weaknessProfile && weaknessProfile.weaknesses) {
             const weakStandards = new Set();
             Object.values(weaknessProfile.weaknesses).forEach(arr => {
                 if (Array.isArray(arr)) arr.forEach(w => weakStandards.add(w.standard));
             });
             const weakQs = questionPool.filter(q => weakStandards.has(q.standard));
-            questionPool = questionPool.concat(weakQs); // Double weight for weak areas
+            const nonWeakQs = questionPool.filter(q => !weakStandards.has(q.standard));
+            // Shuffle each group separately, then put weakness questions first
+            shuffle(weakQs);
+            shuffle(nonWeakQs);
+            questionPool = weakQs.concat(nonWeakQs);
+        } else {
+            shuffle(questionPool);
         }
-        for (let i = questionPool.length - 1; i > 0; i--) {
+    }
+
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [questionPool[i], questionPool[j]] = [questionPool[j], questionPool[i]];
+            [arr[i], arr[j]] = [arr[j], arr[i]];
         }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     function displayQuestion() {
         if (currentIndex >= questionPool.length) { buildPool(); currentIndex = 0; }
         const q = questionPool[currentIndex];
         if (!q) return;
-        document.getElementById('questionText').textContent = q.text;
+        document.getElementById('questionText').innerHTML = escapeHtml(q.text).replace(/\n/g, '<br>');
         if (q.standard) { document.getElementById('standardTag').textContent = q.standard; document.getElementById('standardTag').style.display = 'inline-block'; }
         else { document.getElementById('standardTag').style.display = 'none'; }
         const optList = document.getElementById('optionsList');
@@ -233,7 +292,7 @@
         ['A','B','C','D'].forEach((l, i) => {
             const div = document.createElement('div');
             div.className = 'option';
-            div.innerHTML = '<span class="option-letter">' + l + '</span><span class="option-text">' + q.options[i] + '</span>';
+            div.innerHTML = '<span class="option-letter">' + l + '</span><span class="option-text">' + escapeHtml(q.options[i]) + '</span>';
             div.onclick = () => selectAnswer(i);
             optList.appendChild(div);
         });
@@ -246,6 +305,7 @@
         const opts = document.querySelectorAll('#optionsList .option');
         if (opts[0] && opts[0].classList.contains('disabled')) return;
         answered++; const ok = index === q.correct; if (ok) correct++;
+        totalAnsweredThisSession++;
         opts.forEach((o, i) => { o.classList.add('disabled'); if (i === q.correct) o.classList.add('correct'); if (i === index && !ok) o.classList.add('incorrect'); });
         document.getElementById('totalCount').textContent = answered;
         document.getElementById('correctCount').textContent = correct;
@@ -254,6 +314,12 @@
         document.getElementById('feedbackLabel').textContent = ok ? '✓ Correct' : '✗ Incorrect';
         document.getElementById('feedbackText').textContent = q.explanation || '';
         document.getElementById('nextBtn').style.display = 'block';
+
+        // Mark this question as seen
+        if (q.id) addSeenId(q.id);
+
+        // Replenish from API every 5 answers
+        if (totalAnsweredThisSession % 5 === 0) replenishFromAPI();
     }
 
     function nextQuestion() { currentIndex++; displayQuestion(); }
@@ -279,6 +345,45 @@
                 action: 'saveDailyTracking', date: TODAY, student: CONFIG.student,
                 bonusPractice: true, bonusAnswered: answered, bonusCorrect: correct, bonusDuration: duration
             }) });
+        } catch (e) {}
+    }
+
+    function replenishFromAPI() {
+        try {
+            const seenIds = getSeenIds();
+            const activeArr = [...activeSubjects];
+            const unseenCount = QUESTION_BANK.filter(q => activeArr.includes(q.subject) && !seenIds.has(q.id)).length;
+            if (unseenCount >= 25) return;
+
+            // Pick a random active subject, preferring weak ones
+            let targetSubject = activeArr[Math.floor(Math.random() * activeArr.length)];
+            if (weaknessProfile && weaknessProfile.weaknesses) {
+                const weakSubjects = activeArr.filter(s => weaknessProfile.weaknesses[s] && weaknessProfile.weaknesses[s].length > 0);
+                if (weakSubjects.length > 0) targetSubject = weakSubjects[Math.floor(Math.random() * weakSubjects.length)];
+            }
+
+            const url = APPS_SCRIPT_URL + '?action=generateContent&student=Jacob&grade=6&subject=' + encodeURIComponent(targetSubject) + '&count=5&difficulty=grade-level&mode=leap_prep';
+            fetch(url, { signal: AbortSignal.timeout(15000) })
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                    if (!data || !data.questions || !Array.isArray(data.questions)) return;
+                    data.questions.forEach((q, i) => {
+                        const newId = 'api_' + targetSubject + '_' + Date.now() + '_' + i;
+                        // Only add if it has the required fields
+                        if (q.text && q.options && q.options.length === 4 && typeof q.correct === 'number') {
+                            QUESTION_BANK.push({
+                                id: newId,
+                                subject: q.subject || targetSubject,
+                                text: q.text,
+                                options: q.options,
+                                correct: q.correct,
+                                explanation: q.explanation || '',
+                                standard: q.standard || ''
+                            });
+                        }
+                    });
+                })
+                .catch(() => {});
         } catch (e) {}
     }
 
