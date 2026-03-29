@@ -102,7 +102,7 @@
     <script>
     const CONFIG = { student: 'Jacob', studentLower: 'jacob', grade: 6, dashboardUrl: 'Jacob_Dashboard.html' };
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec';
-    const TODAY = new Date().toISOString().split('T')[0];
+    const TODAY = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
     const BONUS_KEY = CONFIG.studentLower + '_bonus_practice';
 
     const SUBJECTS = [
