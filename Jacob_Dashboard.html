@@ -320,17 +320,47 @@
   }
   .lifetime-earned .earned { color: var(--accent); font-weight: 400; }
 
-  /* Payout History */
-  .payout-history-toggle { display: flex; align-items: center; cursor: pointer; margin: 12px 0 0 0; gap: 8px; }
-  .payout-history-toggle { font-size: 13px; color: var(--text-dim); }
-  #payoutArrow { color: var(--accent-dim); }
-  .payout-history {
-    display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--accent-dim);
+  /* Payment Ledger */
+  .ledger-section {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 16px; margin-top: 16px; position: relative;
   }
-  .payout-history.visible { display: block; }
-  .payout-item { font-size: 11px; color: var(--text-dim); margin: 6px 0; display: flex; justify-content: space-between; }
-  .payout-date { color: var(--accent-dim); }
-  .payout-detail { color: var(--accent); }
+  .ledger-section::before {
+    content: 'PAYMENT LEDGER'; position: absolute; top: -9px; left: 16px;
+    background: var(--bg); color: var(--accent); font-size: 10px; padding: 0 8px; letter-spacing: 3px;
+  }
+  .ledger-summary {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 12px 0 16px;
+  }
+  .ledger-stat {
+    text-align: center; padding: 10px 4px; background: var(--bg); border-radius: 6px;
+    border: 1px solid var(--card-border);
+  }
+  .ledger-stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .ledger-stat-value { font-size: 20px; font-weight: 700; font-family: 'Georgia', serif; }
+  .ledger-stat-value.earned { color: var(--success, #4ade80); }
+  .ledger-stat-value.paid { color: var(--accent); }
+  .ledger-stat-value.owed { color: #f87171; }
+  .ledger-stat-value.zero { color: var(--success, #4ade80); }
+  .ledger-toggle {
+    display: flex; align-items: center; cursor: pointer; gap: 8px;
+    font-size: 12px; color: var(--text-dim); margin-top: 8px; user-select: none;
+  }
+  .ledger-toggle .arrow { color: var(--accent-dim); transition: transform 0.2s; }
+  .ledger-table-wrap { display: none; margin-top: 10px; }
+  .ledger-table-wrap.visible { display: block; }
+  .ledger-table {
+    width: 100%; border-collapse: collapse; font-size: 11px;
+  }
+  .ledger-table th {
+    text-align: left; padding: 6px 8px; color: var(--accent); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--card-border);
+  }
+  .ledger-table td {
+    padding: 6px 8px; color: var(--text-dim); border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .ledger-table .amount { color: var(--success, #4ade80); font-weight: 600; }
+  .ledger-empty { font-size: 12px; color: var(--text-dim); text-align: center; padding: 12px; font-style: italic; }
 
   /* TIMELINE */
   .timeline-section {
@@ -792,6 +822,34 @@
   <div id="weeklyComplianceStatus" style="text-align:center; padding:12px; margin-top:8px; border-radius:8px; font-size:14px;"></div>
   <div id="missedDayNote" style="display:none; text-align:center; padding:10px; margin-top:8px; background:var(--accent-dim); border-radius:8px; font-size:12px; color:var(--accent);">
     Missed a day? Tell Dad or Mom why — they can still approve partial payment.
+  </div>
+
+  <!-- PAYMENT LEDGER -->
+  <div class="ledger-section" id="paymentLedgerSection" style="display:none;">
+    <div class="ledger-summary">
+      <div class="ledger-stat">
+        <div class="ledger-stat-label">Earned</div>
+        <div class="ledger-stat-value earned" id="ledgerEarned">--</div>
+      </div>
+      <div class="ledger-stat">
+        <div class="ledger-stat-label">Paid</div>
+        <div class="ledger-stat-value paid" id="ledgerPaid">--</div>
+      </div>
+      <div class="ledger-stat">
+        <div class="ledger-stat-label">Owed</div>
+        <div class="ledger-stat-value owed" id="ledgerOwed">--</div>
+      </div>
+    </div>
+    <div class="ledger-toggle" onclick="toggleLedgerHistory()">
+      <span class="arrow" id="ledgerArrow">&#9654;</span>
+      <span>Payment History</span>
+    </div>
+    <div class="ledger-table-wrap" id="ledgerTableWrap">
+      <table class="ledger-table">
+        <thead><tr><th>Date</th><th>From</th><th>Amount</th><th>Balance</th></tr></thead>
+        <tbody id="ledgerTableBody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -1550,6 +1608,8 @@ const CONTRIBUTORS = [
 let contributorRates = [];
 let payoutHistory = [];
 let pointsMetadata = [];
+let paymentLedger = [];
+let paymentBalance = { totalDollarsEarned: 0, totalPaid: 0, balance: 0 };
 
 async function loadContributorData() {
   try {
@@ -1564,14 +1624,19 @@ async function loadContributorData() {
       const t = setTimeout(() => c.abort(), ms);
       return fetch(url, { signal: c.signal }).finally(() => clearTimeout(t));
     }
-    const [ratesRes, historyRes, metaRes] = await Promise.all([
+    const [ratesRes, historyRes, metaRes, ledgerRes, balanceRes] = await Promise.all([
       fetchWithTimeout(`${baseUrl}?action=getContributorRates&${studentParam}`, 8000),
       fetchWithTimeout(`${baseUrl}?action=getPayoutHistory&${studentParam}`, 8000),
-      fetchWithTimeout(`${baseUrl}?action=getPointsMetadata&${studentParam}`, 8000)
+      fetchWithTimeout(`${baseUrl}?action=getPointsMetadata&${studentParam}`, 8000),
+      fetchWithTimeout(`${baseUrl}?action=getPaymentLedger&${studentParam}`, 8000),
+      fetchWithTimeout(`${baseUrl}?action=getPaymentBalance&${studentParam}`, 8000)
     ]);
     if (ratesRes.ok) contributorRates = await ratesRes.json();
     if (historyRes.ok) payoutHistory = await historyRes.json();
     if (metaRes.ok) pointsMetadata = await metaRes.json();
+    if (ledgerRes.ok) paymentLedger = await ledgerRes.json();
+    if (balanceRes.ok) paymentBalance = await balanceRes.json();
+    renderPaymentLedger();
   } catch(err) {
     console.warn('Failed to load contributor data:', err);
   }
@@ -1602,6 +1667,54 @@ function togglePayoutHistory() {
   } else {
     wrap.style.display = 'none';
     arrow.textContent = '►';
+  }
+}
+
+function renderPaymentLedger() {
+  const section = document.getElementById('paymentLedgerSection');
+  if (!section) return;
+
+  const earned = Number(paymentBalance.totalDollarsEarned || 0);
+  const paid = Number(paymentBalance.totalPaid || 0);
+  const owed = Math.max(0, earned - paid);
+
+  document.getElementById('ledgerEarned').textContent = '$' + earned.toFixed(2);
+  document.getElementById('ledgerPaid').textContent = '$' + paid.toFixed(2);
+
+  const owedEl = document.getElementById('ledgerOwed');
+  owedEl.textContent = '$' + owed.toFixed(2);
+  owedEl.className = 'ledger-stat-value ' + (owed > 0 ? 'owed' : 'zero');
+
+  // Render transaction table
+  const tbody = document.getElementById('ledgerTableBody');
+  const entries = Array.isArray(paymentLedger) ? paymentLedger : [];
+  if (entries.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="ledger-empty">No payments recorded yet.</td></tr>';
+  } else {
+    // Show newest first
+    const sorted = [...entries].reverse();
+    tbody.innerHTML = sorted.map(function(e) {
+      return '<tr>' +
+        '<td>' + (e.Date || '--') + '</td>' +
+        '<td>' + (e.Payer || e.Contributor || '--') + '</td>' +
+        '<td class="amount">$' + Number(e.Amount || 0).toFixed(2) + '</td>' +
+        '<td>$' + Number(e.Balance_After != null ? e.Balance_After : e.balance_after || 0).toFixed(2) + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  section.style.display = 'block';
+}
+
+function toggleLedgerHistory() {
+  const wrap = document.getElementById('ledgerTableWrap');
+  const arrow = document.getElementById('ledgerArrow');
+  if (wrap.classList.contains('visible')) {
+    wrap.classList.remove('visible');
+    arrow.innerHTML = '&#9654;';
+  } else {
+    wrap.classList.add('visible');
+    arrow.innerHTML = '&#9660;';
   }
 }
 
