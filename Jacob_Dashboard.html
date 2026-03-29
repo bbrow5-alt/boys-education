@@ -998,8 +998,9 @@ function mergeSheetDataIntoLocalStorage(sheetRows) {
   sheetRows.forEach(row => {
     const rawDate = row.Date;
     if (!rawDate) return;
-    // API returns ISO strings like "2026-03-23T05:00:00.000Z" — convert to local YYYY-MM-DD
-    const date = toLocalDateStr(new Date(rawDate));
+    // API returns ISO strings like "2026-03-23T05:00:00.000Z" — extract YYYY-MM-DD directly
+    // Do NOT use new Date() which re-interprets timezone and can shift the date
+    const date = typeof rawDate === 'string' && rawDate.includes('T') ? rawDate.split('T')[0] : toLocalDateStr(new Date(rawDate));
 
     if (!currentData.days[date]) {
       currentData.days[date] = {};
@@ -1670,11 +1671,51 @@ function togglePayoutHistory() {
   }
 }
 
+// Calculate total earned using $60/week model (not old points model)
+function calculateTotalEarnedLocal() {
+  const data = loadData();
+  if (!data || !data.days) return 0;
+
+  // Jacob: Mon(1)-Fri(5), week starts Monday
+  // Collect all dates with sessions
+  const sessionDates = new Set();
+  Object.entries(data.days).forEach(function(entry) {
+    if (entry[1] && entry[1].session) sessionDates.add(entry[0]);
+  });
+  if (sessionDates.size === 0) return 0;
+
+  const sorted = [...sessionDates].sort();
+  const earliest = new Date(sorted[0] + 'T12:00:00');
+  const latest = new Date(sorted[sorted.length - 1] + 'T12:00:00');
+
+  // Align to Monday
+  var weekStart = new Date(earliest);
+  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+
+  var totalEarned = 0;
+  while (weekStart <= latest) {
+    var sessionCount = 0;
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(weekStart);
+      d.setDate(weekStart.getDate() + i);
+      var dow = d.getDay();
+      if (dow >= 1 && dow <= 5) { // Mon-Fri
+        var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        if (sessionDates.has(ds)) sessionCount++;
+      }
+    }
+    if (sessionCount >= 5) totalEarned += 60;
+    weekStart.setDate(weekStart.getDate() + 7);
+  }
+  return totalEarned;
+}
+
 function renderPaymentLedger() {
   const section = document.getElementById('paymentLedgerSection');
   if (!section) return;
 
-  const earned = Number(paymentBalance.totalDollarsEarned || 0);
+  // Use local $60/week calculation instead of backend's broken points model
+  const earned = calculateTotalEarnedLocal();
   const paid = Number(paymentBalance.totalPaid || 0);
   const owed = Math.max(0, earned - paid);
 

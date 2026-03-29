@@ -1666,6 +1666,44 @@
             return student === 'Chase' ? 'Sun-Thu' : 'M-F';
         }
 
+        // Calculate total earned using $60/week model (5/5 sessions = $60)
+        function calculateTotalEarnedParent(student) {
+            const daily = allData[student]?.dailyTracking || {};
+            const sessionDates = new Set();
+            Object.entries(daily).forEach(function(entry) {
+                if (entry[1] && entry[1].session) sessionDates.add(entry[0]);
+            });
+            if (sessionDates.size === 0) return 0;
+            const sorted = [...sessionDates].sort();
+            const earliest = new Date(sorted[0] + 'T12:00:00');
+            const latest = new Date(sorted[sorted.length - 1] + 'T12:00:00');
+
+            // Align to week start: Monday for Jacob, Sunday for Chase
+            var weekStart = new Date(earliest);
+            if (student === 'Chase') {
+                weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // align to Sunday
+            } else {
+                weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7)); // align to Monday
+            }
+
+            var totalEarned = 0;
+            while (weekStart <= latest) {
+                var sessionCount = 0;
+                for (var i = 0; i < 7; i++) {
+                    var d = new Date(weekStart);
+                    d.setDate(weekStart.getDate() + i);
+                    var dow = d.getDay();
+                    if (isActiveSchoolDay(student, dow)) {
+                        var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                        if (sessionDates.has(ds)) sessionCount++;
+                    }
+                }
+                if (sessionCount >= 5) totalEarned += 60;
+                weekStart.setDate(weekStart.getDate() + 7);
+            }
+            return totalEarned;
+        }
+
         // Fetch data from Apps Script
         async function fetchData(action, student) {
             try {
@@ -1953,11 +1991,13 @@
             const isFullWeek = weeklyCompleteCount === 5;
             const dadAmount = isFullWeek ? 25.00 : 0.00;
             const momAmount = isFullWeek ? 25.00 : 0.00;
+            const gagaAmount = isFullWeek ? 10.00 : 0.00;
+            const weekTotal = dadAmount + momAmount + gagaAmount;
             const statusText = isFullWeek ? 'EARNED' : `INCOMPLETE — ${5 - weeklyCompleteCount} days missed`;
 
             const gridHtml = `
                 <div class="points-card">
-                    <div class="points-card-title">This Week (M-F)</div>
+                    <div class="points-card-title">This Week (${getActiveDayLabel(student)})</div>
                     <div class="points-card-value">${weeklyCompleteCount}/5</div>
                     <div class="points-card-secondary">${missedDays.length > 0 ? missedDays.join(', ') : 'All complete!'}</div>
                 </div>
@@ -1972,8 +2012,13 @@
                     <div class="points-card-secondary">${isFullWeek ? 'Earned' : 'Not earned'}</div>
                 </div>
                 <div class="points-card">
+                    <div class="points-card-title">Gaga &amp; Papa</div>
+                    <div class="points-card-value">$${gagaAmount.toFixed(2)}</div>
+                    <div class="points-card-secondary">${isFullWeek ? 'Earned' : 'Not earned'}</div>
+                </div>
+                <div class="points-card">
                     <div class="points-card-title">Status</div>
-                    <div class="points-card-value" style="color: ${isFullWeek ? '#22c55e' : '#f59e0b'}">${isFullWeek ? '$50.00' : '$0.00'}</div>
+                    <div class="points-card-value" style="color: ${isFullWeek ? '#22c55e' : '#f59e0b'}">${isFullWeek ? '$' + weekTotal.toFixed(2) : '$0.00'}</div>
                     <div class="points-card-secondary">${statusText}</div>
                 </div>
             `;
@@ -2196,10 +2241,13 @@
             if (leapInsight) parentInsight += leapInsight;
             if (diagInsight) parentInsight += diagInsight;
 
-            // Payment insight
-            const bal = allData[student]?.paymentBalance || {};
-            if (bal.balance && bal.balance > 0) {
-                parentInsight += `<p><strong>Balance owed:</strong> $${bal.balance.toFixed(2)} (${bal.totalPointsEarned || 0} points earned, $${(bal.totalPaid || 0).toFixed(2)} paid out).</p>`;
+            // Payment insight — use $60/week model
+            const earnedForInsight = calculateTotalEarnedParent(student);
+            const paidForInsight = (allData[student]?.paymentLedger || []).reduce((sum, e) => sum + Number(e.Amount || e.amount || 0), 0)
+                + ((allData[student]?.payoutHistory || []).reduce((sum, p) => sum + Number(p.Amount || p.amount || 0), 0));
+            const balanceForInsight = Math.max(0, earnedForInsight - paidForInsight);
+            if (balanceForInsight > 0) {
+                parentInsight += `<p><strong>Balance owed:</strong> $${balanceForInsight.toFixed(2)} ($${earnedForInsight.toFixed(2)} earned, $${paidForInsight.toFixed(2)} paid out).</p>`;
             }
 
             if (!leapInsight && !diagInsight && dates.length < 3) {
@@ -2885,136 +2933,56 @@
                     </div>
                 </div>`;
 
-            // === Per-Payor Breakdown — ONLY when real data exists ===
+            // === Per-Payor Breakdown — $60/week model ===
             const PAYOR_DISPLAY = {
-                'Dad': { display: 'Dad (Ben)', cssClass: 'dad' },
-                'Ben': { display: 'Dad (Ben)', cssClass: 'dad' },
-                'Mom': { display: 'Mom (Stephanie)', cssClass: 'mom' },
-                'Stephanie': { display: 'Mom (Stephanie)', cssClass: 'mom' },
-                'Gaga': { display: 'Gaga & Papa', cssClass: 'gaga-papa' },
-                'Papa': { display: 'Gaga & Papa', cssClass: 'gaga-papa' },
-                'Gigi': { display: 'Gigi & Pa', cssClass: 'gigi-pa' },
-                'Pa': { display: 'Gigi & Pa', cssClass: 'gigi-pa' },
-                'Paw': { display: 'Gigi & Pa', cssClass: 'gigi-pa' }
+                'Dad': 'Dad', 'Ben': 'Dad',
+                'Mom': 'Mom', 'Stephanie': 'Mom',
+                'Gaga': 'Gaga', 'Papa': 'Gaga'
             };
 
-            // Build rate lookup from backend ($/point)
-            const rateMap = {};
-            const rates = allData[student]?.contributorRates || [];
-            if (Array.isArray(rates) && rates.length > 0) {
-                rates.forEach(r => {
-                    const contributor = r.Contributor || r.contributor || r.Payer || '';
-                    const rate = Number(r.Rate || r.rate || r.DollarsPerPoint || r.dollars_per_point || 0);
-                    if (contributor && rate > 0) rateMap[contributor] = rate;
-                });
-            }
-
             // Calculate per-payor payments from ledger + payout history
-            const payorPayments = {};
+            const payorPayments = { Dad: 0, Mom: 0, Gaga: 0 };
             ledger.forEach(entry => {
-                const payer = entry.Payer || entry.payer || '';
+                const payer = PAYOR_DISPLAY[entry.Payer || entry.payer || ''] || '';
                 const amount = Number(entry.Amount || entry.amount || 0);
                 if (payer) payorPayments[payer] = (payorPayments[payer] || 0) + amount;
             });
             if (Array.isArray(payouts)) {
                 payouts.forEach(p => {
-                    const payer = p.Contributor || p.contributor || p.Payer || '';
+                    const payer = PAYOR_DISPLAY[p.Contributor || p.contributor || p.Payer || ''] || '';
                     const amount = Number(p.Amount || p.amount || 0);
                     if (payer) payorPayments[payer] = (payorPayments[payer] || 0) + amount;
                 });
             }
 
-            const hasRates = Object.keys(rateMap).length > 0;
-            const hasPayorPayments = Object.keys(payorPayments).length > 0;
+            // $60/week model: Dad $25, Mom $25, Gaga & Papa $10
+            const totalEarned = calculateTotalEarnedParent(student);
+            const completeWeeks = totalEarned / 60;
+            const PAYOR_RATES = { Dad: 25, Mom: 25, Gaga: 10 };
 
-            // Always show per-payor breakdown with the 4 known payors
+            const payorList = [
+                { key: 'Dad', display: 'Dad (Ben)', cssClass: 'dad', perWeek: 25 },
+                { key: 'Mom', display: 'Mom (Stephanie)', cssClass: 'mom', perWeek: 25 },
+                { key: 'Gaga', display: 'Gaga & Papa', cssClass: 'gaga-papa', perWeek: 10 }
+            ];
+
             {
                 html += `<div style="display:flex; align-items:center; justify-content:space-between; margin: 20px 0 12px;">
                     <h3 style="font-size: 1rem; font-weight: 600; color: #f3f4f6; margin:0;">Balance Owed by Payor</h3>
-                    <span style="font-size: 0.8rem; padding: 6px 14px; background: rgba(79,195,247,0.15); border: 1px solid rgba(79,195,247,0.3); color: #4fc3f7; border-radius: 8px; font-weight: 600; letter-spacing: 0.5px;">$50/Week System</span>
+                    <span style="font-size: 0.8rem; padding: 6px 14px; background: rgba(79,195,247,0.15); border: 1px solid rgba(79,195,247,0.3); color: #4fc3f7; border-radius: 8px; font-weight: 600; letter-spacing: 0.5px;">$60/Week System</span>
                 </div>`;
-
-                // Always include the 4 default payors
-                const DEFAULT_PAYORS = [
-                    { key: 'Dad', display: 'Dad (Ben)', cssClass: 'dad' },
-                    { key: 'Mom', display: 'Mom (Stephanie)', cssClass: 'mom' },
-                    { key: 'Gaga', display: 'Gaga & Papa', cssClass: 'gaga-papa' },
-                    { key: 'Gigi', display: 'Gigi & Pa', cssClass: 'gigi-pa' }
-                ];
-
-                const seenGroups = new Set();
-                const payorList = [];
-                const addPayor = (key, display, cssClass, rate) => {
-                    if (!seenGroups.has(display)) {
-                        seenGroups.add(display);
-                        payorList.push({ key, display, cssClass, rate: rate || 0 });
-                    }
-                };
-
-                // Add defaults first
-                DEFAULT_PAYORS.forEach(p => addPayor(p.key, p.display, p.cssClass, rateMap[p.key] || 0));
-                // Add any additional from rates or payments
-                Object.entries(rateMap).forEach(([k, r]) => {
-                    const info = PAYOR_DISPLAY[k] || { display: k, cssClass: 'other' };
-                    addPayor(k, info.display, info.cssClass, r);
-                });
-                Object.keys(payorPayments).forEach(k => {
-                    const info = PAYOR_DISPLAY[k] || { display: k, cssClass: 'other' };
-                    addPayor(k, info.display, info.cssClass, 0);
-                });
-
-                // Sum payments for a display-name group
-                function getGroupPaid(display) {
-                    let total = 0;
-                    Object.entries(PAYOR_DISPLAY).forEach(([alias, info]) => {
-                        if (info.display === display) total += (payorPayments[alias] || 0);
-                    });
-                    payorList.forEach(p => {
-                        if (p.display === display && !PAYOR_DISPLAY[p.key]) total += (payorPayments[p.key] || 0);
-                    });
-                    return total;
-                }
-
-                // Dad is the default payor — he owes the full remaining balance
-                // minus what any other configured payors owe.
-                // Other payors owe $0.00 until they set a rate.
-                function calcOwed(payor) {
-                    const isDad = (payor.display === 'Dad (Ben)');
-                    const paid = getGroupPaid(payor.display);
-                    if (isDad) {
-                        // Dad owes: full balance minus other payors' shares, minus what Dad has paid
-                        let othersShare = 0;
-                        payorList.forEach(p => {
-                            if (p.display !== 'Dad (Ben)' && p.rate > 0) {
-                                othersShare += (totalPoints * p.rate);
-                            }
-                        });
-                        return Math.max(0, owed - othersShare); // owed already accounts for all payments
-                    } else if (payor.rate > 0) {
-                        return Math.max(0, (totalPoints * payor.rate) - paid);
-                    } else {
-                        return 0; // not yet contributing
-                    }
-                }
+                html += `<div style="font-size: 0.85rem; color: #9ca3af; margin-bottom: 12px;">Total earned: $${totalEarned.toFixed(2)} (${completeWeeks} complete week${completeWeeks !== 1 ? 's' : ''})</div>`;
 
                 html += `<div class="contributor-grid">`;
                 payorList.forEach(payor => {
-                    const paid = getGroupPaid(payor.display);
-                    const isDad = (payor.display === 'Dad (Ben)');
-                    const owedAmt = calcOwed(payor);
-                    let rateLabel, statusLabel;
-                    if (isDad) {
-                        rateLabel = payor.rate > 0 ? `$${payor.rate.toFixed(2)} / point` : '3 pts = $1.00 (default)';
-                        statusLabel = '';
-                    } else {
-                        rateLabel = payor.rate > 0 ? `$${payor.rate.toFixed(2)} / point` : 'Not yet contributing';
-                        statusLabel = payor.rate > 0 ? '' : '';
-                    }
+                    const totalOwed = completeWeeks * payor.perWeek;
+                    const paid = payorPayments[payor.key] || 0;
+                    const balance = Math.max(0, totalOwed - paid);
 
                     html += `
                         <div class="contributor-card ${payor.cssClass}">
                             <div class="contributor-name">${payor.display}</div>
-                            <div class="contributor-rate">${rateLabel}</div>
+                            <div class="contributor-rate">$${payor.perWeek}/week</div>
                             <div class="contributor-stats">
                                 <div class="contributor-stat">
                                     <div class="contributor-stat-label">Paid</div>
@@ -3022,28 +2990,27 @@
                                 </div>
                                 <div class="contributor-stat">
                                     <div class="contributor-stat-label">Owed</div>
-                                    <div class="contributor-stat-value ${owedAmt > 0 ? 'owed' : 'paid'}">$${owedAmt.toFixed(2)}</div>
+                                    <div class="contributor-stat-value ${balance > 0 ? 'owed' : 'paid'}">$${balance.toFixed(2)}</div>
                                 </div>
                             </div>
                         </div>`;
                 });
                 html += `</div>`;
 
-                // Progress bars only if rates are configured
-                if (hasRates && totalPoints > 0) {
+                // Payment progress bars
+                if (totalEarned > 0) {
                     html += `<div class="payor-summary-bar"><h3 style="font-size: 0.95rem; font-weight: 600; color: #f3f4f6; margin-bottom: 14px;">Payment Progress</h3>`;
                     payorList.forEach(payor => {
-                        if (payor.rate <= 0) return;
-                        const paid = getGroupPaid(payor.display);
-                        const shareOwed = totalPoints * payor.rate;
-                        const pct = shareOwed > 0 ? Math.min(100, (paid / shareOwed) * 100) : 0;
+                        const totalOwed = completeWeeks * payor.perWeek;
+                        const paid = payorPayments[payor.key] || 0;
+                        const pct = totalOwed > 0 ? Math.min(100, (paid / totalOwed) * 100) : 0;
                         html += `
                             <div class="payor-bar-row">
                                 <div class="payor-bar-label">${payor.display}</div>
                                 <div class="payor-bar-track">
                                     <div class="payor-bar-fill ${payor.cssClass}" style="width: ${pct}%"></div>
                                 </div>
-                                <div class="payor-bar-amount">$${paid.toFixed(2)} / $${shareOwed.toFixed(2)}</div>
+                                <div class="payor-bar-amount">$${paid.toFixed(2)} / $${totalOwed.toFixed(2)}</div>
                             </div>`;
                     });
                     html += `</div>`;
@@ -3088,7 +3055,7 @@
                 // Full week: $50, no amount input needed
                 amountGroup.style.display = 'none';
                 reasonGroup.style.display = 'none';
-                document.getElementById('paymentAmount').value = '50.00';
+                document.getElementById('paymentAmount').value = '60.00';
             } else if (paymentType === 'partial') {
                 // Partial: show amount input
                 amountGroup.style.display = 'block';
@@ -3110,7 +3077,10 @@
             document.getElementById('paymentNotes').value = '';
             document.getElementById('paymentStatus').textContent = '';
 
-            const balance = allData[student]?.paymentBalance?.balance || 0;
+            const earnedBal = calculateTotalEarnedParent(student);
+            const paidBal = (allData[student]?.paymentLedger || []).reduce((s, e) => s + Number(e.Amount || e.amount || 0), 0)
+                + ((allData[student]?.payoutHistory || []).reduce((s, p) => s + Number(p.Amount || p.amount || 0), 0));
+            const balance = Math.max(0, earnedBal - paidBal);
             document.getElementById('paymentStatus').innerHTML =
                 `<span style="color: #f59e0b;">Current balance owed to ${student}: $${balance.toFixed(2)}</span>`;
 
@@ -3132,7 +3102,7 @@
 
             // Determine amount based on payment type
             if (paymentType === 'full') {
-                amount = 50.00; // $25 Dad + $25 Mom
+                amount = 60.00; // $25 Dad + $25 Mom + $10 Gaga & Papa
             } else if (paymentType === 'partial' || paymentType === 'override') {
                 if (!amount || amount <= 0) {
                     statusEl.innerHTML = '<span style="color: #ef4444;">Please enter a valid amount.</span>';
