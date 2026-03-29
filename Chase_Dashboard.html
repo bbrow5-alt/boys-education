@@ -1839,13 +1839,20 @@ async function loadDiagnosticTests() {
   // Diagnostic tests are managed via hardcoded entries (updated each time a new test is built).
   // The API endpoint returns stale data, so we skip it and use the local definition as source of truth.
   // When a new diagnostic is created, replace this single entry.
+  // Week 6 diagnostic (current)
+  const signalWeek6 = JSON.parse(localStorage.getItem('chase_diagnostic_week6_signal') || 'null');
+  const isCompletedWeek6 = signalWeek6 && signalWeek6.completed && signalWeek6.testId === 'chase_diagnostic_week6_mar2026';
+  const diagDayDataW6 = getDayData('2026-03-29');
+  const pastDueW6 = new Date() > new Date('2026-03-30');
+  const isCompletedW6FromSync = pastDueW6 && diagDayDataW6 && diagDayDataW6.session === true;
+
+  // Week 5 diagnostic (previous)
   const signalWeek5 = JSON.parse(localStorage.getItem('chase_diagnostic_week5_signal') || 'null');
   const isCompletedWeek5 = signalWeek5 && signalWeek5.completed && signalWeek5.testId === 'chase_diagnostic_week5_mar2026';
-  // Also check: if the diagnostic date has session=true and we're past the due date, treat as completed
-  // This handles cases where the signal was lost (different browser, cleared cache) but Sheet has the data
   const diagDayData = getDayData('2026-03-28');
   const pastDue = new Date() > new Date('2026-03-29');
   const isCompletedFromSync = pastDue && diagDayData && diagDayData.session === true;
+
   diagnosticTests = [
     {
       TestLabel: 'Week 5 LEAP Practice Test — All Subjects',
@@ -1855,6 +1862,16 @@ async function loadDiagnosticTests() {
       DueDate: '2026-03-29',
       Completed: (isCompletedWeek5 || isCompletedFromSync) ? 'TRUE' : 'FALSE',
       CompletedDate: isCompletedWeek5 ? signalWeek5.date : (isCompletedFromSync ? '2026-03-28' : ''),
+      PointsAwarded: 15
+    },
+    {
+      TestLabel: 'Week 6 LEAP Practice Test — All Subjects',
+      Month: 'March 2026',
+      TestURL: 'Diagnostic_Test_Chase_Week6_March2026.html',
+      AvailableDate: '2026-03-29',
+      DueDate: '2026-03-30',
+      Completed: (isCompletedWeek6 || isCompletedW6FromSync) ? 'TRUE' : 'FALSE',
+      CompletedDate: isCompletedWeek6 ? signalWeek6.date : (isCompletedW6FromSync ? '2026-03-29' : ''),
       PointsAwarded: 15
     }
   ];
