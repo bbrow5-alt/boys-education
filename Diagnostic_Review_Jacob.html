@@ -757,7 +757,9 @@
                             questions.push({
                                 text: (passageText ? passageText : '') + q.text,
                                 options: q.opts,
-                                correct: q.cor
+                                correct: q.cor,
+                                explanation: q.exp || null,
+                                strategy: q.str || null
                             });
                         }
                     }
@@ -1038,7 +1040,25 @@
                     </div>
                 `;
 
-                html += `
+                // Show saved explanation immediately if available
+                if (q.explanation) {
+                    html += `
+                    <div class="tutor-response active" style="margin-top:12px;">
+                        <div class="tutor-label">\ud83d\udcac ${tutorName}'s Explanation</div>
+                        <div class="tutor-message">${escapeHtml(q.explanation)}</div>
+                        ${q.strategy ? '<div class="tutor-message" style="margin-top:8px; font-style:italic; color:var(--accent);">\ud83d\udca1 Strategy: ' + escapeHtml(q.strategy) + '</div>' : ''}
+                    </div>
+                    <button class="tutor-button" onclick="askTutor(${idx}, '${escapeHtml(q.text).replace(/'/g, "\\'")}', '${escapeHtml(q.options[item.studentAnswer]).replace(/'/g, "\\'")}', '${escapeHtml(q.options[item.correctAnswer]).replace(/'/g, "\\'")}')" id="askBtn${idx}" style="margin-top:8px; font-size:12px; padding:6px 14px; opacity:0.7;">
+                        Ask ${tutorName} to explain more
+                    </button>
+                    <div class="tutor-response" id="tutor${idx}">
+                        <div class="tutor-label">\ud83d\udcac ${tutorName}'s Deep Dive</div>
+                        <div class="tutor-message" id="tutorMsg${idx}"></div>
+                        <button class="got-it-btn" onclick="dismissTutor(${idx})">Got it!</button>
+                    </div>
+                    `;
+                } else {
+                    html += `
                     <button class="tutor-button" onclick="askTutor(${idx}, '${escapeHtml(q.text).replace(/'/g, "\\'")}', '${escapeHtml(q.options[item.studentAnswer]).replace(/'/g, "\\'")}', '${escapeHtml(q.options[item.correctAnswer]).replace(/'/g, "\\'")}')" id="askBtn${idx}">
                         Ask ${tutorName}
                     </button>
@@ -1047,7 +1067,8 @@
                         <div class="tutor-message" id="tutorMsg${idx}"></div>
                         <button class="got-it-btn" onclick="dismissTutor(${idx})">Got it!</button>
                     </div>
-                `;
+                    `;
+                }
 
                 html += `</div></div>`;
             });
