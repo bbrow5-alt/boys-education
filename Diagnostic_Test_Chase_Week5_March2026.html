@@ -1868,6 +1868,21 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
       localStorage.setItem('chase_diagnostic_signal', JSON.stringify({ testId: CONFIG.testId, score: percentage, completed: true }));
       localStorage.setItem('chase_dashboard_v3', JSON.stringify({ diagnosticComplete: true, lastTest: CONFIG.testId }));
 
+      // Save full results package for Review page
+      const reviewData = {
+        testId: CONFIG.testId,
+        student: CONFIG.student,
+        answers: answers,
+        questions: Q.map(q => ({ sec: q.sec, std: q.std, skill: q.skill, diff: q.diff, text: q.text, opts: q.opts, cor: q.cor, exp: q.exp, str: q.str, passage: q.passage })),
+        passages: PASSAGES,
+        sections: SECTIONS,
+        score: percentage,
+        correct: correct,
+        total: 50,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('chase_diagnostic_latest_review', JSON.stringify(reviewData));
+
       // Sync to Google Apps Script
       syncToGAS(percentage, correct);
     }

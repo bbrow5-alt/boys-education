@@ -733,6 +733,52 @@
         const tutorName = 'Doug';
         const studentName = 'Chase';
 
+        // Check for latest diagnostic review data (Week 5+)
+        function loadLatestReview() {
+            try {
+                const raw = localStorage.getItem('chase_diagnostic_latest_review');
+                if (!raw) return null;
+                const data = JSON.parse(raw);
+                if (!data || !data.answers || !data.questions || !data.sections) return null;
+
+                // Rebuild SECTIONS from the saved test data
+                SECTIONS.length = 0;
+                data.sections.forEach(function(sec) {
+                    var questions = [];
+                    for (var i = sec.range[0]; i <= sec.range[1]; i++) {
+                        var q = data.questions[i];
+                        if (q) {
+                            var passageText = '';
+                            if (q.passage && data.passages && data.passages[q.passage]) {
+                                passageText = '<div class="passage"><strong>' + data.passages[q.passage].title + '</strong><br>' + data.passages[q.passage].text.split('\n\n').slice(0,1).join('') + '...</div>';
+                            }
+                            questions.push({
+                                text: (passageText ? passageText : '') + q.text,
+                                options: q.opts,
+                                correct: q.cor
+                            });
+                        }
+                    }
+                    SECTIONS.push({ name: sec.name, questions: questions });
+                });
+
+                // Convert flat answers array to section-based format
+                var sectionAnswers = {};
+                var qOffset = 0;
+                data.sections.forEach(function(sec, si) {
+                    sectionAnswers[si] = {};
+                    for (var i = sec.range[0]; i <= sec.range[1]; i++) {
+                        var localIdx = i - sec.range[0];
+                        if (data.answers[i] !== null && data.answers[i] !== undefined) {
+                            sectionAnswers[si][localIdx] = data.answers[i];
+                        }
+                    }
+                });
+
+                return { answers: sectionAnswers, totalQuestions: data.questions.length };
+            } catch(e) { console.warn('Latest review load failed:', e); return null; }
+        }
+
         async function loadResultsFromAPI() {
             try {
                 // Primary: read from Assessments sheet via getAssessments
@@ -851,7 +897,10 @@
         }
 
         async function init() {
-            let results = loadResults(); // try localStorage first
+            let results = loadLatestReview(); // try Week 5+ format first
+            if (!results) {
+                results = loadResults(); // try legacy localStorage
+            }
             if (!results) {
                 results = await loadResultsFromAPI(); // try API
             }

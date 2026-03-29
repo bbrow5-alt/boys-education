@@ -1017,6 +1017,23 @@
             fetch(CONFIG.webAppUrl, { method: 'POST', body: JSON.stringify({ action: 'saveDiagnosticResults', data: data }) }).catch(() => {});
             localStorage.setItem('jacob_diagnostic_week5_signal', JSON.stringify({ completed: true, timestamp: new Date().toISOString() }));
             localStorage.setItem('jacob_diagnostic_signal', JSON.stringify({ week: 5, completed: true }));
+
+            // Save full results package for Review page
+            var answersArr = [];
+            for (var i = 0; i < 50; i++) answersArr[i] = answers[i] !== undefined ? answers[i] : null;
+            var reviewData = {
+                testId: CONFIG.testId,
+                student: CONFIG.student,
+                answers: answersArr,
+                questions: Q.map(function(q) { return { sec: q.sec, std: q.std, skill: q.skill, diff: q.diff, text: q.text, opts: q.opts, cor: q.cor, exp: q.exp, str: q.str, passage: q.passage }; }),
+                passages: PASSAGES,
+                sections: SECTIONS,
+                score: data.correct / data.total * 100,
+                correct: data.correct,
+                total: 50,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('jacob_diagnostic_latest_review', JSON.stringify(reviewData));
         }
 
         function updateDashboard() {
