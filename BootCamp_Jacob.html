@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Forge — Easter Boot Camp</title>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-main: #1a1510;
+            --text-primary: #e8dcc8;
+            --text-secondary: #a89968;
+            --accent-gold: #c9a84c;
+            --card-bg: #231e17;
+            --border-color: #3d3428;
+            --correct: #7fb069;
+            --incorrect: #c44536;
+            --accent-blue: #5ca4e8;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: Georgia, 'Times New Roman', serif;
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ===== HEADER & NAVIGATION ===== */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent-gold);
+            margin: 10px 0;
+        }
+
+        .header-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin: 5px 0;
+        }
+
+        .header-icon {
+            font-size: 3rem;
+            margin: 10px 0;
+        }
+
+        .countdown {
+            background-color: var(--card-bg);
+            border: 1px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 15px 0;
+            font-size: 1.1rem;
+            color: var(--accent-blue);
+            font-weight: bold;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 20px;
+            background-color: var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-gold));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        /* ===== HUB VIEW ===== */
+        .hub-view {
+            display: block;
+        }
+
+        .day-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .day-card:hover:not(.locked) {
+            border-color: var(--accent-gold);
+            background-color: rgba(201, 168, 76, 0.1);
+            transform: translateX(5px);
+        }
+
+        .day-card.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .day-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .day-card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-gold);
+        }
+
+        .day-card-status {
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .status-locked {
+            background-color: var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .status-available {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+
+        .status-completed {
+            background-color: var(--correct);
+            color: white;
+        }
+
+        .day-card-details {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .day-card-details strong {
+            color: var(--accent-gold);
+        }
+
+        .unlock-link {
+            color: var(--accent-blue);
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        .unlock-link:hover {
+            color: var(--accent-gold);
+        }
+
+        /* ===== DAY VIEW ===== */
+        .day-view {
+            display: none;
+        }
+
+        .day-view.active {
+            display: block;
+        }
+
+        .back-button {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--accent-gold);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            border-color: var(--accent-gold);
+            background-color: rgba(201, 168, 76, 0.1);
+        }
+
+        .day-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .day-header h1 {
+            font-size: 2rem;
+            color: var(--accent-gold);
+            margin-bottom: 5px;
+        }
+
+        .phase-indicator {
+            display: inline-block;
+            background-color: var(--accent-blue);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        /* ===== LEARN PHASE ===== */
+        .learn-phase {
+            display: none;
+        }
+
+        .learn-phase.active {
+            display: block;
+        }
+
+        .khan-link {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .khan-link:hover {
+            border-color: var(--accent-gold);
+            background-color: rgba(201, 168, 76, 0.1);
+        }
+
+        .khan-link.checked {
+            border-color: var(--correct);
+            background-color: rgba(127, 176, 105, 0.15);
+        }
+
+        .khan-link-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .khan-checkbox {
+            width: 24px;
+            height: 24px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: var(--correct);
+        }
+
+        .khan-content {
+            flex: 1;
+        }
+
+        .khan-type {
+            display: inline-block;
+            background-color: var(--accent-blue);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .khan-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-gold);
+            margin-bottom: 5px;
+        }
+
+        .khan-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .khan-time {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .khan-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .khan-link:hover .khan-title {
+            text-decoration: underline;
+        }
+
+        .start-quiz-button {
+            background-color: var(--accent-gold);
+            color: var(--bg-main);
+            border: none;
+            padding: 15px 40px;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .start-quiz-button:hover {
+            background-color: #d9b860;
+            transform: scale(1.02);
+        }
+
+        .start-quiz-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .quiz-readiness {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .checked-count {
+            color: var(--correct);
+            font-weight: bold;
+        }
+
+        /* ===== QUIZ PHASE ===== */
+        .quiz-phase {
+            display: none;
+        }
+
+        .quiz-phase.active {
+            display: block;
+        }
+
+        .quiz-progress {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .quiz-progress-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+        }
+
+        .quiz-progress-bar {
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .quiz-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-gold));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .question-number {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-gold);
+            margin-bottom: 20px;
+        }
+
+        .standard-tag {
+            display: inline-block;
+            background-color: rgba(92, 164, 232, 0.2);
+            border: 1px solid var(--accent-blue);
+            color: var(--accent-blue);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-bottom: 15px;
+        }
+
+        .options {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            background-color: var(--bg-main);
+            border: 2px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .option:hover:not(.answered) {
+            border-color: var(--accent-gold);
+            background-color: rgba(201, 168, 76, 0.05);
+        }
+
+        .option.selected {
+            border-color: var(--accent-gold);
+            background-color: rgba(201, 168, 76, 0.15);
+        }
+
+        .option.correct {
+            border-color: var(--correct);
+            background-color: rgba(127, 176, 105, 0.2);
+        }
+
+        .option.incorrect {
+            border-color: var(--incorrect);
+            background-color: rgba(196, 69, 54, 0.2);
+        }
+
+        .option.answered {
+            cursor: default;
+        }
+
+        .feedback {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback-correct {
+            border-left: 4px solid var(--correct);
+        }
+
+        .feedback-incorrect {
+            border-left: 4px solid var(--incorrect);
+        }
+
+        .feedback-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .feedback-correct .feedback-title {
+            color: var(--correct);
+        }
+
+        .feedback-incorrect .feedback-title {
+            color: var(--incorrect);
+        }
+
+        .feedback-explanation {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .next-button {
+            background-color: var(--accent-gold);
+            color: var(--bg-main);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .next-button.show {
+            display: inline-block;
+        }
+
+        .next-button:hover {
+            background-color: #d9b860;
+            transform: scale(1.02);
+        }
+
+        /* ===== RESULTS VIEW ===== */
+        .results-view {
+            display: none;
+        }
+
+        .results-view.active {
+            display: block;
+        }
+
+        .results-container {
+            background-color: var(--card-bg);
+            border: 2px solid var(--accent-gold);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .results-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--accent-gold);
+            margin-bottom: 10px;
+        }
+
+        .results-percentage {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .results-message {
+            font-size: 1.2rem;
+            color: var(--accent-blue);
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .results-breakdown {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .breakdown-label {
+            font-weight: bold;
+            color: var(--text-secondary);
+        }
+
+        .breakdown-status {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .status-mastered {
+            background-color: rgba(127, 176, 105, 0.3);
+            color: var(--correct);
+        }
+
+        .status-review {
+            background-color: rgba(196, 69, 54, 0.3);
+            color: var(--incorrect);
+        }
+
+        .return-hub-button {
+            background-color: var(--accent-gold);
+            color: var(--bg-main);
+            border: none;
+            padding: 15px 40px;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .return-hub-button:hover {
+            background-color: #d9b860;
+            transform: scale(1.02);
+        }
+
+        .time-display {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 15px;
+        }
+
+        /* ===== DASHBOARD LINK ===== */
+        .dashboard-link {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .dashboard-link a {
+            display: inline-block;
+            background-color: var(--card-bg);
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            padding: 10px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-link a:hover {
+            background-color: rgba(201, 168, 76, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header-title {
+                font-size: 1.8rem;
+            }
+
+            .header-icon {
+                font-size: 2rem;
+            }
+
+            .question-container {
+                padding: 15px;
+            }
+
+            .results-score {
+                font-size: 2.2rem;
+            }
+
+            .day-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="header-icon">⚔️</div>
+            <h1 class="header-title">The Forge — Easter Boot Camp</h1>
+            <p class="header-subtitle">5 days. 7 weaknesses. One mission: LEAP Advanced.</p>
+            <div class="countdown" id="countdown"></div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="overallProgress"></div>
+            </div>
+            <div class="progress-text" id="progressText">Day 0 of 5 complete</div>
+        </header>
+
+        <!-- HUB VIEW -->
+        <div class="hub-view" id="hubView">
+            <div id="dayCardsContainer"></div>
+            <div class="dashboard-link">
+                <a href="Jacob_Dashboard.html">← Return to Dashboard</a>
+            </div>
+        </div>
+
+        <!-- DAY VIEWS -->
+        <div class="day-view" id="dayView">
+            <button class="back-button" onclick="app.returnToHub()">← Back to Hub</button>
+
+            <div class="day-header">
+                <h1 id="dayTitle"></h1>
+                <div class="phase-indicator" id="phaseIndicator">LEARN</div>
+            </div>
+
+            <!-- LEARN PHASE -->
+            <div class="learn-phase" id="learnPhase">
+                <div id="khanLinksContainer"></div>
+                <div class="quiz-readiness" id="quizReadiness"></div>
+                <button class="start-quiz-button" id="startQuizButton" onclick="app.startQuiz()" disabled>Start Quiz</button>
+            </div>
+
+            <!-- QUIZ PHASE -->
+            <div class="quiz-phase" id="quizPhase">
+                <div class="quiz-progress">
+                    <div class="quiz-progress-text" id="quizProgressText">Question 1 of 12</div>
+                    <div class="quiz-progress-bar">
+                        <div class="quiz-progress-fill" id="quizProgressFill"></div>
+                    </div>
+                </div>
+
+                <div class="question-container">
+                    <div class="standard-tag" id="standardTag"></div>
+                    <div class="question-text" id="questionText"></div>
+                    <div class="options" id="optionsContainer"></div>
+                    <div class="feedback" id="feedback">
+                        <div class="feedback-title" id="feedbackTitle"></div>
+                        <div class="feedback-explanation" id="feedbackExplanation"></div>
+                    </div>
+                    <button class="next-button" id="nextButton" onclick="app.nextQuestion()">Next Question</button>
+                </div>
+            </div>
+
+            <!-- RESULTS VIEW -->
+            <div class="results-view" id="resultsView">
+                <div class="results-container">
+                    <div class="results-score" id="resultScore"></div>
+                    <div class="results-percentage" id="resultPercentage"></div>
+                    <div class="results-message" id="resultMessage"></div>
+                    <div class="time-display" id="timeDisplay"></div>
+                    <div class="results-breakdown" id="resultsBreakdown"></div>
+                    <button class="return-hub-button" onclick="app.returnToHub()">← Back to Hub</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== APPLICATION STATE & CONFIG =====
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
+        const STORAGE_KEY = 'jacob_bootcamp_progress';
+        const TODAY = new Date();
+        const LEAP_DATE = new Date(2026, 4, 2); // May 2, 2026
+
+        // Calculate days until LEAP
+        function daysUntilLEAP() {
+            const timeDiff = LEAP_DATE - TODAY;
+            return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+        }
+
+        // ===== DAY DATA STRUCTURE =====
+        const dayData = [
+            {
+                dayNum: 1,
+                title: "Ratios & Proportions",
+                icon: "📊",
+                topic: "Math",
+                khanLinks: [
+                    {type: "VIDEO", title: "Intro to ratios", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-ratios-prop-topic/cc-6th-intro-ratios/v/intro-to-ratios", desc: "Learn what ratios are and how to express them", time: "~4 min"},
+                    {type: "VIDEO", title: "Part:whole ratios", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-ratios-prop-topic/cc-6th-intro-ratios/v/ratios-as-fractions", desc: "The difference between part-to-part and part-to-whole ratios", time: "~5 min"},
+                    {type: "VIDEO", title: "Equivalent ratios", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-ratios-prop-topic/cc-6th-intro-ratios/v/equivalent-ratios", desc: "How to find equivalent ratios by multiplying/dividing", time: "~5 min"},
+                    {type: "EXERCISE", title: "Basic ratios", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-ratios-prop-topic/cc-6th-intro-ratios/e/basic-ratios", desc: "Practice representing ratios", time: "~10 min"},
+                    {type: "EXERCISE", title: "Equivalent ratios", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-ratios-prop-topic/cc-6th-intro-ratios/e/equivalent_ratios", desc: "Practice finding equivalent ratios", time: "~10 min"},
+                    {type: "EXERCISE", title: "Ratio tables", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-ratios-prop-topic/cc-6th-ratio-tables/e/ratio-tables", desc: "Fill out ratio tables", time: "~10 min"}
+                ],
+                quizQuestions: [
+                    {std:"6.RP.1", text:"A bag has 6 red marbles and 10 blue marbles. What is the ratio of red marbles to TOTAL marbles?", opts:["6:10","6:16","3:5","3:8"], cor:3, exp:"Total = 6 + 10 = 16. Red to total = 6:16 = 3:8. Common mistake: writing part-to-part (6:10) instead of part-to-whole (6:16)."},
+                    {std:"6.RP.1", text:"A class has 12 boys and 18 girls. What is the ratio of boys to girls in simplest form?", opts:["12:18","2:3","3:2","2:5"], cor:1, exp:"12:18 → divide both by 6 → 2:3. Not 2:5 (that would be boys to total)."},
+                    {std:"6.RP.1", text:"A basket has 8 apples and 12 oranges. Which ratio represents oranges to TOTAL fruit?", opts:["8:12","12:8","12:20","8:20"], cor:2, exp:"Total fruit = 8+12 = 20. Oranges to total = 12:20. Simplifies to 3:5."},
+                    {std:"6.RP.1", text:"There are 15 cats and 25 dogs at a shelter. What fraction of the animals are cats?", opts:["15/25","3/5","15/40","25/40"], cor:2, exp:"Total = 15+25 = 40. Cats = 15/40 = 3/8. This is a part-to-whole ratio expressed as a fraction."},
+                    {std:"6.RP.3", text:"If 3 tickets cost $21, how much do 7 tickets cost?", opts:["$42","$49","$63","$35"], cor:1, exp:"Unit rate: $21 ÷ 3 = $7 per ticket. Then 7 × $7 = $49."},
+                    {std:"6.RP.3", text:"A recipe uses 2 cups of flour for 12 cookies. How much flour for 30 cookies?", opts:["3 cups","4 cups","5 cups","6 cups"], cor:2, exp:"Set up proportion: 2/12 = x/30. Cross multiply: 12x = 60, x = 5. OR: 30 is 2.5 times 12, so 2 × 2.5 = 5 cups."},
+                    {std:"6.RP.3", text:"A car uses 4 gallons of gas to drive 120 miles. Which proportion correctly finds how many gallons (x) are needed for 300 miles?", opts:["4/120 = 300/x","4/120 = x/300","120/4 = x/300","Both B and C are correct"], cor:3, exp:"Both B (gallons/miles = gallons/miles) and C (miles/gallons = miles/gallons) are valid. Proportions can be set up different ways as long as the relationship is consistent."},
+                    {std:"6.RP.3", text:"At a store, 5 notebooks cost $8. At this rate, how much would 15 notebooks cost?", opts:["$13","$16","$20","$24"], cor:3, exp:"15 is 3 times 5. So cost = 3 × $8 = $24. Or: unit price = $8/5 = $1.60, then 15 × $1.60 = $24."},
+                    {std:"6.RP.1", text:"In a garden, the ratio of roses to tulips is 3:5. If there are 24 roses, how many tulips are there?", opts:["30","35","40","45"], cor:2, exp:"3 parts = 24 roses, so 1 part = 8. Tulips = 5 parts = 5 × 8 = 40."},
+                    {std:"6.RP.3", text:"A factory makes 180 widgets in 6 hours. How many widgets in 15 hours at the same rate?", opts:["360","420","450","540"], cor:2, exp:"Rate = 180/6 = 30 widgets per hour. In 15 hours: 30 × 15 = 450."},
+                    {std:"6.RP.1", text:"A team won 9 games and lost 3. What is the ratio of wins to total games?", opts:["9:3","3:1","9:12","3:4"], cor:2, exp:"Total games = 9+3 = 12. Wins to total = 9:12 = 3:4. Note: 9:3 is wins to losses (part-to-part), not wins to total (part-to-whole)."},
+                    {std:"6.RP.3", text:"Emma walks 3 miles in 45 minutes. Which shows her rate per hour?", opts:["3 miles per hour","4 miles per hour","45 miles per hour","1 mile per hour"], cor:1, exp:"45 min = 3 miles. 60 min = ? Set up: 3/45 = x/60. x = 4 miles per hour. OR: 45 min → 3 mi, so 15 min → 1 mi, so 60 min → 4 mi."}
+                ]
+            },
+            {
+                dayNum: 2,
+                title: "Volume with Fractions + Geometry",
+                icon: "📦",
+                topic: "Math",
+                khanLinks: [
+                    {type: "VIDEO", title: "Volume of a rectangular prism", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/x0267d782:cc-6th-volume/cc-6th-volume-with-fractions/v/volume-with-fractions", desc: "Review the basics of volume = l × w × h", time: "~6 min"},
+                    {type: "EXERCISE", title: "Volume with fractions", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/x0267d782:cc-6th-volume/cc-6th-volume-with-fractions/e/volume-with-fractions", desc: "Practice finding volume with fractional side lengths", time: "~12 min"},
+                    {type: "VIDEO", title: "Volume through decomposition", url: "https://www.khanacademy.org/math/cc-fifth-grade-math/5th-volume/v/volume-through-decomposition", desc: "Breaking complex shapes into simpler ones", time: "~5 min"},
+                    {type: "EXERCISE", title: "Volume word problems", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/x0267d782:cc-6th-volume/cc-6th-volume-word-problems/e/volume-word-problems", desc: "Multi-step volume problems", time: "~15 min"}
+                ],
+                quizQuestions: [
+                    {std:"6.G.2", text:"A rectangular prism has length 4 cm, width 3 cm, and height 2½ cm. What is its volume?", opts:["24 cm³","30 cm³","9.5 cm³","20 cm³"], cor:1, exp:"V = 4 × 3 × 2.5 = 30 cm³. Multiply the fractional height just like any other number."},
+                    {std:"6.G.2", text:"An aquarium is 20 inches long, 10 inches wide, and 12 inches tall. If water fills it to ¾ of its height, how many cubic inches of water are in it?", opts:["2,400","1,800","900","600"], cor:1, exp:"Water height = ¾ × 12 = 9 inches. Volume of water = 20 × 10 × 9 = 1,800 cubic inches. DON'T use the full height of 12!"},
+                    {std:"6.G.2", text:"A box is 6 in × 4 in × 3½ in. What is its volume?", opts:["72 in³","84 in³","78 in³","42 in³"], cor:1, exp:"V = 6 × 4 × 3.5 = 84 in³. Step by step: 6 × 4 = 24, then 24 × 3.5 = 84."},
+                    {std:"6.G.2", text:"A storage container is 8 ft long, 5 ft wide, and 6 ft tall. It is ⅔ full of sand. What volume of sand is in the container?", opts:["240 ft³","160 ft³","120 ft³","80 ft³"], cor:1, exp:"Total volume = 8 × 5 × 6 = 240 ft³. Sand = ⅔ × 240 = 160 ft³."},
+                    {std:"6.G.2", text:"A pool is 30 ft long, 15 ft wide, and 8 ft deep. How many cubic feet of water does it hold when filled to ½ its depth?", opts:["3,600 ft³","1,800 ft³","900 ft³","450 ft³"], cor:1, exp:"Water depth = ½ × 8 = 4 ft. Volume = 30 × 15 × 4 = 1,800 ft³."},
+                    {std:"6.G.2", text:"A rectangular prism has length 2½ cm, width 1½ cm, and height 4 cm. What is its volume?", opts:["8 cm³","12 cm³","15 cm³","16 cm³"], cor:2, exp:"V = 2.5 × 1.5 × 4 = 15 cm³. Work it: 2.5 × 1.5 = 3.75, then 3.75 × 4 = 15."},
+                    {std:"6.G.2", text:"Two boxes have the same base (10 in × 8 in). Box A is 6 in tall, Box B is 4½ in tall. How much MORE volume does Box A have?", opts:["120 in³","80 in³","480 in³","360 in³"], cor:0, exp:"Box A: 10×8×6 = 480. Box B: 10×8×4.5 = 360. Difference = 480 - 360 = 120 in³."},
+                    {std:"6.G.2", text:"A fish tank is 24 in × 12 in × 16 in. Jacob fills it to ¼ of its height. What volume of water is in the tank?", opts:["1,152 in³","4,608 in³","768 in³","3,456 in³"], cor:0, exp:"Water height = ¼ × 16 = 4 inches. Volume = 24 × 12 × 4 = 1,152 in³."},
+                    {std:"6.G.1", text:"A triangle has a base of 14 cm and a height of 8 cm. What is its area?", opts:["112 cm²","56 cm²","22 cm²","44 cm²"], cor:1, exp:"Area = ½ × base × height = ½ × 14 × 8 = 56 cm². Remember: HALF of base times height."},
+                    {std:"6.G.2", text:"How many ½-inch cubes fit inside a box that is 3 in × 2 in × 1 in?", opts:["6","12","24","48"], cor:3, exp:"Each dimension fits: 3÷0.5=6, 2÷0.5=4, 1÷0.5=2. Total = 6×4×2 = 48 cubes."},
+                    {std:"6.G.2", text:"A rectangular prism has a volume of 120 cm³. Its length is 8 cm and its width is 5 cm. What is its height?", opts:["2 cm","3 cm","4 cm","15 cm"], cor:1, exp:"V = l × w × h → 120 = 8 × 5 × h → 120 = 40h → h = 3 cm."},
+                    {std:"6.G.2", text:"A sandbox is 10 ft × 8 ft × 2 ft. Sand costs $3 per cubic foot. Sand fills it to ½ its height. What is the cost of the sand?", opts:["$480","$240","$120","$80"], cor:1, exp:"Sand volume = 10 × 8 × 1 = 80 ft³ (½ of 2 ft height = 1 ft). Cost = 80 × $3 = $240."}
+                ]
+            },
+            {
+                dayNum: 3,
+                title: "Data & Statistics",
+                icon: "📈",
+                topic: "Math",
+                khanLinks: [
+                    {type: "LESSON", title: "Mean and median", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-data-statistics/mean-and-median/a/mean-median-and-mode-review", desc: "Review of all three measures of center", time: "~10 min"},
+                    {type: "VIDEO", title: "Mean, median, & mode example", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-data-statistics/mean-and-median/v/statistics-intro-mean-median-and-mode", desc: "Worked example calculating all three", time: "~10 min"},
+                    {type: "EXERCISE", title: "Calculating the median", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-data-statistics/mean-and-median/e/calculating-the-median", desc: "Practice finding medians", time: "~10 min"},
+                    {type: "VIDEO", title: "Representing data", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-data-statistics/x0267d782:cc-6th-dot-plots-histogram-box-plots/v/representing-data", desc: "Data displays overview", time: "~8 min"},
+                    {type: "EXERCISE", title: "Comparing data displays", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-data-statistics/x0267d782:cc-6th-dot-plots-histogram-box-plots/e/comparing-data-displays", desc: "Interpret and compare data", time: "~10 min"},
+                    {type: "EXERCISE", title: "Effects of shifting, adding, & removing a data point", url: "https://www.khanacademy.org/math/cc-sixth-grade-math/cc-6th-data-statistics/mean-and-median/e/effects-of-shifting-adding-removing-data-point", desc: "How changes affect mean/median", time: "~10 min"}
+                ],
+                quizQuestions: [
+                    {std:"6.SP.3", text:"Find the median of this data set: 14, 8, 22, 8, 15, 19, 11", opts:["8","14","15","13.86"], cor:1, exp:"First ORDER the data: 8, 8, 11, 14, 15, 19, 22. The middle value (4th of 7) is 14. The mean would be 97/7 ≈ 13.86 — that's different!"},
+                    {std:"6.SP.3", text:"Test scores: 70, 82, 88, 88, 95. What is the mean?", opts:["84.6","88","82","85"], cor:0, exp:"Mean = (70+82+88+88+95) ÷ 5 = 423 ÷ 5 = 84.6. The median is 88 (middle value). Mean and median are NOT always the same!"},
+                    {std:"6.SP.3", text:"Data set: 3, 5, 7, 9, 11, 13. What is the median?", opts:["7","8","9","7.5"], cor:1, exp:"With 6 values (even count), the median is the average of the 3rd and 4th values: (7+9)/2 = 8. For even-numbered sets, average the two middle values."},
+                    {std:"6.SP.5", text:"Team A scores: 60, 70, 80, 90, 100 (range = 40). Team B scores: 75, 78, 80, 82, 85 (range = 10). Both have a mean of 80. Which statement is TRUE?", opts:["Team A is better because it has higher scores","Team B performed more consistently because its range is smaller","Team A is more consistent because its range is larger","The teams performed identically"], cor:1, exp:"Same mean = same average performance. But Team B's range (10) is much smaller than Team A's (40), meaning Team B's scores are clustered tighter — more consistent."},
+                    {std:"6.SP.5", text:"What does the RANGE of a data set tell you?", opts:["The most common value","The middle value","How spread out the data is (difference between highest and lowest)","The average of all values"], cor:2, exp:"Range = max − min. It measures SPREAD. A small range = data is consistent/clustered. A large range = data is spread out."},
+                    {std:"6.SP.3", text:"Ages of students: 11, 11, 12, 12, 12, 13, 14. What is the mode?", opts:["11","12","13","12.14"], cor:1, exp:"Mode = most frequent value. 12 appears 3 times. Mode is the only measure of center that can be found without calculation."},
+                    {std:"6.SP.5", text:"Class A has test scores with mean = 85 and range = 30. Class B has mean = 85 and range = 8. A new student wants consistent teaching. Which class should they pick?", opts:["Class A — higher range means more variety","Class B — smaller range means scores are more consistent","Either class — they have the same mean","Neither — you need to see every score"], cor:1, exp:"Smaller range = scores are closer together = more students performing near the average = more consistent outcomes."},
+                    {std:"6.SP.3", text:"If you add the value 100 to this data set: 10, 20, 30, 40, 50 — what happens to the mean compared to the median?", opts:["Both increase by the same amount","The mean increases more than the median","The median increases more than the mean","Neither changes"], cor:1, exp:"Original mean=30, median=30. New mean = 250/6 ≈ 41.7 (+11.7). New median = (30+40)/2 = 35 (+5). Outliers affect the mean more than the median."},
+                    {std:"6.SP.3", text:"Heights in inches: 58, 60, 62, 63, 65, 68, 72. Find the median and mean.", opts:["Median = 63, Mean = 64","Median = 62, Mean = 64","Median = 63, Mean = 63","Median = 65, Mean = 63"], cor:0, exp:"Already ordered. Median = 4th of 7 = 63. Mean = (58+60+62+63+65+68+72)/7 = 448/7 = 64."},
+                    {std:"6.SP.5", text:"Two pizza shops both deliver in an average of 30 minutes. Shop A's delivery times range from 20-40 min. Shop B's range from 10-50 min. Which shop is more reliable?", opts:["Shop B — wider range means more experience","Shop A — smaller range means more predictable delivery times","Both are equally reliable — same average","Shop B — sometimes faster (10 min)"], cor:1, exp:"Same average, but Shop A's range (20 min) is half of Shop B's (40 min). Smaller range = more predictable = more reliable."},
+                    {std:"6.SP.3", text:"Scores: 4, 6, 6, 7, 9, 10, 12. If you remove the 12, how does the median change?", opts:["It stays the same","It decreases","It increases","Cannot be determined"], cor:1, exp:"Original median = 7 (4th of 7). New set: 4, 6, 6, 7, 9, 10. New median = (6+7)/2 = 6.5. Median decreased from 7 to 6.5."},
+                    {std:"6.SP.5", text:"Which measure of center is LEAST affected by outliers?", opts:["Mean","Median","Range","All are equally affected"], cor:1, exp:"Median is the middle value — outliers don't move it much. Mean gets pulled toward outliers. Range IS defined by the extreme values."}
+                ]
+            },
+            {
+                dayNum: 4,
+                title: "Genetics & Heredity",
+                icon: "🧬",
+                topic: "Science",
+                khanLinks: [
+                    {type: "ARTICLE", title: "Genetics vocabulary and Punnett squares", url: "https://www.khanacademy.org/science/ms-biology/x50b2e9e0:ms-genetics-and-biotechnology/x50b2e9e0:ms-heredity-and-genetics/a/genetics-vocabulary-and-punnett-squares", desc: "Key terms: allele, dominant, recessive, homozygous, heterozygous, genotype, phenotype", time: "~12 min"},
+                    {type: "VIDEO", title: "Worked examples: Punnett squares", url: "https://www.khanacademy.org/science/ms-biology/x50b2e9e0:ms-genetics-and-biotechnology/x50b2e9e0:ms-heredity-and-genetics/v/punnett-square-worked-examples", desc: "Step-by-step Punnett square walkthrough", time: "~10 min"},
+                    {type: "EXERCISE", title: "Apply: Punnett squares", url: "https://www.khanacademy.org/science/ms-biology/x50b2e9e0:ms-genetics-and-biotechnology/x50b2e9e0:ms-heredity-and-genetics/e/punnett-squares", desc: "Practice problems", time: "~15 min"}
+                ],
+                quizQuestions: [
+                    {std:"6-LS-3", text:"What does HOMOZYGOUS mean?", opts:["Having two different alleles (like Tt)","Having two of the same allele (like TT or tt)","Having no alleles for a trait","Having alleles from only one parent"], cor:1, exp:"Homo = same. Homozygous = two identical alleles. TT (homozygous dominant) or tt (homozygous recessive). Hetero = different → Tt."},
+                    {std:"6-LS-3", text:"What does HETEROZYGOUS mean?", opts:["Having two of the same allele","Having two DIFFERENT alleles (one dominant, one recessive)","Having only dominant alleles","Missing an allele"], cor:1, exp:"Hetero = different. Heterozygous (Tt) means one dominant allele (T) and one recessive allele (t). The organism LOOKS dominant but CARRIES the recessive trait."},
+                    {std:"6-LS-3", text:"Two tall pea plants (both Tt) are crossed. Can they produce short (tt) offspring?", opts:["No — both parents are tall, so all offspring must be tall","Yes — each parent can pass on a recessive 't' allele","Only if one parent is short","Only if both parents are TT"], cor:1, exp:"YES! Each Tt parent has a 't' to give. If both pass their 't', the offspring is tt (short). This happens 1 out of 4 times."},
+                    {std:"6-LS-3", text:"Cross: Tt × Tt. Complete the Punnett square. What fraction of offspring will be SHORT (tt)?", opts:["1/2","1/3","1/4","0 — none will be short"], cor:2, exp:"Punnett square: TT, Tt, Tt, tt. Only 1 out of 4 boxes is tt. So 1/4 (25%) will be short."},
+                    {std:"6-LS-3", text:"Cross: Tt × Tt. What fraction of offspring will LOOK tall (have at least one T)?", opts:["1/4","1/2","3/4","All of them"], cor:2, exp:"TT, Tt, Tt, tt → 3 out of 4 have at least one T → 3/4 look tall. Only tt (1/4) looks short."},
+                    {std:"6-LS-3", text:"If BOTH parents are homozygous dominant (TT), what offspring are possible?", opts:["All TT","Half TT, half Tt","1/4 TT, 1/2 Tt, 1/4 tt","All tt"], cor:0, exp:"TT × TT: every box in the Punnett square is TT. No 't' alleles exist to pass on. ALL offspring are TT (tall)."},
+                    {std:"6-LS-3", text:"Two brown-eyed parents have a blue-eyed child. Brown (B) is dominant over blue (b). What are the parents' genotypes?", opts:["Both BB","Both Bb","One BB, one Bb","One BB, one bb"], cor:1, exp:"For a bb child, EACH parent must contribute a 'b'. Since both parents have brown eyes (dominant phenotype) but carry 'b', they must both be Bb."},
+                    {std:"6-LS-3", text:"What is the difference between GENOTYPE and PHENOTYPE?", opts:["Genotype = what you look like, Phenotype = your DNA","Genotype = your allele combination (like Tt), Phenotype = your observable trait (like tall)","They mean the same thing","Genotype is for plants, Phenotype is for animals"], cor:1, exp:"Genotype = genetic makeup (TT, Tt, or tt). Phenotype = physical appearance (tall or short). A Tt and TT plant have different genotypes but the SAME phenotype (tall)."},
+                    {std:"6-LS-3", text:"Cross: Tt × tt. What fraction of offspring will be short (tt)?", opts:["0","1/4","1/2","All of them"], cor:2, exp:"Punnett square: Tt, Tt, tt, tt. Half (2/4 = 1/2) are tt (short), half are Tt (tall)."},
+                    {std:"6-LS-3", text:"A trait that is HIDDEN when a dominant allele is present is called:", opts:["Dominant","Recessive","Codominant","Homozygous"], cor:1, exp:"Recessive traits are masked by dominant ones. In Tt, the 't' (recessive) is hidden — the organism looks like TT. Recessive only shows when homozygous (tt)."},
+                    {std:"6-LS-3", text:"In humans, free earlobes (E) are dominant over attached earlobes (e). A man with free earlobes (Ee) marries a woman with attached earlobes (ee). What percentage of their children could have attached earlobes?", opts:["0%","25%","50%","100%"], cor:2, exp:"Ee × ee → Ee, Ee, ee, ee. Half are ee (attached). So 50%."},
+                    {std:"6-LS-3", text:"Why can two parents who LOOK the same (both tall) have an offspring that looks DIFFERENT (short)?", opts:["The offspring mutated","Both parents are heterozygous carriers of the recessive allele","Short is actually dominant","It's impossible — tall parents always have tall children"], cor:1, exp:"If both parents are Tt (heterozygous), they look tall but each carries a hidden 't'. When both pass their 't', the child is tt (short). This is how traits 'skip' generations."}
+                ]
+            },
+            {
+                dayNum: 5,
+                title: "Energy Transfer & Weather",
+                icon: "⛅",
+                topic: "Science",
+                khanLinks: [
+                    {type: "UNIT", title: "Energy", url: "https://www.khanacademy.org/science/ms-physics/x1baed5e0:ms-energy/x1baed5e0:ms-thermal-energy-and-heat-transfer", desc: "Focus on thermal energy and heat transfer (conduction, convection, radiation)", time: "~20 min"},
+                    {type: "VIDEO", title: "Weather", url: "https://www.khanacademy.org/science/ms-earth-and-space/x1d8a46bc:ms-earths-atmosphere-and-weather/x1d8a46bc:ms-weather/v/weather", desc: "Air masses, fronts, weather patterns", time: "~10 min"},
+                    {type: "LESSON", title: "Weather", url: "https://www.khanacademy.org/science/ms-earth-and-space/x1d8a46bc:ms-earths-atmosphere-and-weather/x1d8a46bc:ms-weather/a/weather", desc: "Detailed article on weather systems", time: "~15 min"},
+                    {type: "EXERCISE", title: "Understand: weather", url: "https://www.khanacademy.org/science/ms-earth-and-space/x1d8a46bc:ms-earths-atmosphere-and-weather/x1d8a46bc:ms-weather/e/understand--weather", desc: "Practice questions", time: "~10 min"}
+                ],
+                quizQuestions: [
+                    {std:"6-PS-1", text:"A metal spoon sitting in a pot of hot soup becomes hot. What type of heat transfer is this?", opts:["Radiation","Convection","Conduction","Insulation"], cor:2, exp:"CONDUCTION = heat transfer through DIRECT CONTACT. The hot soup touches the spoon, transferring heat molecule to molecule. No gap between them."},
+                    {std:"6-PS-1", text:"You feel warmth from a campfire even though you're not touching it. What type of heat transfer?", opts:["Conduction","Convection","Radiation","Evaporation"], cor:2, exp:"RADIATION = heat transfer through electromagnetic waves. No contact or fluid movement needed. Works even through empty space (that's how the Sun heats Earth)."},
+                    {std:"6-PS-1", text:"Hot air rises from a heater, circulates around a room, then sinks as it cools. This is:", opts:["Conduction","Convection","Radiation","Condensation"], cor:1, exp:"CONVECTION = heat transfer through the MOVEMENT of fluids (liquids or gases). Hot air rises, cool air sinks, creating a circulation pattern called a convection current."},
+                    {std:"6-PS-1", text:"Which is the BEST summary of all three heat transfer methods?", opts:["Conduction = through fluids, Convection = through contact, Radiation = through waves","Conduction = through direct contact, Convection = through fluid movement, Radiation = through electromagnetic waves","Conduction = through waves, Convection = through contact, Radiation = through fluids","They all work the same way"], cor:1, exp:"Contact = conduction. Fluid movement = convection. Waves (no medium needed) = radiation. The key distinction is HOW the energy moves."},
+                    {std:"6-PS-1", text:"Walking barefoot on hot sand burns your feet. This is an example of:", opts:["Radiation","Convection","Conduction","Insulation"], cor:2, exp:"Your feet are in DIRECT CONTACT with the hot sand. Heat transfers from sand to skin through conduction."},
+                    {std:"6-PS-1", text:"Boiling water in a pot: the water at the bottom heats up, rises to the top, and cooler water sinks to replace it. This circulation is:", opts:["Conduction","Convection","Radiation","Sublimation"], cor:1, exp:"This is a convection current in a liquid. The hot water rises (less dense), cool water sinks (more dense), creating continuous circulation."},
+                    {std:"6-ESS-3", text:"A warm, moist air mass moves toward a stationary cold air mass. What happens?", opts:["They mix evenly into mild weather","The warm air rises OVER the cold air, cools, and forms clouds/precipitation","The cold air floats above the warm air","Both air masses disappear"], cor:1, exp:"Warm air is less dense than cold air. At a WARM FRONT, warm air slides UP and OVER the cold air. As it rises, it cools, moisture condenses, forming clouds and rain."},
+                    {std:"6-ESS-3", text:"At a COLD FRONT, what happens?", opts:["Cold air gently slides over warm air","Cold air pushes UNDER warm air, forcing it up rapidly","The two air masses mix together","Cold air warms up and becomes a warm front"], cor:1, exp:"Cold air is denser. At a cold front, cold air acts like a wedge, pushing under warm air and forcing it up rapidly. This creates storms, heavy rain, and sometimes thunderstorms."},
+                    {std:"6-ESS-3", text:"Why does warm air RISE over cold air?", opts:["Warm air is heavier","Warm air is less dense (lighter) than cold air","Cold air pulls warm air up","Wind always blows upward"], cor:1, exp:"Warm air molecules move faster and spread apart → less dense → rises. Cold air molecules are closer together → more dense → sinks. This density difference drives weather."},
+                    {std:"6-ESS-3", text:"Which type of front typically brings GENTLE, long-lasting rain?", opts:["Cold front","Warm front","Neither — fronts don't cause rain","Both cause the same weather"], cor:1, exp:"Warm fronts: warm air gradually slides over cold air → gentle, steady rain over a large area, often lasting hours or days. Cold fronts: rapid uplift → brief but intense storms."},
+                    {std:"6-PS-1", text:"The Sun heats the Earth from 93 million miles away through empty space. This is possible because:", opts:["Sound waves carry the heat","Convection currents flow through space","Radiation can travel through a vacuum — no medium needed","Conduction through the atmosphere"], cor:2, exp:"Space is a vacuum — no matter for conduction or convection. Only radiation (electromagnetic waves) can travel through empty space."},
+                    {std:"6-ESS-3", text:"A weather map shows a blue triangle-lined boundary pushing toward you. What should you expect?", opts:["Gradually warming temperatures with clear skies","A cold front with possible thunderstorms and a sharp temperature drop","A warm front with light rain","No change in weather"], cor:1, exp:"Blue triangles on a weather map = cold front. Expect: cold air replacing warm air, possible thunderstorms, sharp temperature drop, then clearing skies afterward."}
+                ]
+            }
+        ];
+
+        // ===== APPLICATION OBJECT =====
+        const app = {
+            currentDay: null,
+            currentQuestionIndex: 0,
+            quizStartTime: null,
+            quizAnswers: [],
+            progress: {},
+
+            init() {
+                this.loadProgress();
+                this.updateCountdown();
+                this.renderHub();
+            },
+
+            loadProgress() {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                this.progress = saved ? JSON.parse(saved) : {};
+
+                // Initialize days if needed
+                dayData.forEach(day => {
+                    if (!this.progress[`day${day.dayNum}`]) {
+                        this.progress[`day${day.dayNum}`] = {
+                            completed: false,
+                            score: null,
+                            checkedLinks: {},
+                            timestamp: null
+                        };
+                    }
+                });
+                this.saveProgress();
+            },
+
+            saveProgress() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(this.progress));
+            },
+
+            updateCountdown() {
+                const days = daysUntilLEAP();
+                const countdownEl = document.getElementById('countdown');
+                countdownEl.textContent = `${days} days until LEAP (May 2, 2026)`;
+            },
+
+            renderHub() {
+                document.getElementById('hubView').classList.add('active');
+                document.getElementById('dayView').classList.remove('active');
+
+                const container = document.getElementById('dayCardsContainer');
+                container.innerHTML = '';
+
+                let completed = 0;
+                dayData.forEach((day, idx) => {
+                    const dayKey = `day${day.dayNum}`;
+                    const dayProgress = this.progress[dayKey];
+                    if (dayProgress.completed) completed++;
+
+                    const isLocked = idx > 0 && !this.progress[`day${day.dayNum - 1}`].completed;
+                    const statusClass = dayProgress.completed ? 'status-completed' : (isLocked ? 'status-locked' : 'status-available');
+                    const statusText = dayProgress.completed ? `✓ Completed (${dayProgress.score}%)` : (isLocked ? 'Locked' : 'Ready');
+
+                    const card = document.createElement('div');
+                    card.className = `day-card ${isLocked ? 'locked' : ''}`;
+                    card.innerHTML = `
+                        <div class="day-card-header">
+                            <div class="day-card-title">Day ${day.dayNum}: ${day.icon} ${day.title}</div>
+                            <div class="day-card-status ${statusClass}">${statusText}</div>
+                        </div>
+                        <div class="day-card-details">
+                            <strong>${day.topic}</strong><br>
+                            ${day.khanLinks.length} videos + exercises<br>
+                            12 quiz questions
+                            ${isLocked ? `<br><span class="unlock-link" onclick="app.unlockDay(${day.dayNum})">Force Unlock</span>` : ''}
+                        </div>
+                    `;
+
+                    if (!isLocked) {
+                        card.onclick = () => this.selectDay(day.dayNum);
+                    }
+
+                    container.appendChild(card);
+                });
+
+                // Update progress bar
+                const progress = (completed / dayData.length) * 100;
+                document.getElementById('overallProgress').style.width = progress + '%';
+                document.getElementById('progressText').textContent = `Day ${completed} of 5 complete`;
+            },
+
+            selectDay(dayNum) {
+                this.currentDay = dayData[dayNum - 1];
+                this.currentQuestionIndex = 0;
+                this.quizAnswers = [];
+                this.quizStartTime = null;
+
+                document.getElementById('hubView').classList.remove('active');
+                document.getElementById('dayView').classList.add('active');
+
+                this.renderDayView();
+            },
+
+            renderDayView() {
+                const day = this.currentDay;
+                document.getElementById('dayTitle').textContent = `Day ${day.dayNum}: ${day.title}`;
+                document.getElementById('phaseIndicator').textContent = 'LEARN';
+
+                // Hide all phases
+                document.getElementById('learnPhase').classList.remove('active');
+                document.getElementById('quizPhase').classList.remove('active');
+                document.getElementById('resultsView').classList.remove('active');
+
+                const dayKey = `day${day.dayNum}`;
+                const dayProgress = this.progress[dayKey];
+
+                if (dayProgress.completed) {
+                    this.showResults();
+                } else {
+                    this.renderLearnPhase();
+                }
+            },
+
+            renderLearnPhase() {
+                const day = this.currentDay;
+                const dayKey = `day${day.dayNum}`;
+                const dayProgress = this.progress[dayKey];
+
+                const container = document.getElementById('khanLinksContainer');
+                container.innerHTML = '';
+
+                day.khanLinks.forEach((link, idx) => {
+                    const isChecked = dayProgress.checkedLinks[idx] || false;
+                    const card = document.createElement('a');
+                    card.href = link.url;
+                    card.target = '_blank';
+                    card.className = `khan-link ${isChecked ? 'checked' : ''}`;
+
+                    card.innerHTML = `
+                        <div class="khan-link-header">
+                            <input type="checkbox" class="khan-checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); app.toggleKhanCheckbox(${idx})">
+                            <div class="khan-content">
+                                <div class="khan-type">${link.type}</div>
+                                <div class="khan-title">${link.title}</div>
+                                <div class="khan-description">${link.desc}</div>
+                                <div class="khan-time">${link.time}</div>
+                            </div>
+                        </div>
+                    `;
+
+                    container.appendChild(card);
+                });
+
+                this.updateQuizReadiness();
+                document.getElementById('learnPhase').classList.add('active');
+            },
+
+            toggleKhanCheckbox(idx) {
+                const dayKey = `day${this.currentDay.dayNum}`;
+                if (!this.progress[dayKey].checkedLinks[idx]) {
+                    this.progress[dayKey].checkedLinks[idx] = true;
+                } else {
+                    this.progress[dayKey].checkedLinks[idx] = false;
+                }
+                this.saveProgress();
+                this.renderLearnPhase();
+            },
+
+            updateQuizReadiness() {
+                const day = this.currentDay;
+                const dayKey = `day${day.dayNum}`;
+                const dayProgress = this.progress[dayKey];
+
+                const checkedCount = Object.values(dayProgress.checkedLinks).filter(v => v).length;
+                const totalCount = day.khanLinks.length;
+                const required = Math.ceil(totalCount / 2);
+                const canStart = checkedCount >= required;
+
+                const readinessEl = document.getElementById('quizReadiness');
+                readinessEl.innerHTML = `
+                    <span class="checked-count">${checkedCount}</span> of ${totalCount} lessons completed.<br>
+                    ${required} needed to start quiz. ${canStart ? '<strong>Ready!</strong>' : `${required - checkedCount} more to go.`}
+                `;
+
+                const startBtn = document.getElementById('startQuizButton');
+                startBtn.disabled = !canStart;
+            },
+
+            startQuiz() {
+                this.currentQuestionIndex = 0;
+                this.quizAnswers = [];
+                this.quizStartTime = Date.now();
+
+                document.getElementById('learnPhase').classList.remove('active');
+                document.getElementById('quizPhase').classList.add('active');
+                document.getElementById('phaseIndicator').textContent = 'QUIZ';
+
+                this.renderQuestion();
+            },
+
+            renderQuestion() {
+                const day = this.currentDay;
+                const q = day.quizQuestions[this.currentQuestionIndex];
+
+                document.getElementById('standardTag').textContent = q.std;
+                document.getElementById('questionText').textContent = q.text;
+
+                // Update progress
+                const totalQuestions = day.quizQuestions.length;
+                const progress = ((this.currentQuestionIndex + 1) / totalQuestions) * 100;
+                document.getElementById('quizProgressText').textContent = `Question ${this.currentQuestionIndex + 1} of ${totalQuestions}`;
+                document.getElementById('quizProgressFill').style.width = progress + '%';
+
+                // Render options
+                const optionsContainer = document.getElementById('optionsContainer');
+                optionsContainer.innerHTML = '';
+
+                q.opts.forEach((opt, idx) => {
+                    const option = document.createElement('div');
+                    option.className = 'option';
+                    option.textContent = opt;
+                    option.onclick = () => this.selectOption(idx, q);
+                    optionsContainer.appendChild(option);
+                });
+
+                // Hide feedback and next button initially
+                document.getElementById('feedback').classList.remove('show', 'feedback-correct', 'feedback-incorrect');
+                document.getElementById('nextButton').classList.remove('show');
+            },
+
+            selectOption(selectedIdx, question) {
+                const optionsContainer = document.getElementById('optionsContainer');
+                const options = optionsContainer.querySelectorAll('.option');
+
+                // Check if already answered
+                if (this.quizAnswers[this.currentQuestionIndex] !== undefined) {
+                    return;
+                }
+
+                // Mark as answered
+                this.quizAnswers[this.currentQuestionIndex] = selectedIdx;
+
+                // Show feedback
+                const isCorrect = selectedIdx === question.cor;
+                const feedbackEl = document.getElementById('feedback');
+                const feedbackTitle = document.getElementById('feedbackTitle');
+                const feedbackExplanation = document.getElementById('feedbackExplanation');
+
+                feedbackTitle.textContent = isCorrect ? '✓ Correct!' : '✗ Incorrect';
+                feedbackExplanation.textContent = question.exp;
+
+                if (isCorrect) {
+                    feedbackEl.classList.add('feedback-correct');
+                    feedbackEl.classList.remove('feedback-incorrect');
+                    options[selectedIdx].classList.add('correct');
+                } else {
+                    feedbackEl.classList.add('feedback-incorrect');
+                    feedbackEl.classList.remove('feedback-correct');
+                    options[selectedIdx].classList.add('incorrect');
+                    options[question.cor].classList.add('correct');
+                }
+
+                feedbackEl.classList.add('show');
+
+                // Mark all options as answered
+                options.forEach(opt => opt.classList.add('answered'));
+
+                // Show next button
+                const nextBtn = document.getElementById('nextButton');
+                if (this.currentQuestionIndex < this.currentDay.quizQuestions.length - 1) {
+                    nextBtn.textContent = 'Next Question';
+                } else {
+                    nextBtn.textContent = 'See Results';
+                }
+                nextBtn.classList.add('show');
+            },
+
+            nextQuestion() {
+                if (this.currentQuestionIndex < this.currentDay.quizQuestions.length - 1) {
+                    this.currentQuestionIndex++;
+                    this.renderQuestion();
+                } else {
+                    this.finishQuiz();
+                }
+            },
+
+            finishQuiz() {
+                const day = this.currentDay;
+                const answersSnapshot = [...this.quizAnswers]; // preserve actual answers
+                const correct = answersSnapshot.filter((ans, idx) => ans === day.quizQuestions[idx].cor).length;
+                const total = day.quizQuestions.length;
+                const percentage = Math.round((correct / total) * 100);
+                const durationMs = Date.now() - this.quizStartTime;
+                const durationMins = Math.round(durationMs / 60000);
+
+                const dayKey = `day${day.dayNum}`;
+                this.progress[dayKey].completed = true;
+                this.progress[dayKey].score = percentage;
+                this.progress[dayKey].correct = correct;
+                this.progress[dayKey].total = total;
+                this.progress[dayKey].durationMins = durationMins;
+                this.progress[dayKey].answers = answersSnapshot;
+                this.progress[dayKey].timestamp = new Date().toISOString();
+                this.saveProgress();
+
+                // Send to Apps Script
+                this.sendResultsToAppScript(day.dayNum, percentage, correct, total, durationMins);
+
+                // Set bonus signal
+                localStorage.setItem('jacob_bonus_signal', JSON.stringify({
+                    bootcamp: true,
+                    day: day.dayNum,
+                    score: percentage,
+                    timestamp: new Date().toISOString()
+                }));
+
+                document.getElementById('quizPhase').classList.remove('active');
+                this.showResults();
+            },
+
+            sendResultsToAppScript(dayNum, percentage, correct, total, durationMins) {
+                const payload = {
+                    action: 'saveDailyTracking',
+                    date: TODAY.toISOString().split('T')[0],
+                    student: 'Jacob',
+                    bonusPractice: true,
+                    bonusAnswered: total,
+                    bonusCorrect: correct,
+                    bonusDuration: durationMins,
+                    bootcampDay: dayNum,
+                    bootcampScore: percentage
+                };
+
+                fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(payload)
+                }).catch(err => console.log('Apps Script call made (no-cors mode)', err));
+            },
+
+            showResults() {
+                const day = this.currentDay;
+                const dayKey = `day${day.dayNum}`;
+                const dayProgress = this.progress[dayKey];
+
+                if (!dayProgress.completed) return;
+
+                const correct = dayProgress.correct || 0;
+                const total = dayProgress.total || day.quizQuestions.length;
+                const percentage = dayProgress.score;
+                const durationMins = dayProgress.durationMins || 0;
+                const savedAnswers = dayProgress.answers || [];
+
+                document.getElementById('resultScore').textContent = `${correct}/${total}`;
+                document.getElementById('resultPercentage').textContent = `${percentage}%`;
+
+                let message = '';
+                if (percentage >= 90) {
+                    message = 'Outstanding! You crushed it, Jacob! This topic is LOCKED DOWN.';
+                } else if (percentage >= 80) {
+                    message = 'Excellent work! You\'re well on your way to Advanced.';
+                } else if (percentage >= 70) {
+                    message = 'Good job! Review the ones you missed, then keep moving.';
+                } else {
+                    message = 'Go back to the Khan lessons, then retake this quiz. You got this.';
+                }
+                document.getElementById('resultMessage').textContent = message;
+
+                if (durationMins > 0) {
+                    document.getElementById('timeDisplay').textContent = `Completed in ${durationMins} minutes`;
+                }
+
+                // Breakdown by standard using saved answers
+                const standardsMap = {};
+                day.quizQuestions.forEach((q, idx) => {
+                    if (!standardsMap[q.std]) {
+                        standardsMap[q.std] = { total: 0, correct: 0 };
+                    }
+                    standardsMap[q.std].total++;
+                    if (savedAnswers[idx] === q.cor) {
+                        standardsMap[q.std].correct++;
+                    }
+                });
+
+                const breakdownEl = document.getElementById('resultsBreakdown');
+                breakdownEl.innerHTML = '<strong>Standards Breakdown:</strong>';
+                Object.entries(standardsMap).forEach(([std, data]) => {
+                    const pct = Math.round((data.correct / data.total) * 100);
+                    const mastered = data.correct === data.total;
+                    const status = mastered ? `✓ Mastered (${data.correct}/${data.total})` : `✗ Needs Review (${data.correct}/${data.total})`;
+                    const statusClass = mastered ? 'status-mastered' : 'status-review';
+                    const div = document.createElement('div');
+                    div.className = 'breakdown-item';
+                    div.innerHTML = `
+                        <div class="breakdown-label">${std}</div>
+                        <div class="breakdown-status ${statusClass}">${status}</div>
+                    `;
+                    breakdownEl.appendChild(div);
+                });
+
+                document.getElementById('resultsView').classList.add('active');
+            },
+
+            returnToHub() {
+                document.getElementById('hubView').classList.add('active');
+                document.getElementById('dayView').classList.remove('active');
+                this.renderHub();
+            },
+
+            unlockDay(dayNum) {
+                if (dayNum > 1) {
+                    const prevDayKey = `day${dayNum - 1}`;
+                    this.progress[prevDayKey].completed = true;
+                    this.progress[prevDayKey].score = 70;
+                    this.saveProgress();
+                    this.renderHub();
+                }
+            }
+        };
+
+        // Initialize app on page load
+        window.addEventListener('DOMContentLoaded', () => app.init());
+    </script>
+</body>
+</html>

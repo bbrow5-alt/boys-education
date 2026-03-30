@@ -703,6 +703,35 @@
   </div>
 </div>
 
+<!-- EASTER BOOT CAMP — Priority for Easter Break -->
+<div id="bootcampBanner" style="background:linear-gradient(135deg, rgba(201,168,76,0.12) 0%, rgba(196,69,54,0.08) 100%); border:2px solid rgba(201,168,76,0.5); border-radius:12px; padding:16px 18px; margin-bottom:16px; animation: bootcampPulse 2s ease-in-out infinite;">
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+    <span style="font-size:28px;">&#9876;&#65039;</span>
+    <div>
+      <div style="font-size:17px; color:#c9a84c; font-weight:700;">THE FORGE — Easter Boot Camp</div>
+      <div style="font-size:12px; color:#a89968;">5 days. 7 weaknesses. Khan Academy lessons + mastery quizzes.</div>
+    </div>
+  </div>
+  <div id="bootcampProgress" style="font-size:12px; color:#a89968; margin-bottom:10px;"></div>
+  <a href="BootCamp_Jacob.html" style="display:inline-block; padding:10px 24px; background:linear-gradient(135deg, #c9a84c, #e8dcc8); color:#1a1510; text-decoration:none; border-radius:8px; font-size:14px; font-weight:700; font-family:Georgia,serif; letter-spacing:0.5px; box-shadow:0 2px 8px rgba(201,168,76,0.3);">Enter The Forge</a>
+</div>
+<style>
+@keyframes bootcampPulse { 0%,100% { border-color: rgba(201,168,76,0.5); } 50% { border-color: rgba(201,168,76,0.9); } }
+</style>
+<script>
+(function(){
+  try {
+    const p = JSON.parse(localStorage.getItem('jacob_bootcamp_progress') || '{}');
+    let done = 0;
+    for (let i = 1; i <= 5; i++) { if (p['day'+i] && p['day'+i].completed) done++; }
+    const el = document.getElementById('bootcampProgress');
+    if (done === 0) { el.textContent = 'Not started yet — Day 1 is ready for you!'; }
+    else if (done < 5) { el.innerHTML = '<span style="color:#c9a84c; font-weight:700;">' + done + '/5 days complete</span> — Keep going!'; }
+    else { el.innerHTML = '<span style="color:#7fb069; font-weight:700;">ALL 5 DAYS COMPLETE!</span> You crushed it.'; }
+  } catch(e){}
+})();
+</script>
+
 <!-- BONUS PRACTICE — Always Available -->
 <div style="background:linear-gradient(135deg, rgba(92,164,232,0.06) 0%, rgba(201,168,76,0.03) 100%); border:1px solid rgba(92,164,232,0.2); border-radius:10px; padding:14px 16px; margin-bottom:16px;">
   <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
