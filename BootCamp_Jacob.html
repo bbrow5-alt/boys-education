@@ -769,7 +769,7 @@
 
     <script>
         // ===== APPLICATION STATE & CONFIG =====
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec';
         const STORAGE_KEY = 'jacob_bootcamp_progress';
         const TODAY = new Date();
         const LEAP_DATE = new Date(2026, 4, 2); // May 2, 2026
@@ -1236,7 +1236,7 @@
             sendResultsToAppScript(dayNum, percentage, correct, total, durationMins) {
                 const payload = {
                     action: 'saveDailyTracking',
-                    date: TODAY.toISOString().split('T')[0],
+                    date: (function(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
                     student: 'Jacob',
                     bonusPractice: true,
                     bonusAnswered: total,
