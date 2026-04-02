@@ -1234,14 +1234,37 @@
             },
 
             sendResultsToAppScript(dayNum, percentage, correct, total, durationMins) {
-                const payload = {
-                    action: 'saveDailyTracking',
-                    date: (function(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
+                const localDate = (function(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
+
+                // Save bootcamp results to dedicated BootcampResults sheet
+                // Uses saveBootcampResults action so it does NOT overwrite DailyTracking
+                const bootcampPayload = {
+                    action: 'saveBootcampResults',
+                    date: localDate,
                     student: 'Jacob',
-                    bonusPractice: true,
-                    bonusAnswered: total,
-                    bonusCorrect: correct,
-                    bonusDuration: durationMins,
+                    bootcampDay: dayNum,
+                    dayTitle: this.currentDay.title,
+                    subject: this.currentDay.subject,
+                    score: percentage,
+                    correct: correct,
+                    total: total,
+                    durationMins: durationMins,
+                    timestamp: new Date().toISOString()
+                };
+
+                fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(bootcampPayload)
+                }).catch(err => console.log('Bootcamp save call made (no-cors)', err));
+
+                // Also mark today's DailyTracking bootcamp flag WITHOUT overwriting session data
+                // Uses a MERGE approach: only sets bootcamp fields, preserves existing session/practice/reading
+                const trackingPayload = {
+                    action: 'mergeDailyTrackingBootcamp',
+                    date: localDate,
+                    student: 'Jacob',
+                    bootcampCompleted: true,
                     bootcampDay: dayNum,
                     bootcampScore: percentage
                 };
@@ -1249,8 +1272,8 @@
                 fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    body: JSON.stringify(payload)
-                }).catch(err => console.log('Apps Script call made (no-cors mode)', err));
+                    body: JSON.stringify(trackingPayload)
+                }).catch(err => console.log('Tracking merge call made (no-cors)', err));
             },
 
             showResults() {
