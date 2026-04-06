@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEAP Diagnostic Week 7 - Jacob Brown</title>
+    <style>
+        :root {
+            --bg: #0a0f1a;
+            --card: #121a2e;
+            --card-border: #1e2d4a;
+            --accent: #c9a84c;
+            --accent-dim: #1f1a0e;
+            --accent2: #a08432;
+            --success: #4ade80;
+            --error: #f87171;
+            --warning: #fbbf24;
+            --text: #e8e4da;
+            --text-dim: #9a9484;
+            --text-muted: #5e5a52;
+            --blue: #5ca4e8;
+            --blue-dim: #0e1a2d;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Georgia, serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 16px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            background: var(--bg);
+            padding: 40px 20px;
+        }
+        .welcome-screen h1 {
+            font-size: 3em;
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-weight: normal;
+            letter-spacing: 3px;
+            text-shadow: 0 0 30px rgba(201, 168, 76, 0.2);
+        }
+        .welcome-screen .sub {
+            font-size: 1.2em;
+            color: var(--text-dim);
+            margin-bottom: 40px;
+        }
+        .welcome-screen .info {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            padding: 30px 40px;
+            border-radius: 8px;
+            max-width: 520px;
+            margin-bottom: 40px;
+            line-height: 1.8;
+            text-align: center;
+        }
+        .welcome-screen .info strong { color: var(--accent); }
+        .countdown {
+            color: var(--accent);
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 30px;
+            padding: 12px 24px;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            background: var(--accent-dim);
+        }
+        .welcome-screen button {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .welcome-screen button:hover {
+            background: var(--text);
+            transform: translateY(-2px);
+        }
+        .test-screen {
+            display: none;
+            min-height: 100vh;
+        }
+        .test-header {
+            background: var(--card);
+            border-bottom: 2px solid var(--accent);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .test-header-left {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .test-header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .test-header h2 {
+            color: var(--accent);
+            font-size: 1.3em;
+        }
+        .progress-bar {
+            width: 300px;
+            height: 6px;
+            background: var(--card-border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .timer {
+            font-size: 1.2em;
+            color: var(--accent);
+            font-weight: bold;
+            min-width: 60px;
+        }
+        .test-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .nav-panel {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .nav-panel h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        #navGrid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        .nav-btn-small {
+            background: var(--card-border);
+            border: 1px solid #2a3a5a;
+            color: var(--text-dim);
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s;
+            font-family: Georgia, serif;
+        }
+        .nav-btn-small:hover {
+            background: var(--accent-dim);
+        }
+        .nav-btn-small.answered {
+            background: var(--success);
+            color: var(--bg);
+            border-color: var(--success);
+        }
+        .nav-btn-small.current {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+            font-weight: bold;
+        }
+        .nav-btn-small.flagged {
+            border-color: var(--warning);
+            box-shadow: 0 0 4px var(--warning);
+        }
+        .question-panel {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 25px;
+        }
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .q-num {
+            font-size: 1.1em;
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .q-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85em;
+        }
+        .badge {
+            background: var(--accent-dim);
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+        .std-code {
+            background: var(--blue-dim);
+            color: var(--blue);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        #questionText {
+            font-size: 1.1em;
+            color: var(--text);
+            margin: 20px 0;
+            line-height: 1.7;
+        }
+        #optionsContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .option {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px;
+            background: var(--card-border);
+            border: 2px solid var(--card-border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option:hover {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+        .option.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+        .option input {
+            margin-right: 12px;
+            margin-top: 2px;
+            cursor: pointer;
+        }
+        #passagePane {
+            background: var(--accent-dim);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 0.95em;
+            max-height: 400px;
+            overflow-y: auto;
+            color: var(--text);
+            border-radius: 0 6px 6px 0;
+        }
+        #passagePane h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+        #passagePane p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .button-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--card-border);
+        }
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            font-size: 0.95em;
+            transition: all 0.2s;
+        }
+        .btn-prev {
+            background: var(--card-border);
+            color: var(--text);
+        }
+        .btn-prev:hover:not(:disabled) {
+            background: var(--accent-dim);
+        }
+        .btn-flag {
+            background: var(--warning);
+            color: var(--bg);
+        }
+        .btn-flag:hover {
+            background: #e8aa1d;
+        }
+        .btn-flag.flagged {
+            background: var(--accent);
+        }
+        .btn-next {
+            background: var(--card-border);
+            color: var(--text);
+        }
+        .btn-next:hover:not(:disabled) {
+            background: var(--accent-dim);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .side-panel {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .side-panel h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        .section-info {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: var(--card-border);
+            border-radius: 4px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            font-size: 1em;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+        .submit-btn:hover {
+            background: var(--text);
+            transform: translateY(-2px);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--card);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-content h2 {
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+        .modal-content p {
+            margin-bottom: 20px;
+            color: var(--text-dim);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            font-size: 1em;
+        }
+        .btn-cancel {
+            background: var(--card-border);
+            color: var(--text);
+        }
+        .btn-confirm {
+            background: var(--accent);
+            color: var(--bg);
+            font-weight: bold;
+        }
+        .results-screen {
+            display: none;
+            background: var(--bg);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+        .results-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .results-header h1 {
+            font-size: 2.5em;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        .overall-score {
+            background: var(--card);
+            border: 2px solid var(--accent);
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            text-align: center;
+        }
+        .score-value {
+            font-size: 3em;
+            color: var(--accent);
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .score-details {
+            color: var(--text-dim);
+            font-size: 1.1em;
+        }
+        .section-scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .score-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .score-card h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        .score-card .value {
+            font-size: 2em;
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .score-card .details {
+            color: var(--text-dim);
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .tutor-message {
+            background: var(--card);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            margin-bottom: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 6px;
+            line-height: 1.7;
+        }
+        .tutor-message strong {
+            color: var(--accent);
+        }
+        .skills-analysis {
+            max-width: 900px;
+            margin: 0 auto 30px;
+        }
+        .skills-analysis h2 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .skill-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-size: 0.9em;
+        }
+        .skill-name { flex: 2; color: var(--text); }
+        .skill-std { flex: 1; color: var(--blue); font-size: 0.85em; }
+        .skill-status { flex: 0.5; text-align: right; font-weight: bold; }
+        .skill-strong { color: var(--success); }
+        .skill-ok { color: var(--warning); }
+        .skill-weak { color: var(--error); }
+        .review-header {
+            text-align: center;
+            margin: 40px 0 30px;
+        }
+        .review-header h2 {
+            color: var(--accent);
+            font-size: 1.8em;
+        }
+        .review-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .review-section {
+            margin-bottom: 30px;
+        }
+        .review-section h2 {
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .question-review {
+            background: var(--card);
+            border-left: 4px solid var(--card-border);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+        }
+        .question-review.incorrect {
+            border-left-color: var(--error);
+        }
+        .review-q-text {
+            color: var(--text);
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .review-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+        .review-label {
+            color: var(--text-dim);
+            font-size: 0.9em;
+        }
+        .review-value {
+            color: var(--text);
+        }
+        .review-value.correct {
+            color: var(--success);
+            font-weight: bold;
+        }
+        .review-value.incorrect {
+            color: var(--error);
+        }
+        .explanation {
+            background: var(--card-border);
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+        .explanation-label {
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .explanation-text {
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+        .strategy {
+            background: var(--accent-dim);
+            padding: 12px;
+            border-radius: 4px;
+        }
+        .strategy-label {
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .strategy-text {
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+        .no-wrong-answers {
+            text-align: center;
+            padding: 40px;
+            background: var(--card);
+            border: 2px solid var(--success);
+            border-radius: 8px;
+            font-size: 1.2em;
+            color: var(--success);
+        }
+        .results-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 40px auto;
+            max-width: 500px;
+        }
+        .return-btn {
+            display: block;
+            padding: 15px 30px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            font-size: 1em;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .return-btn:hover {
+            background: var(--text);
+            transform: translateY(-2px);
+        }
+        .review-btn {
+            display: block;
+            padding: 15px 30px;
+            background: var(--card-border);
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            font-size: 1em;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .review-btn:hover {
+            background: var(--accent-dim);
+            transform: translateY(-2px);
+        }
+        @media (max-width: 900px) {
+            .test-container {
+                grid-template-columns: 1fr;
+            }
+            .nav-panel { order: 2; }
+            .question-panel { order: 1; }
+            .side-panel { order: 3; }
+        }
+    </style>
+</head>
+<body>
+    <div id="welcomeScreen" class="welcome-screen">
+        <h1>THE ARCHIVE</h1>
+        <p class="sub">Week 7 LEAP Diagnostic — Jacob Brown</p>
+        <div class="countdown" id="leapCountdown">21 days until LEAP</div>
+        <div class="info">
+            <p><strong>50 questions</strong> across 4 sections</p>
+            <p style="margin-top: 8px;">ELA Reading & Language (15) | Math (15) | Science (10) | Social Studies (10)</p>
+            <p style="margin-top: 15px; font-size: 0.9em;">This diagnostic tests grade-level and advanced skills aligned to LEAP standards. Your answers save automatically.</p>
+            <p style="margin-top: 15px; font-size: 0.85em; color: var(--text-muted);">Take your time. Read each passage carefully. No calculator for math.</p>
+        </div>
+        <button onclick="startTest()">Enter the Archive</button>
+    </div>
+
+    <div id="testScreen" class="test-screen">
+        <div class="test-header">
+            <div class="test-header-left">
+                <h2 id="sectionTitle">Week 7 LEAP Diagnostic</h2>
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            </div>
+            <div class="test-header-right">
+                <div class="timer" id="timerDisplay">00:00</div>
+            </div>
+        </div>
+
+        <div class="test-container">
+            <div class="nav-panel">
+                <h3>Question Navigator</h3>
+                <div id="navGrid"></div>
+                <button class="submit-btn" onclick="showSubmitModal()">Submit Test</button>
+            </div>
+
+            <div class="question-panel">
+                <div class="question-header">
+                    <span class="q-num">Question <span id="currentQNum">1</span>/50</span>
+                    <div class="q-meta">
+                        <span class="badge" id="sectionBadge">ELA</span>
+                        <span class="std-code" id="stdCode">RL.6.1</span>
+                        <span style="color: var(--text-muted);">|</span>
+                        <span style="color: var(--text-muted);" id="skillLabel">Skill</span>
+                    </div>
+                </div>
+                <div id="passagePane"></div>
+                <div id="questionText"></div>
+                <div id="optionsContainer"></div>
+                <div class="button-row">
+                    <button class="btn btn-prev" id="prevBtn" onclick="prevQuestion()">&#8592; Previous</button>
+                    <button class="btn btn-flag" id="flagBtn" onclick="toggleFlag()">&#9734; Flag</button>
+                    <button class="btn btn-next" id="nextBtn" onclick="nextQuestion()">Next &#8594;</button>
+                </div>
+            </div>
+
+            <div class="side-panel">
+                <h3>Test Info</h3>
+                <div class="section-info" style="font-size: 0.85em;">
+                    <strong>Total Questions:</strong> 50<br>
+                    <strong>Sections:</strong> 4<br>
+                    <strong>Time Limit:</strong> 75 min
+                </div>
+                <div class="section-info" style="font-size: 0.8em; color: var(--text-muted);">
+                    <div id="answeredInfo">Answered: 0 / 50</div>
+                    <div id="flaggedInfo">Flagged: 0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="submitModal" class="modal">
+        <div class="modal-content">
+            <h2>Submit Test?</h2>
+            <p>You have answered <span id="answeredCount">0</span> out of 50 questions.</p>
+            <p style="font-size: 0.9em;">Are you ready to submit and view your results?</p>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeSubmitModal()">Keep Reviewing</button>
+                <button class="btn-confirm" onclick="submitTest()">Submit Test</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="resultsScreen" class="results-screen">
+        <div class="results-header">
+            <h1>Your Results</h1>
+            <p id="resultsSubtitle">Jacob Brown — Week 7 LEAP Diagnostic</p>
+        </div>
+
+        <div class="overall-score">
+            <div class="score-value" id="overallScore">0%</div>
+            <div class="score-details" id="overallDetails">0 out of 50 correct</div>
+        </div>
+
+        <div class="container">
+            <div class="section-scores" id="sectionScores"></div>
+        </div>
+
+        <div class="container">
+            <div class="tutor-message" id="tutorMessage">
+                Loading message from Gary...
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="skills-analysis" id="skillsAnalysis"></div>
+        </div>
+
+        <div class="review-header">
+            <h2>Answer Review</h2>
+        </div>
+
+        <div class="review-container" id="reviewContainer"></div>
+
+        <div class="results-actions">
+            <button class="review-btn" onclick="window.location.href='Diagnostic_Review_Jacob.html'">Review with Gary</button>
+            <button class="return-btn" onclick="window.location.href='Jacob_Dashboard.html'">Return to Dashboard</button>
+        </div>
+    </div>
+
+    <script>
+        var CONFIG = {
+            student: 'Jacob',
+            grade: '6th',
+            testId: 'jacob_diagnostic_week7_apr2026',
+            testLabel: 'Week 7 LEAP Practice Test',
+            webAppUrl: 'https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec'
+        };
+
+        var SECTIONS = [
+            { id: 'ela', name: 'ELA Reading & Language', range: [0, 14], icon: '\uD83D\uDCD6' },
+            { id: 'math', name: 'Mathematics', range: [15, 29], icon: '\uD83D\uDCD0' },
+            { id: 'sci', name: 'Science', range: [30, 39], icon: '\uD83D\uDD2C' },
+            { id: 'ss', name: 'Social Studies', range: [40, 49], icon: '\uD83C\uDF0D' }
+        ];
+
+        var PASSAGES = {
+            passage1: {
+                title: "The Blinking Star",
+                label: "Literary Fiction",
+                text: "The telescope was buried under a quilt that smelled like lavender and old paper. Addie found it on the third afternoon of her stay at Grandmother Lena\u2019s house, wedged between a steamer trunk and a hatbox in the corner of the attic where the roof sloped so low she had to crawl.\n\nIt was a refractor telescope, brass and leather, with a cracked eyepiece cap and a small engraving on the barrel: \u2018For Lena \u2014 keep looking.\u2019 Addie carried it downstairs and set it on the back porch railing. Grandmother Lena was in the garden pulling weeds, her wide-brimmed hat bobbing among the tomato cages. She glanced up, saw the telescope, and went very still.\n\n\u201CWhere did you find that?\u201D\n\n\u201CThe attic. Behind the trunk.\u201D\n\nGrandmother Lena pulled off her gardening gloves one finger at a time. \u201CThat belonged to your grandfather. He was an amateur astronomer \u2014 spent every clear night on this porch with that scope pointed at something.\u201D She paused. \u201CHe used to say the stars were trying to talk to us, and we were just too impatient to listen.\u201D\n\nThat night, Addie set the telescope on its tripod in the backyard, away from the porch light. The sky over Grandmother Lena\u2019s farm was different from the sky over her apartment in the city. At home the stars were faint smudges, outnumbered by streetlights. Here they poured across the darkness like spilled salt, more than she could count, more than she had ever imagined.\n\nShe aimed the telescope at a bright star near the handle of the Big Dipper and adjusted the focus. The star sharpened into a point of white fire. She watched it for a long time, letting her breathing slow, and that was when she noticed something strange: the star dimmed, then brightened, then dimmed again. Not the usual twinkling caused by the atmosphere \u2014 this was slower, more deliberate. Dim for two seconds, bright for one. Dim for two, bright for one. A repeating pattern, steady as a heartbeat.\n\nAddie pulled out her phone and searched \u201Cstars that blink in patterns.\u201D She learned that some variable stars change brightness on regular cycles as they expand and contract. There were eclipsing binaries, too, where one star passes in front of another. The science had names and formulas. It was all explainable.\n\nBut sitting alone in the dark field with the telescope pressed to her eye, the explanation felt thin, like a curtain that didn\u2019t quite cover the window. The pattern was so precise. Two and one. Two and one. It felt less like a physical process and more like a signal \u2014 something patient and ancient tapping out a message across unimaginable distance, not caring whether anyone was listening, sending it anyway.\n\nShe thought about her grandfather, who had stood in this same spot and pointed this same telescope at these same stars. Had he seen this pattern? Is that what he meant when he said the stars were talking? Maybe the universe wasn\u2019t really trying to communicate. Maybe it didn\u2019t need to. Maybe the point was that Addie was willing to sit still long enough to notice \u2014 that the act of paying attention was itself a kind of answer.\n\nShe stayed outside until the dew soaked through her sneakers. When she finally went in, Grandmother Lena was sitting at the kitchen table with two mugs of chamomile tea, as if she had known exactly how long the stars would keep her granddaughter outside."
+            },
+            passage2: {
+                title: "Back from the Dead: The Science and Controversy of De-Extinction",
+                label: "Informational / Nonfiction",
+                text: "In 2021, a biotechnology company called Colossal Biosciences announced a plan that sounded like the plot of a science fiction movie: they intended to bring back the woolly mammoth. Not a clone, exactly, but a cold-resistant elephant genetically edited to carry key mammoth traits \u2014 shaggy hair, thick fat layers, and small ears suited to Arctic temperatures. The project, which has attracted over $200 million in funding, is part of a growing scientific field known as de-extinction: the effort to resurrect species that have disappeared from the Earth.\n\nThe basic science behind de-extinction relies on genetic engineering, particularly a tool called CRISPR-Cas9. CRISPR allows scientists to cut and edit DNA with extraordinary precision, inserting genes from an extinct species into the genome of a close living relative. For the mammoth project, researchers are editing the DNA of Asian elephants, the mammoth\u2019s closest living cousin, inserting genes associated with cold tolerance. The goal is not a perfect mammoth replica but a functional hybrid \u2014 an animal that could survive in Arctic conditions and fill the ecological role mammoths once played.\n\nSupport for de-extinction extends beyond mammoths. Scientists have discussed restoring the dodo, the passenger pigeon, and the thylacine (Tasmanian tiger). Advocates argue the benefits could be significant. Woolly mammoths, for instance, once maintained Arctic grasslands by trampling snow, knocking down trees, and spreading seeds. Without them, those grasslands gradually converted to tundra and mossy forest. Restoring mammoth-like animals could theoretically help preserve permafrost by compacting snow and reflecting sunlight, slowing the release of greenhouse gases trapped in frozen soil. In this view, de-extinction is not just about nostalgia \u2014 it could be a tool for fighting climate change.\n\nCritics, however, raise serious objections. The most fundamental concern is ecological: the world these animals once inhabited no longer exists. Bringing back a mammoth-like creature does not bring back the Ice Age ecosystem it depended on. Releasing genetically modified animals into modern Arctic environments could disrupt existing ecosystems in unpredictable ways, harming species that have adapted to current conditions.\n\nAnimal welfare presents another challenge. Creating a mammoth hybrid would require extensive experimentation, likely involving many failed pregnancies in surrogate elephant mothers \u2014 an endangered species already struggling with habitat loss. Critics ask whether it is ethical to subject living elephants to experimental reproductive procedures for the sake of resurrecting a species that went extinct thousands of years ago.\n\nPerhaps the strongest argument against de-extinction is one of priorities. Conservation organizations point out that approximately one million species alive today face extinction. The hundreds of millions of dollars flowing into de-extinction research could fund habitat protection, anti-poaching efforts, and breeding programs for endangered species that still have a chance of survival. In the words of one conservation biologist, \u2018The best way to protect biodiversity is to prevent extinction in the first place, not to try to reverse it after the fact.\u2019\n\nDe-extinction forces a difficult question: just because science can bring something back, does that mean it should? The answer may depend on whether we see these projects as genuine conservation tools or as expensive technological spectacles that distract from the quieter, less glamorous work of protecting the species we still have."
+            }
+        };
+
+        var Q = [
+            // === ELA READING & LANGUAGE (0-14) ===
+
+            // Q0 - EBSR Part A (RL.6.1)
+            {sec:'ela',std:'RL.6.1',skill:'Key Details & Evidence',diff:1,type:'ebsr',text:'Part A: Why does Grandmother Lena go "very still" when she sees the telescope?',opts:['She is afraid Addie will break the telescope','The telescope belonged to her late husband and holds deep personal meaning','She does not want Addie to go outside at night','She forgot the telescope was in the attic'],cor:1,exp:'Grandmother Lena\'s reaction signals emotional significance. She then explains the telescope "belonged to your grandfather" and shares his beliefs about stars, confirming the object connects to a loved one who has passed.',str:'When a character has a strong physical reaction, look for what the text reveals about the cause. Here, the explanation comes in the next lines of dialogue.',passage:'passage1'},
+
+            // Q1 - EBSR Part B (RL.6.1)
+            {sec:'ela',std:'RL.6.1',skill:'Key Details & Evidence',diff:2,type:'ebsr',text:'Part B: Which detail from the passage BEST supports the answer to Part A?',opts:['"The telescope was buried under a quilt that smelled like lavender and old paper"','"That belonged to your grandfather. He was an amateur astronomer"','"The sky over Grandmother Lena\'s farm was different from the sky over her apartment in the city"','"She stayed outside until the dew soaked through her sneakers"'],cor:1,exp:'This direct quotation from Grandmother Lena confirms the telescope belonged to her husband (Addie\'s grandfather), explaining why seeing it stirred such a strong emotional response.',str:'Part B asks for BEST evidence. Choose the quote that most directly and completely confirms the answer you gave in Part A.',passage:'passage1'},
+
+            // Q2 - RL.6.2 Theme
+            {sec:'ela',std:'RL.6.2',skill:'Theme',diff:2,type:'mc',text:'Which statement best expresses the theme of "The Blinking Star"?',opts:['Science cannot explain everything about the universe','Paying attention to the world around us is itself a meaningful act','Old telescopes are better than modern ones','Grandparents always understand their grandchildren'],cor:1,exp:'Addie\'s realization captures the theme: "the act of paying attention was itself a kind of answer." The story is not anti-science (she finds the scientific explanation) but suggests that the willingness to be still and observe has its own value beyond explanation.',str:'Theme is the deeper message about life, not just plot summary. Look for what the character learns or realizes by the story\'s end.',passage:'passage1'},
+
+            // Q3 - RL.6.4 Vocabulary in Context
+            {sec:'ela',std:'RL.6.4',skill:'Vocabulary in Context',diff:2,type:'mc',text:'In the sentence "the explanation felt thin, like a curtain that didn\'t quite cover the window," what does the author mean by comparing the explanation to a thin curtain?',opts:['The explanation was wrong and should be discarded','The explanation was scientifically accurate but did not fully capture the wonder of the experience','The explanation was too complicated for Addie to understand','The explanation made Addie feel frightened'],cor:1,exp:'The simile compares the scientific explanation to a curtain that "didn\'t quite cover the window." The explanation exists and is valid, but it leaves something uncovered\u2014the sense of wonder and the feeling that the pattern is like a message. Addie doesn\'t reject science; she feels it doesn\'t capture the full experience.',str:'Figurative language conveys feelings beyond literal meaning. A curtain that doesn\'t cover the window suggests something is left exposed or unexplained.',passage:'passage1'},
+
+            // Q4 - RL.6.3 Character Development
+            {sec:'ela',std:'RL.6.3',skill:'Character Development',diff:2,type:'mc',text:'How does Addie change from the beginning of the passage to the end?',opts:['She starts out bored and restless but becomes deeply engaged with observing the night sky','She begins as a scientist and ends as an artist','She starts afraid of the dark and overcomes her fear','She begins disliking her grandmother\'s house and decides to stay forever'],cor:0,exp:'At the beginning, Addie is exploring the attic casually during an uneventful stay. By the end, she is so absorbed in watching the star that she stays outside until dew soaks her sneakers. Her shift is from idle curiosity to deep, patient engagement.',str:'Track what the character does and feels at the START versus the END. The change often mirrors the theme.',passage:'passage1'},
+
+            // Q5 - EBSR Part A (RL.6.5 Structure)
+            {sec:'ela',std:'RL.6.5',skill:'Text Structure',diff:3,type:'ebsr',text:'Part A: What role does the grandfather play in the story even though he never appears as a living character?',opts:['He serves as the antagonist who creates conflict','He connects the past to the present and provides the idea that inspires Addie\'s experience','He is a minor detail with no real importance to the plot','He represents the failure of science to explain the universe'],cor:1,exp:'The grandfather is present through the telescope, the engraving ("keep looking"), and his words about stars trying to talk. He bridges past and present: his habit of stargazing is carried forward through Addie, who arrives at a similar realization about patience and attention.',str:'Characters who are absent or deceased can still drive a story through objects, words, and legacy they leave behind.',passage:'passage1'},
+
+            // Q6 - EBSR Part B (RL.6.5)
+            {sec:'ela',std:'RL.6.5',skill:'Text Structure',diff:3,type:'ebsr',text:'Part B: Which detail BEST shows the grandfather\'s continuing influence on Addie?',opts:['"She aimed the telescope at a bright star near the handle of the Big Dipper"','"Addie pulled out her phone and searched \'stars that blink in patterns\'"','"She thought about her grandfather, who had stood in this same spot and pointed this same telescope at these same stars"','"Grandmother Lena was in the garden pulling weeds"'],cor:2,exp:'This sentence explicitly connects Addie to her grandfather through shared place, shared instrument, and shared act of observation. It shows his influence passing directly to her even though they never met in the story.',str:'For EBSR Part B, choose the quote that most directly demonstrates the connection described in Part A.',passage:'passage1'},
+
+            // Q7 - L.6.1 Pronoun-Antecedent (Weakness target)
+            {sec:'ela',std:'L.6.1',skill:'Pronoun-Antecedent Agreement',diff:2,type:'mc',text:'Read this sentence: "Every student in the observatory must clean their telescope lens before leaving." Which revision corrects the pronoun-antecedent error?',opts:['Every student in the observatory must clean our telescope lens before leaving.','Every student in the observatory must clean his or her telescope lens before leaving.','Every student in the observatory must clean its telescope lens before leaving.','The sentence is already correct and needs no revision.'],cor:1,exp:'"Every" is a singular indefinite pronoun and requires a singular pronoun to match it. "Their" is plural and does not agree with "every student" in formal standard English. The correct revision uses "his or her" (singular).',str:'Indefinite pronouns like "every," "each," "anyone," and "everyone" are SINGULAR in formal English. They need singular pronouns (he, she, his, her).',passage:null},
+
+            // Q8 - RI.6.1 (passage2)
+            {sec:'ela',std:'RI.6.1',skill:'Cite Textual Evidence',diff:1,type:'mc',text:'According to the passage, what technology do scientists use to edit the DNA of Asian elephants for the mammoth project?',opts:['Traditional cloning techniques','CRISPR-Cas9 genetic editing','Selective breeding over many generations','Stem cell transplantation'],cor:1,exp:'The passage states directly: "The basic science behind de-extinction relies on genetic engineering, particularly a tool called CRISPR-Cas9. CRISPR allows scientists to cut and edit DNA with extraordinary precision."',str:'For fact-based questions, scan the passage for the specific term or technology mentioned.',passage:'passage2'},
+
+            // Q9 - RI.6.2 Central Idea
+            {sec:'ela',std:'RI.6.2',skill:'Central Idea & Summary',diff:2,type:'mc',text:'What is the central idea of "Back from the Dead: The Science and Controversy of De-Extinction"?',opts:['De-extinction is too expensive and should be abandoned immediately','De-extinction uses advanced genetics to potentially restore lost species, but it raises serious ecological, ethical, and financial concerns','Scientists have already successfully brought back the woolly mammoth','All conservation experts support de-extinction as the best way to protect biodiversity'],cor:1,exp:'The passage presents both the science and promise of de-extinction AND the objections (ecological disruption, animal welfare, misplaced priorities). The central idea balances both sides, acknowledging possibility while highlighting controversy.',str:'The central idea captures the WHOLE passage, not just one section. Look for a statement that accounts for both the "for" and "against" arguments.',passage:'passage2'},
+
+            // Q10 - RI.6.4 Vocabulary in Context (Weakness target)
+            {sec:'ela',std:'RI.6.4',skill:'Vocabulary in Context',diff:2,type:'mc',text:'In the sentence "expensive technological spectacles that distract from the quieter, less glamorous work of protecting the species we still have," what does "spectacles" most likely mean?',opts:['Eyeglasses used by scientists','Showy displays designed to attract attention','Scientific experiments conducted in laboratories','Television programs about wildlife'],cor:1,exp:'"Spectacles" here means impressive, attention-grabbing displays. The context contrasts them with "quieter, less glamorous work," indicating that "spectacles" refers to something flashy and attention-seeking rather than practical.',str:'Context clues like "expensive," "distract," and the contrast with "quieter, less glamorous" all point to "spectacles" meaning showy displays.',passage:'passage2'},
+
+            // Q11 - RI.6.5 Text Structure (Weakness target)
+            {sec:'ela',std:'RI.6.5',skill:'Text Structure',diff:3,type:'mc',text:'How does the author organize the argument in the de-extinction passage?',opts:['By telling a story in chronological order from past to present','By presenting the science and potential benefits first, then systematically addressing counterarguments and concerns','By comparing de-extinction projects in different countries','By ranking extinct species from most to least important to restore'],cor:1,exp:'The passage follows a clear structure: introduction of the mammoth project, explanation of the science (CRISPR), arguments in favor (ecological benefits, climate), then counterarguments in sequence (ecology, animal welfare, priorities). This is a balanced argumentative structure.',str:'Argumentative texts often follow a pattern: introduce the topic, present one side, then present the other side. Identify which comes first and how they connect.',passage:'passage2'},
+
+            // Q12 - RI.6.8 Claims & Evidence
+            {sec:'ela',std:'RI.6.8',skill:'Evaluate Claims & Evidence',diff:3,type:'mc',text:'A conservation biologist quoted in the passage says, "The best way to protect biodiversity is to prevent extinction in the first place, not to try to reverse it after the fact." What type of argument is this?',opts:['An argument based on personal emotion with no evidence','An argument about priorities\u2014that preventing extinction is more effective and practical than reversing it','An argument that de-extinction technology does not work','An argument that all extinct species should be brought back'],cor:1,exp:'The biologist is making a priorities argument: limited conservation funding is better spent preventing current extinctions than reversing past ones. This is not anti-science; it is about where resources should go for maximum impact.',str:'Identify what KIND of argument is being made. This one is about resource allocation and priorities, not about whether the science works.',passage:'passage2'},
+
+            // Q13 - L.6.2 Punctuation/Grammar
+            {sec:'ela',std:'L.6.2',skill:'Punctuation & Conventions',diff:2,type:'mc',text:'Which sentence uses semicolons correctly?',opts:['The mammoth project is ambitious; and it has many critics.','The mammoth project is ambitious; however, it has attracted significant funding.','The mammoth project; is ambitious, however it has attracted significant funding.','The mammoth project is ambitious, however; it has attracted significant funding.'],cor:1,exp:'A semicolon correctly joins two independent clauses. When a conjunctive adverb (however, therefore, moreover) connects them, the pattern is: [clause]; however, [clause]. Option A incorrectly adds "and" after the semicolon. Options C and D misplace the semicolon.',str:'Semicolons join two complete sentences. With conjunctive adverbs: Sentence 1; however, Sentence 2. Never put a semicolon after a conjunction like "and."',passage:null},
+
+            // Q14 - L.6.1 Pronoun-Antecedent (Weakness target)
+            {sec:'ela',std:'L.6.1',skill:'Pronoun-Antecedent Agreement',diff:3,type:'mc',text:'Which sentence demonstrates CORRECT pronoun-antecedent agreement?',opts:['Either the biologist or the veterinarians will present their findings at the conference.','Either the biologist or the veterinarians will present his findings at the conference.','Everyone in the research team submitted their report on time.','Each of the elephants was returned to their enclosure.'],cor:0,exp:'When "either...or" connects a singular noun and a plural noun, the pronoun agrees with the CLOSER noun. "Veterinarians" (plural) is closer, so "their" (plural) is correct. Options C and D use "their" with singular indefinite pronouns ("everyone," "each"), which is incorrect in formal standard English.',str:'For "either...or" and "neither...nor," the pronoun matches the noun CLOSEST to it. For indefinite pronouns (each, every, everyone), use singular pronouns.',passage:null},
+
+            // === MATHEMATICS (15-29) ===
+
+            // Q15 - 6.RP.1 Ratios (Weakness target)
+            {sec:'math',std:'6.RP.1',skill:'Understand Ratios',diff:1,type:'mc',text:'A recipe calls for 3 cups of flour and 2 cups of sugar. What is the ratio of sugar to the TOTAL amount of flour and sugar combined, in simplest form?',opts:['3:2','2:3','2:5','5:2'],cor:2,exp:'Total = 3 + 2 = 5 cups. Ratio of sugar to total = 2:5. This is already in simplest form since GCF of 2 and 5 is 1.',str:'Read carefully: "sugar to TOTAL" means sugar compared to everything combined, not sugar compared to flour. Then simplify.',passage:null},
+
+            // Q16 - 6.RP.2 Unit Rates (Weakness target)
+            {sec:'math',std:'6.RP.2',skill:'Unit Rates',diff:2,type:'mc',text:'A car travels 234 miles using 9 gallons of gas. What is the unit rate in miles per gallon?',opts:['24 miles per gallon','25 miles per gallon','26 miles per gallon','27 miles per gallon'],cor:2,exp:'Unit rate = 234 / 9 = 26 miles per gallon.',str:'Unit rate means "per ONE." Divide the total distance by the total gallons to find miles per 1 gallon.',passage:null},
+
+            // Q17 - 6.RP.3 Proportions (Weakness target)
+            {sec:'math',std:'6.RP.3',skill:'Solve Proportions',diff:2,type:'mc',text:'If 5 notebooks cost $8.75, how much would 12 notebooks cost at the same rate?',opts:['$21.00','$17.50','$24.00','$25.20'],cor:0,exp:'Unit price = $8.75 / 5 = $1.75 per notebook. Cost of 12 = 12 x $1.75 = $21.00.',str:'Find the unit price first (cost per one item), then multiply by the quantity you need.',passage:null},
+
+            // Q18 - 6.RP.3 Percent Problems (Weakness target) - EBSR Part A
+            {sec:'math',std:'6.RP.3',skill:'Percent Problems',diff:2,type:'ebsr',text:'Part A: A store sells a jacket originally priced at $80 for 35% off. What is the sale price?',opts:['$28.00','$45.00','$52.00','$55.00'],cor:2,exp:'Discount = 35% of $80 = 0.35 x 80 = $28.00. Sale price = $80 - $28 = $52.00.',str:'For percent-off problems: (1) find the discount amount, (2) subtract it from the original price. Or multiply by (100% - discount%).',passage:null},
+
+            // Q19 - EBSR Part B
+            {sec:'math',std:'6.RP.3',skill:'Percent Problems',diff:3,type:'ebsr',text:'Part B: Which expression could also be used to calculate the sale price directly?',opts:['80 x 0.65','80 x 0.35','80 / 0.35','80 + 0.35'],cor:0,exp:'If the discount is 35%, the customer pays 100% - 35% = 65% of the original price. So: 80 x 0.65 = $52.00. This is a shortcut that skips the subtraction step.',str:'Paying (100% - discount%) of the price is the same as subtracting the discount. 65% = 0.65 as a decimal.',passage:null},
+
+            // Q20 - 6.NS.1 Fraction Division
+            {sec:'math',std:'6.NS.1',skill:'Divide Fractions',diff:2,type:'mc',text:'Evaluate: 2/3 divided by 4/9',opts:['3/2','8/27','6/4','27/8'],cor:0,exp:'Divide fractions by multiplying by the reciprocal: 2/3 x 9/4 = 18/12 = 3/2 (or 1 1/2).',str:'To divide by a fraction, flip the second fraction (reciprocal) and multiply. Then simplify the result.',passage:null},
+
+            // Q21 - 6.NS.6 Number Line & Absolute Value
+            {sec:'math',std:'6.NS.6',skill:'Absolute Value & Ordering',diff:1,type:'mc',text:'Which list shows these numbers in order from LEAST to GREATEST? -7, 3, -2, 0, 5, -4',opts:['-7, -4, -2, 0, 3, 5','-2, -4, -7, 0, 3, 5','0, -2, 3, -4, 5, -7','5, 3, 0, -2, -4, -7'],cor:0,exp:'On a number line, numbers increase from left to right. Negative numbers with larger absolute values are farther left (smaller). Order: -7, -4, -2, 0, 3, 5.',str:'Picture a number line. Negative numbers go LEFT of zero. The more negative, the smaller the value. -7 is less than -4 is less than -2.',passage:null},
+
+            // Q22 - 6.EE.1 Order of Operations
+            {sec:'math',std:'6.EE.1',skill:'Order of Operations',diff:2,type:'mc',text:'Evaluate: 3 + 4 x (8 - 5)^2',opts:['39','63','147','21'],cor:0,exp:'Follow PEMDAS: Parentheses first: 8 - 5 = 3. Exponent: 3^2 = 9. Multiply: 4 x 9 = 36. Add: 3 + 36 = 39.',str:'PEMDAS: Parentheses, Exponents, Multiply/Divide (left to right), Add/Subtract (left to right). Do NOT just go left to right.',passage:null},
+
+            // Q23 - 6.EE.5 Inequalities
+            {sec:'math',std:'6.EE.5',skill:'Solve Inequalities',diff:2,type:'mc',text:'Which value of x makes the inequality 3x + 7 > 22 true?',opts:['x = 4','x = 5','x = 6','x = 3'],cor:2,exp:'Solve: 3x + 7 > 22. Subtract 7: 3x > 15. Divide by 3: x > 5. So x must be greater than 5. Only x = 6 satisfies this.',str:'Solve inequalities like equations (undo operations), then check which answer choices fall in the solution range.',passage:null},
+
+            // Q24 - 6.EE.7 Solve Equations
+            {sec:'math',std:'6.EE.7',skill:'Solve One-Variable Equations',diff:2,type:'mc',text:'Solve for m: 5m - 13 = 32',opts:['m = 9','m = 3.8','m = 19','m = 7'],cor:0,exp:'Add 13 to both sides: 5m = 45. Divide by 5: m = 9. Check: 5(9) - 13 = 45 - 13 = 32.',str:'Undo operations in reverse order: first undo subtraction (add 13), then undo multiplication (divide by 5). Always check your answer.',passage:null},
+
+            // Q25 - 6.G.1 Area of Triangles
+            {sec:'math',std:'6.G.1',skill:'Area of Polygons',diff:2,type:'mc',text:'A triangle has a base of 18 cm and a height of 11 cm. What is its area?',opts:['99 cm\u00b2','198 cm\u00b2','29 cm\u00b2','144 cm\u00b2'],cor:0,exp:'Area of a triangle = 1/2 x base x height = 1/2 x 18 x 11 = 99 cm\u00b2.',str:'Triangle area is always HALF of base times height: A = (1/2)bh. Don\'t forget to divide by 2.',passage:null},
+
+            // Q26 - 6.G.4 Surface Area (Weakness target)
+            {sec:'math',std:'6.G.4',skill:'Surface Area',diff:3,type:'mc',text:'A rectangular box is 6 inches long, 4 inches wide, and 3 inches tall. What is its total surface area?',opts:['108 sq in','72 sq in','84 sq in','144 sq in'],cor:0,exp:'Surface area = 2(lw + lh + wh) = 2(6x4 + 6x3 + 4x3) = 2(24 + 18 + 12) = 2(54) = 108 square inches.',str:'A rectangular box has 3 pairs of identical faces. Find the area of each pair (lw, lh, wh), add them, then multiply by 2.',passage:null},
+
+            // Q27 - 6.G.2 Volume (Weakness target)
+            {sec:'math',std:'6.G.2',skill:'Volume Problem Solving',diff:3,type:'mc',text:'A swimming pool is shaped like a rectangular prism: 25 meters long, 10 meters wide, and 2 meters deep. If the pool is filled to 3/4 of its depth, how many cubic meters of water are in the pool?',opts:['375 cubic meters','500 cubic meters','250 cubic meters','125 cubic meters'],cor:0,exp:'Water depth = 3/4 x 2 = 1.5 meters. Volume = 25 x 10 x 1.5 = 375 cubic meters.',str:'Find the actual water depth first (fraction of total depth), then use that as the height in the volume formula.',passage:null},
+
+            // Q28 - 6.SP.3 Statistics (Weakness target)
+            {sec:'math',std:'6.SP.3',skill:'Measures of Center',diff:2,type:'mc',text:'A student\'s quiz scores are: 78, 85, 92, 85, 90. What are the mean and mode of these scores?',opts:['Mean = 86, Mode = 85','Mean = 85, Mode = 85','Mean = 86, Mode = 92','Mean = 85, Mode = 90'],cor:0,exp:'Mean = (78 + 85 + 92 + 85 + 90) / 5 = 430 / 5 = 86. Mode = 85 (appears twice, more than any other score).',str:'Mean = sum divided by count. Mode = the number that appears MOST often. They can be different values.',passage:null},
+
+            // Q29 - 6.SP.5 Interpret Data
+            {sec:'math',std:'6.SP.5',skill:'Summarize & Interpret Data',diff:3,type:'mc',text:'A data set has a median of 50 and a mean of 62. What does this tell you about the shape of the data distribution?',opts:['The data is perfectly symmetric','The data is skewed to the left (has some very low values pulling the mean down)','The data is skewed to the right (has some very high values pulling the mean up)','The data has no outliers'],cor:2,exp:'When the mean is significantly higher than the median, it indicates the data is skewed right\u2014a few very high values pull the mean upward while the median stays closer to the center of most values.',str:'Mean > Median = right skew (high outliers pull mean up). Mean < Median = left skew. Mean = Median = roughly symmetric.',passage:null},
+
+            // === SCIENCE (30-39) ===
+
+            // Q30 - Life Science: Cells
+            {sec:'sci',std:'MS-LS1-2',skill:'Cell Structure & Function',diff:1,type:'mc',text:'Which cell structure controls what substances enter and leave the cell?',opts:['The nucleus','The cell wall','The cell membrane','The mitochondria'],cor:2,exp:'The cell membrane (also called plasma membrane) is a selectively permeable barrier that controls the movement of substances into and out of the cell. The nucleus stores DNA, mitochondria produce energy, and the cell wall (in plants) provides structural support.',str:'Think of each organelle\'s specific job: nucleus = control center/DNA, cell membrane = gatekeeper, mitochondria = energy, cell wall = rigid support (plants only).',passage:null},
+
+            // Q31 - Life Science: Ecosystems - Energy Flow
+            {sec:'sci',std:'MS-LS2-3',skill:'Energy in Ecosystems',diff:2,type:'mc',text:'In a food chain: grass -> grasshopper -> frog -> hawk, which organism contains the MOST energy?',opts:['The hawk, because it is the top predator','The frog, because it eats both plants and animals','The grasshopper, because insects are very active','The grass, because energy decreases at each level of the food chain'],cor:3,exp:'Energy decreases at each trophic level\u2014approximately 90% is lost as heat at each transfer. The producers (grass) contain the most total energy. By the time energy reaches the hawk, only about 0.1% of the original energy remains.',str:'The 10% rule: only about 10% of energy transfers from one level to the next. Producers always have the MOST total energy.',passage:null},
+
+            // Q32 - Life Science: Photosynthesis - EBSR Part A
+            {sec:'sci',std:'MS-LS1-6',skill:'Photosynthesis',diff:2,type:'ebsr',text:'Part A: What are the products of photosynthesis?',opts:['Carbon dioxide and water','Nitrogen and protein','Oxygen and glucose','Water and minerals'],cor:2,exp:'Photosynthesis converts carbon dioxide and water (using light energy) into glucose (sugar) and oxygen. The equation is: 6CO2 + 6H2O + light -> C6H12O6 + 6O2.',str:'Remember: photosynthesis INPUTS are CO2 + H2O + light. OUTPUTS (products) are glucose + O2. It is the reverse of cellular respiration.',passage:null},
+
+            // Q33 - EBSR Part B
+            {sec:'sci',std:'MS-LS1-6',skill:'Photosynthesis',diff:3,type:'ebsr',text:'Part B: Where in a plant cell does photosynthesis primarily take place?',opts:['In the mitochondria','In the cell membrane','In the chloroplasts','In the nucleus'],cor:2,exp:'Chloroplasts are organelles found in plant cells (and some algae) that contain chlorophyll, the green pigment that captures light energy. This is where the chemical reactions of photosynthesis occur.',str:'Chloroplasts = photosynthesis (making food). Mitochondria = cellular respiration (using food for energy). These are complementary processes.',passage:null},
+
+            // Q34 - Earth Science: Water Cycle
+            {sec:'sci',std:'MS-ESS2-4',skill:'Water Cycle',diff:2,type:'mc',text:'During which process of the water cycle does water vapor in the atmosphere change back into liquid water droplets, forming clouds?',opts:['Evaporation','Precipitation','Condensation','Transpiration'],cor:2,exp:'Condensation is the process where water vapor (gas) cools and changes into liquid water droplets. These tiny droplets collect on dust particles in the atmosphere to form clouds. When the droplets grow heavy enough, they fall as precipitation.',str:'Evaporation = liquid to gas. Condensation = gas to liquid (cloud formation). Precipitation = water falling from clouds. Transpiration = water released by plants.',passage:null},
+
+            // Q35 - Earth Science: Space
+            {sec:'sci',std:'MS-ESS1-1',skill:'Earth-Sun-Moon System',diff:2,type:'mc',text:'What causes the phases of the Moon as seen from Earth?',opts:['Earth\'s shadow falls on different parts of the Moon each night','The Moon produces its own light that changes brightness','The Moon\'s position relative to the Earth and Sun changes, so we see different portions of its sunlit side','Clouds in Earth\'s atmosphere block parts of the Moon'],cor:2,exp:'The Moon does not produce light; it reflects sunlight. As the Moon orbits Earth, the angle between the Sun, Moon, and Earth changes, causing us to see different amounts of the Moon\'s illuminated half. This creates the phases (new, crescent, quarter, gibbous, full).',str:'Moon phases are about geometry: the Moon always has one half lit by the Sun, but we see different amounts of that lit half depending on where the Moon is in its orbit.',passage:null},
+
+            // Q36 - Physical Science: Energy Transformations
+            {sec:'sci',std:'MS-PS3-5',skill:'Energy Transformations',diff:2,type:'mc',text:'When a student rubs her hands together rapidly, her palms feel warm. What energy transformation is occurring?',opts:['Chemical energy to light energy','Thermal energy to kinetic energy','Electrical energy to sound energy','Kinetic (mechanical) energy to thermal (heat) energy'],cor:3,exp:'The mechanical motion (kinetic energy) of rubbing hands together is converted to thermal energy (heat) through friction. Friction always converts some kinetic energy into heat.',str:'Friction converts motion (kinetic energy) into heat (thermal energy). This is why rubbing, grinding, and braking all produce warmth.',passage:null},
+
+            // Q37 - Physical Science: Waves
+            {sec:'sci',std:'MS-PS4-1',skill:'Wave Properties',diff:2,type:'mc',text:'A sound wave has a frequency of 440 Hz. If the speed of sound in air is 330 m/s, what is the wavelength of this sound wave?',opts:['0.50 meters','145,200 meters','1.33 meters','0.75 meters'],cor:3,exp:'Wavelength = speed / frequency = 330 / 440 = 0.75 meters. The wave equation is: speed = frequency x wavelength, so wavelength = speed / frequency.',str:'The wave equation: v = f x lambda. To find wavelength, divide speed by frequency. Check units: m/s divided by Hz (1/s) = meters.',passage:null},
+
+            // Q38 - Earth Science: Weather
+            {sec:'sci',std:'MS-ESS2-5',skill:'Weather Systems',diff:3,type:'mc',text:'A weather map shows a large "H" over a region. What conditions would you MOST expect in that area?',opts:['Heavy rain and thunderstorms','Tornadoes and severe wind damage','Blizzards and heavy snow','Clear skies, calm winds, and dry weather'],cor:3,exp:'An "H" on a weather map indicates a high-pressure system. In high-pressure areas, air sinks and warms, preventing cloud formation. This typically produces clear skies, light winds, and dry conditions. Low-pressure systems ("L") are associated with clouds and precipitation.',str:'High pressure = sinking air = clear and calm. Low pressure = rising air = clouds and storms. Remember: H = happy weather, L = lousy weather.',passage:null},
+
+            // Q39 - Physical Science: Newton's Laws
+            {sec:'sci',std:'MS-PS2-1',skill:'Forces & Motion',diff:3,type:'mc',text:'A book sits motionless on a table. According to Newton\'s First Law, what must be true about the forces acting on the book?',opts:['No forces are acting on the book','The force of gravity is the only force acting on the book','The forces acting on the book are balanced (net force is zero)','The book is accelerating downward but the table stops it'],cor:2,exp:'Newton\'s First Law states an object at rest stays at rest unless acted on by an unbalanced force. Since the book is motionless, the net force must be zero\u2014gravity pulls it down and the normal force from the table pushes it up equally. Forces exist but are balanced.',str:'An object at rest does NOT mean no forces. It means all forces CANCEL OUT (balanced forces, net force = 0). Gravity + normal force = zero net force.',passage:null},
+
+            // === SOCIAL STUDIES (40-49) — Ancient World History ===
+
+            // Q40 - Mesopotamia: Hammurabi
+            {sec:'ss',std:'WH.6.1',skill:'Early Civilizations - Mesopotamia',diff:1,type:'mc',text:'Hammurabi\'s Code, created around 1754 BCE in Babylon, is historically significant because it was one of the first:',opts:['Religious texts written on papyrus','Scientific textbooks describing astronomy and mathematics','Democratic constitutions allowing citizens to vote','Written sets of laws that established uniform rules for an entire empire'],cor:3,exp:'Hammurabi\'s Code is one of the earliest known written legal codes. It established 282 laws covering property, trade, family, and labor, applying uniformly across the Babylonian Empire. Having written laws meant rules were public and consistent rather than arbitrary.',str:'Written law is revolutionary because it makes rules public and consistent. Before written law, rules depended on who was in power and could change without notice.',passage:null},
+
+            // Q41 - Ancient Egypt: Social Structure
+            {sec:'ss',std:'WH.6.2',skill:'Ancient Egypt - Society',diff:2,type:'mc',text:'In ancient Egypt, the pharaoh was considered both a political ruler and a:',opts:['Democratically elected representative of the people','Foreign conqueror who ruled by force','Military general with no religious role','Living god who served as an intermediary between humans and the divine'],cor:3,exp:'Egyptian pharaohs held both political and religious authority. They were considered living incarnations of the god Horus and, after death, became associated with Osiris. This divine status gave their authority a religious foundation that went beyond mere political power.',str:'In many ancient civilizations, political and religious authority were combined. The pharaoh\'s divine status was the foundation of Egyptian governance.',passage:null},
+
+            // Q42 - Ancient Egypt: Geography - EBSR Part A
+            {sec:'ss',std:'WH.6.2',skill:'Ancient Egypt - Geography',diff:2,type:'ebsr',text:'Part A: Why did ancient Egyptians call their land "Kemet," meaning "black land"?',opts:['Because the night sky was very dark over the desert','Because Egyptian clothing was predominantly black','Because the pyramids were built from black stone','Because the Nile\'s annual flooding deposited dark, fertile soil along its banks'],cor:3,exp:'The name "Kemet" (black land) referred to the rich, dark silt deposited by the Nile\'s annual floods. This dark soil contrasted sharply with the red desert sand ("Deshret") on either side. The fertile black soil made agriculture possible in an otherwise arid landscape.',str:'Geography shaped ancient civilizations. The Nile\'s flooding created a narrow strip of fertile land that made Egyptian civilization possible.',passage:null},
+
+            // Q43 - EBSR Part B
+            {sec:'ss',std:'WH.6.2',skill:'Ancient Egypt - Geography',diff:3,type:'ebsr',text:'Part B: How did the geography described in Part A directly influence Egyptian civilization?',opts:['It forced Egyptians to become nomadic herders who moved with their livestock','It made Egypt vulnerable to constant flooding disasters that destroyed cities','It prevented Egypt from trading with neighboring civilizations','It provided reliable agricultural land that supported a large, settled population and surplus food production'],cor:3,exp:'The fertile soil from Nile flooding allowed Egyptians to grow surplus crops, which supported a large settled population. Surplus food freed people to specialize in other work: building, art, government, and religion\u2014the foundations of complex civilization.',str:'Agricultural surplus is the KEY to civilization: surplus food -> population growth -> specialization -> cities -> complex society.',passage:null},
+
+            // Q44 - Ancient Greece: Athens vs. Sparta
+            {sec:'ss',std:'WH.6.3',skill:'Ancient Greece - City-States',diff:2,type:'mc',text:'Which statement BEST describes a key difference between Athens and Sparta?',opts:['Athens focused on trade, arts, and democracy, while Sparta focused on military discipline and strength','Athens was located in Africa while Sparta was in Europe','Athens had no army while Sparta had no navy','Athens and Sparta were identical in their values and government'],cor:0,exp:'Athens and Sparta represent two contrasting Greek models. Athens valued education, philosophy, democracy, and commerce. Sparta was a militaristic society that prioritized physical training, discipline, and warfare. Both were powerful but organized their societies around very different values.',str:'Athens = mind (democracy, philosophy, arts). Sparta = body (military, discipline, strength). This contrast is a core concept in ancient Greek history.',passage:null},
+
+            // Q45 - Ancient Rome: Fall of the Republic
+            {sec:'ss',std:'WH.6.4',skill:'Ancient Rome - Republic to Empire',diff:3,type:'mc',text:'Which factor contributed MOST to the fall of the Roman Republic and the rise of the Roman Empire?',opts:['The invention of new farming technology','The Roman gods abandoned the city','Rome\'s population decreased dramatically due to disease','Powerful military generals like Julius Caesar gained personal armies and challenged the Senate\'s authority'],cor:3,exp:'The Republic fell when military commanders like Marius, Sulla, Pompey, and Julius Caesar built personal loyalty among their soldiers. These private armies were loyal to their generals, not the Senate. Caesar\'s crossing of the Rubicon River in 49 BCE led to civil war and eventually the end of republican government.',str:'The Republic died when military power overtook political power. Generals with loyal armies could challenge the Senate\u2014something the Republic\'s founders never anticipated.',passage:null},
+
+            // Q46 - Ancient India: Caste System
+            {sec:'ss',std:'WH.6.5',skill:'Ancient India - Society',diff:2,type:'mc',text:'The caste system in ancient India organized society into rigid social classes. Which statement BEST describes its impact?',opts:['It allowed people to freely choose any occupation they wanted','It encouraged equality and democratic participation for all citizens','It applied only to rulers and had no effect on ordinary people','It created a strict social hierarchy where a person\'s occupation and social status were determined by birth, with little possibility of change'],cor:3,exp:'The caste system divided Hindu society into hierarchical groups: Brahmins (priests/scholars), Kshatriyas (warriors/rulers), Vaishyas (merchants/farmers), Shudras (laborers), and Dalits (untouchables, outside the system). A person was born into their caste and generally could not change it.',str:'The caste system was rigid and hereditary\u2014your birth determined your entire social position. Understanding this helps explain India\'s social structure for centuries.',passage:null},
+
+            // Q47 - Ancient China: Silk Road
+            {sec:'ss',std:'WH.6.6',skill:'Ancient China - Trade',diff:2,type:'mc',text:'The Silk Road was significant because it:',opts:['Was a single road built by the Chinese government connecting Beijing to Rome','Connected China to Australia across the Pacific Ocean','Was used exclusively for transporting silk and nothing else','Was a network of trade routes that facilitated the exchange of goods, ideas, religions, and technologies between East and West'],cor:3,exp:'The Silk Road was not a single road but a network of land and sea routes stretching from China to the Mediterranean. While silk was a major trade good, the routes also carried spices, paper, gunpowder, religions (Buddhism, Islam, Christianity), diseases, and cultural ideas between civilizations.',str:'The Silk Road exchanged more than goods\u2014it spread ideas, religions, technologies, and even diseases. It was the ancient world\'s internet of cultural exchange.',passage:null},
+
+            // Q48 - Ancient China: Dynastic Cycle
+            {sec:'ss',std:'WH.6.6',skill:'Ancient China - Government',diff:3,type:'mc',text:'The Chinese concept of the "Mandate of Heaven" stated that:',opts:['All Chinese emperors were considered gods who could never be removed from power','The emperor was chosen through democratic elections by all citizens','Only members of the military could become emperor','A ruler\'s right to govern came from divine approval, which could be lost if the ruler became unjust or incompetent'],cor:3,exp:'The Mandate of Heaven was a Chinese political philosophy stating that heaven granted the emperor the right to rule based on his virtue and ability. If an emperor became corrupt, unjust, or incompetent, heaven would withdraw its mandate\u2014often signaled by natural disasters or social unrest\u2014justifying rebellion and a new dynasty.',str:'The Mandate of Heaven justified both ruling AND overthrowing rulers. It created a cycle: new dynasty gains mandate -> rules well -> becomes corrupt -> loses mandate -> new dynasty.',passage:null},
+
+            // Q49 - Comparing Civilizations
+            {sec:'ss',std:'WH.6.7',skill:'Comparing Ancient Civilizations',diff:3,type:'mc',text:'All of the following ancient civilizations developed near major rivers EXCEPT:',opts:['Egypt (Nile River)','Mesopotamia (Tigris and Euphrates Rivers)','Greece (Aegean Sea and mountainous terrain)','India (Indus River)'],cor:2,exp:'Ancient Greece developed around the Aegean Sea on mountainous, rocky terrain with limited farmland\u2014not along a major river valley. This geography led to the development of independent city-states rather than a unified river valley civilization like Egypt, Mesopotamia, or the Indus Valley.',str:'River valley civilizations (Egypt, Mesopotamia, India, China) relied on rivers for farming. Greece\'s geography was different: mountains and sea led to city-states and maritime trade.',passage:null}
+        ];
+
+        var currentQ = 0;
+        var testStarted = false;
+        var testSubmitted = false;
+        var answers = {};
+        var flags = {};
+        var testStartTime = 0;
+
+        // LEAP countdown
+        (function() {
+            var leap = new Date(2026, 3, 27); // April 27, 2026
+            var now = new Date();
+            var diff = Math.ceil((leap - now) / (1000 * 60 * 60 * 24));
+            var el = document.getElementById('leapCountdown');
+            if (el) el.textContent = diff + ' days until LEAP';
+        })();
+
+        function startTest() {
+            testStarted = true;
+            testStartTime = Date.now();
+            loadTestState();
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('testScreen').style.display = 'block';
+            renderNavigator();
+            renderQuestion();
+            startTimer();
+        }
+
+        function renderNavigator() {
+            var grid = document.getElementById('navGrid');
+            grid.innerHTML = '';
+            var answeredCount = 0;
+            var flaggedCount = 0;
+            for (var i = 0; i < 50; i++) {
+                var btn = document.createElement('button');
+                btn.className = 'nav-btn-small';
+                btn.textContent = i + 1;
+                if (answers[i] !== undefined) { btn.classList.add('answered'); answeredCount++; }
+                if (flags[i]) { btn.classList.add('flagged'); flaggedCount++; }
+                if (i === currentQ) btn.classList.add('current');
+                (function(idx) {
+                    btn.onclick = function() { currentQ = idx; renderQuestion(); renderNavigator(); };
+                })(i);
+                grid.appendChild(btn);
+            }
+            document.getElementById('answeredInfo').textContent = 'Answered: ' + answeredCount + ' / 50';
+            document.getElementById('flaggedInfo').textContent = 'Flagged: ' + flaggedCount;
+            document.getElementById('progressFill').style.width = (answeredCount / 50 * 100) + '%';
+        }
+
+        function renderQuestion() {
+            var q = Q[currentQ];
+            document.getElementById('currentQNum').textContent = currentQ + 1;
+
+            // Find section
+            var secInfo = null;
+            for (var s = 0; s < SECTIONS.length; s++) {
+                if (currentQ >= SECTIONS[s].range[0] && currentQ <= SECTIONS[s].range[1]) {
+                    secInfo = SECTIONS[s];
+                    break;
+                }
+            }
+            document.getElementById('sectionBadge').textContent = secInfo ? secInfo.icon + ' ' + secInfo.name : '';
+            document.getElementById('sectionTitle').textContent = secInfo ? secInfo.name : 'Week 7 LEAP Diagnostic';
+            document.getElementById('stdCode').textContent = q.std;
+            document.getElementById('skillLabel').textContent = q.skill;
+
+            // Passage
+            var pp = document.getElementById('passagePane');
+            if (q.passage && PASSAGES[q.passage]) {
+                pp.style.display = 'block';
+                var p = PASSAGES[q.passage];
+                pp.innerHTML = '<h3>' + p.label + ': ' + p.title + '</h3>' + p.text.split('\n\n').map(function(par) { return '<p>' + par + '</p>'; }).join('');
+            } else {
+                pp.style.display = 'none';
+            }
+
+            // Question text
+            document.getElementById('questionText').innerHTML = '<div style="font-size:1.1em;line-height:1.7;">' + q.text + '</div>';
+
+            // Options
+            var opts = document.getElementById('optionsContainer');
+            opts.innerHTML = '';
+            var letters = ['A', 'B', 'C', 'D'];
+            q.opts.forEach(function(opt, i) {
+                var label = document.createElement('label');
+                label.className = 'option';
+                if (answers[currentQ] === i) label.classList.add('selected');
+                label.innerHTML = '<input type="radio" name="answer" value="' + i + '" ' + (answers[currentQ] === i ? 'checked' : '') + ' onchange="selectAnswer(' + i + ')"> <strong>' + letters[i] + '.</strong>&nbsp; ' + opt;
+                opts.appendChild(label);
+            });
+
+            // Flag button
+            document.getElementById('flagBtn').classList.toggle('flagged', !!flags[currentQ]);
+            document.getElementById('flagBtn').innerHTML = flags[currentQ] ? '&#9733; Flagged' : '&#9734; Flag';
+
+            // Nav buttons
+            document.getElementById('prevBtn').disabled = currentQ === 0;
+            document.getElementById('nextBtn').disabled = currentQ === 49;
+        }
+
+        function selectAnswer(i) {
+            answers[currentQ] = i;
+            saveTestState();
+            renderNavigator();
+            renderQuestion();
+        }
+
+        function toggleFlag() {
+            flags[currentQ] = !flags[currentQ];
+            saveTestState();
+            renderNavigator();
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQ > 0) {
+                currentQ--;
+                renderQuestion();
+                renderNavigator();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQ < 49) {
+                currentQ++;
+                renderQuestion();
+                renderNavigator();
+            }
+        }
+
+        function showSubmitModal() {
+            var answered = Object.keys(answers).length;
+            document.getElementById('answeredCount').textContent = answered;
+            document.getElementById('submitModal').classList.add('active');
+        }
+
+        function closeSubmitModal() {
+            document.getElementById('submitModal').classList.remove('active');
+        }
+
+        function submitTest() {
+            testSubmitted = true;
+            closeSubmitModal();
+            document.getElementById('testScreen').style.display = 'none';
+
+            // Calculate results
+            var correctCount = 0;
+            var bySection = {};
+            SECTIONS.forEach(function(sec) { bySection[sec.id] = { correct: 0, total: sec.range[1] - sec.range[0] + 1 }; });
+            var wrongAnswers = [];
+            var skillResults = {};
+
+            Q.forEach(function(q, i) {
+                var isCorrect = answers[i] === q.cor;
+                if (isCorrect) {
+                    correctCount++;
+                    bySection[q.sec].correct++;
+                } else {
+                    wrongAnswers.push({ q: q, qNum: i + 1, studentAns: answers[i] !== undefined ? q.opts[answers[i]] : 'Not answered', correctAns: q.opts[q.cor] });
+                }
+                // Track skills
+                var key = q.std + '|' + q.skill;
+                if (!skillResults[key]) skillResults[key] = { std: q.std, skill: q.skill, correct: 0, total: 0 };
+                skillResults[key].total++;
+                if (isCorrect) skillResults[key].correct++;
+            });
+
+            var percentage = Math.round(100 * correctCount / 50);
+
+            // Show results
+            document.getElementById('resultsSubtitle').textContent = 'Jacob Brown \u2014 Week 7 LEAP Diagnostic';
+            document.getElementById('overallScore').textContent = percentage + '%';
+            document.getElementById('overallDetails').textContent = correctCount + ' out of 50 correct';
+
+            // Section scores
+            var scoreHtml = '';
+            SECTIONS.forEach(function(sec) {
+                var data = bySection[sec.id];
+                var pct = Math.round(100 * data.correct / data.total);
+                scoreHtml += '<div class="score-card"><h3>' + sec.icon + ' ' + sec.name + '</h3><div class="value">' + pct + '%</div><div class="details">' + data.correct + '/' + data.total + '</div></div>';
+            });
+            document.getElementById('sectionScores').innerHTML = scoreHtml;
+
+            // Skills analysis
+            var skillsHtml = '<h2>Skills Analysis</h2>';
+            var skillKeys = Object.keys(skillResults);
+            skillKeys.forEach(function(key) {
+                var sr = skillResults[key];
+                var pct = Math.round(100 * sr.correct / sr.total);
+                var status, statusClass;
+                if (pct >= 80) { status = 'Strong'; statusClass = 'skill-strong'; }
+                else if (pct >= 50) { status = 'OK'; statusClass = 'skill-ok'; }
+                else { status = 'Weak'; statusClass = 'skill-weak'; }
+                skillsHtml += '<div class="skill-row"><span class="skill-name">' + sr.skill + '</span><span class="skill-std">' + sr.std + '</span><span class="skill-status ' + statusClass + '">' + status + ' (' + sr.correct + '/' + sr.total + ')</span></div>';
+            });
+            document.getElementById('skillsAnalysis').innerHTML = skillsHtml;
+
+            // Tutor message (Gary)
+            var tutorMsg = '';
+            if (percentage >= 90) {
+                tutorMsg = '<strong>Gary says:</strong> Jacob, outstanding work. You scored ' + percentage + '% on this Week 7 diagnostic. That\u2019s the kind of performance that tells me you\u2019re not just memorizing\u2014you\u2019re thinking. With 21 days until LEAP, you\u2019re in a strong position. Let\u2019s keep sharpening the edge on those advanced questions. The daily sessions will push you on the standards where even one miss matters. Stay focused and trust the process.';
+            } else if (percentage >= 80) {
+                tutorMsg = '<strong>Gary says:</strong> Jacob, solid performance\u2014' + percentage + '%. You\u2019re showing real command of grade-level material. The gaps I\u2019m seeing are specific, which is good\u2014that means we can target them. With 21 days until LEAP, your daily sessions will hammer the weak spots: ratios, text structure, and any standard where you dropped points. Keep reading passages carefully and showing your math work. You\u2019re building something here.';
+            } else if (percentage >= 70) {
+                tutorMsg = '<strong>Gary says:</strong> Jacob, you scored ' + percentage + '%. That\u2019s honest progress, and diagnostics exist to show us where to dig deeper. You\u2019re solid on the fundamentals, but some of the multi-step and evidence-based questions need more practice. With 21 days until LEAP, here\u2019s what we do: daily sessions will focus on your weakest standards\u2014especially ratios, proportions, and vocabulary in context. Read every passage twice. Show every math step. You\u2019ve got the ability\u2014now we build the consistency.';
+            } else if (percentage >= 60) {
+                tutorMsg = '<strong>Gary says:</strong> Jacob, you scored ' + percentage + '%. I know that\u2019s not where you want to be, but this is exactly why we do diagnostics\u2014to find the gaps before LEAP does. We have 21 days. That\u2019s enough time to make real improvement if you commit to the daily sessions. Math fundamentals\u2014ratios, fractions, equations\u2014need daily reps. For ELA, slow down on the passages: read them fully before touching the questions. I believe in your ability to close these gaps. Let\u2019s get to work.';
+            } else {
+                tutorMsg = '<strong>Gary says:</strong> Jacob, you scored ' + percentage + '%. I\u2019m not going to sugarcoat it\u2014there\u2019s work to do. But here\u2019s what I know: diagnostics measure where you are right now, not where you\u2019ll be in 21 days. Every daily session between now and LEAP is a chance to strengthen a skill. We\u2019re going to focus on the basics first\u2014ratios, reading comprehension, key vocabulary\u2014and build from there. Don\u2019t get discouraged. The fact that you sat down and took this test shows commitment. Now let\u2019s channel that into consistent daily practice.';
+            }
+            document.getElementById('tutorMessage').innerHTML = tutorMsg;
+
+            // Review of wrong answers
+            var reviewHtml = '';
+            if (wrongAnswers.length === 0) {
+                reviewHtml = '<div class="no-wrong-answers">Perfect score! You got all 50 questions correct!</div>';
+            } else {
+                var bySecWrong = { ela: [], math: [], sci: [], ss: [] };
+                wrongAnswers.forEach(function(w) { bySecWrong[w.q.sec].push(w); });
+                SECTIONS.forEach(function(sec) {
+                    if (bySecWrong[sec.id].length > 0) {
+                        reviewHtml += '<div class="review-section"><h2>' + sec.icon + ' ' + sec.name + '</h2>';
+                        bySecWrong[sec.id].forEach(function(w) {
+                            reviewHtml += '<div class="question-review incorrect">' +
+                                '<div class="review-q-text">Q' + w.qNum + ': ' + w.q.text + '</div>' +
+                                '<div class="review-row"><div class="review-label">Your Answer:</div><div class="review-value incorrect">' + w.studentAns + '</div></div>' +
+                                '<div class="review-row"><div class="review-label">Correct Answer:</div><div class="review-value correct">' + w.correctAns + '</div></div>' +
+                                '<div class="explanation"><div class="explanation-label">Explanation:</div><div class="explanation-text">' + w.q.exp + '</div></div>' +
+                                '<div class="strategy"><div class="strategy-label">Strategy Tip:</div><div class="strategy-text">' + w.q.str + '</div></div>' +
+                            '</div>';
+                        });
+                        reviewHtml += '</div>';
+                    }
+                });
+            }
+            document.getElementById('reviewContainer').innerHTML = reviewHtml;
+            document.getElementById('resultsScreen').style.display = 'block';
+
+            // === DATA SAVING ===
+
+            // 1. Convert answers to array
+            var answersArr = [];
+            for (var i = 0; i < 50; i++) answersArr[i] = answers[i] !== undefined ? answers[i] : null;
+
+            // 2. Save review data to localStorage
+            var reviewData = {
+                testId: CONFIG.testId,
+                student: CONFIG.student,
+                answers: answersArr,
+                questions: Q.map(function(q) { return { sec: q.sec, std: q.std, skill: q.skill, diff: q.diff, text: q.text, opts: q.opts, cor: q.cor, exp: q.exp, str: q.str, passage: q.passage }; }),
+                passages: PASSAGES,
+                sections: SECTIONS,
+                score: percentage,
+                correct: correctCount,
+                total: 50,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('jacob_diagnostic_latest_review', JSON.stringify(reviewData));
+
+            // 3. Save signals with date and testId
+            var localDate = (function() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
+            localStorage.setItem('jacob_diagnostic_week7_signal', JSON.stringify({ completed: true, testId: CONFIG.testId, score: percentage, date: localDate, timestamp: new Date().toISOString() }));
+            localStorage.setItem('jacob_diagnostic_signal', JSON.stringify({ testId: CONFIG.testId, score: percentage, completed: true, date: localDate }));
+
+            // 4. Sync to Google Apps Script
+            var answerDetails = Q.map(function(q, idx) {
+                return {
+                    index: idx, section: q.sec, standard: q.std, skill: q.skill, type: q.type,
+                    question: q.text.substring(0, 200),
+                    selectedOption: answersArr[idx],
+                    selectedText: answersArr[idx] !== null ? q.opts[answersArr[idx]] : null,
+                    correctOption: q.cor, correctText: q.opts[q.cor],
+                    isCorrect: answersArr[idx] === q.cor
+                };
+            });
+            var sectionSummary = {};
+            SECTIONS.forEach(function(sec) {
+                var secCorrect = 0, secTotal = sec.range[1] - sec.range[0] + 1;
+                for (var i = sec.range[0]; i <= sec.range[1]; i++) { if (answersArr[i] === Q[i].cor) secCorrect++; }
+                sectionSummary[sec.id] = { correct: secCorrect, total: secTotal, pct: Math.round((secCorrect / secTotal) * 100) };
+            });
+            var payload = {
+                action: 'saveDiagnosticResults',
+                student: CONFIG.student,
+                grade: CONFIG.grade,
+                testId: CONFIG.testId,
+                testLabel: CONFIG.testLabel,
+                timestamp: new Date().toISOString(),
+                effortScore: Math.round((answersArr.filter(function(a) { return a !== null; }).length / 50) * 100),
+                totalQuestions: 50,
+                answers: answerDetails,
+                sections: {
+                    totalQuestions: 50,
+                    answeredQuestions: answersArr.filter(function(a) { return a !== null; }).length,
+                    totalTimeSeconds: Math.floor((Date.now() - testStartTime) / 1000),
+                    effortScore: Math.round((answersArr.filter(function(a) { return a !== null; }).length / 50) * 100),
+                    sections: sectionSummary,
+                    correctMC: correctCount,
+                    totalMC: 50,
+                    percentCorrect: percentage
+                }
+            };
+            fetch(CONFIG.webAppUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).catch(function() {});
+
+            // Clear test state
+            localStorage.removeItem('jacob_week7_test_state');
+        }
+
+        function startTimer() {
+            setInterval(function() {
+                var elapsed = Math.floor((Date.now() - testStartTime) / 1000);
+                var mins = Math.floor(elapsed / 60);
+                var secs = elapsed % 60;
+                document.getElementById('timerDisplay').textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+            }, 1000);
+        }
+
+        function saveTestState() {
+            localStorage.setItem('jacob_week7_test_state', JSON.stringify({ currentQ: currentQ, answers: answers, flags: flags, started: true }));
+        }
+
+        function loadTestState() {
+            var saved = JSON.parse(localStorage.getItem('jacob_week7_test_state') || '{}');
+            if (saved.started) {
+                currentQ = saved.currentQ || 0;
+                answers = saved.answers || {};
+                flags = saved.flags || {};
+            }
+        }
+    </script>
+</body>
+</html>
