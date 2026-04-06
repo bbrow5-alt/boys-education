@@ -251,38 +251,70 @@
             margin-bottom: 20px;
         }
 
+        .week-row {
+            margin-bottom: 16px;
+        }
+        .week-row:last-child { margin-bottom: 0; }
+
+        .week-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .week-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .week-label.current-week { color: #4fc3f7; }
+        .week-score {
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-weight: 600;
+        }
+        .week-score .earned { color: #4ade80; }
+
         .weekly-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 8px;
         }
 
         .day-cell {
             background-color: #111827;
             border: 1px solid #374151;
             border-radius: 8px;
-            padding: 12px;
+            padding: 8px 4px;
             text-align: center;
+        }
+        .day-cell.inactive {
+            opacity: 0.3;
+        }
+        .day-cell.today {
+            border-color: #4fc3f7;
+            box-shadow: 0 0 6px rgba(79,195,247,0.3);
         }
 
         .day-label {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: #9ca3af;
             text-transform: uppercase;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .day-value {
-            font-size: 1.5rem;
+            font-size: 0.85rem;
             font-weight: 700;
             color: #f3f4f6;
         }
 
         .day-indicator {
-            font-size: 1.2rem;
-            margin-top: 4px;
+            font-size: 1.1rem;
+            margin-top: 2px;
         }
 
         /* Progress Bar */
@@ -1125,19 +1157,19 @@
 
             .weekly-grid {
                 grid-template-columns: repeat(7, 1fr);
-                gap: 8px;
+                gap: 4px;
             }
 
             .day-cell {
-                padding: 8px 4px;
+                padding: 6px 2px;
             }
 
             .day-label {
-                font-size: 0.7rem;
+                font-size: 0.6rem;
             }
 
             .day-value {
-                font-size: 1.2rem;
+                font-size: 0.75rem;
             }
 
             .chart-row {
@@ -1242,19 +1274,9 @@
                     </div>
                 </div>
 
-                <!-- This Week's Progress -->
-                <div class="section-title">This Week's Progress</div>
-                <div class="weekly-progress">
-                    <div class="weekly-grid" id="jacob-weekly-grid"></div>
-                    <div class="progress-bar">
-                        <div class="bar-label" id="jacob-weekly-label">Credits Earned</div>
-                        <div class="bar-container">
-                            <div class="bar-fill" id="jacob-weekly-bar" style="width: 0%">
-                                <span id="jacob-weekly-percent">0/21</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Daily Completion (4 Weeks) -->
+                <div class="section-title">Daily Completion (4 Weeks)</div>
+                <div class="weekly-progress" id="jacob-weekly-container"></div>
 
                 <!-- Points & Earnings -->
                 <div class="section-title">Points & Earnings</div>
@@ -1368,19 +1390,9 @@
                     </div>
                 </div>
 
-                <!-- This Week's Progress -->
-                <div class="section-title">This Week's Progress</div>
-                <div class="weekly-progress">
-                    <div class="weekly-grid" id="chase-weekly-grid"></div>
-                    <div class="progress-bar">
-                        <div class="bar-label" id="chase-weekly-label">Credits Earned</div>
-                        <div class="bar-container">
-                            <div class="bar-fill" id="chase-weekly-bar" style="width: 0%">
-                                <span id="chase-weekly-percent">0/21</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Daily Completion (4 Weeks) -->
+                <div class="section-title">Daily Completion (4 Weeks)</div>
+                <div class="weekly-progress" id="chase-weekly-container"></div>
 
                 <!-- Points & Earnings -->
                 <div class="section-title">Points & Earnings</div>
@@ -1918,43 +1930,76 @@
         function renderWeeklyProgress(student) {
             const studentData = allData[student] || {};
             const daily = studentData.dailyTracking || {};
+            const prefix = student.toLowerCase();
+            const todayStr = toLocalDateStr(new Date());
 
+            // Current week start (Sunday)
             const today = new Date();
-            const weekStart = new Date(today);
-            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+            const currentWeekStart = new Date(today);
+            currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
 
-            let gridHtml = '';
-            let weeklyCompleteCount = 0;
+            let html = '';
 
-            for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
-                const cellDate = new Date(weekStart);
-                cellDate.setDate(cellDate.getDate() + dayOffset);
-                const dateKey = toLocalDateStr(cellDate);
-                const dayData = daily[dateKey] || {};
-                const dow = cellDate.getDay();
+            // 4 weeks: current week first, then 3 prior weeks
+            for (let weekIdx = 0; weekIdx < 4; weekIdx++) {
+                const weekStart = new Date(currentWeekStart);
+                weekStart.setDate(weekStart.getDate() - (weekIdx * 7));
 
-                // Only count active school days per student
-                if (isActiveSchoolDay(student, dow)) {
-                    const dayComplete = !!dayData.session;
-                    if (dayComplete) weeklyCompleteCount++;
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+
+                const isCurrentWeek = weekIdx === 0;
+                const weekLabel = isCurrentWeek ? 'This Week' :
+                    `${formatDate(toLocalDateStr(weekStart))} – ${formatDate(toLocalDateStr(weekEnd))}`;
+
+                let gridHtml = '';
+                let complete = 0;
+                let activeDays = 0;
+
+                for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+                    const cellDate = new Date(weekStart);
+                    cellDate.setDate(cellDate.getDate() + dayOffset);
+                    const dateKey = toLocalDateStr(cellDate);
+                    const dayData = daily[dateKey] || {};
+                    const dow = cellDate.getDay();
+                    const isActive = isActiveSchoolDay(student, dow);
+                    const isToday = dateKey === todayStr;
+                    const dayComplete = isActive && !!dayData.session;
+
+                    if (isActive) {
+                        activeDays++;
+                        if (dayComplete) complete++;
+                    }
+
+                    const cellClasses = ['day-cell'];
+                    if (!isActive) cellClasses.push('inactive');
+                    if (isToday) cellClasses.push('today');
+
+                    const indicator = !isActive ? '' :
+                        dayComplete ? '<span style="color:#4ade80">✓</span>' :
+                        (dateKey > todayStr ? '·' : '<span style="color:#f87171">✗</span>');
 
                     gridHtml += `
-                        <div class="day-cell">
+                        <div class="${cellClasses.join(' ')}">
                             <div class="day-label">${getDayLabel(dateKey)}</div>
                             <div class="day-value">${formatDate(dateKey).split(' ')[1]}</div>
-                            <div class="day-indicator">${dayComplete ? '\u2713' : '\u2014'}</div>
-                        </div>
-                    `;
+                            <div class="day-indicator">${indicator}</div>
+                        </div>`;
                 }
+
+                const scoreText = activeDays > 0 ? `<span class="earned">${complete}/${activeDays}</span>` : '';
+
+                html += `
+                    <div class="week-row">
+                        <div class="week-header">
+                            <span class="week-label${isCurrentWeek ? ' current-week' : ''}">${weekLabel}</span>
+                            <span class="week-score">${scoreText}</span>
+                        </div>
+                        <div class="weekly-grid">${gridHtml}</div>
+                    </div>`;
             }
 
-            const prefix = student.toLowerCase();
-            document.getElementById(`${prefix}-weekly-grid`).innerHTML = gridHtml;
-
-            const percentage = Math.min((weeklyCompleteCount / 5) * 100, 100);
-            const bar = document.getElementById(`${prefix}-weekly-bar`);
-            bar.style.width = percentage + '%';
-            document.getElementById(`${prefix}-weekly-percent`).textContent = `${weeklyCompleteCount}/5`;
+            document.getElementById(`${prefix}-weekly-container`).innerHTML = html;
         }
 
         // ============================================================
