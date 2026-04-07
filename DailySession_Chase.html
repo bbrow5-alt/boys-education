@@ -278,6 +278,7 @@
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec';
     const TODAY = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
     const IS_WEDNESDAY = new Date().getDay() === 3;
+    const SESSION_ID = crypto.randomUUID();
 
     if (TODAY > CONFIG.leapDate && CONFIG.mode === 'leap_prep') {
         CONFIG.mode = 'act_prep';
@@ -296,122 +297,49 @@
           description: 'U.S. history, civics, geography, economics' }
     ];
 
-    const STANDARDS = {
-        ela_reading: ['RL.5.1','RL.5.2','RL.5.3','RL.5.4','RL.5.5','RL.5.6','RI.5.1','RI.5.2','RI.5.3','RI.5.4','RI.5.5','RI.5.6','RI.5.7','RI.5.8'],
-        ela_language: ['L.5.1','L.5.2','L.5.3','L.5.4','L.5.5','L.5.6','W.5.1','W.5.2','W.5.3'],
-        math: ['5.OA.1','5.OA.2','5.OA.3','5.NBT.1','5.NBT.2','5.NBT.3','5.NBT.5','5.NBT.6','5.NBT.7','5.NF.1','5.NF.2','5.NF.3','5.NF.4','5.NF.5','5.NF.6','5.NF.7','5.MD.1','5.MD.2','5.MD.3','5.MD.4','5.MD.5','5.G.1','5.G.2','5.G.3','5.G.4'],
-        science: ['5-LS1','5-LS2','5-ESS1','5-ESS2','5-PS1','5-PS2'],
-        social_studies: ['USH.5.1','USH.5.2','USH.5.3','USH.5.4','GEO.5.1','GEO.5.2','CIV.5.1','CIV.5.2','ECON.5.1','ECON.5.2']
-    };
-
     let currentPhaseIndex = -1;
     let currentQuestionIndex = 0;
-    let sessionStartTime = Date.now();
+    let sessionStartTime = null;
     let phaseStartTime = null;
-    let weaknessProfile = null;
     let timerInterval = null;
+    let sessionData = null;
     let phaseResults = {};
     let currentPassage = null;
     let currentQuestions = [];
     let currentAnswers = {};
     let writingResponse = '';
 
-    const FALLBACK_PASSAGES = [
-        {
-            title: 'How Robots Learn to Walk',
-            passage: '<p>Building a robot that can walk is one of the hardest challenges in engineering. Unlike wheels, which roll smoothly on flat surfaces, legs must constantly adjust to uneven ground, stairs, and obstacles.</p><p>Engineers at Boston Dynamics spent over a decade teaching their robot Atlas to walk. The key breakthrough was using sensors in the robot\'s feet that detect pressure changes 1,000 times per second. When Atlas steps on a pebble, its computer brain adjusts the other leg\'s position within milliseconds.</p><p>The process works like this: cameras and lidar sensors scan the ground ahead, creating a 3D map. The computer plans each footstep, calculating exactly where to place each foot. But the real world is messy \u2014 the ground might shift, wind might push the robot, or an object might appear unexpectedly. That\'s where the pressure sensors come in, making instant corrections.</p><p>Recently, Atlas learned to do backflips. This required combining everything \u2014 balance, speed, strength, and split-second calculations. Engineers say the hardest part wasn\'t the flip itself, but teaching Atlas to land without falling over.</p>',
-            questions: [
-                { text: 'Why is building a walking robot harder than a wheeled robot?', options: ['Walking robots are more expensive','Legs must constantly adjust to uneven terrain','Wheels are newer technology','Walking robots need bigger batteries'], correct: 1, explanation: 'The passage states legs "must constantly adjust to uneven ground, stairs, and obstacles."', standard: 'RI.5.1' },
-                { text: 'What is the main purpose of the pressure sensors in Atlas\'s feet?', options: ['To measure the robot\'s weight','To detect temperature changes','To make instant corrections when stepping on uneven surfaces','To help the robot jump'], correct: 2, explanation: 'The sensors "detect pressure changes" so the computer can adjust "within milliseconds."', standard: 'RI.5.2' },
-                { text: 'Based on the passage, what does the word "lidar" most likely refer to?', options: ['A type of camera','A sensor technology that helps create 3D maps','A computer program','A type of robot leg'], correct: 1, explanation: 'Context shows lidar is used alongside cameras to scan ground and create 3D maps.', standard: 'RI.5.4' },
-                { text: 'Which sentence best summarizes the main idea of the passage?', options: ['Robots are better than humans at walking.','Teaching robots to walk requires complex sensor systems and constant adjustments.','Boston Dynamics is the best robot company.','Atlas can do backflips.'], correct: 1, explanation: 'The passage focuses on the complexity of the sensors, calculations, and adjustments needed for robot walking.', standard: 'RI.5.2' },
-                { text: 'According to the passage, what was the hardest part of teaching Atlas to backflip?', options: ['Building strong enough legs','Programming the flip motion','Teaching it to land without falling','Getting enough speed'], correct: 2, explanation: 'Engineers said "the hardest part wasn\'t the flip itself, but teaching Atlas to land without falling over."', standard: 'RI.5.1' }
-            ],
-            writingPrompt: 'If you could design a robot to help with one task at home or school, what would it do? Describe how it would work and why it would be useful. Use at least two details about how the robot\'s sensors or systems would function.'
-        },
-        {
-            title: 'The Science of Rocket Fuel',
-            passage: '<p>Getting a rocket off the ground requires an incredible amount of energy. A single Space Shuttle launch burned through 500,000 gallons of liquid fuel in just eight and a half minutes. Understanding why rockets need so much fuel reveals fascinating science about how forces work.</p><p>Rockets operate on Newton\'s Third Law: for every action, there is an equal and opposite reaction. When hot gases shoot downward out of the engine, the rocket is pushed upward. The faster and harder the gases are expelled, the greater the thrust pushing the rocket into the sky.</p><p>Most rockets use two types of fuel that must be mixed together. Liquid hydrogen serves as the fuel, while liquid oxygen serves as the oxidizer — the substance that allows the fuel to burn. In space, there is no air, so rockets must carry their own oxygen supply. This is why rockets are so massive: they\'re mostly fuel tanks.</p><p>Engineers have experimented with alternative propulsion methods. Ion engines use electrically charged particles instead of chemical reactions. They produce very little thrust — about the force of a sheet of paper resting on your hand — but they can run continuously for months or years. NASA\'s Dawn spacecraft used ion engines to visit two asteroids, gradually accelerating to incredible speeds.</p><p>The dream of space exploration depends on solving the fuel problem. Current chemical rockets are powerful but inefficient. Future technologies like nuclear thermal propulsion could cut travel time to Mars in half, making human missions far more practical.</p>',
-            questions: [
-                { text: 'According to the passage, why must rockets carry their own oxygen?', options: ['Oxygen makes the rocket lighter','Astronauts need to breathe','There is no air in space for fuel to burn','It keeps the fuel tanks cold'], correct: 2, explanation: 'The passage states "In space, there is no air, so rockets must carry their own oxygen supply."', standard: 'RI.5.1' },
-                { text: 'What does the word "expelled" most likely mean in this passage?', options: ['Stored inside','Pushed out forcefully','Heated up','Mixed together'], correct: 1, explanation: '"Expelled" means forced out. Context: gases are shot out of the engine to create thrust.', standard: 'RI.5.4' },
-                { type: 'ebsr', standard: 'RI.5.1',
-                  partA: { text: 'Why are ion engines useful despite producing very little thrust?', options: ['They are cheaper to build','They can run continuously for months or years, building up speed','They work better in Earth\'s atmosphere','They use liquid hydrogen'], correct: 1 },
-                  partB: { text: 'Which detail from the passage BEST supports your answer?', options: ['Most rockets use two types of fuel.','A single Space Shuttle launch burned 500,000 gallons.','They produce very little thrust — about the force of a sheet of paper resting on your hand — but they can run continuously for months or years.','Future technologies like nuclear thermal propulsion could cut travel time.'], correct: 2 },
-                  explanation: 'The passage directly explains that ion engines compensate for low thrust with continuous operation over long periods.' },
-                { text: 'What is the main idea of this passage?', options: ['Ion engines are better than chemical rockets.','Rocket fuel science is key to space exploration, and engineers seek better solutions.','The Space Shuttle was the best rocket ever built.','Newton\'s Third Law only applies to rockets.'], correct: 1, explanation: 'The passage covers current fuel challenges and future solutions — the central theme is that fuel technology drives space exploration forward.', standard: 'RI.5.2' },
-                { text: 'How does the author organize the information in this passage?', options: ['By comparing only two types of engines','In chronological order from oldest to newest','By explaining a problem, current solutions, and future possibilities','By listing random facts about space'], correct: 2, explanation: 'The passage moves from the fuel challenge → current technology → alternatives → future solutions.', standard: 'RI.5.5' },
-                { text: 'Based on the passage, what can you infer about the future of space travel?', options: ['Chemical rockets will always be used','New fuel technologies will make longer missions possible','Ion engines will replace all chemical rockets immediately','Space travel will become impossible'], correct: 1, explanation: 'The passage discusses nuclear thermal propulsion cutting Mars travel time in half, implying new technologies will enable longer missions.', standard: 'RI.5.2' }
-            ],
-            writingPrompt: 'If you could design a new type of rocket engine, what would it use for fuel and why? Explain how your design would improve on current rocket technology. Use at least two scientific details from the passage or your own knowledge.'
-        },
-        {
-            title: 'How Bridges Hold Up the World',
-            passage: '<p>Every bridge you cross is a battle against gravity. Engineers must figure out how to support enormous weight — cars, trucks, trains, and the bridge itself — across open space where there is nothing underneath to hold it up. The solutions they have developed over thousands of years are a testament to human ingenuity.</p><p>The simplest type is the beam bridge: a flat structure resting on supports at each end. A plank across a stream is a beam bridge. But beam bridges have a critical limitation — they can only span short distances before sagging under their own weight. This is why highway overpasses, which are beam bridges, need support columns every 100 to 200 feet.</p><p>Arch bridges solve this problem by curving the structure into an arc. The curve distributes weight along the entire span, transferring force into the ground at each end. The Romans mastered arch bridges over 2,000 years ago, and many of their bridges still stand today. The stone arch is incredibly durable because every stone is in compression — being squeezed together — which stone handles extremely well.</p><p>For truly long spans, engineers turn to suspension bridges. Steel cables draped from tall towers support the roadway below. The Golden Gate Bridge spans 4,200 feet using this method. The cables transfer the bridge\'s weight to the towers, which push the force straight down into bedrock. Each of the Golden Gate\'s main cables contains 27,572 individual wires bundled together.</p><p>The most modern approach is the cable-stayed bridge, where cables run directly from towers to the deck without the drooping main cable of a suspension bridge. These bridges are faster and cheaper to build, making them increasingly popular worldwide.</p>',
-            questions: [
-                { text: 'What is the main limitation of beam bridges?', options: ['They are too expensive','They can only span short distances before sagging','They cannot hold any weight','They need too many cables'], correct: 1, explanation: 'The passage states beam bridges "can only span short distances before sagging under their own weight."', standard: 'RI.5.1' },
-                { text: 'What does the word "testament" mean in the first paragraph?', options: ['A type of bridge','A legal document','Proof or evidence of something','A religious text'], correct: 2, explanation: '"Testament" here means evidence/proof. The passage says bridge solutions are "a testament to human ingenuity" — meaning they prove how clever humans are.', standard: 'RI.5.4' },
-                { text: 'Why are Roman stone arch bridges so durable?', options: ['Romans used special cement','Every stone is in compression, which stone handles well','They are very short spans','They were built underground'], correct: 1, explanation: 'The passage explains that in arch bridges, "every stone is in compression — being squeezed together — which stone handles extremely well."', standard: 'RI.5.1' },
-                { text: 'How does a suspension bridge transfer weight to the ground?', options: ['Through underwater tunnels','Cables transfer weight to towers, which push force into bedrock','The road floats on water','Magnets hold it up'], correct: 1, explanation: 'The passage states "cables transfer the bridge\'s weight to the towers, which push the force straight down into bedrock."', standard: 'RI.5.3' },
-                { text: 'What text structure does the author use to organize this passage?', options: ['Cause and effect','Problem and solution','Chronological order of bridge types from simple to complex','Compare and contrast only'], correct: 2, explanation: 'The passage progresses from the simplest (beam) to more complex (arch, suspension, cable-stayed) bridge types — a chronological/sequential structure.', standard: 'RI.5.5' },
-                { text: 'Based on the passage, why are cable-stayed bridges becoming more popular?', options: ['They look more attractive','They are faster and cheaper to build than suspension bridges','They are stronger than all other types','They were invented most recently'], correct: 1, explanation: 'The passage states cable-stayed bridges "are faster and cheaper to build, making them increasingly popular."', standard: 'RI.5.2' }
-            ],
-            writingPrompt: 'If you had to design a bridge to cross a wide river, which type of bridge would you choose and why? Explain the engineering advantages of your choice using details from the passage.'
-        }
-    ];
-
-    const FALLBACK_QUESTIONS = {
-        ela_language: [
-            // Vocab-in-context with polysemous words (RI.4/RL.4) — Chase's ELA gap
-            { text: 'The pitcher of water was left on the table all afternoon. What does "pitcher" mean here?', options: ['A baseball player who throws','A container for pouring liquid','A person who sells things','A type of plant'], correct: 1, explanation: '"Pitcher" here means a container for liquid. Context: "of water" and "left on the table" describe a container, not a person.', standard: 'RI.5.4' },
-            { text: 'The explorer had to SCALE the mountain to reach the camp. What does "scale" mean here?', options: ['A device for measuring weight','The outer covering of a fish','To climb up','A system of musical notes'], correct: 2, explanation: '"Scale" as a verb means to climb. Context: reaching a mountain camp requires climbing.', standard: 'RI.5.4' },
-            { text: 'The coach said the team needs to ADDRESS its weaknesses before the big game. What does "address" mean here?', options: ['A location where someone lives','To speak to a group','To deal with or work on','To write on an envelope'], correct: 2, explanation: '"Address" here means to deal with/work on. Context: the team needs to fix their weaknesses.', standard: 'RL.5.4' },
-            { text: 'After the long race, the runner felt completely SPENT. What does "spent" mean here?', options: ['Used money','Exhausted or used up','Moved quickly','Happy and excited'], correct: 1, explanation: '"Spent" here means exhausted — all energy used up. Context: feeling this way after a long race.', standard: 'RL.5.4' },
-            // Subject-verb agreement (L.5.1)
-            { text: 'Which sentence has correct subject-verb agreement?', options: ['The dogs runs fast.','The dogs run fast.','The dogs is running fast.','The dogs be fast.'], correct: 1, explanation: 'Plural subject "dogs" requires plural verb "run."', standard: 'L.5.1' },
-            { text: 'Choose the sentence with correct pronoun usage.', options: ['Me and Jake went to the store.','Jake and me went to the store.','Jake and I went to the store.','I and Jake went to the store.'], correct: 2, explanation: 'Use "I" (not "me") as a subject. Put yourself second: "Jake and I."', standard: 'L.5.1' },
-            // Text structure (RI.5)
-            { text: 'Which signal words indicate a compare-and-contrast text structure?', options: ['"Because, therefore, as a result"','"First, next, then, finally"','"However, similarly, on the other hand, unlike"','"The problem is, the solution was"'], correct: 2, explanation: 'Words like "however," "similarly," "unlike," and "on the other hand" signal comparison and contrast.', standard: 'RI.5.5' },
-            // Punctuation (L.5.2)
-            { text: 'Choose the correctly punctuated sentence.', options: ['Lets go to the store said Mom.','Let\'s go to the store," said Mom.','Let\'s go to the store, said Mom.','"Let\'s go to the store," said Mom.'], correct: 3, explanation: 'Direct quotes need quotation marks around the spoken words with comma before the tag.', standard: 'L.5.2' },
-            // Prefix/suffix (L.5.4)
-            { text: 'What does the prefix "un-" mean in the word "unhappy"?', options: ['Very','Not','Again','Before'], correct: 1, explanation: 'The prefix "un-" means "not," so unhappy means not happy.', standard: 'L.5.4' },
-            // Antonyms/synonyms (L.5.5)
-            { text: 'Which word is an antonym of "generous"?', options: ['Kind','Selfish','Giving','Wealthy'], correct: 1, explanation: 'An antonym is the opposite. Selfish is the opposite of generous.', standard: 'L.5.5' }
-        ],
-        math: [
-            { text: 'What is 3/4 + 1/2?', options: ['4/6','1','5/4','1 1/4'], correct: 2, explanation: 'Convert 1/2 to 2/4, then 3/4 + 2/4 = 5/4.', standard: '5.NF.1' },
-            { text: 'What is 45.6 \u00d7 10?', options: ['4.56','456','4,560','45.60'], correct: 1, explanation: 'When multiplying by 10, move the decimal point one place to the right: 456.', standard: '5.NBT.2' },
-            { text: 'What is the volume of a rectangular prism with length 4 cm, width 3 cm, and height 2 cm?', options: ['9 cm\u00b3','18 cm\u00b3','24 cm\u00b3','26 cm\u00b3'], correct: 2, explanation: 'Volume = l \u00d7 w \u00d7 h = 4 \u00d7 3 \u00d7 2 = 24 cm\u00b3.', standard: '5.MD.5' },
-            { text: 'Which expression equals 3 \u00d7 (4 + 5)?', options: ['3 \u00d7 4 + 5','3 \u00d7 4 + 3 \u00d7 5','12 + 5','3 + 4 \u00d7 5'], correct: 1, explanation: 'Distributive property: 3 \u00d7 (4 + 5) = 3 \u00d7 4 + 3 \u00d7 5 = 12 + 15 = 27.', standard: '5.OA.1' },
-            { text: 'Round 3.847 to the nearest tenth.', options: ['3.8','3.85','3.9','4.0'], correct: 0, explanation: 'Look at the hundredths digit (4). Since 4 < 5, round down: 3.8.', standard: '5.NBT.4' },
-            { text: 'What fraction of an hour is 15 minutes?', options: ['1/2','1/3','1/4','1/5'], correct: 2, explanation: '15 minutes out of 60 minutes = 15/60 = 1/4.', standard: '5.NF.3' }
-        ],
-        science: [
-            { text: 'What do plants need to perform photosynthesis?', options: ['Water, soil, and darkness','Sunlight, water, and carbon dioxide','Only sunlight','Oxygen and sugar'], correct: 1, explanation: 'Photosynthesis requires sunlight, water, and carbon dioxide to produce sugar and oxygen.', standard: '5-LS1' },
-            { text: 'What causes day and night on Earth?', options: ['The moon blocking the sun','Earth orbiting the sun','Earth rotating on its axis','The sun moving across the sky'], correct: 2, explanation: 'Earth rotates on its axis once every 24 hours, causing the cycle of day and night.', standard: '5-ESS1' },
-            { text: 'Which is an example of a chemical change?', options: ['Ice melting','Paper being cut','Wood burning','Water evaporating'], correct: 2, explanation: 'Burning wood creates new substances (ash, smoke, CO2) \u2014 a chemical change.', standard: '5-PS1' },
-            { text: 'In a food chain, what is the role of a decomposer?', options: ['Produce food from sunlight','Hunt other animals','Break down dead organisms','Eat only plants'], correct: 2, explanation: 'Decomposers break down dead organisms, returning nutrients to the soil.', standard: '5-LS2' }
-        ],
-        social_studies: [
-            { text: 'Which document declared the American colonies independent from Britain?', options: ['The Constitution','The Bill of Rights','The Declaration of Independence','The Magna Carta'], correct: 2, explanation: 'The Declaration of Independence, adopted July 4, 1776, declared independence from Britain.', standard: 'USH.5.2' },
-            { text: 'What are the three branches of the U.S. government?', options: ['President, Congress, Army','Legislative, Executive, Judicial','Federal, State, Local','Senate, House, Court'], correct: 1, explanation: 'The three branches are Legislative (makes laws), Executive (enforces laws), and Judicial (interprets laws).', standard: 'CIV.5.1' },
-            { text: 'What is supply and demand?', options: ['A type of tax','How much of something is available and how much people want it','A government law','A type of trade agreement'], correct: 1, explanation: 'Supply is how much is available; demand is how much people want it. Together they affect prices.', standard: 'ECON.5.1' },
-            { text: 'Which geographic region of the U.S. has the most mountains?', options: ['Southeast','Midwest','West','Northeast'], correct: 2, explanation: 'The Western U.S. contains major mountain ranges including the Rockies, Sierra Nevada, and Cascades.', standard: 'GEO.5.1' }
-        ]
-    };
+    // No fallback data — all questions come from the server via startSession
 
     document.addEventListener('DOMContentLoaded', () => {
         initPhaseBar();
-        showScreen('loadingScreen');
-        startTimer();
         document.getElementById('backBtn').addEventListener('click', () => {
             document.getElementById('exitModal').classList.add('show');
         });
-        loadWeaknessProfile().then(() => {
-            setTimeout(() => startPhase(0), 1200);
-        });
+        initSession();
     });
+
+    async function initSession() {
+        showScreen('loadingScreen');
+        document.querySelector('.loading-text').textContent = 'Doug is preparing your mission briefing...';
+
+        const data = await aiGet('startSession', {
+            student: CONFIG.student,
+            sessionId: SESSION_ID,
+            isWednesday: IS_WEDNESDAY
+        }, 90000);
+
+        if (data && data.phases) {
+            sessionData = data.phases;
+            // Session truly starts now — set timer origin
+            sessionStartTime = Date.now();
+            startTimer();
+            startPhase(0);
+        } else {
+            // Total failure
+            document.querySelector('.loading-text').textContent = 'Mission briefing failed. Please refresh and try again.';
+        }
+    }
 
     function initPhaseBar() {
         const bar = document.getElementById('phaseBar');
@@ -477,31 +405,6 @@
         return null;
     }
 
-    async function loadWeaknessProfile() {
-        var data = await aiGet('getWeaknessProfile', { student: CONFIG.student }, 8000);
-        if (data && !data.error) {
-            weaknessProfile = data;
-        } else {
-            weaknessProfile = { student: CONFIG.student, weaknesses: {}, strengths: {} };
-        }
-    }
-
-    function getTargetStandards(phaseId) {
-        if (weaknessProfile && weaknessProfile.weaknesses && weaknessProfile.weaknesses[phaseId]) {
-            const weak = weaknessProfile.weaknesses[phaseId];
-            if (weak.length > 0) return weak.map(w => w.standard);
-        }
-        const all = STANDARDS[phaseId] || [];
-        return [...all].sort(() => Math.random() - 0.5).slice(0, 4);
-    }
-
-    function getDifficulty(phaseId) {
-        if (weaknessProfile && weaknessProfile.weaknesses && weaknessProfile.weaknesses[phaseId]) {
-            return weaknessProfile.weaknesses[phaseId].length > 0 ? 'grade-level' : 'challenging';
-        }
-        return 'grade-level';
-    }
-
     async function startPhase(index) {
         currentPhaseIndex = index;
         currentQuestionIndex = 0;
@@ -514,14 +417,17 @@
 
         updatePhaseBar(index);
         const phase = PHASES[index];
+        const phaseData = sessionData ? sessionData[phase.id] : null;
+
         showScreen('contentScreen');
         document.getElementById('subjectIcon').textContent = phase.icon;
         document.getElementById('subjectTitle').textContent = phase.name;
         document.getElementById('subjectMeta').textContent = phase.description + ' (~' + phase.minutes + ' min)';
 
+        // Show weakness callout if server provided focus areas
         const callout = document.getElementById('weaknessCallout');
-        if (weaknessProfile && weaknessProfile.weaknesses && weaknessProfile.weaknesses[phase.id] && weaknessProfile.weaknesses[phase.id].length > 0) {
-            document.getElementById('weaknessText').textContent = 'Focus areas: ' + weaknessProfile.weaknesses[phase.id].map(w => w.skill).join(', ');
+        if (phaseData && phaseData.focusAreas && phaseData.focusAreas.length > 0) {
+            document.getElementById('weaknessText').textContent = 'Focus areas: ' + phaseData.focusAreas.join(', ');
             callout.style.display = 'block';
         } else { callout.style.display = 'none'; }
 
@@ -530,59 +436,36 @@
         document.getElementById('questionArea').style.display = 'none';
         document.getElementById('writingArea').style.display = 'none';
 
-        if (phase.id === 'ela_reading') { await loadELAReading(); }
-        else if (phase.id === 'ela_language') { await loadELALanguage(); }
-        else { await loadSubjectQuestions(phase.id, phase.questionCount); }
+        if (!phaseData || !phaseData.questions || phaseData.questions.length === 0) {
+            // Skip empty phase
+            completePhase();
+            return;
+        }
+
+        currentQuestions = phaseData.questions;
+
+        if (phase.id === 'ela_reading' && phaseData.passage) {
+            // Show passage first
+            currentPassage = {
+                title: phaseData.passage.title || 'Reading Passage',
+                passage: phaseData.passage.content || phaseData.passage.passage || '',
+                writingPrompt: phaseData.passage.writingPrompt || phaseData.writingPrompt || null
+            };
+            showPassage(currentPassage);
+        } else {
+            // For ELA language, carry forward the writing prompt if present
+            if (phase.id === 'ela_language' && phaseData.writingPrompt && currentPassage) {
+                currentPassage.writingPrompt = phaseData.writingPrompt;
+            } else if (phase.id === 'ela_language' && phaseData.writingPrompt) {
+                currentPassage = { title: '', passage: '', writingPrompt: phaseData.writingPrompt };
+            }
+            document.getElementById('questionArea').style.display = 'block';
+            displayQuestion(0);
+        }
     }
 
-    async function loadELAReading() {
-        document.getElementById('questionArea').style.display = 'none';
-
-        // Show loading state while AI generates the passage
+    function showPassage(passage) {
         document.getElementById('readingArea').style.display = 'block';
-        document.getElementById('readingTitle').textContent = CONFIG.tutor + ' is writing your passage\u2026';
-        document.getElementById('readingContent').innerHTML = '<div style="text-align:center;padding:40px 0;"><div class="loading-spinner" style="margin:0 auto 16px;"></div><div style="color:#a89968;font-size:14px;">Generating a fresh passage just for you</div></div>';
-        document.getElementById('wordCount').textContent = '\u2014';
-        document.getElementById('readTime').textContent = '\u2014';
-
-        var passage = null;
-        var standards = getTargetStandards('ela_reading');
-
-        // Give Sonnet up to 45s
-        var data = await aiGet('generatePassage', {
-            student: CONFIG.studentLower,
-            standards: standards,
-            difficulty: getDifficulty('ela_reading'),
-            includeEBSR: 'true',
-            mode: CONFIG.mode
-        }, 45000);
-
-        if (data && data.title && data.questions && data.questions.length > 0) {
-            passage = {
-                title: data.title,
-                passage: data.passage,
-                writingPrompt: data.writingPrompt || null,
-                questions: data.questions.map(function(q) {
-                    return {
-                        text: q.question || q.text,
-                        options: (q.options || []).map(function(o) { return o.replace(/^[A-D]\)\s*/, ''); }),
-                        correct: q.correctAnswer !== undefined ? q.correctAnswer : q.correct,
-                        explanation: q.explanation || '',
-                        standard: q.standard || '',
-                        type: q.type || null,
-                        partA: q.partA || null,
-                        partB: q.partB || null
-                    };
-                })
-            };
-        }
-
-        if (!passage) {
-            passage = FALLBACK_PASSAGES[Math.floor(Math.random() * FALLBACK_PASSAGES.length)];
-        }
-
-        currentPassage = passage;
-        currentQuestions = passage.questions;
         document.getElementById('readingTitle').textContent = passage.title;
         document.getElementById('readingContent').innerHTML = passage.passage;
         var words = passage.passage.replace(/<[^>]+>/g, '').split(/\s+/).length;
@@ -594,60 +477,6 @@
         document.getElementById('readingArea').style.display = 'none';
         document.getElementById('passageReviewArea').style.display = 'block';
         document.getElementById('passageReviewPanel').innerHTML = currentPassage.passage;
-        document.getElementById('questionArea').style.display = 'block';
-        displayQuestion(0);
-    }
-
-    async function loadELALanguage() {
-        var standards = getTargetStandards('ela_language');
-        var count = IS_WEDNESDAY ? 3 : 5;
-        currentQuestions = [];
-
-        var data = await aiGet('generateContent', {
-            student: CONFIG.student, grade: CONFIG.grade,
-            subject: 'ela_language', standards: standards,
-            difficulty: getDifficulty('ela_language'), mode: CONFIG.mode, count: count
-        });
-
-        if (data && data.questions && data.questions.length > 0) {
-            currentQuestions = data.questions;
-        }
-
-        if (currentQuestions.length === 0) {
-            var fb = FALLBACK_QUESTIONS.ela_language.slice();
-            for (var i = fb.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = fb[i]; fb[i] = fb[j]; fb[j] = t; }
-            currentQuestions = fb.slice(0, count);
-        }
-
-        if (IS_WEDNESDAY && currentPassage && currentPassage.writingPrompt) {
-            document.getElementById('questionArea').style.display = 'block';
-            displayQuestion(0);
-        } else {
-            document.getElementById('questionArea').style.display = 'block';
-            displayQuestion(0);
-        }
-    }
-
-    async function loadSubjectQuestions(subjectId, count) {
-        var standards = getTargetStandards(subjectId);
-        currentQuestions = [];
-
-        var data = await aiGet('generateContent', {
-            student: CONFIG.student, grade: CONFIG.grade,
-            subject: subjectId, standards: standards,
-            difficulty: getDifficulty(subjectId), mode: CONFIG.mode, count: count
-        });
-
-        if (data && data.questions && data.questions.length > 0) {
-            currentQuestions = data.questions;
-        }
-
-        if (currentQuestions.length === 0) {
-            var fb = (FALLBACK_QUESTIONS[subjectId] || []).slice();
-            for (var i = fb.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = fb[i]; fb[i] = fb[j]; fb[j] = t; }
-            currentQuestions = fb.slice(0, count);
-        }
-
         document.getElementById('questionArea').style.display = 'block';
         displayQuestion(0);
     }
@@ -664,10 +493,10 @@
         else { document.getElementById('standardTag').style.display = 'none'; }
 
         if (q.type === 'ebsr' && q.partA && q.partB) {
-            document.getElementById('questionText').innerHTML = '<div style="font-size:11px;color:#00bfff;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Part A</div>' + q.partA.text;
+            document.getElementById('questionText').innerHTML = '<div style="font-size:11px;color:#00bfff;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Part A</div>' + (q.partA.text || q.partA.question || '');
             renderOptions(q.partA.options, (i) => selectEBSRPartA(i));
         } else {
-            document.getElementById('questionText').textContent = q.text;
+            document.getElementById('questionText').textContent = q.text || q.question || '';
             renderOptions(q.options, (i) => selectAnswer(i));
         }
         document.getElementById('feedbackBox').className = 'feedback-box';
@@ -679,66 +508,166 @@
         const optList = document.getElementById('optionsList');
         optList.innerHTML = '';
         const letters = ['A','B','C','D'];
-        options.forEach((opt, i) => {
+        (options || []).forEach((opt, i) => {
             const div = document.createElement('div');
             div.className = 'option';
-            div.innerHTML = '<span class="option-letter">' + letters[i] + '</span><span class="option-text">' + opt + '</span>';
+            var optText = typeof opt === 'string' ? opt.replace(/^[A-D]\)\s*/, '') : opt;
+            div.innerHTML = '<span class="option-letter">' + letters[i] + '</span><span class="option-text">' + optText + '</span>';
             div.onclick = () => onClick(i);
             optList.appendChild(div);
         });
     }
 
-    function selectEBSRPartA(index) {
+    async function selectEBSRPartA(index) {
         const q = currentQuestions[currentQuestionIndex];
         if (ebsrPartAAnswer !== null) return;
         ebsrPartAAnswer = index;
+
         const options = document.querySelectorAll('#optionsList .option');
-        const isCorrect = index === q.partA.correct;
-        options.forEach((opt, i) => { opt.classList.add('disabled'); if (i === q.partA.correct) opt.classList.add('correct'); if (i === index && i !== q.partA.correct) opt.classList.add('incorrect'); if (i === index) opt.classList.add('selected'); });
+        options.forEach((opt, i) => {
+            opt.classList.add('disabled');
+            if (i === index) opt.classList.add('selected');
+        });
+
+        // Show checking state
         const fb = document.getElementById('feedbackBox');
-        fb.className = 'feedback-box show ' + (isCorrect ? 'correct' : 'incorrect');
+        fb.className = 'feedback-box show';
         fb.style.display = 'block';
-        document.getElementById('feedbackLabel').textContent = isCorrect ? '\u2713 Part A Correct' : '\u2717 Part A Incorrect';
-        document.getElementById('feedbackText').textContent = 'Now answer Part B...';
+        document.getElementById('feedbackLabel').textContent = 'Checking...';
+        document.getElementById('feedbackText').textContent = '';
+
+        // Grade Part A on server
+        const phase = PHASES[currentPhaseIndex];
+        const result = await aiGet('gradeAnswer', {
+            sessionId: SESSION_ID,
+            phase: phase.id,
+            questionIndex: currentQuestionIndex,
+            answer: 'partA:' + index
+        }, 10000);
+
+        if (result) {
+            const isCorrect = result.correct;
+            options.forEach((opt, i) => {
+                if (i === result.correctAnswer) opt.classList.add('correct');
+                if (i === index && !isCorrect) opt.classList.add('incorrect');
+            });
+            fb.className = 'feedback-box show ' + (isCorrect ? 'correct' : 'incorrect');
+            document.getElementById('feedbackLabel').textContent = isCorrect ? '\u2713 Part A Correct' : '\u2717 Part A Incorrect';
+            document.getElementById('feedbackText').textContent = 'Now answer Part B...';
+        } else {
+            fb.className = 'feedback-box show';
+            document.getElementById('feedbackLabel').textContent = 'Answer recorded';
+            document.getElementById('feedbackText').textContent = 'Now answer Part B...';
+        }
+
         setTimeout(() => {
             fb.style.display = 'none';
-            document.getElementById('questionText').innerHTML = '<div style="font-size:11px;color:#00bfff;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Part B</div>' + q.partB.text;
+            document.getElementById('questionText').innerHTML = '<div style="font-size:11px;color:#00bfff;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Part B</div>' + (q.partB.text || q.partB.question || '');
             renderOptions(q.partB.options, (i) => selectEBSRPartB(i));
         }, 1500);
     }
 
-    function selectEBSRPartB(index) {
+    async function selectEBSRPartB(index) {
         const q = currentQuestions[currentQuestionIndex];
         if (currentAnswers[currentQuestionIndex] !== undefined) return;
-        const partACorrect = ebsrPartAAnswer === q.partA.correct;
-        const partBCorrect = index === q.partB.correct;
-        let score = 0;
-        if (partACorrect && partBCorrect) score = 2;
-        else if (partACorrect) score = 1;
-        currentAnswers[currentQuestionIndex] = { partA: ebsrPartAAnswer, partB: index, score, isEBSR: true };
+
         const options = document.querySelectorAll('#optionsList .option');
-        options.forEach((opt, i) => { opt.classList.add('disabled'); if (i === q.partB.correct) opt.classList.add('correct'); if (i === index && i !== q.partB.correct) opt.classList.add('incorrect'); if (i === index) opt.classList.add('selected'); });
+        options.forEach((opt, i) => {
+            opt.classList.add('disabled');
+            if (i === index) opt.classList.add('selected');
+        });
+
+        // Show checking state
         const fb = document.getElementById('feedbackBox');
-        const overallCorrect = partACorrect && partBCorrect;
-        fb.className = 'feedback-box show ' + (overallCorrect ? 'correct' : 'incorrect');
+        fb.className = 'feedback-box show';
         fb.style.display = 'block';
-        document.getElementById('feedbackLabel').textContent = overallCorrect ? '\u2713 Both Parts Correct (2/2)' : partACorrect ? '\u25D0 Part A Correct (1/2)' : '\u2717 Incorrect (0/2)';
-        document.getElementById('feedbackText').textContent = q.explanation || '';
+        document.getElementById('feedbackLabel').textContent = 'Checking...';
+        document.getElementById('feedbackText').textContent = '';
+
+        // Grade Part B on server
+        const phase = PHASES[currentPhaseIndex];
+        const result = await aiGet('gradeAnswer', {
+            sessionId: SESSION_ID,
+            phase: phase.id,
+            questionIndex: currentQuestionIndex,
+            answer: 'partB:' + index
+        }, 10000);
+
+        if (result) {
+            const partBCorrect = result.correct;
+            const partACorrect = result.partACorrect !== undefined ? result.partACorrect : true;
+            const score = result.score !== undefined ? result.score : ((partACorrect && partBCorrect) ? 2 : partACorrect ? 1 : 0);
+
+            currentAnswers[currentQuestionIndex] = { partA: ebsrPartAAnswer, partB: index, score: score, isEBSR: true };
+
+            options.forEach((opt, i) => {
+                if (i === result.correctAnswer) opt.classList.add('correct');
+                if (i === index && !partBCorrect) opt.classList.add('incorrect');
+            });
+
+            const overallCorrect = partACorrect && partBCorrect;
+            fb.className = 'feedback-box show ' + (overallCorrect ? 'correct' : 'incorrect');
+            document.getElementById('feedbackLabel').textContent = overallCorrect ? '\u2713 Both Parts Correct (2/2)' : partACorrect ? '\u25D0 Part A Correct (1/2)' : '\u2717 Incorrect (0/2)';
+            document.getElementById('feedbackText').textContent = result.explanation || '';
+        } else {
+            // Server error fallback
+            currentAnswers[currentQuestionIndex] = { partA: ebsrPartAAnswer, partB: index, score: 0, isEBSR: true };
+            fb.className = 'feedback-box show';
+            document.getElementById('feedbackLabel').textContent = 'Answer recorded';
+            document.getElementById('feedbackText').textContent = 'Could not verify — your answer has been saved.';
+        }
+
         showNextButton();
     }
 
-    function selectAnswer(index) {
+    async function selectAnswer(index) {
         const q = currentQuestions[currentQuestionIndex];
         if (currentAnswers[currentQuestionIndex] !== undefined) return;
-        currentAnswers[currentQuestionIndex] = index;
+
+        // Disable all options and show selected
         const options = document.querySelectorAll('#optionsList .option');
-        options.forEach((opt, i) => { opt.classList.add('disabled'); if (i === q.correct) opt.classList.add('correct'); if (i === index && i !== q.correct) opt.classList.add('incorrect'); if (i === index) opt.classList.add('selected'); });
+        options.forEach((opt, i) => {
+            opt.classList.add('disabled');
+            if (i === index) opt.classList.add('selected');
+        });
+
+        // Show loading indicator on feedback box
         const fb = document.getElementById('feedbackBox');
-        const isCorrect = index === q.correct;
-        fb.className = 'feedback-box show ' + (isCorrect ? 'correct' : 'incorrect');
+        fb.className = 'feedback-box show';
         fb.style.display = 'block';
-        document.getElementById('feedbackLabel').textContent = isCorrect ? '\u2713 Correct' : '\u2717 Incorrect';
-        document.getElementById('feedbackText').textContent = q.explanation || '';
+        document.getElementById('feedbackLabel').textContent = 'Checking...';
+        document.getElementById('feedbackText').textContent = '';
+
+        // Grade on server
+        const phase = PHASES[currentPhaseIndex];
+        const result = await aiGet('gradeAnswer', {
+            sessionId: SESSION_ID,
+            phase: phase.id,
+            questionIndex: currentQuestionIndex,
+            answer: index
+        }, 10000);
+
+        if (result) {
+            const isCorrect = result.correct;
+            currentAnswers[currentQuestionIndex] = { selected: index, correct: isCorrect };
+
+            // Highlight correct/incorrect
+            options.forEach((opt, i) => {
+                if (i === result.correctAnswer) opt.classList.add('correct');
+                if (i === index && !isCorrect) opt.classList.add('incorrect');
+            });
+
+            fb.className = 'feedback-box show ' + (isCorrect ? 'correct' : 'incorrect');
+            document.getElementById('feedbackLabel').textContent = isCorrect ? '\u2713 Correct' : '\u2717 Incorrect';
+            document.getElementById('feedbackText').textContent = result.explanation || '';
+        } else {
+            // Server error — mark as answered, no feedback
+            currentAnswers[currentQuestionIndex] = { selected: index, correct: null };
+            fb.className = 'feedback-box show';
+            document.getElementById('feedbackLabel').textContent = 'Answer recorded';
+            document.getElementById('feedbackText').textContent = 'Could not verify — your answer has been saved.';
+        }
+
         showNextButton();
     }
 
@@ -786,9 +715,10 @@
 
     function completePhase() {
         const phase = PHASES[currentPhaseIndex];
-        const correct = Object.values(currentAnswers).filter((a, i) => {
+        const correct = Object.values(currentAnswers).filter(a => {
             if (a && a.isEBSR) return a.score === 2;
-            return a === currentQuestions[i].correct;
+            if (a && a.correct !== undefined) return a.correct === true;
+            return false;
         }).length;
         const total = currentQuestions.length;
         const pct = total > 0 ? Math.round(correct / total * 100) : 0;
@@ -803,20 +733,39 @@
         setTimeout(() => startPhase(currentPhaseIndex + 1), 2500);
     }
 
-    function finishSession() {
+    async function finishSession() {
         clearInterval(timerInterval);
         updatePhaseBar(PHASES.length);
         const totalTime = Math.round((Date.now() - sessionStartTime) / 60000);
+
+        showScreen('loadingScreen');
+        document.querySelector('.loading-text').textContent = 'Doug is reviewing your mission results...';
+
+        const result = await aiGet('finalizeSession', {
+            sessionId: SESSION_ID,
+            student: CONFIG.student,
+            durationMinutes: totalTime
+        }, 15000);
+
+        if (result && result.error === 'Session too short') {
+            document.querySelector('.loading-text').innerHTML =
+                '<div style="color:#ff4444;font-size:20px;">&#9888;&#65039; Session Too Short</div>' +
+                '<div style="margin-top:12px;">You must spend at least 15 minutes on your session.</div>' +
+                '<div style="margin-top:8px;">Time spent: ' + totalTime + ' minutes</div>';
+            return;
+        }
+
+        // Build summary from local phaseResults (scores tracked via server gradeAnswer responses)
         let totalCorrect = 0, totalQuestions = 0;
         const card = document.getElementById('summaryCard');
         let html = '';
         PHASES.forEach(phase => {
-            const result = phaseResults[phase.id];
-            if (!result) return;
-            totalCorrect += result.correct; totalQuestions += result.total;
-            const pct = result.pct;
+            const pr = phaseResults[phase.id];
+            if (!pr) return;
+            totalCorrect += pr.correct; totalQuestions += pr.total;
+            const pct = pr.pct;
             const cls = pct >= 80 ? 'good' : pct >= 60 ? 'ok' : 'weak';
-            html += '<div class="summary-item"><span class="summary-icon">' + phase.icon + '</span><span class="summary-label">' + phase.name + ' (' + Math.round(result.timeMs/60000) + ' min)</span><span class="summary-value ' + cls + '">' + result.correct + '/' + result.total + ' (' + pct + '%)</span></div>';
+            html += '<div class="summary-item"><span class="summary-icon">' + phase.icon + '</span><span class="summary-label">' + phase.name + ' (' + Math.round(pr.timeMs/60000) + ' min)</span><span class="summary-value ' + cls + '">' + pr.correct + '/' + pr.total + ' (' + pct + '%)</span></div>';
         });
         if (writingResponse) html += '<div class="summary-item"><span class="summary-icon">\u270D\uFE0F</span><span class="summary-label">Mission Log Entry</span><span class="summary-value good">Submitted</span></div>';
         const overallPct = totalQuestions > 0 ? Math.round(totalCorrect / totalQuestions * 100) : 0;
@@ -842,9 +791,9 @@
 
     function returnToDashboard() { window.location.href = CONFIG.dashboardUrl; }
 
-    // ═══════════════════════════════════════════════════════════
+    // ===============================================================
     // BONUS PRACTICE ("Overtime Ops")
-    // ═══════════════════════════════════════════════════════════
+    // ===============================================================
     const BONUS_KEY = CONFIG.studentLower + '_bonus_practice';
     let bonusQuestions = [];
     let bonusQuestionIndex = 0;
@@ -855,32 +804,71 @@
     function getBonusWeakSubjects() {
         const weakSubjects = [];
         PHASES.forEach(p => { const r = phaseResults[p.id]; if (r && r.pct < 80) weakSubjects.push(p.id); });
-        if (weakSubjects.length === 0 && weaknessProfile && weaknessProfile.weaknesses) {
-            Object.keys(weaknessProfile.weaknesses).forEach(s => { if (weaknessProfile.weaknesses[s].length > 0) weakSubjects.push(s); });
-        }
         return weakSubjects.length > 0 ? weakSubjects : PHASES.map(p => p.id);
     }
 
-    function buildBonusQuestionPool() {
+    async function buildBonusQuestionPool() {
         const weakSubjects = getBonusWeakSubjects();
-        const pool = [];
-        weakSubjects.forEach(subId => { (FALLBACK_QUESTIONS[subId] || []).forEach(q => pool.push({ ...q, subject: subId })); });
-        if (weakSubjects.includes('ela_reading')) { FALLBACK_PASSAGES.forEach(p => { p.questions.forEach(q => pool.push({ ...q, subject: 'ela_reading' })); }); }
-        for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-        return pool;
+        const subject = weakSubjects[Math.floor(Math.random() * weakSubjects.length)];
+        const data = await aiGet('generateContent', {
+            student: CONFIG.student, grade: CONFIG.grade,
+            subject: subject, count: 10, difficulty: 'grade-level', mode: 'leap_prep'
+        }, 20000);
+        if (data && data.questions) {
+            return data.questions.map(function(q) {
+                return {
+                    text: q.question || q.text,
+                    options: (q.options || []).map(function(o) { return typeof o === 'string' ? o.replace(/^[A-D]\)\s*/, '') : o; }),
+                    correct: q.correctAnswer !== undefined ? q.correctAnswer : q.correct,
+                    explanation: q.explanation || '',
+                    standard: q.standard || '',
+                    subject: subject
+                };
+            });
+        }
+        return [];
     }
 
-    function startBonusPractice() {
-        bonusQuestions = buildBonusQuestionPool();
+    async function startBonusPractice() {
         bonusQuestionIndex = 0; bonusAnswered = 0; bonusCorrectCount = 0; bonusStartTime = Date.now();
         document.getElementById('bonusCount').textContent = '0';
         document.getElementById('bonusCorrect').textContent = '0';
         showScreen('bonusScreen');
+
+        // Show loading in bonus area
+        document.getElementById('bonusQuestionText').textContent = 'Loading bonus questions...';
+        document.getElementById('bonusOptionsList').innerHTML = '<div style="text-align:center;padding:20px;"><div class="loading-spinner" style="margin:0 auto;"></div></div>';
+        document.getElementById('bonusFeedbackBox').style.display = 'none';
+        document.getElementById('bonusNextBtn').style.display = 'none';
+
+        bonusQuestions = await buildBonusQuestionPool();
+        if (bonusQuestions.length === 0) {
+            document.getElementById('bonusQuestionText').textContent = 'Could not load bonus questions. Try again later.';
+            document.getElementById('bonusOptionsList').innerHTML = '';
+            return;
+        }
         displayBonusQuestion();
     }
 
     function displayBonusQuestion() {
-        if (bonusQuestionIndex >= bonusQuestions.length) { bonusQuestions = buildBonusQuestionPool(); bonusQuestionIndex = 0; }
+        if (bonusQuestionIndex >= bonusQuestions.length) {
+            // Fetch more questions asynchronously
+            document.getElementById('bonusQuestionText').textContent = 'Loading more questions...';
+            document.getElementById('bonusOptionsList').innerHTML = '<div style="text-align:center;padding:20px;"><div class="loading-spinner" style="margin:0 auto;"></div></div>';
+            document.getElementById('bonusFeedbackBox').style.display = 'none';
+            document.getElementById('bonusNextBtn').style.display = 'none';
+            buildBonusQuestionPool().then(function(pool) {
+                if (pool.length > 0) {
+                    bonusQuestions = pool;
+                    bonusQuestionIndex = 0;
+                    displayBonusQuestion();
+                } else {
+                    document.getElementById('bonusQuestionText').textContent = 'No more questions available. Great work!';
+                    document.getElementById('bonusOptionsList').innerHTML = '';
+                }
+            });
+            return;
+        }
         const q = bonusQuestions[bonusQuestionIndex];
         if (!q) { finishBonusPractice(); return; }
         document.getElementById('bonusQuestionText').textContent = q.text;

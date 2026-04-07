@@ -77,6 +77,7 @@
         .option.correct { border-color: #7fb069; background-color: rgba(127,176,105,0.1); }
         .option.incorrect { border-color: #c44536; background-color: rgba(196,69,54,0.1); }
         .option.disabled { cursor: not-allowed; }
+        .option.checking { border-color: #c9a84c; background-color: #2d2620; opacity: 0.7; }
         .option-letter { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background-color: #3d3428; border-radius: 50%; font-weight: 700; font-size: 13px; color: #c9a84c; flex-shrink: 0; }
         .option.selected .option-letter { background-color: #c9a84c; color: #1a1510; }
         .option.correct .option-letter { background-color: #7fb069; color: white; }
@@ -146,6 +147,9 @@
         /* Weakness targeting callout */
         .weakness-callout { background: linear-gradient(135deg, rgba(92,164,232,0.08) 0%, rgba(201,168,76,0.04) 100%); border: 1px solid rgba(92,164,232,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: #5ca4e8; }
         .weakness-callout .callout-label { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+
+        /* Time warning */
+        .time-warning { background-color: rgba(196,69,54,0.15); border: 1px solid #c44536; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: #c44536; text-align: center; }
 
         @media (max-width: 480px) { .container { padding: 16px; } .reading-title { font-size: 18px; } .subject-header h2 { font-size: 20px; } }
         @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
@@ -295,8 +299,8 @@
         studentLower: 'jacob',
         grade: 6,
         tutor: 'Gary',
-        mode: 'leap_prep',       // 'leap_prep' | 'act_prep' | 'general'
-        leapDate: '2026-04-27',  // LEAP test date
+        mode: 'leap_prep',
+        leapDate: '2026-04-27',
         dashboardUrl: 'Jacob_Dashboard.html',
         sessionKey: 'jacob_session_v2',
         signalKey: 'jacob_session_signal'
@@ -305,6 +309,8 @@
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec';
     const TODAY = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
     const IS_WEDNESDAY = new Date().getDay() === 3;
+    const SESSION_ID = crypto.randomUUID();
+    const MIN_SESSION_MINUTES = 15;
 
     // Auto-pivot mode after LEAP
     if (TODAY > CONFIG.leapDate && CONFIG.mode === 'leap_prep') {
@@ -327,7 +333,7 @@
           description: 'History, geography, civics, economics' }
     ];
 
-    // Grade 6 Louisiana LEAP standards
+    // Grade 6 Louisiana LEAP standards (kept for phase bar labels only)
     const STANDARDS = {
         ela_reading: ['RL.6.1','RL.6.2','RL.6.3','RL.6.4','RL.6.5','RL.6.6','RI.6.1','RI.6.2','RI.6.3','RI.6.4','RI.6.5','RI.6.6','RI.6.7','RI.6.8'],
         ela_language: ['L.6.1','L.6.2','L.6.3','L.6.4','L.6.5','L.6.6','W.6.1','W.6.2','W.6.3'],
@@ -337,17 +343,23 @@
     };
 
     // ═══════════════════════════════════════════════════════════
+    // FALLBACK DATA — emptied; server provides all content
+    // ═══════════════════════════════════════════════════════════
+    const FALLBACK_PASSAGES = [];
+    const FALLBACK_QUESTIONS = {};
+
+    // ═══════════════════════════════════════════════════════════
     // STATE
     // ═══════════════════════════════════════════════════════════
-    let currentPhaseIndex = -1;  // -1 = loading
+    let currentPhaseIndex = -1;
     let currentQuestionIndex = 0;
-    let sessionStartTime = Date.now();
+    let sessionStartTime = null;   // set after startSession returns
     let phaseStartTime = null;
-    let weaknessProfile = null;
     let timerInterval = null;
+    let sessionData = {};          // pre-loaded from startSession
 
     // Per-phase results
-    let phaseResults = {};  // { ela_reading: { correct: 3, total: 5, answers: [...] }, ... }
+    let phaseResults = {};
 
     // Current phase content
     let currentPassage = null;
@@ -356,124 +368,36 @@
     let writingResponse = '';
 
     // ═══════════════════════════════════════════════════════════
-    // FALLBACK QUESTION BANKS (used when API fails)
-    // ═══════════════════════════════════════════════════════════
-    const FALLBACK_PASSAGES = [
-        {
-            title: 'The Engineering Marvels of Roman Aqueducts',
-            passage: '<p>The Romans were extraordinary engineers who built aqueducts spanning hundreds of miles to bring fresh water to their cities. These stone channels used gravity alone — no pumps — to move millions of gallons daily.</p><p>The Pont du Gard in southern France, built around 19 BCE, stands as one of the best-preserved examples. Rising nearly 160 feet high, this three-tiered bridge carried water across the Gardon River valley. The precision was remarkable: over its 31-mile length, the channel dropped only 56 feet, a gradient of just 1 in 3,000.</p><p>Roman engineers understood that water flows downhill at a predictable rate. By carefully surveying terrain and calculating slopes, they could route water around mountains and across valleys. When channels needed to cross low ground, they built arched bridges. When hills blocked the path, they dug tunnels.</p><p>The impact on Roman cities was transformative. Rome alone had eleven aqueducts feeding public fountains, baths, and private homes. The abundant water supply enabled a level of public health and sanitation unmatched until the modern era.</p>',
-            questions: [
-                { text: 'What was the primary force used to move water through Roman aqueducts?', options: ['Steam power','Gravity','Hand pumps','Wind energy'], correct: 1, explanation: 'The passage states aqueducts "used gravity alone — no pumps."', standard: 'RI.6.1' },
-                { text: 'What does the gradient of 1 in 3,000 tell us about the Pont du Gard?', options: ['It was very steep','It was extremely precise in its construction','It was built quickly','It carried very little water'], correct: 1, explanation: 'A gradient of 1:3,000 means the channel dropped only slightly over a long distance, showing remarkable precision.', standard: 'RI.6.4' },
-                { text: 'How did Roman engineers solve the problem of hills blocking the water\'s path?', options: ['They redirected rivers','They built pumping stations','They dug tunnels','They used elevated tanks'], correct: 2, explanation: 'The passage states "When hills blocked the path, they dug tunnels."', standard: 'RI.6.1' },
-                { text: 'What can be inferred about Roman engineering compared to later civilizations?', options: ['It was inferior to medieval engineering','Their sanitation was not matched until modern times','They only built in Italy','Their techniques were quickly forgotten'], correct: 1, explanation: 'The passage says the water supply "enabled a level of public health and sanitation unmatched until the modern era."', standard: 'RI.6.2' },
-                { text: 'Which best describes the organizational structure of this passage?', options: ['Chronological order','Problem and solution','Compare and contrast','Cause and effect with examples'], correct: 3, explanation: 'The passage describes the cause (engineering techniques) and their effects (transformed cities), supported by the Pont du Gard example.', standard: 'RI.6.5' }
-            ],
-            writingPrompt: 'The Romans built infrastructure that lasted over 2,000 years. What modern infrastructure do you think will still exist 2,000 years from now? Explain your reasoning with at least two specific examples.'
-        },
-        {
-            title: 'The Hidden Mathematics of Gothic Cathedrals',
-            passage: '<p>When medieval builders began constructing the great Gothic cathedrals of Europe in the 12th century, they faced a monumental engineering challenge. They wanted buildings that soared to incredible heights with walls of stained glass — but stone is heavy, and glass walls cannot support weight. The solution was an ingenious system of architectural mathematics.</p><p>The pointed arch was the foundation of Gothic design. Unlike the rounded Roman arch, which distributes weight outward, the pointed arch channels force almost straight down. This meant builders could raise ceilings to dizzying heights — Notre-Dame de Paris reaches 115 feet — without the walls collapsing outward.</p><p>But the outward thrust didn\'t disappear entirely. To counter it, architects developed flying buttresses: external stone arms that brace the walls from outside. These buttresses transferred the remaining lateral force safely to the ground. The result was revolutionary: walls could be thin and filled with enormous windows, flooding the interior with colored light.</p><p>The proportions weren\'t random. Master builders used a system based on simple ratios — often 1:2 or 2:3 — to determine the relationship between a building\'s width, height, and the spacing of its columns. The cathedral at Chartres, for instance, uses the ratio of 1:2 throughout: the nave is exactly twice as tall as it is wide.</p><p>These medieval engineers had no calculus, no computers, no steel. They achieved their compound feats of engineering through geometry, proportion, and centuries of accumulated knowledge passed from master to apprentice.</p>',
-            questions: [
-                { text: 'What advantage did the pointed arch have over the rounded Roman arch?', options: ['It was easier to build','It channeled force more directly downward','It was more decorative','It used less stone'], correct: 1, explanation: 'The passage states the pointed arch "channels force almost straight down" unlike the Roman arch which "distributes weight outward."', standard: 'RI.6.1' },
-                { text: 'What does the word "compound" mean as used in the final paragraph: "their compound feats of engineering"?', options: ['A walled enclosure','Combined or complex','A chemical mixture','To make worse'], correct: 1, explanation: '"Compound" here means combined/complex — the feats required combining many types of engineering knowledge. Context: multiple techniques (geometry, proportion, knowledge) worked together.', standard: 'RI.6.4' },
-                { type: 'ebsr', standard: 'RI.6.1',
-                  partA: { text: 'What was the main problem Gothic builders needed to solve?', options: ['Making buildings taller while using glass walls that cannot bear weight','Finding enough workers to build cathedrals','Inventing new types of stone','Making buildings earthquake-resistant'], correct: 0 },
-                  partB: { text: 'Which detail from the passage BEST supports your answer to Part A?', options: ['Master builders used ratios of 1:2 or 2:3.','The cathedral at Chartres uses the ratio of 1:2 throughout.','They wanted buildings that soared to incredible heights with walls of stained glass — but stone is heavy, and glass walls cannot support weight.','These medieval engineers had no calculus, no computers, no steel.'], correct: 2 },
-                  explanation: 'The passage directly states the challenge of height + glass walls vs. the weight of stone.' },
-                { text: 'Based on the passage, why were flying buttresses necessary?', options: ['To make the cathedral look more impressive','To counteract outward thrust that pointed arches didn\'t fully eliminate','To hold up the stained glass windows directly','To provide extra storage space'], correct: 1, explanation: 'The passage says "the outward thrust didn\'t disappear entirely" and buttresses "transferred the remaining lateral force safely to the ground."', standard: 'RI.6.3' },
-                { text: 'What is the organizational structure of this passage?', options: ['Chronological order of cathedral construction','Problem-solution with supporting evidence','Compare and contrast of building styles','A sequence of unrelated architectural facts'], correct: 1, explanation: 'The passage presents a problem (heavy stone + glass walls), then explains the solutions (pointed arches, flying buttresses, mathematical ratios).', standard: 'RI.6.5' },
-                { text: 'What can be inferred about the relationship between master builders and their apprentices?', options: ['Apprentices were paid very well','Knowledge was passed down through hands-on training over generations','Apprentices invented the flying buttress','Masters kept their knowledge secret'], correct: 1, explanation: 'The passage mentions "centuries of accumulated knowledge passed from master to apprentice," implying an ongoing educational tradition.', standard: 'RI.6.2' }
-            ],
-            writingPrompt: 'Gothic cathedrals used mathematics and engineering to create buildings that still inspire awe today. Describe a modern structure you find impressive and explain what engineering challenges its builders had to solve.'
-        },
-        {
-            title: 'The Voyage That Changed Navigation Forever',
-            passage: '<p>In 1714, the British Parliament offered a prize of 20,000 pounds — equivalent to millions today — to anyone who could solve the "longitude problem." Ships could easily determine their latitude (how far north or south they were) by measuring the angle of the sun. But longitude (how far east or west) remained a deadly mystery.</p><p>Without knowing their longitude, ships regularly miscalculated their position. In 1707, a fleet of British warships struck rocks off the Scilly Islands, killing nearly 2,000 sailors. The disaster crystallized the urgency: maritime nations needed a reliable way to determine east-west position at sea.</p><p>The scientific establishment believed the answer lay in astronomy — mapping the positions of the moon relative to stars. But a self-taught clockmaker named John Harrison proposed something radical: an extremely precise clock. If a ship carried a clock set to the time at its home port, the captain could compare that time to local noon (determined by the sun). Since Earth rotates 360 degrees in 24 hours, each hour of difference equals 15 degrees of longitude.</p><p>The problem was that no clock of that era could keep accurate time on a rolling, salt-sprayed ship where temperatures swung wildly. Harrison spent 31 years perfecting his marine chronometer, called H4. This pocket-watch-sized device lost only 5 seconds over 81 days at sea — a staggering achievement.</p><p>Despite proving H4\'s accuracy on multiple voyages, Harrison faced years of resistance from the astronomical establishment, who felt a "mere clockmaker" couldn\'t solve what they couldn\'t. He finally received his full prize at age 80, after King George III personally intervened.</p>',
-            questions: [
-                { text: 'Why was determining longitude at sea so dangerous before Harrison\'s invention?', options: ['Ships could not determine their speed','Ships regularly miscalculated position, leading to deadly wrecks','Storms were more common without longitude data','Pirates targeted ships without accurate maps'], correct: 1, explanation: 'The passage describes the 1707 disaster where ships "struck rocks" because they couldn\'t determine their east-west position.', standard: 'RI.6.1' },
-                { text: 'What does the word "crystallized" mean as used in the passage: "The disaster crystallized the urgency"?', options: ['Turned into crystals','Made clear and definite','Froze in place','Shattered into pieces'], correct: 1, explanation: '"Crystallized" here means made clear/brought into sharp focus. The disaster made the urgency of the problem unmistakably clear.', standard: 'RI.6.4' },
-                { type: 'ebsr', standard: 'RI.6.3',
-                  partA: { text: 'Why did the scientific establishment resist Harrison\'s solution?', options: ['His clock was too expensive','They believed astronomy, not clockmaking, would solve the problem','His clock didn\'t actually work','He was not a British citizen'], correct: 1 },
-                  partB: { text: 'Which evidence from the passage BEST supports your answer?', options: ['Harrison spent 31 years perfecting his marine chronometer.','Each hour of difference equals 15 degrees of longitude.','The astronomical establishment felt a "mere clockmaker" couldn\'t solve what they couldn\'t.','King George III personally intervened.'], correct: 2 },
-                  explanation: 'The passage directly states the establishment\'s bias against a clockmaker solving their problem.' },
-                { text: 'How does the clock method for determining longitude work?', options: ['By measuring star positions','By comparing home port time to local noon, using Earth\'s rotation rate','By measuring ocean current speed','By calculating the angle of the sun at midnight'], correct: 1, explanation: 'The passage explains: compare home time to local noon; each hour = 15 degrees since Earth rotates 360° in 24 hours.', standard: 'RI.6.3' },
-                { text: 'What does the word "staggering" mean in "a staggering achievement"?', options: ['Stumbling or unsteady','Extremely impressive or astonishing','Slow and gradual','Related to walking'], correct: 1, explanation: '"Staggering" here means astonishingly impressive. Losing only 5 seconds over 81 days was remarkably precise for that era.', standard: 'RI.6.4' },
-                { text: 'What is the author\'s purpose in mentioning the 1707 disaster?', options: ['To criticize the British Navy','To provide evidence of why the longitude problem was urgent','To explain how rocks form near islands','To show that sailors were careless'], correct: 1, explanation: 'The disaster serves as concrete evidence of the deadly consequences of not knowing longitude, establishing why solving it was so important.', standard: 'RI.6.6' }
-            ],
-            writingPrompt: 'Harrison faced years of resistance from experts who didn\'t believe a clockmaker could solve their problem. Describe a time when someone (including yourself) solved a problem in an unexpected way that others doubted would work.'
-        }
-    ];
-
-    const FALLBACK_QUESTIONS = {
-        ela_language: [
-            // TIER 1: Vocab-in-context with polysemous words (RL.4/RI.4) — Jacob's #1 weakness
-            { text: 'The scientist decided to TABLE the discussion until more data was available. What does "table" mean here?', options: ['A piece of furniture','To postpone or set aside','To organize into rows and columns','To serve food'], correct: 1, explanation: '"Table" as a verb means to postpone. Context clue: "until more data was available" shows a delay.', standard: 'RI.6.4' },
-            { text: 'The bank of the river was covered in wildflowers after the spring rains. What does "bank" mean here?', options: ['A financial institution','A place to store money','The sloping edge of a river','A sharp turn in the road'], correct: 2, explanation: '"Bank" here means the edge/shore of a river. Context: "of the river" clarifies the meaning.', standard: 'RI.6.4' },
-            { text: 'She gave a CURRENT report on the state of the economy. What does "current" mean here?', options: ['A flow of water','An electrical flow','Up-to-date or present','A strong wind'], correct: 2, explanation: '"Current" means up-to-date. Context: "report on the state of the economy" implies recent information.', standard: 'RI.6.4' },
-            { text: 'The new medicine was a COMPOUND of three different chemicals. What does "compound" mean here?', options: ['An enclosed area','A combination or mixture','To make worse','A type of sentence'], correct: 1, explanation: '"Compound" here means a combination. Context: "of three different chemicals" shows mixing.', standard: 'RL.6.4' },
-            { text: 'After days of negotiations, the leader struck a MODERATE agreement. What does "moderate" mean here?', options: ['To oversee a discussion','Average or medium in amount','Not extreme; balanced','To reduce in intensity'], correct: 2, explanation: '"Moderate" as an adjective means reasonable/balanced — not too much for either side.', standard: 'RL.6.4' },
-            // TIER 2: Text structure identification (RI.5)
-            { text: 'A passage begins: "Coral reefs face two major threats. First, rising ocean temperatures cause coral bleaching. Second, ocean acidification weakens coral skeletons." What is this passage\'s structure?', options: ['Chronological order','Compare and contrast','Problem and solution','Cause and effect'], correct: 3, explanation: 'The passage identifies causes (temperature, acidification) and their effects (bleaching, weakened skeletons).', standard: 'RI.6.5' },
-            { text: 'A passage states: "While ancient Rome had aqueducts carrying water by gravity, modern cities use electric pumps. Rome\'s channels were open stone; today\'s pipes are sealed metal." What is the text structure?', options: ['Chronological order','Compare and contrast','Problem and solution','Description'], correct: 1, explanation: 'The passage compares ancient and modern water systems using signal words like "while" and contrasting details.', standard: 'RI.6.5' },
-            { text: 'Which signal words indicate a cause-and-effect text structure?', options: ['"First, next, then, finally"','"However, on the other hand, unlike"','"As a result, because, therefore, consequently"','"For example, such as, including"'], correct: 2, explanation: 'Words like "as a result," "because," and "therefore" signal cause-and-effect relationships.', standard: 'RI.6.5' },
-            // Pronoun-antecedent agreement (L.1)
-            { text: 'Choose the sentence with correct pronoun-antecedent agreement.', options: ['Each student must bring their own pencil.','The team celebrated their victory loudly.','Every girl packed their own lunch.','Neither boy brought their homework.'], correct: 1, explanation: '"Team" is a collective noun — "their" correctly refers to the group\'s shared victory. The others have singular antecedents with plural pronouns.', standard: 'L.6.1' },
-            { text: 'Which sentence has an error in pronoun-antecedent agreement?', options: ['The dogs wagged their tails.','Maria forgot her lunch at home.','Each of the boys brought their permission slip.','The committee announced its decision.'], correct: 2, explanation: '"Each" is singular, so the pronoun should be "his" (or "his or her"), not "their" in formal grammar.', standard: 'L.6.1' },
-            { text: 'Which sentence uses a semicolon correctly?', options: ['I like dogs; they are loyal companions.','I like; dogs they are loyal.','I like dogs they; are loyal.','I; like dogs they are loyal.'], correct: 0, explanation: 'A semicolon joins two complete, related independent clauses.', standard: 'L.6.2' }
-        ],
-        math: [
-            // TIER 1: Ratio part-to-whole vs. part-to-part (6.RP.1) — Jacob's #2 weakness
-            { text: 'A bag has 8 red marbles and 12 blue marbles. What is the ratio of red marbles to ALL marbles?', options: ['8:12','2:3','2:5','8:20'], correct: 2, explanation: 'Total marbles = 8 + 12 = 20. Ratio of red to total = 8:20 = 2:5. This is a part-to-whole ratio, not part-to-part (which would be 8:12 = 2:3).', standard: '6.RP.1' },
-            { text: 'In a class, 15 students play soccer and 10 play basketball. What is the ratio of soccer players to total students who play a sport?', options: ['15:10','3:2','3:5','15:25'], correct: 2, explanation: 'Total = 15 + 10 = 25. Ratio of soccer to total = 15:25 = 3:5. Part-to-whole ratio.', standard: '6.RP.1' },
-            { text: 'A fruit bowl has 6 apples and 9 oranges. Which ratio compares apples to total fruit?', options: ['6:9','2:3','2:5','6:15'], correct: 2, explanation: 'Total fruit = 6 + 9 = 15. Apples to total = 6:15 = 2:5. Don\'t confuse with apples to oranges (6:9 = 2:3).', standard: '6.RP.1' },
-            // TIER 1: Proportional reasoning with distractors (6.RP.3) — Jacob's #3 weakness
-            { text: 'A recipe for 12 muffins needs 3 cups of flour and 1 cup of sugar. How many cups of FLOUR are needed for 20 muffins?', options: ['4 cups','5 cups','6 cups','20 cups'], correct: 1, explanation: '12 muffins → 3 cups flour. Scale factor: 20/12 = 5/3. Flour: 3 × 5/3 = 5 cups. The sugar amount is irrelevant to finding flour.', standard: '6.RP.3' },
-            { text: 'A car travels 180 miles in 3 hours. The car holds 15 gallons of gas. At the same speed, how far will it travel in 5 hours?', options: ['200 miles','250 miles','300 miles','900 miles'], correct: 2, explanation: 'Rate = 180 ÷ 3 = 60 mph. In 5 hours: 60 × 5 = 300 miles. The gas tank capacity is extra information.', standard: '6.RP.3' },
-            { text: 'If 4 painters can paint 8 rooms in 2 days, how many rooms can 4 painters paint in 5 days?', options: ['10 rooms','16 rooms','20 rooms','40 rooms'], correct: 2, explanation: '4 painters paint 8 rooms in 2 days = 4 rooms per day. In 5 days: 4 × 5 = 20 rooms.', standard: '6.RP.3' },
-            // TIER 2: Statistics — median (6.SP.5)
-            { text: 'Find the median of this data set: {14, 18, 22, 25, 31}', options: ['22','25','20','18'], correct: 0, explanation: 'Data is already sorted. The middle value (3rd of 5) is 22. Median is the middle value in a sorted set.', standard: '6.SP.5' },
-            { text: 'Find the median: {3, 7, 9, 12, 15, 20}', options: ['9','10.5','12','11'], correct: 1, explanation: 'Even number of values: average the two middle values. (9 + 12) ÷ 2 = 10.5.', standard: '6.SP.5' },
-            // TIER 2: Volume with fractional dimensions (6.G.2)
-            { text: 'A box has dimensions 3½ feet × 2 feet × 1½ feet. What is its volume?', options: ['7 cubic ft','10½ cubic ft','12 cubic ft','9 cubic ft'], correct: 1, explanation: '3½ × 2 = 7. Then 7 × 1½ = 10½ cubic feet. Convert to fractions: 7/2 × 2 × 3/2 = 21/2 = 10½.', standard: '6.G.2' },
-            { text: 'A rectangular prism measures 2¼ inches × 1½ inches × 2 inches. What is its volume?', options: ['6¾ cubic in','5½ cubic in','5¾ cubic in','7 cubic in'], correct: 0, explanation: '2¼ × 1½ = 9/4 × 3/2 = 27/8 = 3⅜. Then 3⅜ × 2 = 6¾ cubic inches.', standard: '6.G.2' },
-            // Grade-level standards
-            { text: 'What is the value of 3 + 4 × 2?', options: ['14','11','10','7'], correct: 1, explanation: 'Order of operations: multiply first (4 × 2 = 8), then add (3 + 8 = 11).', standard: '6.EE.1' },
-            { text: 'Solve for x: x + 7 = 15', options: ['x = 22','x = 8','x = 7','x = 9'], correct: 1, explanation: 'Subtract 7 from both sides: x = 15 - 7 = 8.', standard: '6.EE.7' }
-        ],
-        science: [
-            { text: 'What is the basic unit of life?', options: ['Atom','Molecule','Cell','Organ'], correct: 2, explanation: 'The cell is the basic structural and functional unit of all living organisms.', standard: 'MS-LS1' },
-            { text: 'Which layer of Earth is the thinnest?', options: ['Inner core','Outer core','Mantle','Crust'], correct: 3, explanation: 'The crust is Earth\'s thinnest layer, averaging 20-30 miles on continents.', standard: 'MS-ESS2' },
-            { text: 'What happens to matter during a physical change?', options: ['New substances form','The composition changes','The form changes but composition stays the same','Atoms are created'], correct: 2, explanation: 'In a physical change, the form or appearance changes but the chemical composition remains the same.', standard: 'MS-PS1' },
-            { text: 'Which is an example of a producer in an ecosystem?', options: ['Lion','Mushroom','Grass','Eagle'], correct: 2, explanation: 'Producers like grass make their own food through photosynthesis.', standard: 'MS-LS2' },
-            { text: 'What is the function of the cell membrane?', options: ['Stores genetic information','Produces energy','Controls what enters and exits the cell','Gives the cell its shape'], correct: 2, explanation: 'The cell membrane is selectively permeable — it controls which substances enter and exit the cell.', standard: 'MS-LS1' },
-            { text: 'In an experiment testing whether music helps plants grow, what is the independent variable?', options: ['The height of the plants','The type of soil','Whether music is playing or not','The amount of water'], correct: 2, explanation: 'The independent variable is what you change on purpose. Here, you control whether music plays.', standard: 'MS-PS2' }
-        ],
-        social_studies: [
-            { text: 'Which ancient civilization built the pyramids at Giza?', options: ['Romans','Greeks','Egyptians','Persians'], correct: 2, explanation: 'The pyramids at Giza were built by ancient Egyptians as tombs for pharaohs.', standard: 'WH.6.1' },
-            { text: 'What is the term for a system where people trade goods directly without money?', options: ['Capitalism','Barter','Socialism','Credit'], correct: 1, explanation: 'Bartering is the direct exchange of goods or services without using money.', standard: 'ECON.6.1' },
-            { text: 'What type of government is ruled by a single king or queen?', options: ['Democracy','Republic','Monarchy','Oligarchy'], correct: 2, explanation: 'A monarchy is a government headed by a king or queen.', standard: 'CIV.6.1' },
-            { text: 'Which geographic feature would most help a civilization develop agriculture?', options: ['Desert','Mountain peak','River valley','Dense forest'], correct: 2, explanation: 'River valleys provide fertile soil and water for irrigation, supporting agriculture.', standard: 'GEO.6.1' },
-            { text: 'When demand for a product increases but supply stays the same, what happens to the price?', options: ['Price decreases','Price stays the same','Price increases','Price becomes zero'], correct: 2, explanation: 'When more people want something but the supply hasn\'t changed, sellers can charge more — price increases.', standard: 'ECON.6.2' },
-            { text: 'What was the main purpose of the Silk Road in ancient times?', options: ['Military conquest','Trade between East and West','Religious pilgrimage','Exploration of new lands'], correct: 1, explanation: 'The Silk Road was a network of trade routes connecting China and the Mediterranean for exchanging goods, ideas, and culture.', standard: 'WH.6.2' }
-        ]
-    };
-
-    // ═══════════════════════════════════════════════════════════
     // INITIALIZATION
     // ═══════════════════════════════════════════════════════════
     document.addEventListener('DOMContentLoaded', () => {
         initPhaseBar();
         showScreen('loadingScreen');
-        startTimer();
         document.getElementById('backBtn').addEventListener('click', () => {
             document.getElementById('exitModal').classList.add('show');
         });
-        // Load weakness profile then start session
-        loadWeaknessProfile().then(() => {
-            setTimeout(() => startPhase(0), 1200);
-        });
+        // Call startSession with 90s timeout, then begin
+        initSession();
     });
+
+    async function initSession() {
+        var data = await aiGet('startSession', {
+            student: CONFIG.studentLower,
+            grade: CONFIG.grade,
+            mode: CONFIG.mode,
+            sessionId: SESSION_ID,
+            isWednesday: IS_WEDNESDAY ? 'true' : 'false'
+        }, 90000);
+
+        if (data && data.phases) {
+            sessionData = data.phases;
+        }
+
+        // Now start the timer — session begins after content loads
+        sessionStartTime = Date.now();
+        startTimer();
+        startPhase(0);
+    }
 
     function initPhaseBar() {
         const bar = document.getElementById('phaseBar');
@@ -515,7 +439,7 @@
     }
 
     // ═══════════════════════════════════════════════════════════
-    // AI CONTENT HELPER (GET-based — proven to work with Apps Script CORS)
+    // AI CONTENT HELPER (GET-based)
     // ═══════════════════════════════════════════════════════════
     async function aiGet(action, params, timeoutMs) {
         timeoutMs = timeoutMs || 20000;
@@ -528,51 +452,20 @@
                 url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(Array.isArray(v) ? v.join(',') : String(v));
             }
         }
-        // Try up to 2 attempts (retry once on 503 / network error)
         for (var attempt = 0; attempt < 2; attempt++) {
             try {
                 var resp = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
                 if (resp.ok) return await resp.json();
-                if (resp.status === 503 && attempt === 0) { continue; } // retry once on 503
-            } catch (e) { /* timeout or network error */ }
-            if (attempt === 0 && timeoutMs >= 30000) continue; // retry long calls
+                if (resp.status === 503 && attempt === 0) { continue; }
+            } catch (e) {}
+            if (attempt === 0 && timeoutMs >= 30000) continue;
             break;
         }
         return null;
     }
 
     // ═══════════════════════════════════════════════════════════
-    // WEAKNESS PROFILE
-    // ═══════════════════════════════════════════════════════════
-    async function loadWeaknessProfile() {
-        var data = await aiGet('getWeaknessProfile', { student: CONFIG.student }, 8000);
-        if (data && !data.error) {
-            weaknessProfile = data;
-        } else {
-            weaknessProfile = { student: CONFIG.student, weaknesses: {}, strengths: {} };
-        }
-    }
-
-    function getTargetStandards(phaseId) {
-        if (weaknessProfile && weaknessProfile.weaknesses && weaknessProfile.weaknesses[phaseId]) {
-            const weak = weaknessProfile.weaknesses[phaseId];
-            if (weak.length > 0) return weak.map(w => w.standard);
-        }
-        // No weaknesses — sample broadly from grade-level standards
-        const all = STANDARDS[phaseId] || [];
-        const shuffled = [...all].sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, 4);
-    }
-
-    function getDifficulty(phaseId) {
-        if (weaknessProfile && weaknessProfile.weaknesses && weaknessProfile.weaknesses[phaseId]) {
-            return weaknessProfile.weaknesses[phaseId].length > 0 ? 'grade-level' : 'challenging';
-        }
-        return 'grade-level';
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // PHASE MANAGEMENT
+    // PHASE MANAGEMENT — reads from pre-loaded sessionData
     // ═══════════════════════════════════════════════════════════
     async function startPhase(index) {
         currentPhaseIndex = index;
@@ -589,6 +482,7 @@
 
         updatePhaseBar(index);
         const phase = PHASES[index];
+        const phaseData = sessionData[phase.id] || {};
 
         // Show content screen
         showScreen('contentScreen');
@@ -598,9 +492,8 @@
 
         // Show weakness callout if targeting
         const callout = document.getElementById('weaknessCallout');
-        if (weaknessProfile && weaknessProfile.weaknesses && weaknessProfile.weaknesses[phase.id] && weaknessProfile.weaknesses[phase.id].length > 0) {
-            const skills = weaknessProfile.weaknesses[phase.id].map(w => w.skill).join(', ');
-            document.getElementById('weaknessText').textContent = 'Focus areas: ' + skills;
+        if (phaseData.weaknesses && phaseData.weaknesses.length > 0) {
+            document.getElementById('weaknessText').textContent = 'Focus areas: ' + phaseData.weaknesses.join(', ');
             callout.style.display = 'block';
         } else {
             callout.style.display = 'none';
@@ -613,64 +506,46 @@
         document.getElementById('writingArea').style.display = 'none';
 
         if (phase.id === 'ela_reading') {
-            await loadELAReading();
+            loadELAReading(phaseData);
         } else if (phase.id === 'ela_language') {
-            await loadELALanguage();
+            loadELALanguage(phaseData);
         } else {
-            await loadSubjectQuestions(phase.id, phase.questionCount);
+            loadSubjectQuestions(phaseData);
         }
     }
 
     // ═══════════════════════════════════════════════════════════
-    // ELA READING PHASE
+    // ELA READING PHASE — uses pre-loaded data
     // ═══════════════════════════════════════════════════════════
-    async function loadELAReading() {
+    function loadELAReading(phaseData) {
         document.getElementById('questionArea').style.display = 'none';
-
-        // Show loading state while AI generates the passage
         document.getElementById('readingArea').style.display = 'block';
-        document.getElementById('readingTitle').textContent = CONFIG.tutor + ' is writing your passage\u2026';
-        document.getElementById('readingContent').innerHTML = '<div style="text-align:center;padding:40px 0;"><div class="loading-spinner" style="margin:0 auto 16px;"></div><div style="color:#a89968;font-size:14px;">Generating a fresh passage just for you</div></div>';
-        document.getElementById('wordCount').textContent = '\u2014';
-        document.getElementById('readTime').textContent = '\u2014';
 
         var passage = null;
-        var standards = getTargetStandards('ela_reading');
-
-        // Try AI generation via GET — give Sonnet up to 45s
-        var data = await aiGet('generatePassage', {
-            student: CONFIG.studentLower,
-            standards: standards,
-            difficulty: getDifficulty('ela_reading'),
-            includeEBSR: 'true',
-            mode: CONFIG.mode
-        }, 45000);
-
-        if (data && data.title && data.questions && data.questions.length > 0) {
-            // Map AI response fields to frontend format
+        if (phaseData && phaseData.passage) {
             passage = {
-                title: data.title,
-                passage: data.passage,
-                writingPrompt: data.writingPrompt || null,
-                questions: data.questions.map(function(q) {
+                title: phaseData.passage.title || 'Reading Passage',
+                passage: phaseData.passage.passage || phaseData.passage.text || '',
+                writingPrompt: phaseData.passage.writingPrompt || null,
+                questions: (phaseData.questions || []).map(function(q) {
                     return {
                         text: q.question || q.text,
                         options: (q.options || []).map(function(o) { return o.replace(/^[A-D]\)\s*/, ''); }),
-                        correct: q.correctAnswer !== undefined ? q.correctAnswer : q.correct,
-                        explanation: q.explanation || '',
+                        explanation: '', // server will provide on grading
                         standard: q.standard || '',
                         type: q.type || null,
-                        partA: q.partA || null,
-                        partB: q.partB || null
+                        partA: q.partA ? { text: q.partA.text, options: (q.partA.options || []).map(function(o) { return o.replace(/^[A-D]\)\s*/, ''); }) } : null,
+                        partB: q.partB ? { text: q.partB.text, options: (q.partB.options || []).map(function(o) { return o.replace(/^[A-D]\)\s*/, ''); }) } : null
                     };
                 })
             };
         }
 
-        // Fallback if AI failed
-        if (!passage) {
-            var fb = FALLBACK_PASSAGES[Math.floor(Math.random() * FALLBACK_PASSAGES.length)];
-            passage = fb;
+        if (!passage || !passage.questions || passage.questions.length === 0) {
+            // Fallback: show error state
+            document.getElementById('readingTitle').textContent = 'Session unavailable';
+            document.getElementById('readingContent').innerHTML = '<p style="text-align:center;color:#c44536;">Could not load session content. Please return to the dashboard and try again.</p>';
+            return;
         }
 
         currentPassage = passage;
@@ -692,72 +567,34 @@
     }
 
     // ═══════════════════════════════════════════════════════════
-    // ELA LANGUAGE PHASE
+    // ELA LANGUAGE PHASE — uses pre-loaded data
     // ═══════════════════════════════════════════════════════════
-    async function loadELALanguage() {
-        var standards = getTargetStandards('ela_language');
-        var count = IS_WEDNESDAY ? 3 : 5;
+    function loadELALanguage(phaseData) {
         currentQuestions = [];
 
-        // Try AI generation via GET
-        var data = await aiGet('generateContent', {
-            student: CONFIG.student,
-            grade: CONFIG.grade,
-            subject: 'ela_language',
-            standards: standards,
-            difficulty: getDifficulty('ela_language'),
-            mode: CONFIG.mode,
-            count: count
-        });
-
-        if (data && data.questions && data.questions.length > 0) {
-            currentQuestions = data.questions;
+        if (phaseData && phaseData.questions && phaseData.questions.length > 0) {
+            currentQuestions = phaseData.questions.map(function(q) {
+                return {
+                    text: q.question || q.text,
+                    options: (q.options || []).map(function(o) { return o.replace(/^[A-D]\)\s*/, ''); }),
+                    explanation: '',
+                    standard: q.standard || '',
+                    type: q.type || null,
+                    partA: q.partA ? { text: q.partA.text, options: (q.partA.options || []).map(function(o) { return o.replace(/^[A-D]\)\s*/, ''); }) } : null,
+                    partB: q.partB ? { text: q.partB.text, options: (q.partB.options || []).map(function(o) { return o.replace(/^[A-D]\)\s*/, ''); }) } : null
+                };
+            });
         }
 
-        // Fallback
+        // Store writing prompt from passage if available
+        if (phaseData && phaseData.writingPrompt) {
+            if (!currentPassage) currentPassage = {};
+            currentPassage.writingPrompt = phaseData.writingPrompt;
+        }
+
         if (currentQuestions.length === 0) {
-            var fb = FALLBACK_QUESTIONS.ela_language.slice();
-            for (var i = fb.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = fb[i]; fb[i] = fb[j]; fb[j] = t; }
-            currentQuestions = fb.slice(0, count);
-        }
-
-        if (IS_WEDNESDAY && currentPassage && currentPassage.writingPrompt) {
-            // Show questions first, then writing prompt after
-            document.getElementById('questionArea').style.display = 'block';
-            displayQuestion(0);
-        } else {
-            document.getElementById('questionArea').style.display = 'block';
-            displayQuestion(0);
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // GENERIC SUBJECT QUESTIONS (Math, Science, SS)
-    // ═══════════════════════════════════════════════════════════
-    async function loadSubjectQuestions(subjectId, count) {
-        var standards = getTargetStandards(subjectId);
-        currentQuestions = [];
-
-        // Try AI generation via GET
-        var data = await aiGet('generateContent', {
-            student: CONFIG.student,
-            grade: CONFIG.grade,
-            subject: subjectId,
-            standards: standards,
-            difficulty: getDifficulty(subjectId),
-            mode: CONFIG.mode,
-            count: count
-        });
-
-        if (data && data.questions && data.questions.length > 0) {
-            currentQuestions = data.questions;
-        }
-
-        // Fallback
-        if (currentQuestions.length === 0) {
-            var fb = (FALLBACK_QUESTIONS[subjectId] || []).slice();
-            for (var i = fb.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = fb[i]; fb[i] = fb[j]; fb[j] = t; }
-            currentQuestions = fb.slice(0, count);
+            completePhase();
+            return;
         }
 
         document.getElementById('questionArea').style.display = 'block';
@@ -765,16 +602,46 @@
     }
 
     // ═══════════════════════════════════════════════════════════
-    // QUESTION DISPLAY & ANSWERING
+    // GENERIC SUBJECT QUESTIONS — uses pre-loaded data
     // ═══════════════════════════════════════════════════════════
-    // EBSR state tracking
+    function loadSubjectQuestions(phaseData) {
+        currentQuestions = [];
+
+        if (phaseData && phaseData.questions && phaseData.questions.length > 0) {
+            currentQuestions = phaseData.questions.map(function(q) {
+                return {
+                    text: q.question || q.text,
+                    options: (q.options || []).map(function(o) { return o.replace(/^[A-D]\)\s*/, ''); }),
+                    explanation: '',
+                    standard: q.standard || '',
+                    type: q.type || null,
+                    partA: q.partA ? { text: q.partA.text, options: (q.partA.options || []).map(function(o) { return o.replace(/^[A-D]\)\s*/, ''); }) } : null,
+                    partB: q.partB ? { text: q.partB.text, options: (q.partB.options || []).map(function(o) { return o.replace(/^[A-D]\)\s*/, ''); }) } : null
+                };
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            completePhase();
+            return;
+        }
+
+        document.getElementById('questionArea').style.display = 'block';
+        displayQuestion(0);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // QUESTION DISPLAY & SERVER-SIDE GRADING
+    // ═══════════════════════════════════════════════════════════
     let ebsrPartAAnswer = null;
+    let gradingInProgress = false;
 
     function displayQuestion(index) {
         currentQuestionIndex = index;
         const q = currentQuestions[index];
         if (!q) return;
         ebsrPartAAnswer = null;
+        gradingInProgress = false;
 
         document.getElementById('questionNumber').textContent = 'Question ' + (index + 1) + ' of ' + currentQuestions.length;
 
@@ -785,7 +652,7 @@
             document.getElementById('standardTag').style.display = 'none';
         }
 
-        // Handle EBSR (Evidence-Based Selected Response) questions
+        // Handle EBSR questions
         if (q.type === 'ebsr' && q.partA && q.partB) {
             document.getElementById('questionText').innerHTML = '<div style="font-size:11px;color:#5ca4e8;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Part A</div>' + q.partA.text;
             renderOptions(q.partA.options, (i) => selectEBSRPartA(i));
@@ -812,27 +679,58 @@
         });
     }
 
-    function selectEBSRPartA(index) {
+    // ═══════════════════════════════════════════════════════════
+    // EBSR — server-side grading for Part A and Part B
+    // ═══════════════════════════════════════════════════════════
+    async function selectEBSRPartA(index) {
         const q = currentQuestions[currentQuestionIndex];
-        if (ebsrPartAAnswer !== null) return;
+        if (ebsrPartAAnswer !== null || gradingInProgress) return;
+        gradingInProgress = true;
         ebsrPartAAnswer = index;
 
+        // Show "Checking..." state
         const options = document.querySelectorAll('#optionsList .option');
-        const isCorrect = index === q.partA.correct;
         options.forEach((opt, i) => {
             opt.classList.add('disabled');
-            if (i === q.partA.correct) opt.classList.add('correct');
-            if (i === index && i !== q.partA.correct) opt.classList.add('incorrect');
-            if (i === index) opt.classList.add('selected');
+            if (i === index) { opt.classList.add('selected', 'checking'); }
         });
 
-        // Show Part A feedback briefly, then transition to Part B
         const fb = document.getElementById('feedbackBox');
-        fb.className = 'feedback-box show ' + (isCorrect ? 'correct' : 'incorrect');
+        fb.className = 'feedback-box show';
         fb.style.display = 'block';
+        document.getElementById('feedbackLabel').textContent = 'Checking...';
+        document.getElementById('feedbackText').textContent = '';
+
+        // Grade Part A via server
+        var result = await aiGet('gradeAnswer', {
+            sessionId: SESSION_ID,
+            phaseId: PHASES[currentPhaseIndex].id,
+            questionIndex: currentQuestionIndex,
+            answer: index,
+            part: 'A'
+        }, 15000);
+
+        var isCorrect = false;
+        var correctIndex = -1;
+        if (result && result.correct !== undefined) {
+            isCorrect = result.correct;
+            correctIndex = result.correctAnswer !== undefined ? result.correctAnswer : -1;
+        }
+
+        // Reveal Part A result
+        options.forEach((opt, i) => {
+            opt.classList.remove('checking');
+            if (correctIndex >= 0 && i === correctIndex) opt.classList.add('correct');
+            if (i === index && !isCorrect) opt.classList.add('incorrect');
+        });
+
+        fb.className = 'feedback-box show ' + (isCorrect ? 'correct' : 'incorrect');
         document.getElementById('feedbackLabel').textContent = isCorrect ? '✓ Part A Correct' : '✗ Part A Incorrect';
         document.getElementById('feedbackText').textContent = 'Now answer Part B...';
 
+        gradingInProgress = false;
+
+        // Transition to Part B
         setTimeout(() => {
             fb.style.display = 'none';
             document.getElementById('questionText').innerHTML = '<div style="font-size:11px;color:#5ca4e8;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Part B</div>' + q.partB.text;
@@ -840,57 +738,117 @@
         }, 1500);
     }
 
-    function selectEBSRPartB(index) {
+    async function selectEBSRPartB(index) {
         const q = currentQuestions[currentQuestionIndex];
-        if (currentAnswers[currentQuestionIndex] !== undefined) return;
+        if (currentAnswers[currentQuestionIndex] !== undefined || gradingInProgress) return;
+        gradingInProgress = true;
 
-        const partACorrect = ebsrPartAAnswer === q.partA.correct;
-        const partBCorrect = index === q.partB.correct;
-
-        // Scoring: 2 pts both correct, 1 pt Part A only, 0 otherwise
-        let score = 0;
-        if (partACorrect && partBCorrect) score = 2;
-        else if (partACorrect) score = 1;
-        currentAnswers[currentQuestionIndex] = { partA: ebsrPartAAnswer, partB: index, score, isEBSR: true };
-
+        // Show "Checking..." state
         const options = document.querySelectorAll('#optionsList .option');
         options.forEach((opt, i) => {
             opt.classList.add('disabled');
-            if (i === q.partB.correct) opt.classList.add('correct');
-            if (i === index && i !== q.partB.correct) opt.classList.add('incorrect');
-            if (i === index) opt.classList.add('selected');
+            if (i === index) { opt.classList.add('selected', 'checking'); }
         });
 
         const fb = document.getElementById('feedbackBox');
+        fb.className = 'feedback-box show';
+        fb.style.display = 'block';
+        document.getElementById('feedbackLabel').textContent = 'Checking...';
+        document.getElementById('feedbackText').textContent = '';
+
+        // Grade Part B via server (send both parts)
+        var result = await aiGet('gradeAnswer', {
+            sessionId: SESSION_ID,
+            phaseId: PHASES[currentPhaseIndex].id,
+            questionIndex: currentQuestionIndex,
+            answer: index,
+            partAAnswer: ebsrPartAAnswer,
+            part: 'B'
+        }, 15000);
+
+        var partBCorrect = false;
+        var partACorrect = false;
+        var correctIndex = -1;
+        var explanation = '';
+        var score = 0;
+        if (result) {
+            partBCorrect = !!result.correct;
+            partACorrect = !!result.partACorrect;
+            correctIndex = result.correctAnswer !== undefined ? result.correctAnswer : -1;
+            explanation = result.explanation || '';
+            score = result.score !== undefined ? result.score : (partACorrect && partBCorrect ? 2 : partACorrect ? 1 : 0);
+        }
+
+        currentAnswers[currentQuestionIndex] = { partA: ebsrPartAAnswer, partB: index, score: score, isEBSR: true };
+
+        // Reveal Part B result
+        options.forEach((opt, i) => {
+            opt.classList.remove('checking');
+            if (correctIndex >= 0 && i === correctIndex) opt.classList.add('correct');
+            if (i === index && !partBCorrect) opt.classList.add('incorrect');
+        });
+
         const overallCorrect = partACorrect && partBCorrect;
         fb.className = 'feedback-box show ' + (overallCorrect ? 'correct' : 'incorrect');
-        fb.style.display = 'block';
         document.getElementById('feedbackLabel').textContent = overallCorrect ? '✓ Both Parts Correct (2/2)' : partACorrect ? '◐ Part A Correct (1/2)' : '✗ Incorrect (0/2)';
-        document.getElementById('feedbackText').textContent = q.explanation || '';
+        document.getElementById('feedbackText').textContent = explanation;
 
+        gradingInProgress = false;
         showNextButton();
     }
 
-    function selectAnswer(index) {
+    // ═══════════════════════════════════════════════════════════
+    // STANDARD ANSWER — server-side grading
+    // ═══════════════════════════════════════════════════════════
+    async function selectAnswer(index) {
         const q = currentQuestions[currentQuestionIndex];
-        if (currentAnswers[currentQuestionIndex] !== undefined) return;
+        if (currentAnswers[currentQuestionIndex] !== undefined || gradingInProgress) return;
+        gradingInProgress = true;
 
-        currentAnswers[currentQuestionIndex] = index;
+        // Show "Checking..." state
         const options = document.querySelectorAll('#optionsList .option');
         options.forEach((opt, i) => {
             opt.classList.add('disabled');
-            if (i === q.correct) opt.classList.add('correct');
-            if (i === index && i !== q.correct) opt.classList.add('incorrect');
-            if (i === index) opt.classList.add('selected');
+            if (i === index) { opt.classList.add('selected', 'checking'); }
         });
 
         const fb = document.getElementById('feedbackBox');
-        const isCorrect = index === q.correct;
-        fb.className = 'feedback-box show ' + (isCorrect ? 'correct' : 'incorrect');
+        fb.className = 'feedback-box show';
         fb.style.display = 'block';
-        document.getElementById('feedbackLabel').textContent = isCorrect ? '✓ Correct' : '✗ Incorrect';
-        document.getElementById('feedbackText').textContent = q.explanation || '';
+        document.getElementById('feedbackLabel').textContent = 'Checking...';
+        document.getElementById('feedbackText').textContent = '';
 
+        // Grade via server
+        var result = await aiGet('gradeAnswer', {
+            sessionId: SESSION_ID,
+            phaseId: PHASES[currentPhaseIndex].id,
+            questionIndex: currentQuestionIndex,
+            answer: index
+        }, 15000);
+
+        var isCorrect = false;
+        var correctIndex = -1;
+        var explanation = '';
+        if (result) {
+            isCorrect = !!result.correct;
+            correctIndex = result.correctAnswer !== undefined ? result.correctAnswer : -1;
+            explanation = result.explanation || '';
+        }
+
+        currentAnswers[currentQuestionIndex] = { selected: index, correct: isCorrect };
+
+        // Reveal result
+        options.forEach((opt, i) => {
+            opt.classList.remove('checking');
+            if (correctIndex >= 0 && i === correctIndex) opt.classList.add('correct');
+            if (i === index && !isCorrect) opt.classList.add('incorrect');
+        });
+
+        fb.className = 'feedback-box show ' + (isCorrect ? 'correct' : 'incorrect');
+        document.getElementById('feedbackLabel').textContent = isCorrect ? '✓ Correct' : '✗ Incorrect';
+        document.getElementById('feedbackText').textContent = explanation;
+
+        gradingInProgress = false;
         showNextButton();
     }
 
@@ -916,7 +874,6 @@
         const showWritingAfter = phase.id === 'ela_language' && IS_WEDNESDAY && currentPassage && currentPassage.writingPrompt;
 
         if (isLast && showWritingAfter) {
-            // Switch to writing area
             document.getElementById('questionArea').style.display = 'none';
             document.getElementById('passageReviewArea').style.display = 'none';
             showWritingPhase();
@@ -966,9 +923,9 @@
     // ═══════════════════════════════════════════════════════════
     function completePhase() {
         const phase = PHASES[currentPhaseIndex];
-        const correct = Object.values(currentAnswers).filter((a, i) => {
-            if (a && a.isEBSR) return a.score === 2;  // EBSR: only full credit counts as "correct"
-            return a === currentQuestions[i].correct;
+        const correct = Object.values(currentAnswers).filter(a => {
+            if (a && a.isEBSR) return a.score === 2;
+            return a && a.correct;
         }).length;
         const total = currentQuestions.length;
         const pct = total > 0 ? Math.round(correct / total * 100) : 0;
@@ -999,23 +956,63 @@
     }
 
     // ═══════════════════════════════════════════════════════════
-    // SESSION COMPLETE
+    // SESSION COMPLETE — server-side finalization
     // ═══════════════════════════════════════════════════════════
-    function finishSession() {
+    async function finishSession() {
         clearInterval(timerInterval);
-        updatePhaseBar(PHASES.length);  // All completed
+        updatePhaseBar(PHASES.length);
 
-        const totalTime = Math.round((Date.now() - sessionStartTime) / 60000);
+        const totalTimeMs = Date.now() - sessionStartTime;
+        const totalTimeMin = Math.round(totalTimeMs / 60000);
+        const tooShort = totalTimeMin < MIN_SESSION_MINUTES;
+
+        // Build phase summary for server
+        const phaseSummary = {};
+        PHASES.forEach(p => {
+            if (phaseResults[p.id]) {
+                phaseSummary[p.id] = {
+                    correct: phaseResults[p.id].correct,
+                    total: phaseResults[p.id].total,
+                    pct: phaseResults[p.id].pct,
+                    timeMs: phaseResults[p.id].timeMs
+                };
+            }
+        });
+
+        // Call finalizeSession for server-computed score
+        var serverResult = await aiGet('finalizeSession', {
+            sessionId: SESSION_ID,
+            student: CONFIG.studentLower,
+            durationMs: totalTimeMs,
+            writingCompleted: writingResponse ? 'true' : 'false',
+            phaseSummary: JSON.stringify(phaseSummary)
+        }, 20000);
+
+        // Use server totals if available, fall back to local
         let totalCorrect = 0, totalQuestions = 0;
+        if (serverResult && serverResult.totalCorrect !== undefined) {
+            totalCorrect = serverResult.totalCorrect;
+            totalQuestions = serverResult.totalQuestions;
+        } else {
+            PHASES.forEach(phase => {
+                const result = phaseResults[phase.id];
+                if (result) { totalCorrect += result.correct; totalQuestions += result.total; }
+            });
+        }
+
+        const overallPct = totalQuestions > 0 ? Math.round(totalCorrect / totalQuestions * 100) : 0;
 
         const card = document.getElementById('summaryCard');
         let html = '';
 
+        // Time warning if too short
+        if (tooShort) {
+            html += '<div class="time-warning">Session was ' + totalTimeMin + ' minutes — minimum is ' + MIN_SESSION_MINUTES + ' minutes. This session may not count for credit.</div>';
+        }
+
         PHASES.forEach(phase => {
             const result = phaseResults[phase.id];
             if (!result) return;
-            totalCorrect += result.correct;
-            totalQuestions += result.total;
             const pct = result.pct;
             const cls = pct >= 80 ? 'good' : pct >= 60 ? 'ok' : 'weak';
             const timeMin = Math.round(result.timeMs / 60000);
@@ -1030,18 +1027,17 @@
             html += '<div class="summary-item"><span class="summary-icon">✍️</span><span class="summary-label">Writing Response</span><span class="summary-value good">Submitted</span></div>';
         }
 
-        const overallPct = totalQuestions > 0 ? Math.round(totalCorrect / totalQuestions * 100) : 0;
         html += '<div style="margin-top:12px; text-align:center; padding:12px; background:rgba(201,168,76,0.1); border:1px solid #c9a84c; border-radius:8px;">';
         html += '<div style="font-size:12px; color:#a89968; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Overall</div>';
         html += '<div style="font-size:28px; color:#c9a84c; font-weight:700;">' + totalCorrect + '/' + totalQuestions + '</div>';
-        html += '<div style="font-size:14px; color:#a89968;">' + overallPct + '% correct &middot; ' + totalTime + ' minutes</div>';
+        html += '<div style="font-size:14px; color:#a89968;">' + overallPct + '% correct &middot; ' + totalTimeMin + ' minutes</div>';
         html += '</div>';
 
         card.innerHTML = html;
         showScreen('summaryScreen');
 
-        saveSession(totalCorrect, totalQuestions, totalTime, overallPct);
-        syncSession(totalCorrect, totalQuestions, totalTime, overallPct);
+        saveSession(totalCorrect, totalQuestions, totalTimeMin, overallPct);
+        syncSession(totalCorrect, totalQuestions, totalTimeMin, overallPct);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -1052,6 +1048,7 @@
             completed: true,
             date: TODAY,
             timestamp: new Date().toISOString(),
+            sessionId: SESSION_ID,
             correct, total, pct, duration,
             phases: {},
             writingCompleted: !!writingResponse,
@@ -1089,6 +1086,7 @@
                     action: 'saveSession',
                     student: CONFIG.student,
                     date: TODAY,
+                    sessionId: SESSION_ID,
                     topic: PHASES.map(p => p.name).join('; '),
                     questionsCorrect: correct,
                     questionsTotal: total,
@@ -1122,7 +1120,7 @@
     }
 
     // ═══════════════════════════════════════════════════════════
-    // BONUS PRACTICE ("The Crucible")
+    // BONUS PRACTICE ("The Crucible") — fetches from API
     // ═══════════════════════════════════════════════════════════
     const BONUS_KEY = CONFIG.studentLower + '_bonus_practice';
     let bonusQuestions = [];
@@ -1132,47 +1130,49 @@
     let bonusStartTime = null;
 
     function getBonusWeakSubjects() {
-        // Collect subjects where score was below 80% in this session, or from weakness profile
         const weakSubjects = [];
         PHASES.forEach(p => {
             const r = phaseResults[p.id];
             if (r && r.pct < 80) weakSubjects.push(p.id);
         });
         if (weakSubjects.length === 0) {
-            // No session weaknesses — use diagnostic weakness profile or all subjects
-            if (weaknessProfile && weaknessProfile.weaknesses) {
-                Object.keys(weaknessProfile.weaknesses).forEach(s => {
-                    if (weaknessProfile.weaknesses[s].length > 0) weakSubjects.push(s);
-                });
-            }
+            // Use all subjects
+            return PHASES.map(p => p.id);
         }
-        // If still nothing, practice all subjects
-        return weakSubjects.length > 0 ? weakSubjects : PHASES.map(p => p.id);
+        return weakSubjects;
     }
 
-    function buildBonusQuestionPool() {
+    async function buildBonusQuestionPool() {
         const weakSubjects = getBonusWeakSubjects();
-        const pool = [];
-        weakSubjects.forEach(subId => {
-            const fb = FALLBACK_QUESTIONS[subId] || [];
-            fb.forEach(q => pool.push({ ...q, subject: subId }));
-        });
-        // Also add ELA reading questions from fallback passages
-        if (weakSubjects.includes('ela_reading')) {
-            FALLBACK_PASSAGES.forEach(p => {
-                p.questions.forEach(q => pool.push({ ...q, subject: 'ela_reading' }));
+
+        // Try to fetch bonus questions from API
+        var data = await aiGet('getBonusQuestions', {
+            student: CONFIG.studentLower,
+            grade: CONFIG.grade,
+            subjects: weakSubjects,
+            sessionId: SESSION_ID,
+            count: 20
+        }, 30000);
+
+        if (data && data.questions && data.questions.length > 0) {
+            return data.questions.map(function(q) {
+                return {
+                    text: q.question || q.text,
+                    options: (q.options || []).map(function(o) { return o.replace(/^[A-D]\)\s*/, ''); }),
+                    correct: q.correctAnswer !== undefined ? q.correctAnswer : q.correct,
+                    explanation: q.explanation || '',
+                    standard: q.standard || '',
+                    subject: q.subject || ''
+                };
             });
         }
-        // Shuffle
-        for (let i = pool.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [pool[i], pool[j]] = [pool[j], pool[i]];
-        }
-        return pool;
+
+        // If API fails, return empty — bonus practice unavailable
+        return [];
     }
 
-    function startBonusPractice() {
-        bonusQuestions = buildBonusQuestionPool();
+    async function startBonusPractice() {
+        bonusQuestions = await buildBonusQuestionPool();
         bonusQuestionIndex = 0;
         bonusAnswered = 0;
         bonusCorrectCount = 0;
@@ -1180,14 +1180,29 @@
         document.getElementById('bonusCount').textContent = '0';
         document.getElementById('bonusCorrect').textContent = '0';
         showScreen('bonusScreen');
+
+        if (bonusQuestions.length === 0) {
+            document.getElementById('bonusQuestionText').textContent = 'Bonus questions are not available right now. Try again later.';
+            document.getElementById('bonusOptionsList').innerHTML = '';
+            return;
+        }
+
         displayBonusQuestion();
     }
 
     function displayBonusQuestion() {
         if (bonusQuestionIndex >= bonusQuestions.length) {
-            // Reshuffle and loop
-            bonusQuestions = buildBonusQuestionPool();
-            bonusQuestionIndex = 0;
+            // Try to fetch more; if can't, finish
+            buildBonusQuestionPool().then(pool => {
+                if (pool.length > 0) {
+                    bonusQuestions = pool;
+                    bonusQuestionIndex = 0;
+                    displayBonusQuestion();
+                } else {
+                    finishBonusPractice();
+                }
+            });
+            return;
         }
         const q = bonusQuestions[bonusQuestionIndex];
         if (!q) { finishBonusPractice(); return; }
@@ -1222,6 +1237,7 @@
         if (options[0] && options[0].classList.contains('disabled')) return;
 
         bonusAnswered++;
+        // Bonus questions still have correct index from API (getBonusQuestions provides answers for bonus)
         const isCorrect = index === q.correct;
         if (isCorrect) bonusCorrectCount++;
 
@@ -1251,14 +1267,11 @@
 
     function finishBonusPractice() {
         const duration = Math.round((Date.now() - (bonusStartTime || Date.now())) / 60000);
-        // Save bonus data
         saveBonusPractice(bonusAnswered, bonusCorrectCount, duration);
-        // Return to summary or dashboard
         window.location.href = CONFIG.dashboardUrl;
     }
 
     function saveBonusPractice(answered, correct, duration) {
-        // Accumulate in localStorage
         try {
             const existing = JSON.parse(localStorage.getItem(BONUS_KEY) || '{}');
             if (!existing[TODAY]) existing[TODAY] = { answered: 0, correct: 0, duration: 0, sessions: 0 };
@@ -1269,13 +1282,11 @@
             existing[TODAY].timestamp = new Date().toISOString();
             localStorage.setItem(BONUS_KEY, JSON.stringify(existing));
 
-            // Signal for dashboard
             localStorage.setItem(CONFIG.studentLower + '_bonus_signal', JSON.stringify({
                 date: TODAY, answered: existing[TODAY].answered, correct: existing[TODAY].correct
             }));
         } catch (e) {}
 
-        // Sync to backend
         try {
             fetch(APPS_SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
@@ -1301,7 +1312,6 @@
                 }));
             } catch (e) {}
         }
-        // Save any in-progress bonus work
         if (bonusAnswered > 0 && bonusStartTime) {
             saveBonusPractice(bonusAnswered, bonusCorrectCount, Math.round((Date.now() - bonusStartTime) / 60000));
         }
