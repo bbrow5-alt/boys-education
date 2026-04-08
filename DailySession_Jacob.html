@@ -704,10 +704,9 @@
         // Grade Part A via server
         var result = await aiGet('gradeAnswer', {
             sessionId: SESSION_ID,
-            phaseId: PHASES[currentPhaseIndex].id,
+            phase: PHASES[currentPhaseIndex].id,
             questionIndex: currentQuestionIndex,
-            answer: index,
-            part: 'A'
+            answer: 'partA:' + index
         }, 15000);
 
         var isCorrect = false;
@@ -756,14 +755,12 @@
         document.getElementById('feedbackLabel').textContent = 'Checking...';
         document.getElementById('feedbackText').textContent = '';
 
-        // Grade Part B via server (send both parts)
+        // Grade Part B via server
         var result = await aiGet('gradeAnswer', {
             sessionId: SESSION_ID,
-            phaseId: PHASES[currentPhaseIndex].id,
+            phase: PHASES[currentPhaseIndex].id,
             questionIndex: currentQuestionIndex,
-            answer: index,
-            partAAnswer: ebsrPartAAnswer,
-            part: 'B'
+            answer: 'partB:' + index
         }, 15000);
 
         var partBCorrect = false;
@@ -821,7 +818,7 @@
         // Grade via server
         var result = await aiGet('gradeAnswer', {
             sessionId: SESSION_ID,
-            phaseId: PHASES[currentPhaseIndex].id,
+            phase: PHASES[currentPhaseIndex].id,
             questionIndex: currentQuestionIndex,
             answer: index
         }, 15000);
