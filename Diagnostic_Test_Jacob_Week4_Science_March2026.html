@@ -487,6 +487,58 @@
     </div>
 
     <script>
+
+    // ============================================================
+    // ANTI-CHEAT — DO NOT REMOVE
+    // ============================================================
+    (function() {
+        // Block right-click context menu
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+        // Block keyboard shortcuts to open DevTools / view source
+        document.addEventListener('keydown', function(e) {
+            const blocked = (
+                e.keyCode === 123 ||                                      // F12
+                (e.ctrlKey && e.shiftKey && e.keyCode === 73) ||          // Ctrl+Shift+I
+                (e.ctrlKey && e.shiftKey && e.keyCode === 74) ||          // Ctrl+Shift+J
+                (e.ctrlKey && e.shiftKey && e.keyCode === 67) ||          // Ctrl+Shift+C
+                (e.ctrlKey && e.keyCode === 85) ||                        // Ctrl+U (view source)
+                (e.metaKey && e.altKey && e.keyCode === 73)               // Cmd+Opt+I (Mac)
+            );
+            if (blocked) { e.preventDefault(); e.stopPropagation(); return false; }
+        }, true);
+
+        // DevTools size detection — if open, overlay the page
+        var _devOpen = false;
+        setInterval(function() {
+            var widthDiff  = window.outerWidth  - window.innerWidth  > 160;
+            var heightDiff = window.outerHeight - window.innerHeight > 160;
+            if ((widthDiff || heightDiff) && !_devOpen) {
+                _devOpen = true;
+                var overlay = document.createElement('div');
+                overlay.id  = '_ac_overlay';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;' +
+                    'background:#0a0f1a;z-index:999999;display:flex;align-items:center;' +
+                    'justify-content:center;flex-direction:column;';
+                overlay.innerHTML = '<div style="font-size:48px;">⚠️</div>' +
+                    '<div style="color:#ff4444;font-size:22px;font-weight:700;margin:16px 0;">Browser tools detected.</div>' +
+                    '<div style="color:#aaa;font-size:15px;">Close DevTools and refresh the page to continue.</div>';
+                document.body.appendChild(overlay);
+            } else if (!widthDiff && !heightDiff && _devOpen) {
+                _devOpen = false;
+                var el = document.getElementById('_ac_overlay');
+                if (el) el.remove();
+            }
+        }, 800);
+    })();
+    // ============================================================
+
+    // Correct answers — XOR-encoded (key=17). Do not modify.
+    var _ac = (function(){
+        var k=17, e=[17,16,16,19,17,16,16,16,16,16,16,17,16,16,16,16,19,16,17,16,16,16,16,16,16,18,16,17,16,16,16,16,19,16,16,16,16,16,17,16,16,16,16,19,16,16];
+        return e.map(function(v){return v^k;});
+    })();
+
         const CONFIG = {
             student: "Jacob",
             grade: 6,
@@ -521,120 +573,101 @@
             {
                 sec: "phys", std: "6-PS-1", skill: "understand_forces", diff: "baseline",
                 type: "mc", text: "A book sitting on a table is not moving. Which statement best describes the forces on the book?",
-                opts: ["Gravity is pulling down, and the table is pushing up with equal force", "Gravity is pulling the book down with more force than the table pushes up", "The table is pushing up with more force than gravity pulls down", "There are no forces acting on the book"],
-                cor: 0, exp: "When an object is at rest, the forces are balanced. Gravity pulls down, and the normal force from the table pushes up with equal magnitude, resulting in no net force and no acceleration.", str: "Look for 'balanced forces' or 'equal and opposite forces' when an object is not moving or moving at constant speed."
+                opts: ["Gravity is pulling down, and the table is pushing up with equal force", "Gravity is pulling the book down with more force than the table pushes up", "The table is pushing up with more force than gravity pulls down", "There are no forces acting on the book"], str: "Look for 'balanced forces' or 'equal and opposite forces' when an object is not moving or moving at constant speed."
             },
             {
                 sec: "phys", std: "6-PS-2", skill: "identify_energy_forms", diff: "baseline",
                 type: "mc", text: "A roller skater is gliding across a smooth floor without pushing. What type of energy does the skater primarily have?",
-                opts: ["Potential energy only", "Kinetic energy only", "Gravitational energy only", "Chemical energy only"],
-                cor: 1, exp: "Kinetic energy is energy of motion. Since the skater is moving, kinetic energy is the primary form. Potential energy would increase if the skater went uphill.", str: "Kinetic = moving, Potential = stored or at height. Which applies to the situation?"
+                opts: ["Potential energy only", "Kinetic energy only", "Gravitational energy only", "Chemical energy only"], str: "Kinetic = moving, Potential = stored or at height. Which applies to the situation?"
             },
             {
                 sec: "phys", std: "6-PS-3", skill: "wave_properties", diff: "baseline",
                 type: "mc", text: "A student plucks a guitar string and hears a sound. Which best explains how the sound reaches the student's ear?",
-                opts: ["Light travels from the string to the ear", "Vibrations create waves that travel through the air", "Heat energy moves from the string to the ear", "The string physically moves through the air"],
-                cor: 1, exp: "Sound is created by vibrations. These vibrations cause nearby air molecules to vibrate, creating sound waves that travel through the air to our ears.", str: "Sound requires a medium (usually air) to travel. Vibrations and waves are key to understanding sound."
+                opts: ["Light travels from the string to the ear", "Vibrations create waves that travel through the air", "Heat energy moves from the string to the ear", "The string physically moves through the air"], str: "Sound requires a medium (usually air) to travel. Vibrations and waves are key to understanding sound."
             },
             {
                 sec: "phys", std: "6-PS-4", skill: "matter_states", diff: "baseline",
                 type: "mc", text: "Ice melts into water when heated. What is this process called?",
-                opts: ["Evaporation", "Condensation", "Melting", "Sublimation"],
-                cor: 2, exp: "Melting is the phase change from solid to liquid when heat is added. Evaporation is liquid to gas, condensation is gas to liquid, and sublimation is solid directly to gas.", str: "Solid → Liquid = Melting. Liquid → Gas = Evaporation. Gas → Liquid = Condensation."
+                opts: ["Evaporation", "Condensation", "Melting", "Sublimation"], str: "Solid → Liquid = Melting. Liquid → Gas = Evaporation. Gas → Liquid = Condensation."
             },
             {
                 sec: "phys", std: "6-PS-5", skill: "simple_machines", diff: "baseline",
                 type: "mc", text: "A lever can help you lift a heavy rock. How does a lever make this task easier?",
-                opts: ["It reduces the amount of force you need to apply", "It eliminates the force of gravity", "It changes the direction of your push but doesn't reduce force", "Levers only work for very light objects"],
-                cor: 0, exp: "A lever is a simple machine that provides mechanical advantage. By using a fulcrum, it reduces the force needed to lift an object, though you may need to move your end farther.", str: "Simple machines make work easier by reducing force needed, changing direction, or increasing distance traveled."
+                opts: ["It reduces the amount of force you need to apply", "It eliminates the force of gravity", "It changes the direction of your push but doesn't reduce force", "Levers only work for very light objects"], str: "Simple machines make work easier by reducing force needed, changing direction, or increasing distance traveled."
             },
 
             // GRADE-LEVEL (7-8 questions)
             {
                 sec: "phys", std: "6-PS-1", skill: "balanced_unbalanced_forces", diff: "grade-level",
                 type: "mc", text: "A soccer ball is kicked and travels across the field. After being kicked, what causes the ball to eventually stop?",
-                opts: ["Gravity stops acting on the ball", "Friction and air resistance are unbalanced forces acting on the ball", "The ball loses all its energy", "Gravity pushes the ball backward"],
-                cor: 1, exp: "Once kicked, the ball has kinetic energy. Friction (between ball and grass) and air resistance act as unbalanced forces opposing motion, eventually stopping the ball.", str: "Unbalanced forces cause changes in motion. Identify what forces oppose motion: friction and air resistance."
+                opts: ["Gravity stops acting on the ball", "Friction and air resistance are unbalanced forces acting on the ball", "The ball loses all its energy", "Gravity pushes the ball backward"], str: "Unbalanced forces cause changes in motion. Identify what forces oppose motion: friction and air resistance."
             },
             {
                 sec: "phys", std: "6-PS-2", skill: "energy_conservation", diff: "grade-level",
                 type: "mc", text: "A ball is dropped from a height of 10 meters. As it falls, what happens to its energy?",
-                opts: ["Potential energy increases and kinetic energy decreases", "Potential energy decreases and kinetic energy increases", "Total energy stays exactly the same", "Both potential and kinetic energy decrease"],
-                cor: 1, exp: "As an object falls, gravitational potential energy (height-based) converts to kinetic energy (motion). The total mechanical energy decreases slightly due to air resistance.", str: "Energy conservation: PE + KE = constant (ignoring friction). As one increases, the other decreases."
+                opts: ["Potential energy increases and kinetic energy decreases", "Potential energy decreases and kinetic energy increases", "Total energy stays exactly the same", "Both potential and kinetic energy decrease"], str: "Energy conservation: PE + KE = constant (ignoring friction). As one increases, the other decreases."
             },
             {
                 sec: "phys", std: "6-PS-3", skill: "light_properties", diff: "grade-level",
                 type: "mc", text: "Light from a flashlight can be seen in a dark room. What property of light allows us to see the beam?",
-                opts: ["Light is absorbed by all objects in its path", "Light travels in straight lines and bounces off particles", "Light creates sound that we can detect", "Light is only visible in very dark conditions"],
-                cor: 1, exp: "Light travels in straight lines. We see a beam in a dark room because light bounces off dust particles and other materials in the air.", str: "Light travels in straight lines, reflects off surfaces, and refracts through materials."
+                opts: ["Light is absorbed by all objects in its path", "Light travels in straight lines and bounces off particles", "Light creates sound that we can detect", "Light is only visible in very dark conditions"], str: "Light travels in straight lines, reflects off surfaces, and refracts through materials."
             },
             {
                 sec: "phys", std: "6-PS-4", skill: "chemical_physical_changes", diff: "grade-level",
                 type: "mc", text: "When sugar dissolves in hot water, what kind of change occurs?",
-                opts: ["Chemical change—sugar becomes a new substance", "Physical change—sugar particles spread throughout water but remain sugar", "Both chemical and physical change", "No change occurs because it still looks like water"],
-                cor: 1, exp: "Dissolving is a physical change. The sugar particles separate and disperse in water, but sugar molecules remain unchanged. Heating changes state, not composition.", str: "Physical change: appearance changes but substance identity stays same. Chemical change: new substance forms."
+                opts: ["Chemical change—sugar becomes a new substance", "Physical change—sugar particles spread throughout water but remain sugar", "Both chemical and physical change", "No change occurs because it still looks like water"], str: "Physical change: appearance changes but substance identity stays same. Chemical change: new substance forms."
             },
             {
                 sec: "phys", std: "6-PS-5", skill: "force_and_motion", diff: "grade-level",
                 type: "mc", text: "A car accelerates from 0 to 60 mph in 8 seconds. Which describes the car's motion?",
-                opts: ["The car is moving at constant velocity", "The car is accelerating—its velocity is increasing", "The car is decelerating", "The car is moving but has no acceleration"],
-                cor: 1, exp: "Acceleration is any change in velocity, including speeding up, slowing down, or changing direction. Here the car's speed increases, so it is accelerating.", str: "Acceleration = change in velocity. Positive acceleration means speeding up; negative means slowing down."
+                opts: ["The car is moving at constant velocity", "The car is accelerating—its velocity is increasing", "The car is decelerating", "The car is moving but has no acceleration"], str: "Acceleration = change in velocity. Positive acceleration means speeding up; negative means slowing down."
             },
             {
                 sec: "phys", std: "6-PS-2", skill: "potential_energy_calculation", diff: "grade-level",
                 type: "mc", text: "Two books of the same mass are placed on shelves at different heights. Which book has more gravitational potential energy?",
-                opts: ["The book on the lower shelf", "The book on the higher shelf", "Both have the same potential energy", "Potential energy depends on the book's color"],
-                cor: 1, exp: "Gravitational potential energy depends on mass and height: PE = mgh. The higher object has greater PE.", str: "Potential energy increases with height and mass. Remember: PE = mgh (mass × gravity × height)."
+                opts: ["The book on the lower shelf", "The book on the higher shelf", "Both have the same potential energy", "Potential energy depends on the book's color"], str: "Potential energy increases with height and mass. Remember: PE = mgh (mass × gravity × height)."
             },
             {
                 sec: "phys", std: "6-PS-3", skill: "sound_vibration", diff: "grade-level",
                 type: "mc", text: "A drum produces sound when it is struck. Which explains the relationship between the drum's vibrations and sound?",
-                opts: ["The drum vibrates and creates waves that travel through the air", "The drum generates heat that produces sound", "Vibrations are not related to sound production", "The drum's color determines the sound quality"],
-                cor: 0, exp: "Sound is produced by vibrations. When a drum is struck, it vibrates rapidly, creating sound waves that travel through air to reach our ears.", str: "Sound source = vibration. Vibrations create waves that propagate through media."
+                opts: ["The drum vibrates and creates waves that travel through the air", "The drum generates heat that produces sound", "Vibrations are not related to sound production", "The drum's color determines the sound quality"], str: "Sound source = vibration. Vibrations create waves that propagate through media."
             },
 
             // CHALLENGING (7-8 questions)
             {
                 sec: "phys", std: "6-PS-1", skill: "newtons_laws", diff: "challenging",
                 type: "mc", text: "A truck and a bicycle are both moving at the same speed. Compared to the bicycle, the truck requires more force to bring to a complete stop in the same amount of time. What does this demonstrate?",
-                opts: ["Force and velocity are the same thing", "Objects with greater mass require greater force to change their motion", "The truck has less friction than the bicycle", "Bicycles always move faster than trucks"],
-                cor: 1, exp: "Newton's Second Law: F = ma. The truck has greater mass than the bicycle. To achieve the same deceleration (change in motion) in the same time, more force is needed for the truck.", str: "F = ma: Greater mass requires greater force for the same acceleration. This is Newton's Second Law."
+                opts: ["Force and velocity are the same thing", "Objects with greater mass require greater force to change their motion", "The truck has less friction than the bicycle", "Bicycles always move faster than trucks"], str: "F = ma: Greater mass requires greater force for the same acceleration. This is Newton's Second Law."
             },
             {
                 sec: "phys", std: "6-PS-2", skill: "energy_transformation_analysis", diff: "challenging",
                 type: "mc", text: "A child goes down a slide. The child's gravitational potential energy at the top is 1000 J. If the child reaches the bottom with kinetic energy of 800 J, where did the remaining 200 J go?",
-                opts: ["It disappeared completely", "It was converted to thermal energy due to friction", "The measurement was incorrect", "It was converted back to potential energy"],
-                cor: 1, exp: "Energy is conserved but transforms. The 'missing' 200 J was converted to thermal energy (heat) through friction between the child and the slide.", str: "Energy conservation with friction: PE_initial = KE_final + Heat. Some energy always becomes heat due to friction."
+                opts: ["It disappeared completely", "It was converted to thermal energy due to friction", "The measurement was incorrect", "It was converted back to potential energy"], str: "Energy conservation with friction: PE_initial = KE_final + Heat. Some energy always becomes heat due to friction."
             },
             {
                 sec: "phys", std: "6-PS-3", skill: "wave_characteristics", diff: "challenging",
                 type: "mc", text: "Two sound waves have the same frequency but different amplitudes. How would these waves sound different?",
-                opts: ["Different pitches due to frequency differences", "Different loudness due to amplitude differences", "Identical because frequency is the same", "Different colors of light would be produced"],
-                cor: 1, exp: "Frequency determines pitch, amplitude determines loudness. Same frequency means same pitch. Different amplitude means different loudness. Higher amplitude = louder sound.", str: "Wave properties: Frequency = pitch, Amplitude = loudness/intensity. Wavelength determines color in light."
+                opts: ["Different pitches due to frequency differences", "Different loudness due to amplitude differences", "Identical because frequency is the same", "Different colors of light would be produced"], str: "Wave properties: Frequency = pitch, Amplitude = loudness/intensity. Wavelength determines color in light."
             },
             {
                 sec: "phys", std: "6-PS-4", skill: "atomic_structure", diff: "challenging",
                 type: "mc", text: "All matter is made of atoms. Which statement best explains what happens to atoms when a substance undergoes a physical change like melting?",
-                opts: ["Atoms are destroyed and new ones are created", "Atoms themselves remain the same, but their arrangement and spacing change", "The number of atoms decreases significantly", "Atoms gain or lose parts during melting"],
-                cor: 1, exp: "In a physical change, atoms remain unchanged. Their positions and spacing change (like ice to water), but the atoms themselves are not altered.", str: "Physical change: atoms stay same, arrangement changes. Chemical change: atoms bond differently, new substances form."
+                opts: ["Atoms are destroyed and new ones are created", "Atoms themselves remain the same, but their arrangement and spacing change", "The number of atoms decreases significantly", "Atoms gain or lose parts during melting"], str: "Physical change: atoms stay same, arrangement changes. Chemical change: atoms bond differently, new substances form."
             },
             {
                 sec: "phys", std: "6-PS-5", skill: "work_and_energy", diff: "challenging",
                 type: "mc", text: "A student pushes a heavy box across the floor. She exerts 100 N of force and moves the box 5 meters. How much work did the student do? (Work = Force × Distance)",
-                opts: ["20 J", "105 J", "500 J", "95 J"],
-                cor: 2, exp: "Work = Force × Distance = 100 N × 5 m = 500 J. Work is done when force causes displacement in the direction of the force.", str: "Work formula: W = F × d (only distance in direction of force counts). Result is in Joules (J)."
+                opts: ["20 J", "105 J", "500 J", "95 J"], str: "Work formula: W = F × d (only distance in direction of force counts). Result is in Joules (J)."
             },
             {
                 sec: "phys", std: "6-PS-1", skill: "velocity_acceleration", diff: "challenging",
                 type: "mc", text: "A car is traveling at 60 mph due north. Suddenly, the car turns and travels at 60 mph due east. Which statement is correct?",
-                opts: ["The car's velocity did not change because the speed is the same", "The car accelerated because its direction changed, even though speed stayed the same", "The car decelerated because it changed direction", "Velocity and speed are always the same thing"],
-                cor: 1, exp: "Velocity includes both speed and direction. Changing direction means velocity changed, which is acceleration. Speed stayed same (60 mph), but velocity changed.", str: "Velocity = speed + direction. Acceleration occurs with any velocity change: speeding up, slowing down, or direction change."
+                opts: ["The car's velocity did not change because the speed is the same", "The car accelerated because its direction changed, even though speed stayed the same", "The car decelerated because it changed direction", "Velocity and speed are always the same thing"], str: "Velocity = speed + direction. Acceleration occurs with any velocity change: speeding up, slowing down, or direction change."
             },
             {
                 sec: "phys", std: "6-PS-2", skill: "heat_thermal_energy", diff: "challenging",
                 type: "mc", text: "A cup of hot water cools down in a cold room. Which best explains why the temperature decreases?",
-                opts: ["Heat energy from the water flows to the cooler surroundings", "Cold enters the water and lowers its temperature", "The water loses all its thermal energy", "Temperature and heat are the same, so cooling means less heat"],
-                cor: 0, exp: "Heat is thermal energy that moves from warmer objects to cooler ones. Hot water loses heat to the cooler air, decreasing its temperature.", str: "Heat = energy that flows from hot to cold. Temperature = measure of average kinetic energy of particles."
+                opts: ["Heat energy from the water flows to the cooler surroundings", "Cold enters the water and lowers its temperature", "The water loses all its thermal energy", "Temperature and heat are the same, so cooling means less heat"], str: "Heat = energy that flows from hot to cold. Temperature = measure of average kinetic energy of particles."
             },
 
             // CEILING (3-4 questions)
@@ -642,19 +675,17 @@
                 sec: "phys", std: "6-PS-1", skill: "momentum_collision", diff: "ceiling",
                 type: "scr", text: "A 5 kg ball moving at 10 m/s collides with a wall and stops in 0.5 seconds. Explain what forces are involved and why the ball stops. Use the concept that Force = (change in momentum) / time.",
                 guidance: "Consider the wall's force on the ball, the ball's momentum before and after, and calculate the force if needed. Address both the source of the force and why the ball's motion changes.",
-                sec: "phys", std: "6-PS-1", skill: "momentum_collision", exp: "Before collision: momentum = 5 × 10 = 50 kg·m/s. After: 0. Change = -50. Force = -50/0.5 = -100 N. The wall exerts an unbalanced force (normal force) opposite to the ball's motion, causing it to decelerate to zero.", str: "Momentum = mv. Collisions involve large forces applied over short times. Use F = Δp/Δt."
+                sec: "phys", std: "6-PS-1", skill: "momentum_collision", str: "Momentum = mv. Collisions involve large forces applied over short times. Use F = Δp/Δt."
             },
             {
                 sec: "phys", std: "6-PS-3", skill: "light_refraction", diff: "ceiling",
                 type: "mc", text: "A straw in a glass of water appears bent at the water's surface when viewed from the side. What phenomenon causes this optical illusion?",
-                opts: ["Light is absorbed differently by water", "Light bends (refracts) as it passes between water and air due to different speeds in each medium", "The water is actually bending the straw", "The straw breaks apart in the water"],
-                cor: 1, exp: "Refraction occurs when light changes speed as it enters a different medium (water to air). The change in speed causes light to bend, making the straw appear bent at the surface.", str: "Refraction = light bending at medium boundaries. Light travels at different speeds in different materials (water vs air)."
+                opts: ["Light is absorbed differently by water", "Light bends (refracts) as it passes between water and air due to different speeds in each medium", "The water is actually bending the straw", "The straw breaks apart in the water"], str: "Refraction = light bending at medium boundaries. Light travels at different speeds in different materials (water vs air)."
             },
             {
                 sec: "phys", std: "6-PS-4", skill: "molecular_model", diff: "ceiling",
                 type: "mc", text: "According to atomic theory, why is a gas less dense than a liquid made of the same substance (like steam versus water)?",
-                opts: ["Gas molecules are larger than liquid molecules", "Gas molecules are spread much farther apart with more space between them", "Gases have no molecules, only energy", "Density is not related to molecular spacing"],
-                cor: 1, exp: "In liquids, molecules are closely packed. In gases, molecules are far apart with lots of empty space between them, resulting in much lower density.", str: "Kinetic molecular theory: Gas molecules move fast with large spacing → low density. Liquid molecules close together → high density."
+                opts: ["Gas molecules are larger than liquid molecules", "Gas molecules are spread much farther apart with more space between them", "Gases have no molecules, only energy", "Density is not related to molecular spacing"], str: "Kinetic molecular theory: Gas molecules move fast with large spacing → low density. Liquid molecules close together → high density."
             },
 
             // SCIENTIFIC INQUIRY & PRACTICES (13 questions) - Q25-Q37
@@ -662,72 +693,62 @@
             {
                 sec: "inq", std: "6-SI-1", skill: "experimental_design", diff: "baseline",
                 type: "mc", text: "A student wants to test if temperature affects how fast sugar dissolves. What should the student keep the same in the experiment?",
-                opts: ["Water temperature", "Amount of sugar and water", "Time allowed to dissolve", "Type of container used"],
-                cor: 1, exp: "To test the effect of temperature, the student must control (keep constant) all other variables: amount of sugar, amount of water, container type, and mixing method. Only temperature changes.", str: "Identify variables: independent (what you change), dependent (what you measure), control (what stays the same)."
+                opts: ["Water temperature", "Amount of sugar and water", "Time allowed to dissolve", "Type of container used"], str: "Identify variables: independent (what you change), dependent (what you measure), control (what stays the same)."
             },
             {
                 sec: "inq", std: "6-SI-2", skill: "data_collection", diff: "baseline",
                 type: "mc", text: "In a science experiment, what is the dependent variable?",
-                opts: ["The variable the scientist changes on purpose", "The variable being measured or observed as a result", "The conditions kept constant", "The tools used to measure"],
-                cor: 1, exp: "The dependent variable is what is measured or observed—it 'depends' on the independent variable. In 'how temperature affects dissolving time,' dissolving time is dependent.", str: "Independent variable = what you change. Dependent variable = what you measure (the outcome)."
+                opts: ["The variable the scientist changes on purpose", "The variable being measured or observed as a result", "The conditions kept constant", "The tools used to measure"], str: "Independent variable = what you change. Dependent variable = what you measure (the outcome)."
             },
             {
                 sec: "inq", std: "6-SI-3", skill: "hypothesis_formulation", diff: "baseline",
                 type: "mc", text: "Which is a good scientific hypothesis?",
-                opts: ["I think the experiment will be fun", "If temperature increases, then sugar will dissolve faster because heat gives molecules more energy", "Sugar dissolves", "Dissolving is interesting"],
-                cor: 1, exp: "A good hypothesis is testable, specific, and usually includes 'if-then' format with a reason. It predicts a relationship between variables.", str: "Hypothesis = 'if-then' prediction with reasoning. Must be testable and based on prior knowledge."
+                opts: ["I think the experiment will be fun", "If temperature increases, then sugar will dissolve faster because heat gives molecules more energy", "Sugar dissolves", "Dissolving is interesting"], str: "Hypothesis = 'if-then' prediction with reasoning. Must be testable and based on prior knowledge."
             },
 
             // GRADE-LEVEL (5 questions)
             {
                 sec: "inq", std: "6-SI-1", skill: "experimental_controls", diff: "grade-level",
                 type: "mc", text: "Refer to the plant growth experiment passage. Why did the student keep soil, water, and seed type the same for all plant groups?",
-                opts: ["These variables were not important to the experiment", "To isolate the effect of light and ensure a fair comparison", "To make the experiment easier to do", "These variables don't affect plant growth"],
-                cor: 1, exp: "Controlling variables ensures a fair test. By keeping all factors the same except light, the student can confidently attribute any differences in plant growth to light alone.", str: "Fair test = change one variable, control (keep constant) all others. This proves cause-and-effect."
+                opts: ["These variables were not important to the experiment", "To isolate the effect of light and ensure a fair comparison", "To make the experiment easier to do", "These variables don't affect plant growth"], str: "Fair test = change one variable, control (keep constant) all others. This proves cause-and-effect."
             },
             {
                 sec: "inq", std: "6-SI-2", skill: "reading_graphs", diff: "grade-level",
                 type: "mc", text: "Refer to the plant growth experiment. Which group of plants grew the tallest on average?",
-                opts: ["Dark closet group", "Indirect light group", "Direct 6-hour sunlight group", "Direct 12-hour sunlight group"],
-                cor: 3, exp: "The passage states: Dark (4 cm), Indirect (12 cm), 6-hour direct (18 cm), 12-hour direct (20 cm). The 12-hour group reached 20 cm average height.", str: "Read data carefully: identify numbers, units, groups, and highest/lowest values in tables or graphs."
+                opts: ["Dark closet group", "Indirect light group", "Direct 6-hour sunlight group", "Direct 12-hour sunlight group"], str: "Read data carefully: identify numbers, units, groups, and highest/lowest values in tables or graphs."
             },
             {
                 sec: "inq", std: "6-SI-3", skill: "drawing_conclusions", diff: "grade-level",
                 type: "mc", text: "Based on the plant growth experiment, what conclusion can the student draw?",
-                opts: ["Dark is always bad for all living things", "More light leads to taller, healthier plants", "All plants need exactly 12 hours of light", "Light has no effect on plant growth"],
-                cor: 1, exp: "The data shows a clear trend: more light produces taller plants. This is a valid conclusion based on the experimental results.", str: "Conclusions must be supported by data. Identify trends or patterns in your results."
+                opts: ["Dark is always bad for all living things", "More light leads to taller, healthier plants", "All plants need exactly 12 hours of light", "Light has no effect on plant growth"], str: "Conclusions must be supported by data. Identify trends or patterns in your results."
             },
             {
                 sec: "inq", std: "6-SI-4", skill: "scientific_method", diff: "grade-level",
                 type: "mc", text: "Which is the correct order of the scientific method?",
-                opts: ["Question, Hypothesis, Experiment, Data, Conclusion", "Hypothesis, Question, Conclusion, Data, Experiment", "Experiment, Question, Hypothesis, Data, Conclusion", "Data, Hypothesis, Question, Experiment, Conclusion"],
-                cor: 0, exp: "The scientific method: Ask a question → Form hypothesis → Design experiment → Collect data → Draw conclusions → Communicate results.", str: "Scientific method order: Question → Hypothesis → Experiment → Data → Conclusion. Always starts with a question."
+                opts: ["Question, Hypothesis, Experiment, Data, Conclusion", "Hypothesis, Question, Conclusion, Data, Experiment", "Experiment, Question, Hypothesis, Data, Conclusion", "Data, Hypothesis, Question, Experiment, Conclusion"], str: "Scientific method order: Question → Hypothesis → Experiment → Data → Conclusion. Always starts with a question."
             },
             {
                 sec: "inq", std: "6-SI-5", skill: "evidence_reasoning", diff: "grade-level",
                 type: "mc", text: "A scientist claims that salt water freezes at a lower temperature than fresh water. What would best support this claim?",
-                opts: ["A personal opinion about salt water", "Data from cooling both solutions and recording freeze temperatures", "A guess based on intuition", "Information from an unreliable website"],
-                cor: 1, exp: "Scientific claims require evidence—data collected through careful experimentation. Opinions, guesses, and unreliable sources are not valid scientific evidence.", str: "Evidence = measurable data from well-designed experiments. Claims without evidence are not scientific."
+                opts: ["A personal opinion about salt water", "Data from cooling both solutions and recording freeze temperatures", "A guess based on intuition", "Information from an unreliable website"], str: "Evidence = measurable data from well-designed experiments. Claims without evidence are not scientific."
             },
 
             // CHALLENGING (3-4 questions)
             {
                 sec: "inq", std: "6-SI-1", skill: "identifying_variables", diff: "challenging",
                 type: "mc", text: "A student notices that her plant grows faster when she talks to it daily. She designs an experiment with one group of plants she talks to and another she ignores. After four weeks, the 'talked to' group grew 2 cm taller. What is the main limitation of this experiment?",
-                opts: ["The difference is too small to measure", "Light, water, temperature, and other factors might have been different between groups, affecting growth", "Plants cannot hear, so the experiment is impossible", "The experiment proves talking helps plants grow"],
-                cor: 1, exp: "Without controlling other variables (light exposure, watering schedule, temperature), the student cannot determine if talking or these other factors caused the growth difference. This confuses cause-and-effect.", str: "Fair test requires controlling all variables except the independent variable. Identify what else might explain results."
+                opts: ["The difference is too small to measure", "Light, water, temperature, and other factors might have been different between groups, affecting growth", "Plants cannot hear, so the experiment is impossible", "The experiment proves talking helps plants grow"], str: "Fair test requires controlling all variables except the independent variable. Identify what else might explain results."
             },
             {
                 sec: "inq", std: "6-SI-2", skill: "data_analysis", diff: "challenging",
                 type: "scr", text: "Refer to the plant growth passage. Explain why the student included a statement that 'temperature and other variables might also affect growth.' Why is this important for the experiment's validity?",
                 guidance: "Consider what 'validity' means, what it means to control variables, and what this statement suggests about other possible causes for the results.",
-                sec: "inq", std: "6-SI-2", skill: "data_analysis", exp: "This statement shows scientific integrity—acknowledging that other factors (not just light) could influence plant growth. Valid experiments control these confounding variables. By recognizing this, the student shows understanding that correlation doesn't always mean causation.", str: "Validity = experiment actually tests what it claims. Acknowledge limitations and alternative explanations."
+                sec: "inq", std: "6-SI-2", skill: "data_analysis", str: "Validity = experiment actually tests what it claims. Acknowledge limitations and alternative explanations."
             },
             {
                 sec: "inq", std: "6-SI-4", skill: "experimental_prediction", diff: "challenging",
                 type: "mc", text: "A student hypothesizes: 'If soil pH increases, then plant growth will increase.' After testing, the data shows no change in plant growth with changing pH. What should the student conclude?",
-                opts: ["The hypothesis was correct but the data was wrong", "The hypothesis was not supported by the data; pH may not affect this plant's growth", "The experiment failed because the hypothesis wasn't proven", "All experiments must support the hypothesis"],
-                cor: 1, exp: "Not all hypotheses are supported by data, and that's part of science. Null results are valuable—they show that the predicted relationship doesn't exist.", str: "Not all hypotheses are correct. 'Not supported' doesn't mean the experiment failed—it's a valid scientific result."
+                opts: ["The hypothesis was correct but the data was wrong", "The hypothesis was not supported by the data; pH may not affect this plant's growth", "The experiment failed because the hypothesis wasn't proven", "All experiments must support the hypothesis"], str: "Not all hypotheses are correct. 'Not supported' doesn't mean the experiment failed—it's a valid scientific result."
             },
 
             // LIFE SCIENCE (9 questions) - Q38-Q46
@@ -735,60 +756,52 @@
             {
                 sec: "life", std: "6-LS-1", skill: "cell_structure", diff: "baseline",
                 type: "mc", text: "All living things are made of cells. Which best describes what a cell is?",
-                opts: ["A tiny animal that lives in your body", "The basic unit of life that carries out all functions", "A type of tissue in organisms", "Only found in plants"],
-                cor: 1, exp: "A cell is the basic structural and functional unit of all living organisms. Every living thing is made of one or more cells.", str: "Cell = basic unit of life. All organisms are composed of cells (unicellular or multicellular)."
+                opts: ["A tiny animal that lives in your body", "The basic unit of life that carries out all functions", "A type of tissue in organisms", "Only found in plants"], str: "Cell = basic unit of life. All organisms are composed of cells (unicellular or multicellular)."
             },
             {
                 sec: "life", std: "6-LS-2", skill: "organism_classification", diff: "baseline",
                 type: "mc", text: "Which characteristic do all animals share?",
-                opts: ["They all have backbones", "They all live in water", "They all need to eat food to get energy", "They all have fur"],
-                cor: 2, exp: "All animals are heterotrophs, meaning they must consume other organisms for energy. They cannot make their own food like plants do.", str: "Animals = heterotrophs (eat food). Plants = autotrophs (make food through photosynthesis)."
+                opts: ["They all have backbones", "They all live in water", "They all need to eat food to get energy", "They all have fur"], str: "Animals = heterotrophs (eat food). Plants = autotrophs (make food through photosynthesis)."
             },
 
             // GRADE-LEVEL (4 questions)
             {
                 sec: "life", std: "6-LS-3", skill: "body_systems", diff: "grade-level",
                 type: "mc", text: "The circulatory system transports blood throughout the body. Which is a main function of blood in this system?",
-                opts: ["To digest food", "To carry oxygen and nutrients to cells and remove waste", "To protect the body from injury", "To store food energy"],
-                cor: 1, exp: "Blood carries oxygen from the lungs and nutrients from the digestive system to all cells, and returns carbon dioxide and other wastes to organs for removal.", str: "Blood delivery system = circulatory system. Blood carries O₂, nutrients, removes CO₂ and waste."
+                opts: ["To digest food", "To carry oxygen and nutrients to cells and remove waste", "To protect the body from injury", "To store food energy"], str: "Blood delivery system = circulatory system. Blood carries O₂, nutrients, removes CO₂ and waste."
             },
             {
                 sec: "life", std: "6-LS-4", skill: "food_webs", diff: "grade-level",
                 type: "mc", text: "In a food web, plants are often called 'producers.' Why are they given this name?",
-                opts: ["They use tools to produce food", "They make their own food through photosynthesis using sunlight", "They are produced by consumers", "They prevent other organisms from growing"],
-                cor: 1, exp: "Plants are producers because they use photosynthesis to convert sunlight, water, and carbon dioxide into chemical energy (glucose) that supports food webs.", str: "Producers = organisms that make own food (plants, photosynthesis). Consumers = eat other organisms."
+                opts: ["They use tools to produce food", "They make their own food through photosynthesis using sunlight", "They are produced by consumers", "They prevent other organisms from growing"], str: "Producers = organisms that make own food (plants, photosynthesis). Consumers = eat other organisms."
             },
             {
                 sec: "life", std: "6-LS-5", skill: "heredity_traits", diff: "grade-level",
                 type: "mc", text: "Offspring often resemble their parents. Which best explains why?",
-                opts: ["Parents teach their offspring to look like them", "Offspring inherit traits through genes passed from parents", "Offspring are born with random traits unrelated to parents", "Parents' experiences change their offspring's appearance"],
-                cor: 1, exp: "Genes, found in DNA, carry instructions for traits. Offspring inherit genes from parents, resulting in inherited traits like eye color, height, and other characteristics.", str: "Genes = units of heredity. Inherited traits passed parent to offspring. Environment can affect expression."
+                opts: ["Parents teach their offspring to look like them", "Offspring inherit traits through genes passed from parents", "Offspring are born with random traits unrelated to parents", "Parents' experiences change their offspring's appearance"], str: "Genes = units of heredity. Inherited traits passed parent to offspring. Environment can affect expression."
             },
             {
                 sec: "life", std: "6-LS-1", skill: "cell_function", diff: "grade-level",
                 type: "mc", text: "Plant cells have a cell wall in addition to a cell membrane. What advantage does this structure provide?",
-                opts: ["It allows the plant to move around", "It provides structural support and protection to the cell", "It stores glucose for the plant", "It reproduces the cell"],
-                cor: 1, exp: "The cell wall is rigid and cellulose-based, providing structural support and protection. It maintains cell shape and prevents excessive water loss.", str: "Plant cell unique features: Cell wall (support), chloroplasts (photosynthesis), large vacuole (water/nutrient storage)."
+                opts: ["It allows the plant to move around", "It provides structural support and protection to the cell", "It stores glucose for the plant", "It reproduces the cell"], str: "Plant cell unique features: Cell wall (support), chloroplasts (photosynthesis), large vacuole (water/nutrient storage)."
             },
 
             // CHALLENGING (3 questions)
             {
                 sec: "life", std: "6-LS-3", skill: "body_systems_interaction", diff: "challenging",
                 type: "mc", text: "How do the respiratory and circulatory systems work together to serve the body?",
-                opts: ["They are independent and don't interact", "The respiratory system gets oxygen into lungs, and the circulatory system delivers that oxygen to all cells", "The circulatory system creates oxygen", "The respiratory system delivers oxygen directly to every cell"],
-                cor: 1, exp: "The respiratory system (lungs) exchanges O₂ and CO₂ with air. The circulatory system (heart/blood) transports oxygen from lungs to cells and removes CO₂ from cells back to lungs.", str: "System integration: Respiratory gets O₂, circulatory delivers O₂, nervous system coordinates. One system alone can't meet cell needs."
+                opts: ["They are independent and don't interact", "The respiratory system gets oxygen into lungs, and the circulatory system delivers that oxygen to all cells", "The circulatory system creates oxygen", "The respiratory system delivers oxygen directly to every cell"], str: "System integration: Respiratory gets O₂, circulatory delivers O₂, nervous system coordinates. One system alone can't meet cell needs."
             },
             {
                 sec: "life", std: "6-LS-4", skill: "ecosystem_energy", diff: "challenging",
                 type: "mc", text: "In an ecosystem, energy enters through producers (plants) and moves through consumers. Why does less energy remain available as you move up the food chain?",
-                opts: ["Energy is lost as heat during organism growth and activity, and not all energy is eaten by the next consumer", "The sun provides less energy to higher trophic levels", "Consumers destroy energy intentionally", "Energy increases at higher levels"],
-                cor: 0, exp: "Energy is lost as metabolic heat when organisms use energy for movement, growth, and maintaining body temperature. Additionally, not all of an organism is consumed. About 10% of energy transfers to the next level.", str: "Trophic energy rule: ~10% transfers up food chain. Energy lost to heat, respiration, decomposition, uneaten parts."
+                opts: ["Energy is lost as heat during organism growth and activity, and not all energy is eaten by the next consumer", "The sun provides less energy to higher trophic levels", "Consumers destroy energy intentionally", "Energy increases at higher levels"], str: "Trophic energy rule: ~10% transfers up food chain. Energy lost to heat, respiration, decomposition, uneaten parts."
             },
             {
                 sec: "life", std: "6-LS-5", skill: "adaptation_selection", diff: "challenging",
                 type: "scr", text: "A polar bear has thick white fur. Explain how this trait is an adaptation to the polar bear's environment and how natural selection supports organisms with such traits.",
                 guidance: "Consider the advantages the trait provides in the harsh arctic environment and explain why bears with this trait are more likely to survive and pass genes to offspring.",
-                sec: "life", std: "6-LS-5", skill: "adaptation_selection", exp: "White fur provides insulation (thick) and camouflage in snow, helping bears stay warm and hunt seals successfully. Bears with this adaptation are more likely to survive, eat, and reproduce, passing the trait to offspring. Over generations, beneficial traits become more common.", str: "Adaptation = trait that improves survival/reproduction. Natural selection = organisms with beneficial traits survive more and pass genes to more offspring."
+                sec: "life", std: "6-LS-5", skill: "adaptation_selection", str: "Adaptation = trait that improves survival/reproduction. Natural selection = organisms with beneficial traits survive more and pass genes to more offspring."
             },
 
             // EARTH & SPACE SCIENCE (8 questions) - Q47-Q54
@@ -796,54 +809,47 @@
             {
                 sec: "earth", std: "6-ES-1", skill: "weather_climate", diff: "baseline",
                 type: "mc", text: "What is the main difference between weather and climate?",
-                opts: ["Weather is rain, climate is snow", "Weather is short-term atmospheric conditions; climate is long-term patterns over decades", "They mean the same thing", "Weather is only in summer, climate is only in winter"],
-                cor: 1, exp: "Weather describes current/short-term conditions (today's temperature, rain). Climate describes patterns over 30+ years (average rainfall per region per season).", str: "Weather = now/today/short-term. Climate = typical/long-term patterns. 'Climate is what you expect, weather is what you get.'"
+                opts: ["Weather is rain, climate is snow", "Weather is short-term atmospheric conditions; climate is long-term patterns over decades", "They mean the same thing", "Weather is only in summer, climate is only in winter"], str: "Weather = now/today/short-term. Climate = typical/long-term patterns. 'Climate is what you expect, weather is what you get.'"
             },
             {
                 sec: "earth", std: "6-ES-2", skill: "earths_layers", diff: "baseline",
                 type: "mc", text: "Earth is divided into layers. Which layer is the thickest?",
-                opts: ["Crust", "Mantle", "Outer core", "Inner core"],
-                cor: 1, exp: "The mantle is the thickest layer, making up most of Earth's volume. The crust is thin (solid outer layer), outer core is liquid iron/nickel, inner core is solid.", str: "Earth layers from outside in: Crust (thin solid), Mantle (thick hot rock), Outer core (liquid iron), Inner core (solid iron)."
+                opts: ["Crust", "Mantle", "Outer core", "Inner core"], str: "Earth layers from outside in: Crust (thin solid), Mantle (thick hot rock), Outer core (liquid iron), Inner core (solid iron)."
             },
 
             // GRADE-LEVEL (3 questions)
             {
                 sec: "earth", std: "6-ES-3", skill: "plate_tectonics", diff: "grade-level",
                 type: "mc", text: "Earth's crust is broken into large pieces called plates that slowly move. What is a result of plate motion?",
-                opts: ["Plates never change positions", "Earthquakes, volcanoes, and mountain formation occur at plate boundaries", "Plates moving causes day and night", "Ocean levels rise and fall with plate movement"],
-                cor: 1, exp: "Plate tectonics drives geological activity. Where plates collide, earthquakes and volcanism occur. Where they diverge, new crust forms. Where they collide, mountains rise.", str: "Plate tectonics = plates move, collide, diverge. Results: earthquakes, volcanoes, mountains, ocean trenches, mid-ocean ridges."
+                opts: ["Plates never change positions", "Earthquakes, volcanoes, and mountain formation occur at plate boundaries", "Plates moving causes day and night", "Ocean levels rise and fall with plate movement"], str: "Plate tectonics = plates move, collide, diverge. Results: earthquakes, volcanoes, mountains, ocean trenches, mid-ocean ridges."
             },
             {
                 sec: "earth", std: "6-ES-4", skill: "solar_system", diff: "grade-level",
                 type: "mc", text: "Which planet is known as the 'Red Planet'?",
-                opts: ["Venus", "Mars", "Jupiter", "Saturn"],
-                cor: 1, exp: "Mars appears reddish due to iron oxide (rust) on its surface. Venus is covered in clouds reflecting sunlight, appearing yellowish-white.", str: "Solar system order from sun: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune. Mars = 4th planet, red color."
+                opts: ["Venus", "Mars", "Jupiter", "Saturn"], str: "Solar system order from sun: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune. Mars = 4th planet, red color."
             },
             {
                 sec: "earth", std: "6-ES-5", skill: "water_cycle", diff: "grade-level",
                 type: "mc", text: "Water moves through the water cycle in different forms. Which is the correct sequence?",
-                opts: ["Evaporation → Precipitation → Condensation → Runoff", "Precipitation → Condensation → Evaporation → Runoff", "Evaporation → Condensation → Precipitation → Runoff", "Runoff → Evaporation → Condensation → Precipitation"],
-                cor: 2, exp: "Water cycle: Evaporation (liquid to gas from oceans/lakes), Condensation (gas to liquid forming clouds), Precipitation (rain/snow falls), Runoff (returns to oceans).", str: "Water cycle: Evaporation (sun heats water) → Condensation (cools to clouds) → Precipitation (falls) → Runoff (collects in bodies of water, repeats)."
+                opts: ["Evaporation → Precipitation → Condensation → Runoff", "Precipitation → Condensation → Evaporation → Runoff", "Evaporation → Condensation → Precipitation → Runoff", "Runoff → Evaporation → Condensation → Precipitation"], str: "Water cycle: Evaporation (sun heats water) → Condensation (cools to clouds) → Precipitation (falls) → Runoff (collects in bodies of water, repeats)."
             },
 
             // CHALLENGING (2-3 questions)
             {
                 sec: "earth", std: "6-ES-1", skill: "climate_factors", diff: "challenging",
                 type: "mc", text: "A coastal city and an inland city at the same latitude have different climates. The coastal city is cooler in summer and warmer in winter. What explains this difference?",
-                opts: ["Coastal cities have more rain", "Water has high heat capacity and moderates temperature changes, while land heats and cools quickly", "The sun is closer to coastal cities in winter", "Coastal areas have higher altitude"],
-                cor: 1, exp: "Water absorbs/releases heat slowly, moderating coastal temperatures. Land heats and cools quickly. Coastal areas remain closer to water temperature year-round.", str: "Water's heat capacity = moderates climate. Coastal areas: smaller temperature swings. Inland: extreme seasonal temperatures."
+                opts: ["Coastal cities have more rain", "Water has high heat capacity and moderates temperature changes, while land heats and cools quickly", "The sun is closer to coastal cities in winter", "Coastal areas have higher altitude"], str: "Water's heat capacity = moderates climate. Coastal areas: smaller temperature swings. Inland: extreme seasonal temperatures."
             },
             {
                 sec: "earth", std: "6-ES-3", skill: "geological_timescale", diff: "challenging",
                 type: "scr", text: "Plate tectonics occurs slowly—millimeters per year. Explain why geologists study ancient rocks and fossils to understand plate movement, rather than observing plates moving directly.",
                 guidance: "Consider the scale of time needed to observe significant plate movement and what evidence rocks/fossils provide about past positions and movement.",
-                sec: "earth", std: "6-ES-3", skill: "geological_timescale", exp: "Plates move ~cm/year, making direct observation impossible in human lifespans. But fossils, matching rock formations on distant continents, and seafloor patterns show plates have moved vastly. By studying millions of years of geological evidence (radiometric dating, fossil distribution, continent shape matches), geologists reconstruct plate history.", str: "Geological time = millions of years. Indirect evidence: matching fossils, rock types, continent fit, seafloor spreading patterns reveal plate movement over vast time."
+                sec: "earth", std: "6-ES-3", skill: "geological_timescale", str: "Geological time = millions of years. Indirect evidence: matching fossils, rock types, continent fit, seafloor spreading patterns reveal plate movement over vast time."
             },
             {
                 sec: "earth", std: "6-ES-2", skill: "mantle_convection", diff: "challenging",
                 type: "mc", text: "Heat inside Earth drives convection currents in the mantle. How does this relate to plate movement?",
-                opts: ["Heat is unrelated to plate movement", "Hot mantle rock rises, cools, sinks, pushing plates apart and dragging them together at boundaries", "The mantle cools plates down but doesn't move them", "Only gravity causes plate movement"],
-                cor: 1, exp: "Convection currents in the mantle act like a conveyor belt, transferring heat and energy that moves plates. Rising hot material spreads plates (divergent), sinking cool material drags plates (convergent).", str: "Mantle convection = heat engine driving plates. Rising = divergence (spread), Sinking = convergence (collide). Powers plate tectonics."
+                opts: ["Heat is unrelated to plate movement", "Hot mantle rock rises, cools, sinks, pushing plates apart and dragging them together at boundaries", "The mantle cools plates down but doesn't move them", "Only gravity causes plate movement"], str: "Mantle convection = heat engine driving plates. Rising = divergence (spread), Sinking = convergence (collide). Powers plate tectonics."
             }
         ];
 
@@ -1040,7 +1046,7 @@
             for (let i = 0; i < Q.length; i++) {
                 if (Q[i] && Q[i].type === "mc") {
                     totalMC++;
-                    if (answers[i] === Q[i].cor) correct++;
+                    if (answers[i] === _ac[i]) correct++;
                 }
             }
 
@@ -1077,7 +1083,7 @@
                 for (let i = sec.range[0]; i <= Math.min(sec.range[1], Q.length - 1); i++) {
                     if (Q[i] && Q[i].type === "mc") {
                         sectionTotal++;
-                        if (answers[i] === Q[i].cor) sectionCorrect++;
+                        if (answers[i] === _ac[i]) sectionCorrect++;
                     }
                 }
                 const secPct = sectionTotal > 0 ? Math.round((sectionCorrect / sectionTotal) * 100) : 0;

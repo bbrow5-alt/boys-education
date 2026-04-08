@@ -739,6 +739,58 @@
     </div>
 
     <script>
+
+    // ============================================================
+    // ANTI-CHEAT — DO NOT REMOVE
+    // ============================================================
+    (function() {
+        // Block right-click context menu
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+        // Block keyboard shortcuts to open DevTools / view source
+        document.addEventListener('keydown', function(e) {
+            const blocked = (
+                e.keyCode === 123 ||                                      // F12
+                (e.ctrlKey && e.shiftKey && e.keyCode === 73) ||          // Ctrl+Shift+I
+                (e.ctrlKey && e.shiftKey && e.keyCode === 74) ||          // Ctrl+Shift+J
+                (e.ctrlKey && e.shiftKey && e.keyCode === 67) ||          // Ctrl+Shift+C
+                (e.ctrlKey && e.keyCode === 85) ||                        // Ctrl+U (view source)
+                (e.metaKey && e.altKey && e.keyCode === 73)               // Cmd+Opt+I (Mac)
+            );
+            if (blocked) { e.preventDefault(); e.stopPropagation(); return false; }
+        }, true);
+
+        // DevTools size detection — if open, overlay the page
+        var _devOpen = false;
+        setInterval(function() {
+            var widthDiff  = window.outerWidth  - window.innerWidth  > 160;
+            var heightDiff = window.outerHeight - window.innerHeight > 160;
+            if ((widthDiff || heightDiff) && !_devOpen) {
+                _devOpen = true;
+                var overlay = document.createElement('div');
+                overlay.id  = '_ac_overlay';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;' +
+                    'background:#0a0f1a;z-index:999999;display:flex;align-items:center;' +
+                    'justify-content:center;flex-direction:column;';
+                overlay.innerHTML = '<div style="font-size:48px;">⚠️</div>' +
+                    '<div style="color:#ff4444;font-size:22px;font-weight:700;margin:16px 0;">Browser tools detected.</div>' +
+                    '<div style="color:#aaa;font-size:15px;">Close DevTools and refresh the page to continue.</div>';
+                document.body.appendChild(overlay);
+            } else if (!widthDiff && !heightDiff && _devOpen) {
+                _devOpen = false;
+                var el = document.getElementById('_ac_overlay');
+                if (el) el.remove();
+            }
+        }, 800);
+    })();
+    // ============================================================
+
+    // Correct answers — XOR-encoded (key=17). Do not modify.
+    var _ac = (function(){
+        var k=17, e=[16,16,16,16,16,16,19,16,16,19,16,16,16,16,19,16,16,16,19,16,16,16,17,19,19,19,16,17,17,19,16,16,16,19,16,16,16,16,16,19,16,17,16,19,19,16];
+        return e.map(function(v){return v^k;});
+    })();
+
         const CONFIG = {
             student: 'Chase',
             grade: 5,
@@ -772,8 +824,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'Which of the following is found in both plant and animal cells?',
                 opts: ['A) Cell wall', 'B) Nucleus', 'C) Chloroplast', 'D) Vacuole'],
-                cor: 1,
-                exp: 'The nucleus is present in both plant and animal cells. It controls the cell\'s activities. Cell walls are only in plants, chloroplasts are only in plants, and large vacuoles are primarily in plants.',
                 str: 'Look for structures that BOTH cell types have in common, not special features.'
             },
             {
@@ -781,8 +831,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'What is the main purpose of photosynthesis in plants?',
                 opts: ['A) To absorb water from soil', 'B) To make food using sunlight', 'C) To produce oxygen for insects', 'D) To grow roots deeper'],
-                cor: 1,
-                exp: 'Photosynthesis is the process where plants use sunlight, water, and carbon dioxide to produce glucose (food) and oxygen. This is the primary way plants make their own food.',
                 str: 'Remember: Photo = light, Synthesis = making. Photosynthesis = using light to make food.'
             },
             {
@@ -790,8 +838,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'In the food chain: Grass → Grasshopper → Bird → Hawk, which organism is a primary consumer?',
                 opts: ['A) Grass', 'B) Grasshopper', 'C) Bird', 'D) Hawk'],
-                cor: 1,
-                exp: 'A primary consumer is an herbivore that eats producers (plants). The grasshopper eats grass, making it a primary consumer. Birds eat grasshoppers, making them secondary consumers.',
                 str: 'Primary consumer = eats plants directly. Count the position: plants are 1st, herbivores are 2nd.'
             },
             {
@@ -799,8 +845,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'Which of the following best explains why a food web is more realistic than a simple food chain?',
                 opts: ['A) Food webs include decomposers', 'B) Food webs show that animals often eat multiple types of food', 'C) Food webs are shorter and easier to read', 'D) Food webs only show herbivores'],
-                cor: 1,
-                exp: 'Food webs show interconnected food chains because most animals have varied diets. For example, a bird might eat insects, seeds, and small animals. Food chains show only one path of energy.',
                 str: 'Think about real animals: do they eat just ONE thing, or many things?'
             },
             {
@@ -808,8 +852,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'Why do plant cells need a cell wall in addition to a cell membrane?',
                 opts: ['A) To help the plant move quickly', 'B) To provide extra protection and structure', 'C) To store more water than animals', 'D) To produce chlorophyll'],
-                cor: 1,
-                exp: 'The cell wall provides rigid support and structural protection for plant cells. This helps plants stand upright. Animal cells rely on their cell membrane alone.',
                 str: 'Cell wall = structure + support. Think of it like the skeleton of the cell.'
             },
             {
@@ -817,8 +859,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'Which of the following is an example of an inherited trait?',
                 opts: ['A) Speaking English', 'B) Eye color', 'C) Playing soccer', 'D) Using a computer'],
-                cor: 1,
-                exp: 'Inherited traits are passed from parents to offspring through genes. Eye color is determined by genes. The other options are learned behaviors or skills.',
                 str: 'Inherited = comes from parents in DNA. Learned = taught or practiced.'
             },
             {
@@ -826,8 +866,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'A polar bear\'s thick fur is an adaptation that helps it survive in cold Arctic environments. What type of adaptation is this?',
                 opts: ['A) A behavioral adaptation', 'B) A learned adaptation', 'C) A structural adaptation', 'D) A seasonal adaptation'],
-                cor: 2,
-                exp: 'Structural adaptations are physical features that help organisms survive. Thick fur is a physical structure. Behavioral adaptations are actions or behaviors (like migration).',
                 str: 'Structural = body parts. Behavioral = actions. Which one is the fur?'
             },
             {
@@ -835,8 +873,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'In the life cycle of a frog, what is the tadpole stage?',
                 opts: ['A) The adult form of a frog', 'B) The larval form that lives in water', 'C) The egg that hasn\'t hatched', 'D) The stage after the frog dies'],
-                cor: 1,
-                exp: 'A tadpole is the larval stage of a frog that lives in water and breathes through gills. As it grows, it develops legs and lungs and eventually becomes an adult frog.',
                 str: 'Life cycles have stages. Tadpole comes BEFORE adult frog in the sequence.'
             },
             {
@@ -844,8 +880,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'Which body system is responsible for breaking down food so the body can use it for energy?',
                 opts: ['A) The respiratory system', 'B) The digestive system', 'C) The circulatory system', 'D) The nervous system'],
-                cor: 1,
-                exp: 'The digestive system breaks down food into nutrients that can be absorbed and used by the body. The respiratory system handles breathing, the circulatory system moves blood, and the nervous system sends signals.',
                 str: 'Digestion = breaking down food. Say "digestive" to remember "digestion."'
             },
             {
@@ -853,8 +887,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'How do the digestive and circulatory systems work together?',
                 opts: ['A) The digestive system creates blood for the circulatory system', 'B) The circulatory system breaks down food particles', 'C) The circulatory system transports nutrients from digested food to cells', 'D) The two systems work completely independently'],
-                cor: 2,
-                exp: 'The digestive system breaks down food into nutrients, and the circulatory system (blood vessels) transports those nutrients throughout the body. They work together to nourish cells.',
                 str: 'Ask: "How do systems work TOGETHER?" Look for connections and cooperation.'
             },
             {
@@ -862,8 +894,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'Why is the respiratory system essential for survival?',
                 opts: ['A) It breaks down food into smaller pieces', 'B) It brings oxygen into the body for cells to use', 'C) It pumps blood to all parts of the body', 'D) It produces hormones'],
-                cor: 1,
-                exp: 'The respiratory system takes in oxygen from the air through breathing. Cells need oxygen to produce energy. Without the respiratory system, cells cannot get the oxygen they need.',
                 str: 'Respiration = breathing. Breathing = getting oxygen. Oxygen = what cells need.'
             },
             {
@@ -871,8 +901,6 @@
                 diff: 'challenging', type: 'mc',
                 text: 'Using the passage about food webs: If all the grass in a meadow died due to drought, which organism would be affected FIRST?',
                 opts: ['A) Hawks, because they eat birds', 'B) Grasshoppers, because they eat grass', 'C) Birds, because they eat insects', 'D) All organisms equally'],
-                cor: 1,
-                exp: 'Grasshoppers eat grass directly, so they would be affected immediately. Other organisms would be affected later as the grasshopper population declines. Always trace direct connections first.',
                 str: 'In a food web, follow the direct connection. What eats the thing that\'s gone?'
             },
             {
@@ -880,8 +908,6 @@
                 diff: 'challenging', type: 'mc',
                 text: 'What would happen to an ecosystem over many years if decomposers were removed?',
                 opts: ['A) Predators would have more food', 'B) Dead organisms would pile up and nutrients wouldn\'t return to soil', 'C) Plants would grow faster', 'D) The ecosystem would function exactly the same'],
-                cor: 1,
-                exp: 'Decomposers break down dead organisms and recycle nutrients back into soil. Without them, dead material accumulates and soil becomes depleted of nutrients, limiting plant growth.',
                 str: 'Decompose = break down. What happens when nothing breaks things down?'
             },
             {
@@ -889,8 +915,6 @@
                 diff: 'challenging', type: 'mc',
                 text: 'A group of finches on an island has different beak shapes. Some have long thin beaks, and some have short thick beaks. Why might this variation be important for the species\' survival?',
                 opts: ['A) All birds need the same type of beak', 'B) It allows different finches to eat different types of food and use resources efficiently', 'C) Beak shape determines how the bird flies', 'D) It has no purpose in survival'],
-                cor: 1,
-                exp: 'Variation allows a species to adapt to different conditions. If food sources change, finches with different beak shapes can still find food. Diversity increases survival chances.',
                 str: 'Variation = different traits in a population. How does being different help survival?'
             },
             {
@@ -898,7 +922,6 @@
                 diff: 'challenging', type: 'scr',
                 text: 'Describe the life cycle of a butterfly, including all major stages and what happens at each stage.',
                 guidance: 'Include: egg, larva/caterpillar, pupa/chrysalis, adult. Explain what the organism does and how it changes at each stage.',
-                exp: 'A complete butterfly life cycle has four stages: (1) Egg—female lays tiny eggs on a leaf; (2) Larva/Caterpillar—hatches and eats leaves to grow; (3) Pupa/Chrysalis—forms protective case where metamorphosis occurs; (4) Adult—emerges with wings, can fly and reproduce.',
                 str: 'List stages in order. For SCR, explain WHAT happens and WHY it matters.'
             },
             {
@@ -906,7 +929,6 @@
                 diff: 'ceiling', type: 'scr',
                 text: 'Using the passage about food webs: A scientist observes that the rabbit population in a forest has suddenly decreased. Explain how this change might affect other organisms in the food web and predict what might happen long-term.',
                 guidance: 'Consider: what eats rabbits? What might those predators eat instead? What about plants eaten by rabbits?',
-                exp: 'With fewer rabbits: (1) Predators (foxes, hawks) have less food and may decrease; (2) Rabbit predators might eat more of other prey; (3) Plants rabbits eat will increase; (4) Long-term: ecosystem will rebalance, but abundance of different species will shift.',
                 str: 'Trace connections in the web. Think: "What is lost? Who needs it? What happens next?"'
             },
             {
@@ -914,8 +936,6 @@
                 diff: 'ceiling', type: 'mc',
                 text: 'Over many generations, a population of beetles living in a sandy desert developed darker coloring. What does this suggest about natural selection in this environment?',
                 opts: ['A) Darker beetles prefer to live in deserts', 'B) The desert sand became darker over time', 'C) Darker coloring provides a survival advantage (perhaps for camouflage or heat absorption) in this specific environment', 'D) All beetles naturally change color as they age'],
-                cor: 2,
-                exp: 'Natural selection favors traits that increase survival. If darker beetles became more common, it suggests they survived and reproduced better than lighter beetles. This could be due to camouflage, heat regulation, or other advantages in desert conditions.',
                 str: 'When a trait becomes MORE common over time, it\'s usually because it helps survival.'
             },
             {
@@ -923,8 +943,6 @@
                 diff: 'challenging', type: 'mc',
                 text: 'In a food chain, why is there less total energy available to secondary consumers than to primary consumers?',
                 opts: ['A) Secondary consumers are lazier', 'B) Energy is lost as heat and through cellular processes, so less is passed on', 'C) Primary consumers eat more food', 'D) Secondary consumers are smaller animals'],
-                cor: 1,
-                exp: 'Energy is lost at each level of the food chain. When primary consumers use food for movement, growth, and heat, not all that energy is available to pass to secondary consumers. Only about 10% of energy transfers between levels.',
                 str: 'Energy loss = heat, movement, digestion. Think about YOUR energy: you don\'t gain 100% of food energy.'
             },
             {
@@ -932,8 +950,6 @@
                 diff: 'ceiling', type: 'mc',
                 text: 'Cells are the smallest unit of life. Which statement best explains why this is true?',
                 opts: ['A) Cells are very small and can only be seen with a microscope', 'B) Cells can perform all life functions independently (growth, response to environment, reproduction)', 'C) Cells are made of many molecules', 'D) All organisms have cells'],
-                cor: 1,
-                exp: 'Cells are the basic unit of life because they can carry out all life functions: they take in nutrients, release waste, respond to stimuli, grow, and reproduce. Nothing smaller than a cell can do all these things independently.',
                 str: 'What makes something ALIVE? It needs to do these functions. Can a smaller unit do all of them?'
             },
             {
@@ -941,8 +957,6 @@
                 diff: 'challenging', type: 'mc',
                 text: 'A kitten is born with sharp claws but must learn from its mother how to hunt effectively. Which statement correctly categorizes these characteristics?',
                 opts: ['A) Sharp claws and hunting skills are both inherited traits', 'B) Sharp claws are inherited; hunting skills are learned', 'C) Both are learned through the kitten\'s lifetime', 'D) Sharp claws are learned; hunting skills are inherited'],
-                cor: 1,
-                exp: 'Sharp claws are a genetic (inherited) trait passed from parents. Hunting skills are learned behaviors taught by the mother through observation and practice. Inherited traits come from genes; learned traits come from experience.',
                 str: 'Inherited = in DNA from birth. Learned = taught or practiced after birth.'
             },
             {
@@ -950,7 +964,6 @@
                 diff: 'ceiling', type: 'scr',
                 text: 'Explain the main structural differences between plant and animal cells and explain why each special structure in plant cells is useful for the plant\'s survival.',
                 guidance: 'Think about: cell wall, large vacuole, chloroplasts. How does each help the plant?',
-                exp: 'Plant cells have: (1) Cell wall—provides rigid support so plant stands upright; (2) Large central vacuole—stores water for turgor pressure and food/water reserves; (3) Chloroplasts—contain chlorophyll for photosynthesis to make food. Animal cells don\'t need these because animals can move and eat.',
                 str: 'For each structure, ask: "Why does a plant need this but an animal doesn\'t?"'
             }
         ];
@@ -962,8 +975,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'What is the first step in the water cycle?',
                 opts: ['A) Precipitation', 'B) Condensation', 'C) Evaporation', 'D) Infiltration'],
-                cor: 2,
-                exp: 'Evaporation is when water from oceans, lakes, and rivers is heated by the sun and turns into water vapor. This vapor rises into the atmosphere where condensation forms clouds. Precipitation then falls as rain or snow.',
                 str: 'Water cycle steps in order: Evaporation → Condensation → Precipitation → Infiltration'
             },
             {
@@ -971,8 +982,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'Using the passage about the water cycle: What happens during condensation?',
                 opts: ['A) Water turns into vapor', 'B) Water vapor cools and forms clouds', 'C) Water soaks into the ground', 'D) Water runs downhill'],
-                cor: 1,
-                exp: 'Condensation is when water vapor in the atmosphere cools and changes back into liquid water, forming clouds and fog. It\'s the opposite of evaporation.',
                 str: 'Condense = compress together. Water vapor molecules come together to form liquid.'
             },
             {
@@ -980,8 +989,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'What is the difference between weather and climate?',
                 opts: ['A) Weather and climate are the same thing', 'B) Weather is short-term conditions; climate is long-term patterns', 'C) Weather only happens in winter', 'D) Climate only affects mountains'],
-                cor: 1,
-                exp: 'Weather refers to short-term atmospheric conditions (today\'s temperature, tomorrow\'s rain). Climate refers to long-term patterns over years or decades (a region\'s average temperature and rainfall).',
                 str: 'Weather = today/this week. Climate = years/decades. Think "trend" vs. "snapshot."'
             },
             {
@@ -989,8 +996,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'Which of the following is a mineral?',
                 opts: ['A) Granite', 'B) Quartz', 'C) Soil', 'D) Sand'],
-                cor: 1,
-                exp: 'A mineral is a naturally occurring solid with a specific chemical composition and ordered crystal structure. Quartz is a mineral. Granite is rock (made of multiple minerals). Soil and sand are mixtures.',
                 str: 'Mineral = one pure substance with crystals. Rock = multiple minerals mixed together.'
             },
             {
@@ -998,8 +1003,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'Weathering and erosion change Earth\'s surface over time. Which statement best explains this?',
                 opts: ['A) Wind and water slowly break down rocks into smaller pieces and move them', 'B) Rocks grow larger every year', 'C) Only freezing water affects rocks', 'D) Weathering and erosion only affect mountains'],
-                cor: 0,
-                exp: 'Weathering breaks rocks into smaller pieces through physical (wind, water, ice) and chemical processes. Erosion transports those pieces to new locations. Together they reshape Earth\'s surface gradually.',
                 str: 'Weather = breaking. Erosion = moving. Both happen slowly over time.'
             },
             {
@@ -1007,8 +1010,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'Which of the following is a renewable resource?',
                 opts: ['A) Coal', 'B) Oil', 'C) Forest trees', 'D) Natural gas'],
-                cor: 2,
-                exp: 'Renewable resources can be replaced relatively quickly. Trees grow back and forests can regenerate. Coal, oil, and natural gas form over millions of years and cannot be replaced quickly, so they are nonrenewable.',
                 str: 'Renewable = can regrow/refill. Nonrenewable = takes millions of years to form.'
             },
             {
@@ -1016,8 +1017,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'Using the passage: How might polluting water sources affect the entire water cycle?',
                 opts: ['A) It would have no effect on the water cycle', 'B) It would only affect fish', 'C) Pollutants could enter the atmosphere through evaporation or remain in soil through infiltration', 'D) Water would stop cycling'],
-                cor: 2,
-                exp: 'Pollution in water can be carried through the water cycle. If water evaporates, some pollutants may travel to the atmosphere. If contaminated water infiltrates soil, it pollutes groundwater. The cycle continues but carries pollution.',
                 str: 'Follow the path: polluted water → evaporates/infiltrates → where does it go?'
             },
             {
@@ -1025,8 +1024,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'A steep hillside loses soil during heavy rainstorms. What is the primary cause of this change?',
                 opts: ['A) Deposition', 'B) Weathering', 'C) Water erosion', 'D) Rock formation'],
-                cor: 2,
-                exp: 'Water erosion occurs when moving water (rainwater running down the slope) carries away soil and rock. While weathering may also occur, the primary agent removing material is the flowing water.',
                 str: 'Erosion moves stuff. What\'s moving it? Water flowing = water erosion.'
             },
             {
@@ -1034,8 +1031,6 @@
                 diff: 'challenging', type: 'mc',
                 text: 'Which of these factors has the MOST direct effect on whether a region experiences frequent rain?',
                 opts: ['A) The color of soil in that region', 'B) Air pressure and moisture in the atmosphere', 'C) The temperature of rocks underground', 'D) The distance from the equator alone'],
-                cor: 1,
-                exp: 'Atmospheric conditions—moisture content and air pressure—directly determine whether clouds form and precipitation occurs. High moisture + low pressure = rain likely. Other factors are less direct.',
                 str: 'For weather/climate questions, think atmosphere first: temperature, pressure, moisture.'
             },
             {
@@ -1043,8 +1038,6 @@
                 diff: 'challenging', type: 'mc',
                 text: 'Different regions on Earth have different climates. Which statement best explains why a tropical region near the equator has high rainfall?',
                 opts: ['A) The equator is closest to the sun, heating water and increasing evaporation and condensation', 'B) Tropical regions never have dry seasons', 'C) All regions near oceans have high rainfall', 'D) Rain only falls at the equator'],
-                cor: 0,
-                exp: 'Tropical regions near the equator receive strong, direct sunlight, heating oceans and increasing evaporation. This water vapor rises, condenses at altitude, and falls as rain. The cycle is intense here.',
                 str: 'Why there? Sun is strongest at equator → more heat → more evaporation → more rain.'
             },
             {
@@ -1052,8 +1045,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'Which layer of Earth is primarily responsible for earthquakes and volcanic activity?',
                 opts: ['A) The crust', 'B) The mantle', 'C) The outer core', 'D) The inner core'],
-                cor: 0,
-                exp: 'The crust is Earth\'s thin outer layer where tectonic plates interact. Movement of these plates causes earthquakes and brings molten rock (magma) to the surface through volcanoes.',
                 str: 'Crust = where we live. Earthquakes and volcanoes = crust interactions.'
             },
             {
@@ -1061,8 +1052,6 @@
                 diff: 'challenging', type: 'mc',
                 text: 'In a northern climate, rocks split apart during winter even without wind or water erosion. What is the most likely cause?',
                 opts: ['A) Rocks naturally shrink in cold', 'B) Animals burrow through rocks', 'C) Water in rock cracks freezes, expands, and breaks the rock (freeze-thaw weathering)', 'D) Rocks are not actually breaking'],
-                cor: 2,
-                exp: 'Freeze-thaw weathering occurs when water enters rock cracks, freezes, and expands, exerting pressure that breaks the rock. This is especially common in cold climates with freeze-thaw cycles.',
                 str: 'Freeze-thaw = water freezes → expands → cracks rock. Think of a soda bottle in freezer.'
             },
             {
@@ -1070,8 +1059,6 @@
                 diff: 'challenging', type: 'mc',
                 text: 'Which practice would MOST directly help conserve nonrenewable resources?',
                 opts: ['A) Planting more trees', 'B) Using renewable energy sources instead of fossil fuels', 'C) Increasing food production', 'D) Building more dams'],
-                cor: 1,
-                exp: 'Nonrenewable resources (coal, oil, gas) are used for energy. Switching to renewable energy (solar, wind, hydroelectric) reduces consumption of these limited resources.',
                 str: 'Conserve = use less. Nonrenewable = limited supply. How do you use LESS?'
             },
             {
@@ -1079,7 +1066,6 @@
                 diff: 'ceiling', type: 'scr',
                 text: 'Using the passage about the water cycle: Explain how the water cycle is essential for life on Earth. Include at least three ways water moves through the cycle.',
                 guidance: 'Mention: evaporation, condensation, precipitation, infiltration. Explain why each step matters for living things.',
-                exp: 'The water cycle is essential because: (1) Evaporation brings water from oceans to atmosphere; (2) Condensation forms clouds that provide rain; (3) Precipitation provides fresh water for drinking and growing crops; (4) Infiltration refills groundwater and aquifers. Without this cycle, water would remain salty in oceans and unavailable to most life.',
                 str: 'For "why is this important" questions, connect to life: food, drinking, growth, survival.'
             },
             {
@@ -1087,8 +1073,6 @@
                 diff: 'ceiling', type: 'mc',
                 text: 'Igneous rocks form from cooled magma. Sedimentary rocks form from compressed sediment. Metamorphic rocks form from existing rocks changed by heat and pressure. How do these three rock types relate to each other?',
                 opts: ['A) They are completely separate and never interact', 'B) They are part of a continuous rock cycle where rocks can transform from one type to another', 'C) All rocks eventually become sedimentary rocks', 'D) Igneous rocks are more valuable than the others'],
-                cor: 1,
-                exp: 'The rock cycle shows how rocks continually change. An igneous rock may weather into sediment, which is compacted into sedimentary rock, which may be buried and transformed by heat into metamorphic rock, which may melt and reform as igneous rock.',
                 str: 'Rock cycle = continuous change. Each type can become another type over time.'
             },
             {
@@ -1096,7 +1080,6 @@
                 diff: 'ceiling', type: 'scr',
                 text: 'Explain how understanding weather patterns and climate helps scientists predict severe weather events and prepare communities. Give an example.',
                 guidance: 'Consider: hurricanes, tornadoes, droughts. How do patterns help predict them?',
-                exp: 'Understanding climate helps identify when/where severe weather is likely (e.g., hurricane season in tropics, tornado season in spring). Understanding weather patterns (pressure systems, moisture) allows short-term forecasting. Communities use this info to prepare: build shelters, evacuate if needed, stockpile supplies. Example: knowing monsoon season arrives allows farmers to prepare for heavy rains.',
                 str: 'Pattern = repeats. Prediction = using patterns to forecast. Preparation = acting before.'
             }
         );
@@ -1108,8 +1091,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'Which of the following is a physical property of matter?',
                 opts: ['A) How easily it burns', 'B) Its color', 'C) Its chemical reactivity', 'D) Its ability to rust'],
-                cor: 1,
-                exp: 'Physical properties are characteristics you can observe without changing the substance (color, shape, size, texture, density). Chemical properties describe how a substance reacts with other substances.',
                 str: 'Physical = observe with senses. Chemical = changes what it is.'
             },
             {
@@ -1117,8 +1098,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'What happens to water when it freezes from a liquid to a solid?',
                 opts: ['A) It becomes lighter', 'B) Its molecules move faster', 'C) Its molecules move slower and arrange in fixed patterns', 'D) It disappears'],
-                cor: 2,
-                exp: 'When a liquid freezes to solid, temperature drops and molecular motion slows. Molecules lock into fixed, organized positions. The substance is denser but maintains the same mass.',
                 str: 'Freeze = slow down + organize. Molecules go from loose to locked in place.'
             },
             {
@@ -1126,8 +1105,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'A ball at rest on the ground will remain at rest unless acted upon by a force. What is this an example of?',
                 opts: ['A) Gravity', 'B) Inertia', 'C) Acceleration', 'D) Friction'],
-                cor: 1,
-                exp: 'Inertia is the tendency of objects to remain in their state of motion (or rest) unless acted upon by an external force. This is Newton\'s First Law of Motion.',
                 str: 'Inertia = resistance to change. At rest? Stays at rest. Moving? Stays moving.'
             },
             {
@@ -1135,8 +1112,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'A lever is a simple machine that makes work easier. How does a lever reduce the effort needed to lift a heavy object?',
                 opts: ['A) It eliminates the need for force', 'B) It increases the distance over which force is applied, reducing the effort needed', 'C) It changes the direction of force but not the amount', 'D) Levers don\'t actually reduce effort'],
-                cor: 1,
-                exp: 'Levers are tools that increase mechanical advantage. By increasing the distance over which you apply force (longer lever arm), you need less force to lift something. It\'s a trade-off: less effort, more distance.',
                 str: 'Simple machines = make work easier. Lever = trade effort for distance.'
             },
             {
@@ -1144,8 +1119,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'Two blocks are the same size. Block A is made of plastic and Block B is made of lead. Which block has greater density and why?',
                 opts: ['A) Block A; it is lighter', 'B) Block B; it has more mass in the same volume', 'C) They have equal density', 'D) Density cannot be compared without knowing weight'],
-                cor: 1,
-                exp: 'Density is mass per unit volume. Lead is much denser than plastic, so lead block of the same size weighs much more. Greater mass in the same volume = higher density.',
                 str: 'Density = mass ÷ volume. Same size but more mass = higher density.'
             },
             {
@@ -1153,8 +1126,6 @@
                 diff: 'challenging', type: 'mc',
                 text: 'Why does friction slow down a sliding object?',
                 opts: ['A) Friction makes the object heavier', 'B) Friction is a force that opposes motion', 'C) Objects naturally slow down over time', 'D) The ground is getting higher'],
-                cor: 1,
-                exp: 'Friction is a force that opposes motion between two surfaces. When an object slides, friction acts opposite to its direction of motion, slowing it down. Eventually, if no other force pushes it, friction brings it to rest.',
                 str: 'Friction = force against motion. More friction = slows down faster.'
             },
             {
@@ -1162,8 +1133,6 @@
                 diff: 'challenging', type: 'mc',
                 text: 'When a substance changes from liquid to gas, what happens to its particles?',
                 opts: ['A) Particles get smaller', 'B) Particles gain energy and spread far apart', 'C) Particles become heavier', 'D) Particles disappear'],
-                cor: 1,
-                exp: 'During evaporation (liquid to gas), particles gain kinetic energy and move faster, spreading far apart. The substance takes up much more space but the particles still exist (same mass).',
                 str: 'Gas = spread out. Liquid to gas = particles get excited and spread apart.'
             },
             {
@@ -1171,8 +1140,6 @@
                 diff: 'ceiling', type: 'mc',
                 text: 'A student pushes a wall with great force for 10 minutes, but the wall does not move. According to the scientific definition of work, how much work was done?',
                 opts: ['A) A large amount, because great force was applied', 'B) Work cannot be measured without knowing the distance', 'C) Zero, because work = force × distance, and there was no distance moved', 'D) Unknown without more information'],
-                cor: 2,
-                exp: 'In physics, work is defined as force × distance moved in the direction of the force. If there is no distance (wall didn\'t move), then work = 0, even if effort was exerted. This can be counterintuitive!',
                 str: 'Work = force × distance. No movement = no work (by definition).'
             },
             {
@@ -1180,7 +1147,6 @@
                 diff: 'ceiling', type: 'scr',
                 text: 'Explain what happens at the molecular level when ice melts into water. Why does ice float in water when most solids sink in their liquids?',
                 guidance: 'Think about: molecular spacing, density, hydrogen bonding. How is water/ice unusual?',
-                exp: 'When ice melts: (1) Heat energy increases molecular motion; (2) Rigid crystal structure breaks; (3) Molecules move closer together. Ice floats because frozen water is LESS dense than liquid water (unusual!). In ice, hydrogen bonding creates space between molecules, making it less dense. Most solids are denser than their liquids.',
                 str: 'Ice is weird: it\'s LESS dense than water, so it floats. Most solids sink in their liquid.'
             }
         );
@@ -1192,8 +1158,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'A student wants to test if plants grow faster in sunlight or shade. Which of the following is the VARIABLE being tested?',
                 opts: ['A) The type of plant', 'B) The amount of light (sunlight vs. shade)', 'C) The type of soil', 'D) The amount of water'],
-                cor: 1,
-                exp: 'A variable is a factor that changes in an experiment. The variable being TESTED (independent variable) is light. To make a fair test, everything else (soil, water, temperature, container) should stay the same.',
                 str: 'Variable = what changes. Independent variable = what you change on purpose.'
             },
             {
@@ -1201,8 +1165,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'To make the plant growth experiment fair, which factors should be kept the SAME for all plants?',
                 opts: ['A) Light, water, soil, and temperature', 'B) Only light and water', 'C) Only water and soil', 'D) No factors need to be controlled'],
-                cor: 0,
-                exp: 'All factors except the independent variable (light) should be controlled (kept the same). If soil, water, and temperature differ, you won\'t know if differences in growth are due to light or these other factors.',
                 str: 'Fair test = change ONE thing (independent variable), keep everything else the same (controls).'
             },
             {
@@ -1210,8 +1172,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'A scientist sees clouds in the sky. Which statement is an OBSERVATION?',
                 opts: ['A) It will rain soon', 'B) The clouds are dark gray in color', 'C) The clouds indicate a storm is coming', 'D) Clouds always bring rain'],
-                cor: 1,
-                exp: 'An observation is something you directly see, hear, smell, or measure using senses or instruments. "Dark gray color" is an observation. Predictions, interpretations, and conclusions are inferences.',
                 str: 'Observation = what you directly see/measure. Inference = what you think it means.'
             },
             {
@@ -1219,8 +1179,6 @@
                 diff: 'baseline', type: 'mc',
                 text: 'A data table shows plant heights measured every week for 4 weeks: Week 1: 5 cm, Week 2: 8 cm, Week 3: 12 cm, Week 4: 17 cm. What pattern do you observe?',
                 opts: ['A) Plant height stays the same', 'B) Plant height decreases', 'C) Plant height increases each week', 'D) Data is unclear'],
-                cor: 2,
-                exp: 'The data shows a clear pattern: consistent growth each week (3 cm, 4 cm, 5 cm). This demonstrates a positive trend in plant growth over time.',
                 str: 'Patterns = trends. Look for: increasing, decreasing, repeating, or no change.'
             },
             {
@@ -1228,8 +1186,6 @@
                 diff: 'grade-level', type: 'mc',
                 text: 'A bar graph shows that students using study guides scored an average of 85%, while students not using study guides scored 72%. What conclusion is supported by this data?',
                 opts: ['A) Study guides cause students to study harder', 'B) All students who use study guides will score 85%', 'C) Study guides appear to be associated with higher test scores', 'D) The difference is too small to matter'],
-                cor: 2,
-                exp: 'The data supports that study guides are associated with higher average scores. We can\'t conclude causation (study guides CAUSE higher scores) from this data alone, but correlation is clear.',
                 str: 'Correlation vs. causation: data shows relationship but may not prove cause.'
             },
             {
@@ -1237,8 +1193,6 @@
                 diff: 'challenging', type: 'mc',
                 text: 'A student notices that ice melts faster in the sun than in the shade. Which statement would be a testable HYPOTHESIS?',
                 opts: ['A) Ice is cold', 'B) Ice melts faster when exposed to heat from sunlight than when in shade', 'C) Ice shouldn\'t melt at all', 'D) All ice melts at different rates'],
-                cor: 1,
-                exp: 'A good hypothesis is testable and specific, stating a proposed relationship: "If X, then Y because Z." Option B does this. Options A and C are not testable; D is too vague.',
                 str: 'Hypothesis = specific prediction that can be tested. "If... then..." is good format.'
             },
             {
@@ -1246,7 +1200,6 @@
                 diff: 'challenging', type: 'scr',
                 text: 'Design an experiment to test whether music affects how fast plants grow. Include: the hypothesis, independent variable, dependent variable, control variables, and how you would measure results.',
                 guidance: 'Remember: one thing changes, everything else stays the same. How will you measure growth?',
-                exp: 'Hypothesis: "Plants exposed to music will grow faster than plants in silence." Independent variable: presence/absence of music. Dependent variable: plant height (measured in cm weekly). Controls: same plant species, soil, water, light, temperature, container. Measurement: measure height with ruler weekly for 4 weeks. Compare growth rates.',
                 str: 'For SCR experiments: hypothesis → variables → controls → measurement method.'
             },
             {
@@ -1254,7 +1207,6 @@
                 diff: 'ceiling', type: 'scr',
                 text: 'A scientist collected data on how temperature affects the bounce height of a rubber ball. Data shows: 10°C → 30 cm, 20°C → 45 cm, 30°C → 60 cm, 40°C → 75 cm. Analyze this data and draw a conclusion. Explain what might be happening at the molecular level.',
                 guidance: 'Look for patterns. Why might temperature affect bounce height? Think about molecules and energy.',
-                exp: 'Pattern: bounce height increases as temperature increases (linear relationship). Conclusion: warmer temperatures produce higher bounces. Molecular explanation: heat energy increases molecular movement in the rubber, making it more elastic and allowing it to bounce higher. More elastic = more energy returned when it hits ground.',
                 str: 'Data patterns → conclusions. Then explain WHY (mechanisms, molecular level, forces).'
             }
         );
@@ -1418,7 +1370,7 @@
                 for (let i = sec.range[0]; i <= Math.min(sec.range[1], Q.length - 1); i++) {
                     if (Q[i] && Q[i].type === 'mc') {
                         total++;
-                        if (answers[i] === Q[i].cor) correct++;
+                        if (answers[i] === _ac[i]) correct++;
                     }
                 }
                 scores[sec.id] = total > 0 ? Math.round((correct / total) * 100) : 0;
@@ -1428,7 +1380,7 @@
             Q.forEach((q, i) => {
                 if (q.type === 'mc') {
                     totalQuestions++;
-                    if (answers[i] === q.cor) totalCorrect++;
+                    if (answers[i] === _ac[currentQuestion]) totalCorrect++;
                 }
             });
             scores.overall = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;

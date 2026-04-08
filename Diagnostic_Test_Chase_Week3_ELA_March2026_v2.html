@@ -113,6 +113,58 @@ body{display:flex;flex-direction:column;overflow:hidden}
 <div id="reviewScreen" class="screen"><div class="top-bar"><div><div class="title">Doug's Review</div></div><div style="color:var(--accent)">Diagnostic Complete</div></div><div class="review-content" id="reviewContent"></div></div>
 
 <script>
+
+    // ============================================================
+    // ANTI-CHEAT — DO NOT REMOVE
+    // ============================================================
+    (function() {
+        // Block right-click context menu
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+        // Block keyboard shortcuts to open DevTools / view source
+        document.addEventListener('keydown', function(e) {
+            const blocked = (
+                e.keyCode === 123 ||                                      // F12
+                (e.ctrlKey && e.shiftKey && e.keyCode === 73) ||          // Ctrl+Shift+I
+                (e.ctrlKey && e.shiftKey && e.keyCode === 74) ||          // Ctrl+Shift+J
+                (e.ctrlKey && e.shiftKey && e.keyCode === 67) ||          // Ctrl+Shift+C
+                (e.ctrlKey && e.keyCode === 85) ||                        // Ctrl+U (view source)
+                (e.metaKey && e.altKey && e.keyCode === 73)               // Cmd+Opt+I (Mac)
+            );
+            if (blocked) { e.preventDefault(); e.stopPropagation(); return false; }
+        }, true);
+
+        // DevTools size detection — if open, overlay the page
+        var _devOpen = false;
+        setInterval(function() {
+            var widthDiff  = window.outerWidth  - window.innerWidth  > 160;
+            var heightDiff = window.outerHeight - window.innerHeight > 160;
+            if ((widthDiff || heightDiff) && !_devOpen) {
+                _devOpen = true;
+                var overlay = document.createElement('div');
+                overlay.id  = '_ac_overlay';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;' +
+                    'background:#0a0f1a;z-index:999999;display:flex;align-items:center;' +
+                    'justify-content:center;flex-direction:column;';
+                overlay.innerHTML = '<div style="font-size:48px;">⚠️</div>' +
+                    '<div style="color:#ff4444;font-size:22px;font-weight:700;margin:16px 0;">Browser tools detected.</div>' +
+                    '<div style="color:#aaa;font-size:15px;">Close DevTools and refresh the page to continue.</div>';
+                document.body.appendChild(overlay);
+            } else if (!widthDiff && !heightDiff && _devOpen) {
+                _devOpen = false;
+                var el = document.getElementById('_ac_overlay');
+                if (el) el.remove();
+            }
+        }, 800);
+    })();
+    // ============================================================
+
+    // Correct answers — XOR-encoded (key=17). Do not modify.
+    var _ac = (function(){
+        var k=17, e=[16,16,19,16,16,16,16,16,16,16,16,16,16,19,16,16,16,16,16,16,16,16,16,16,19,16,16,17,17,19,17,17,16,17,16,16,18,16,19,16,16,19,16,16,19,16,16,16,16,16,16,19,19,16,19];
+        return e.map(function(v){return v^k;});
+    })();
+
 const CONFIG={student:"Chase",grade:5,testId:"chase_diagnostic_week3_ela_mar2026_v2",testLabel:"Week 3 LEAP Diagnostic \u2014 March 22, 2026",
 webAppUrl:"https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec"};
 
@@ -174,294 +226,239 @@ const Q=[
 
 {p:'passage_lit1',sec:'ela',std:'RL.5.2',skill:'Theme',diff:'baseline',type:'mc',
 text:'What is one theme of this passage?',
-opts:['Mapmaking is the most important job in the world.','True skill requires both accuracy and deeper understanding.','Apprentices should always obey their masters without question.','Drawing maps is easier than baking bread.'],
-cor:1,exp:'The passage contrasts Gregor (precise but lifeless) and Tomas (passionate but inaccurate) with Emilia, who combines precision with understanding. Master Aldric\'s lesson is that real skill lives where "precision meets art."',str:'Theme = a lesson or message the whole story teaches. It should be supported by multiple parts of the story, not just one detail.'},
+opts:['Mapmaking is the most important job in the world.','True skill requires both accuracy and deeper understanding.','Apprentices should always obey their masters without question.','Drawing maps is easier than baking bread.'],str:'Theme = a lesson or message the whole story teaches. It should be supported by multiple parts of the story, not just one detail.'},
 
 {p:'passage_lit1',sec:'ela',std:'RL.5.1',skill:'Textual Evidence',diff:'baseline',type:'mc',
 text:'Which sentence from the passage best shows that Emilia takes her work seriously?',
-opts:['"She was fourteen years old and had been apprenticed to Master Aldric for three years."','"Emilia pressed the charcoal pencil against the parchment and held her breath."','"The other apprentices had already taken their trials."','"Master Aldric sat in the corner of the workshop, pretending to read."'],
-cor:1,exp:'Holding her breath while drawing shows intense concentration and care. The other options describe facts about her age, the other apprentices, or Aldric\u2019s behavior\u2014none reveal Emilia\u2019s own attitude toward her work.',str:'Evidence questions ask for the sentence that BEST proves the claim. Choose the one that directly shows the character\u2019s feelings or actions.'},
+opts:['"She was fourteen years old and had been apprenticed to Master Aldric for three years."','"Emilia pressed the charcoal pencil against the parchment and held her breath."','"The other apprentices had already taken their trials."','"Master Aldric sat in the corner of the workshop, pretending to read."'],str:'Evidence questions ask for the sentence that BEST proves the claim. Choose the one that directly shows the character\u2019s feelings or actions.'},
 
 {p:'passage_lit1',sec:'ela',std:'RL.5.4',skill:'Vocabulary in Context',diff:'grade-level',type:'mc',
 text:'What does "treacherous" mean as used in paragraph 3?\n\n"But memory was a treacherous thing."',
-opts:['Boring and dull','Extremely helpful','Dangerously unreliable','Perfectly accurate'],
-cor:2,exp:'The passage explains that memory "played tricks, swapped left for right, stretched distances." These are ways memory deceives you, making it dangerously unreliable\u2014treacherous.',str:'Read the sentences around the word. The author explains what memory does wrong right after calling it treacherous. Those details define the word.'},
+opts:['Boring and dull','Extremely helpful','Dangerously unreliable','Perfectly accurate'],str:'Read the sentences around the word. The author explains what memory does wrong right after calling it treacherous. Those details define the word.'},
 
 {p:'passage_lit1',sec:'ela',std:'RL.5.3',skill:'Character Analysis',diff:'grade-level',type:'mc',
 text:'How does Master Aldric\u2019s reaction to Emilia\u2019s map reveal something about his character?',
-opts:['He is easily impressed by any student\u2019s work.','He rarely shows approval, so his smile indicates Emilia achieved something truly exceptional.','He is angry that Emilia wrote a note in the margin.','He prefers Emilia over the other apprentices because she is younger.'],
-cor:1,exp:'The passage says Emilia had "never seen him do in three years of apprenticeship: he smiled." The rarity of his approval makes the smile extremely meaningful\u2014he recognizes genuine excellence.',str:'When a character breaks a pattern (never smiling, then smiling), that break is significant. Ask: Why did the author show this change?'},
+opts:['He is easily impressed by any student\u2019s work.','He rarely shows approval, so his smile indicates Emilia achieved something truly exceptional.','He is angry that Emilia wrote a note in the margin.','He prefers Emilia over the other apprentices because she is younger.'],str:'When a character breaks a pattern (never smiling, then smiling), that break is significant. Ask: Why did the author show this change?'},
 
 {p:'passage_lit1',sec:'ela',std:'RL.5.3',skill:'Compare Characters',diff:'challenging',type:'mc',
 text:'How do Gregor and Tomas serve as contrasts to Emilia in the story?',
-opts:['They both succeeded at the Trial while Emilia failed.','Gregor represents precision without understanding, and Tomas represents passion without accuracy\u2014Emilia combines both qualities.','They are both better mapmakers than Emilia but less likeable.','They represent the same approach to mapmaking that Emilia uses.'],
-cor:1,exp:'Gregor drew "technically flawless but sterile" maps. Tomas drew "with passion" but was wildly inaccurate. Emilia succeeds because she finds what Aldric calls "the place where precision meets art"\u2014combining their separate strengths.',str:'When a story includes contrasting characters, they usually highlight what makes the main character different or special. Look for what each character lacks.'},
+opts:['They both succeeded at the Trial while Emilia failed.','Gregor represents precision without understanding, and Tomas represents passion without accuracy\u2014Emilia combines both qualities.','They are both better mapmakers than Emilia but less likeable.','They represent the same approach to mapmaking that Emilia uses.'],str:'When a story includes contrasting characters, they usually highlight what makes the main character different or special. Look for what each character lacks.'},
 
 // EBSR #1 — Part A
 {p:'passage_lit1',sec:'ela',std:'RL.5.2',skill:'EBSR \u2014 Interpretation',diff:'challenging',type:'mc',
 text:'Part A: What does Master Aldric mean when he says, "A beautiful lie is still a lie"?',
-opts:['He thinks all maps are dishonest.','A map that looks impressive but contains errors is dangerous and unreliable.','He believes beauty is more important than accuracy in mapmaking.','He is warning Emilia not to make her maps too attractive.'],
-cor:1,exp:'Aldric is teaching that a gorgeous map with wrong information will still lead sailors astray. No matter how beautiful the drawing, if the data is wrong, the map is a dangerous "lie."',str:'When interpreting figurative language from a character, think about the context. What is the character teaching? What consequences do they fear?'},
+opts:['He thinks all maps are dishonest.','A map that looks impressive but contains errors is dangerous and unreliable.','He believes beauty is more important than accuracy in mapmaking.','He is warning Emilia not to make her maps too attractive.'],str:'When interpreting figurative language from a character, think about the context. What is the character teaching? What consequences do they fear?'},
 
 // EBSR #1 — Part B
 {p:'passage_lit1',sec:'ela',std:'RL.5.1',skill:'EBSR \u2014 Evidence',diff:'challenging',type:'mc',
 text:'Part B: Which sentence from the passage best supports your answer to Part A?',
-opts:['"Emilia pressed the charcoal pencil against the parchment and held her breath."','"Tomas had drawn with passion but made the harbor twice as wide as it actually was, which would have sent any ship straight onto the rocks."','"She had learned to grind pigments from minerals."','"Master Aldric walked over, his expression unreadable."'],
-cor:1,exp:'Tomas is the perfect example of a "beautiful lie"\u2014his map was passionate (beautiful) but doubled the harbor\u2019s width (a lie), which would crash ships. This directly illustrates Aldric\u2019s warning.',str:'For Part B of EBSR questions, find the sentence that gives a concrete example of the idea from Part A.'},
+opts:['"Emilia pressed the charcoal pencil against the parchment and held her breath."','"Tomas had drawn with passion but made the harbor twice as wide as it actually was, which would have sent any ship straight onto the rocks."','"She had learned to grind pigments from minerals."','"Master Aldric walked over, his expression unreadable."'],str:'For Part B of EBSR questions, find the sentence that gives a concrete example of the idea from Part A.'},
 
 {p:'passage_lit1',sec:'ela',std:'RL.5.6',skill:'Point of View',diff:'challenging',type:'mc',
 text:'This story is told from a third-person limited point of view focused on Emilia. How does this affect what the reader knows?',
-opts:['The reader knows every character\u2019s thoughts and feelings equally.','The reader only knows Emilia\u2019s thoughts and must infer what other characters think from their actions and words.','The reader does not know any character\u2019s thoughts at all.','The reader sees the events from Master Aldric\u2019s perspective.'],
-cor:1,exp:'Third-person limited means we see through one character\u2019s eyes. We know Emilia\u2019s feelings (nervous, shaking hands) but can only guess at Aldric\u2019s thoughts from his expression and actions (his smile).',str:'Point of view controls what information the reader gets. Limited = one character\u2019s inner world. Omniscient = everyone\u2019s thoughts. First person = "I" narrator.'},
+opts:['The reader knows every character\u2019s thoughts and feelings equally.','The reader only knows Emilia\u2019s thoughts and must infer what other characters think from their actions and words.','The reader does not know any character\u2019s thoughts at all.','The reader sees the events from Master Aldric\u2019s perspective.'],str:'Point of view controls what information the reader gets. Limited = one character\u2019s inner world. Omniscient = everyone\u2019s thoughts. First person = "I" narrator.'},
 
 // Passage 2: The Road Not Taken — Poetry (5 questions)
 
 {p:'passage_lit2',sec:'ela',std:'RL.5.4',skill:'Figurative Language',diff:'grade-level',type:'mc',
 text:'In this poem, the "two roads" most likely represent\u2014',
-opts:['actual hiking trails in a forest','two choices or paths in life','two different maps','two rivers flowing in opposite directions'],
-cor:1,exp:'The roads are a metaphor. The speaker is really talking about life decisions\u2014moments when you must choose between two options and can\u2019t go back.',str:'In poetry, look beyond the literal meaning. When an image represents something bigger (roads = life choices), that\u2019s a metaphor or symbol.'},
+opts:['actual hiking trails in a forest','two choices or paths in life','two different maps','two rivers flowing in opposite directions'],str:'In poetry, look beyond the literal meaning. When an image represents something bigger (roads = life choices), that\u2019s a metaphor or symbol.'},
 
 {p:'passage_lit2',sec:'ela',std:'RL.5.4',skill:'Figurative Language',diff:'challenging',type:'mc',
 text:'What does the speaker mean by "knowing how way leads on to way, / I doubted whether I should ever come back"?',
-opts:['He is afraid of getting lost in the woods.','He knows that once you make a choice, each new decision leads to another, and you can rarely return to undo the original choice.','He does not like the road he chose.','He plans to come back tomorrow and take the other road.'],
-cor:1,exp:'The speaker understands that life moves forward\u2014one choice leads to the next, and you can\u2019t easily go back to the moment of decision. It\u2019s a reflection on how choices compound over time.',str:'Read the whole stanza together. "Way leads on to way" means each path leads to more paths. The speaker is reflecting on the irreversibility of choices.'},
+opts:['He is afraid of getting lost in the woods.','He knows that once you make a choice, each new decision leads to another, and you can rarely return to undo the original choice.','He does not like the road he chose.','He plans to come back tomorrow and take the other road.'],str:'Read the whole stanza together. "Way leads on to way" means each path leads to more paths. The speaker is reflecting on the irreversibility of choices.'},
 
 {p:'passage_lit2',sec:'ela',std:'RL.5.5',skill:'Poem Structure',diff:'ceiling',type:'mc',
 text:'How does the structure of the poem\u2019s final stanza differ from the earlier stanzas, and what effect does this create?',
-opts:['The final stanza describes the present moment, while earlier stanzas look to the future, creating confusion.','The final stanza shifts to the distant future ("ages and ages hence"), suggesting the speaker will look back on this choice as a defining moment in life.','The final stanza introduces a new character who was not mentioned before.','The final stanza uses shorter lines to speed up the rhythm and create excitement.'],
-cor:1,exp:'The earlier stanzas describe the moment of choice. The final stanza leaps forward in time\u2014"ages and ages hence"\u2014showing the speaker imagining how this one decision will shape the story of an entire life.',str:'When a poem shifts time, place, or tone in its final stanza, that shift carries the poem\u2019s deepest meaning. Ask: How does the ending reframe everything before it?'},
+opts:['The final stanza describes the present moment, while earlier stanzas look to the future, creating confusion.','The final stanza shifts to the distant future ("ages and ages hence"), suggesting the speaker will look back on this choice as a defining moment in life.','The final stanza introduces a new character who was not mentioned before.','The final stanza uses shorter lines to speed up the rhythm and create excitement.'],str:'When a poem shifts time, place, or tone in its final stanza, that shift carries the poem\u2019s deepest meaning. Ask: How does the ending reframe everything before it?'},
 
 {p:'passage_lit2',sec:'ela',std:'RL.5.1',skill:'Inference',diff:'ceiling',type:'mc',
 text:'The speaker says both roads "equally lay / In leaves no step had trodden black." What can you infer about the two choices?',
-opts:['One road was clearly much better than the other.','Both roads were actually very similar in that moment, despite the speaker later claiming to have taken the "less traveled" one.','The roads were covered in darkness and impossible to see.','Neither road had ever been used by anyone before.'],
-cor:1,exp:'The poem says the roads were worn "really about the same" and both lay equally in untrodden leaves. Yet in the final stanza, the speaker claims to have taken the "less traveled" road. This contradiction suggests people tend to rewrite their past choices as more dramatic or meaningful than they actually were.',str:'Strong readers notice contradictions. When a speaker says one thing early on and something different later, that gap is the key to deeper meaning.'},
+opts:['One road was clearly much better than the other.','Both roads were actually very similar in that moment, despite the speaker later claiming to have taken the "less traveled" one.','The roads were covered in darkness and impossible to see.','Neither road had ever been used by anyone before.'],str:'Strong readers notice contradictions. When a speaker says one thing early on and something different later, that gap is the key to deeper meaning.'},
 
 // Passage 3: The Science of Sleep — Informational (5 questions)
 
 {p:'passage_info1',sec:'ela',std:'RI.5.2',skill:'Central Idea',diff:'grade-level',type:'mc',
 text:'What is the central idea of this passage?',
-opts:['Everyone dreams during REM sleep.','Sleep is an active, essential process that affects physical health, learning, and well-being, yet many students do not get enough.','Schools should never start before 9 AM.','Non-REM sleep is more important than REM sleep.'],
-cor:1,exp:'The passage covers what happens during sleep (active repair and learning), why it matters (health, grades, mood), and the problem (students don\u2019t get enough). The central idea ties all these sections together.',str:'The central idea must be supported by the WHOLE passage, not just one paragraph. If an answer only covers part of the passage, it\u2019s too narrow.'},
+opts:['Everyone dreams during REM sleep.','Sleep is an active, essential process that affects physical health, learning, and well-being, yet many students do not get enough.','Schools should never start before 9 AM.','Non-REM sleep is more important than REM sleep.'],str:'The central idea must be supported by the WHOLE passage, not just one paragraph. If an answer only covers part of the passage, it\u2019s too narrow.'},
 
 {p:'passage_info1',sec:'ela',std:'RI.5.5',skill:'Text Structure',diff:'challenging',type:'mc',
 text:'How does the author organize the information in paragraphs 2 through 4?',
-opts:['By comparing sleep in children versus adults','By presenting a problem and then offering a solution','By describing the sequential stages and cycles of sleep in the order they occur','By listing random facts about the brain in no particular order'],
-cor:2,exp:'Paragraphs 2\u20134 walk through sleep in order: Stage 1 \u2192 Stage 2 \u2192 Stage 3 (non-REM) \u2192 REM \u2192 how cycles repeat through the night. This is sequential/chronological structure.',str:'Text structure = how the author arranges ideas. Sequential structure follows a time order or process step by step.'},
+opts:['By comparing sleep in children versus adults','By presenting a problem and then offering a solution','By describing the sequential stages and cycles of sleep in the order they occur','By listing random facts about the brain in no particular order'],str:'Text structure = how the author arranges ideas. Sequential structure follows a time order or process step by step.'},
 
 // EBSR #2 — Part A
 {p:'passage_info1',sec:'ela',std:'RI.5.8',skill:'EBSR \u2014 Argument',diff:'ceiling',type:'mc',
 text:'Part A: The author argues that cutting sleep short is especially harmful. What is the main reason given?',
-opts:['You will miss the lightest stage of sleep, which is the most restful.','The longest REM periods occur near the end of the night, so cutting sleep short eliminates the most important time for memory consolidation.','Cutting sleep short only affects physical health, not mental performance.','The body cannot enter any stage of sleep if the night is too short.'],
-cor:1,exp:'Paragraph 4 explicitly states: "the last few hours of sleep are particularly important for memory consolidation\u2014cutting your sleep short means losing your longest REM periods." REM is when the brain strengthens learning.',str:'For argument questions, find the specific evidence the author uses. The claim is that short sleep is harmful; the reason is the loss of late-night REM periods.'},
+opts:['You will miss the lightest stage of sleep, which is the most restful.','The longest REM periods occur near the end of the night, so cutting sleep short eliminates the most important time for memory consolidation.','Cutting sleep short only affects physical health, not mental performance.','The body cannot enter any stage of sleep if the night is too short.'],str:'For argument questions, find the specific evidence the author uses. The claim is that short sleep is harmful; the reason is the loss of late-night REM periods.'},
 
 // EBSR #2 — Part B
 {p:'passage_info1',sec:'ela',std:'RI.5.1',skill:'EBSR \u2014 Evidence',diff:'ceiling',type:'mc',
 text:'Part B: Which detail from the passage best supports your answer to Part A?',
-opts:['"During Stage 1, you are in light sleep and can be easily awakened."','"As the night progresses, the REM periods grow longer."','"The National Sleep Foundation recommends nine to eleven hours of sleep per night."','"Screen time before bed contributes to a sleep debt epidemic."'],
-cor:1,exp:'"REM periods grow longer" as the night goes on directly explains WHY losing end-of-night sleep is so damaging\u2014you lose the biggest chunks of REM, which is when memory consolidation peaks.',str:'Part B evidence must directly explain the mechanism behind Part A\u2019s answer. The growing length of REM periods is the reason late sleep matters most.'},
+opts:['"During Stage 1, you are in light sleep and can be easily awakened."','"As the night progresses, the REM periods grow longer."','"The National Sleep Foundation recommends nine to eleven hours of sleep per night."','"Screen time before bed contributes to a sleep debt epidemic."'],str:'Part B evidence must directly explain the mechanism behind Part A\u2019s answer. The growing length of REM periods is the reason late sleep matters most.'},
 
 {p:'passage_info1',sec:'ela',std:'RI.5.4',skill:'Vocabulary in Context',diff:'grade-level',type:'mc',
 text:'What does "consolidates" mean as used in paragraph 1?\n\n"...the brain repairs itself, consolidates memories, and performs critical maintenance..."',
-opts:['Erases or removes','Strengthens and organizes','Ignores completely','Creates brand new'],
-cor:1,exp:'To consolidate memories means to take fragile, new memories and strengthen them\u2014organizing and locking them in so they can be recalled later. The passage describes this as part of the brain\u2019s active work during sleep.',str:'Substitute each answer choice into the sentence. "The brain strengthens and organizes memories" fits the context of repair and maintenance.'},
+opts:['Erases or removes','Strengthens and organizes','Ignores completely','Creates brand new'],str:'Substitute each answer choice into the sentence. "The brain strengthens and organizes memories" fits the context of repair and maintenance.'},
 
 // Language & Vocabulary (4 questions, no passage)
 
 {p:null,sec:'ela',std:'L.5.2',skill:'Punctuation \u2014 Commas in Series',diff:'baseline',type:'mc',
 text:'Which sentence uses commas correctly?',
-opts:['The scientist studied, rocks minerals, and fossils.','The scientist studied rocks, minerals, and fossils.','The scientist studied rocks minerals and, fossils.','The scientist, studied rocks minerals and fossils.'],
-cor:1,exp:'When listing three or more items in a series, place a comma after each item except the last. "Rocks, minerals, and fossils" follows this rule correctly.',str:'Commas in a series: item, item, and item. The comma before "and" (Oxford comma) is standard in formal writing.'},
+opts:['The scientist studied, rocks minerals, and fossils.','The scientist studied rocks, minerals, and fossils.','The scientist studied rocks minerals and, fossils.','The scientist, studied rocks minerals and fossils.'],str:'Commas in a series: item, item, and item. The comma before "and" (Oxford comma) is standard in formal writing.'},
 
 {p:null,sec:'ela',std:'L.5.1',skill:'Verb Tense Consistency',diff:'grade-level',type:'mc',
 text:'Which sentence maintains consistent verb tense?',
-opts:['The explorer climbed the mountain and reaches the summit by noon.','The explorer climbed the mountain and reached the summit by noon.','The explorer climbs the mountain and reached the summit by noon.','The explorer will climb the mountain and reached the summit by noon.'],
-cor:1,exp:'Both verbs ("climbed" and "reached") are in past tense, making the sentence consistent. Mixing tenses (climbed/reaches, climbs/reached) creates confusion about when events happened.',str:'Check that all verbs in a sentence are in the same tense unless there is a clear reason to shift (like describing something that happened before something else).'},
+opts:['The explorer climbed the mountain and reaches the summit by noon.','The explorer climbed the mountain and reached the summit by noon.','The explorer climbs the mountain and reached the summit by noon.','The explorer will climb the mountain and reached the summit by noon.'],str:'Check that all verbs in a sentence are in the same tense unless there is a clear reason to shift (like describing something that happened before something else).'},
 
 {p:null,sec:'ela',std:'L.5.4',skill:'Greek/Latin Roots',diff:'challenging',type:'mc',
 text:'The Latin root "scrib" or "script" means "to write." Based on this, what does "inscription" most likely mean?',
-opts:['A type of painting on a wall','Something written or carved onto a surface','A spoken announcement to a crowd','A mathematical equation'],
-cor:1,exp:'If "scrib/script" means "to write," then "inscription" (in + script + ion) means something written onto or into a surface\u2014like words carved into stone or engraved on a monument.',str:'Break the word apart: in- (on/into) + script (write) + -ion (noun ending) = writing on something. Latin roots unlock vocabulary you\u2019ve never seen before.'},
+opts:['A type of painting on a wall','Something written or carved onto a surface','A spoken announcement to a crowd','A mathematical equation'],str:'Break the word apart: in- (on/into) + script (write) + -ion (noun ending) = writing on something. Latin roots unlock vocabulary you\u2019ve never seen before.'},
 
 {p:null,sec:'ela',std:'L.5.5',skill:'Figurative Language \u2014 Idioms',diff:'ceiling',type:'mc',
 text:'Read this sentence: "After weeks of struggling with the math concept, everything suddenly clicked and Marcus felt like a light bulb had gone off in his head."\n\nThe phrase "a light bulb had gone off in his head" means\u2014',
-opts:['Marcus had a headache from studying too much.','Marcus suddenly understood the concept in a flash of insight.','The electricity in Marcus\u2019s house went out.','Marcus decided to stop studying math forever.'],
-cor:1,exp:'This is an idiom. A "light bulb going off" represents a sudden moment of understanding\u2014an "aha" moment. The context ("everything suddenly clicked") confirms this meaning.',str:'Idioms don\u2019t mean what they literally say. Use the surrounding context to figure out the intended meaning. "Clicked" + "light bulb" both suggest sudden understanding.'},
+opts:['Marcus had a headache from studying too much.','Marcus suddenly understood the concept in a flash of insight.','The electricity in Marcus\u2019s house went out.','Marcus decided to stop studying math forever.'],str:'Idioms don\u2019t mean what they literally say. Use the surrounding context to figure out the intended meaning. "Clicked" + "light bulb" both suggest sudden understanding.'},
 
 {p:null,sec:'ela',std:'W.5.1',skill:'Argumentative Claim',diff:'ceiling',type:'mc',
 text:'A student writes: "Schools should offer more art classes because studies show creative activities improve problem-solving in math and science." Which element of argumentative writing does this sentence demonstrate?',
-opts:['A counterclaim addressing the opposing view','A claim supported by evidence','A personal anecdote','An emotional appeal to the reader'],
-cor:1,exp:'The sentence states a clear claim ("schools should offer more art classes") and supports it with evidence ("studies show creative activities improve problem-solving"). This is the core structure of argumentative writing.',str:'Strong arguments have: CLAIM + EVIDENCE + REASONING. Look for all three. A claim alone is just an opinion; evidence makes it an argument.'},
+opts:['A counterclaim addressing the opposing view','A claim supported by evidence','A personal anecdote','An emotional appeal to the reader'],str:'Strong arguments have: CLAIM + EVIDENCE + REASONING. Look for all three. A claim alone is just an opinion; evidence makes it an argument.'},
 
 // ========== MATHEMATICS (Q23-Q36) ==========
 
 {p:null,sec:'math',std:'5.NF.1',skill:'Add Unlike Fractions',diff:'challenging',type:'mc',
 text:'What is 3/8 + 5/6?',
-opts:['8/14','29/24','15/48','4/7'],
-cor:1,exp:'LCD of 8 and 6 is 24. 3/8 = 9/24, 5/6 = 20/24. Sum: 9/24 + 20/24 = 29/24 = 1 5/24.',str:'Find the least common denominator (LCD). Convert both fractions. Add numerators. Simplify if possible.'},
+opts:['8/14','29/24','15/48','4/7'],str:'Find the least common denominator (LCD). Convert both fractions. Add numerators. Simplify if possible.'},
 
 {p:null,sec:'math',std:'5.NF.2',skill:'Fraction Word Problem',diff:'ceiling',type:'mc',
 text:'Maria ran 3/4 of a mile on Monday and 7/8 of a mile on Tuesday. How much farther did she run on Tuesday than Monday?',
-opts:['4/8 mile','1/8 mile','1/4 mile','4/12 mile'],
-cor:1,exp:'7/8 \u2212 3/4 = 7/8 \u2212 6/8 = 1/8 mile. Convert 3/4 to eighths (6/8) then subtract.',str:'For "how much farther" questions, subtract the smaller from the larger. Convert to common denominators first.'},
+opts:['4/8 mile','1/8 mile','1/4 mile','4/12 mile'],str:'For "how much farther" questions, subtract the smaller from the larger. Convert to common denominators first.'},
 
 {p:null,sec:'math',std:'5.NF.4',skill:'Multiply Fractions',diff:'challenging',type:'mc',
 text:'A recipe calls for 2/3 cup of sugar. Chase wants to make 3/4 of the recipe. How much sugar does he need?',
-opts:['5/7 cup','6/12 cup','1/2 cup','2/4 cup'],
-cor:2,exp:'2/3 \u00d7 3/4 = 6/12 = 1/2 cup. Multiply numerators (2\u00d73=6), multiply denominators (3\u00d74=12), simplify (6/12 = 1/2).',str:'Finding a fraction OF something means multiply. "3/4 of 2/3" = 3/4 \u00d7 2/3.'},
+opts:['5/7 cup','6/12 cup','1/2 cup','2/4 cup'],str:'Finding a fraction OF something means multiply. "3/4 of 2/3" = 3/4 \u00d7 2/3.'},
 
 {p:null,sec:'math',std:'5.NF.7',skill:'Divide with Fractions',diff:'ceiling',type:'mc',
 text:'A board is 5/6 of a yard long. It is cut into pieces that are each 1/12 of a yard. How many pieces are there?',
-opts:['6','10','5','12'],
-cor:1,exp:'5/6 \u00f7 1/12 = 5/6 \u00d7 12/1 = 60/6 = 10 pieces. Flip the divisor and multiply.',str:'Dividing by a fraction: keep the first fraction, flip the second, multiply. 5/6 \u00d7 12/1 = 60/6 = 10.'},
+opts:['6','10','5','12'],str:'Dividing by a fraction: keep the first fraction, flip the second, multiply. 5/6 \u00d7 12/1 = 60/6 = 10.'},
 
 {p:null,sec:'math',std:'5.NBT.5',skill:'Multi-Digit Multiplication',diff:'challenging',type:'mc',
 text:'What is 408 \u00d7 35?',
-opts:['12,240','14,280','13,260','15,300'],
-cor:1,exp:'408 \u00d7 35: 408 \u00d7 5 = 2,040. 408 \u00d7 30 = 12,240. But we need total: 2,040 + 12,240 = 14,280.',str:'Break it apart: multiply by the ones digit, then by the tens digit, then add. Or: 408 \u00d7 35 = 408 \u00d7 30 + 408 \u00d7 5.'},
+opts:['12,240','14,280','13,260','15,300'],str:'Break it apart: multiply by the ones digit, then by the tens digit, then add. Or: 408 \u00d7 35 = 408 \u00d7 30 + 408 \u00d7 5.'},
 
 {p:null,sec:'math',std:'5.NBT.6',skill:'Long Division',diff:'challenging',type:'mc',
 text:'What is 1,764 \u00f7 12?',
-opts:['147','146','148','137'],
-cor:0,exp:'12 \u00d7 147 = 1,764. Step by step: 12 into 17 = 1 (remainder 5), 12 into 56 = 4 (remainder 8), 12 into 84 = 7.',str:'For long division, work digit by digit. Divide, multiply, subtract, bring down. Check by multiplying your answer by the divisor.'},
+opts:['147','146','148','137'],str:'For long division, work digit by digit. Divide, multiply, subtract, bring down. Check by multiplying your answer by the divisor.'},
 
 {p:null,sec:'math',std:'5.NBT.7',skill:'Decimal Operations',diff:'challenging',type:'mc',
 text:'Chase buys 3 items costing $4.75, $12.38, and $6.97. He pays with $30.00. How much change does he receive?',
-opts:['$5.90','$6.10','$5.80','$6.90'],
-cor:0,exp:'Total: $4.75 + $12.38 + $6.97 = $24.10. Change: $30.00 \u2212 $24.10 = $5.90.',str:'Multi-step problem: First add all costs, then subtract from the amount paid. Line up decimal points carefully.'},
+opts:['$5.90','$6.10','$5.80','$6.90'],str:'Multi-step problem: First add all costs, then subtract from the amount paid. Line up decimal points carefully.'},
 
 {p:null,sec:'math',std:'5.MD.1',skill:'Unit Conversion',diff:'ceiling',type:'mc',
 text:'A swimming pool holds 5,000 gallons. How many quarts is that? (1 gallon = 4 quarts)',
-opts:['1,250 quarts','10,000 quarts','20,000 quarts','2,500 quarts'],
-cor:2,exp:'5,000 gallons \u00d7 4 quarts/gallon = 20,000 quarts. Converting from a larger unit to a smaller unit means multiplying.',str:'Larger to smaller unit = multiply (more small units fit). Smaller to larger = divide. 1 gallon = 4 quarts, so multiply by 4.'},
+opts:['1,250 quarts','10,000 quarts','20,000 quarts','2,500 quarts'],str:'Larger to smaller unit = multiply (more small units fit). Smaller to larger = divide. 1 gallon = 4 quarts, so multiply by 4.'},
 
 {p:null,sec:'math',std:'5.MD.5',skill:'Volume \u2014 Composite',diff:'ceiling',type:'mc',
 text:'An L-shaped room is made of two rectangular prisms. Prism A is 10 ft \u00d7 8 ft \u00d7 3 ft. Prism B is 6 ft \u00d7 4 ft \u00d7 3 ft. What is the total volume?',
-opts:['312 ft\u00b3','240 ft\u00b3','288 ft\u00b3','72 ft\u00b3'],
-cor:0,exp:'Volume A = 10 \u00d7 8 \u00d7 3 = 240 ft\u00b3. Volume B = 6 \u00d7 4 \u00d7 3 = 72 ft\u00b3. Total = 240 + 72 = 312 ft\u00b3.',str:'For composite shapes, break them into simpler shapes, find each volume (l \u00d7 w \u00d7 h), then add.'},
+opts:['312 ft\u00b3','240 ft\u00b3','288 ft\u00b3','72 ft\u00b3'],str:'For composite shapes, break them into simpler shapes, find each volume (l \u00d7 w \u00d7 h), then add.'},
 
 {p:null,sec:'math',std:'5.OA.1',skill:'Order of Operations',diff:'challenging',type:'mc',
 text:'What is the value of 48 \u00f7 (2 + 6) \u00d7 3 \u2212 5?',
-opts:['13','19','67','31'],
-cor:0,exp:'Parentheses: 2 + 6 = 8. Then left to right: 48 \u00f7 8 = 6, 6 \u00d7 3 = 18, 18 \u2212 5 = 13.',str:'PEMDAS: Parentheses first. Then multiplication and division left to right. Then addition and subtraction left to right.'},
+opts:['13','19','67','31'],str:'PEMDAS: Parentheses first. Then multiplication and division left to right. Then addition and subtraction left to right.'},
 
 {p:null,sec:'math',std:'5.G.3',skill:'Classify 2D Shapes',diff:'challenging',type:'mc',
 text:'Which statement is true about ALL rectangles?',
-opts:['All rectangles are squares.','All rectangles have exactly four right angles and two pairs of parallel sides.','All rectangles have four sides of equal length.','All rectangles have exactly one pair of parallel sides.'],
-cor:1,exp:'By definition, every rectangle has four right angles (90\u00b0) and two pairs of parallel sides. Only some rectangles are squares (when all sides are equal). Rectangles always have TWO pairs of parallel sides, not one.',str:'Quadrilateral hierarchy: All squares are rectangles, but not all rectangles are squares. Rectangles must have 4 right angles and 2 pairs of parallel sides.'},
+opts:['All rectangles are squares.','All rectangles have exactly four right angles and two pairs of parallel sides.','All rectangles have four sides of equal length.','All rectangles have exactly one pair of parallel sides.'],str:'Quadrilateral hierarchy: All squares are rectangles, but not all rectangles are squares. Rectangles must have 4 right angles and 2 pairs of parallel sides.'},
 
 {p:null,sec:'math',std:'5.G.1',skill:'Coordinate Plane',diff:'ceiling',type:'mc',
 text:'Points A(2, 3), B(7, 3), and C(7, 8) form a right triangle on a coordinate grid. What is the area of triangle ABC?',
-opts:['12.5 square units','25 square units','10 square units','35 square units'],
-cor:0,exp:'The base AB runs from (2,3) to (7,3) = 5 units long. The height BC runs from (7,3) to (7,8) = 5 units tall. Area = 1/2 \u00d7 base \u00d7 height = 1/2 \u00d7 5 \u00d7 5 = 12.5 square units.',str:'For right triangles on a grid, the two legs are the base and height. Find their lengths by counting units, then use A = 1/2 \u00d7 b \u00d7 h.'},
+opts:['12.5 square units','25 square units','10 square units','35 square units'],str:'For right triangles on a grid, the two legs are the base and height. Find their lengths by counting units, then use A = 1/2 \u00d7 b \u00d7 h.'},
 
 {p:null,sec:'math',std:'5.OA.3',skill:'Patterns \u2014 Two Rules',diff:'ceiling',type:'mc',
 text:'Pattern X starts at 0 and follows the rule "add 3." Pattern Y starts at 0 and follows the rule "add 9." When Pattern X equals 12, what does Pattern Y equal?',
-opts:['27','36','48','21'],
-cor:1,exp:'Pattern X: 0, 3, 6, 9, 12 (4 steps to reach 12). Pattern Y after 4 steps: 0, 9, 18, 27, 36. So Y = 36 when X = 12. Also: Y is always 3 times X (9/3 = 3).',str:'Generate both patterns step by step, or notice the relationship: since 9 is 3 times 3, Y is always 3 times X. If X = 12, then Y = 36.'},
+opts:['27','36','48','21'],str:'Generate both patterns step by step, or notice the relationship: since 9 is 3 times 3, Y is always 3 times X. If X = 12, then Y = 36.'},
 
 {p:null,sec:'math',std:'5.MD.1',skill:'Unit Conversion \u2014 Time',diff:'challenging',type:'mc',
 text:'A movie starts at 2:45 PM and is 2 hours and 35 minutes long. What time does the movie end?',
-opts:['5:10 PM','5:20 PM','4:80 PM','5:15 PM'],
-cor:1,exp:'2:45 PM + 2 hours = 4:45 PM. 4:45 PM + 35 minutes = 5:20 PM.',str:'Add hours first, then minutes. If minutes go over 60, convert to another hour.'},
+opts:['5:10 PM','5:20 PM','4:80 PM','5:15 PM'],str:'Add hours first, then minutes. If minutes go over 60, convert to another hour.'},
 
 // ========== SCIENCE (Q37-Q46) ==========
 
 {p:null,sec:'science',std:'LS.5.3',skill:'Ecosystems \u2014 Energy Flow',diff:'challenging',type:'mc',
 text:'In a forest ecosystem, oak trees capture energy from sunlight. Caterpillars eat the oak leaves. Robins eat the caterpillars. Hawks eat the robins.\n\nWhich organism in this food chain has access to the LEAST amount of energy?',
-opts:['Oak trees','Caterpillars','Robins','Hawks'],
-cor:3,exp:'Energy decreases at each level of a food chain. The oak tree captures the most energy from the sun. Each consumer receives only about 10% of the energy from the level below. The hawk, at the top, has the least energy available.',str:'Energy flows up but shrinks at each level. Producers have the most energy. Top predators have the least. This is why there are fewer hawks than caterpillars.'},
+opts:['Oak trees','Caterpillars','Robins','Hawks'],str:'Energy flows up but shrinks at each level. Producers have the most energy. Top predators have the least. This is why there are fewer hawks than caterpillars.'},
 
 {p:null,sec:'science',std:'LS.5.2',skill:'Inherited vs Learned Traits',diff:'challenging',type:'mc',
 text:'Which of the following is an example of a learned behavior rather than an inherited trait?',
-opts:['A bird\u2019s beak shape','A dog sitting on command','A cat\u2019s fur color','A fish\u2019s ability to breathe underwater through gills'],
-cor:1,exp:'A dog sitting on command is learned through training\u2014it is not born knowing how to do this. Beak shape, fur color, and gill breathing are all inherited traits passed down through DNA.',str:'Inherited = you\u2019re born with it (eye color, beak shape). Learned = you acquire it through experience or practice (tricks, language, hunting techniques).'},
+opts:['A bird\u2019s beak shape','A dog sitting on command','A cat\u2019s fur color','A fish\u2019s ability to breathe underwater through gills'],str:'Inherited = you\u2019re born with it (eye color, beak shape). Learned = you acquire it through experience or practice (tricks, language, hunting techniques).'},
 
 {p:null,sec:'science',std:'PS.5.5',skill:'Mixtures and Solutions',diff:'challenging',type:'mc',
 text:'Chase dissolves 20 grams of salt into 200 grams of water. What is the total mass of the solution?',
-opts:['200 grams, because the salt disappears','180 grams, because some salt evaporates','220 grams, because matter is conserved','More than 220 grams, because dissolving creates new matter'],
-cor:2,exp:'When salt dissolves, it doesn\u2019t disappear\u2014its particles spread out in the water. The total mass is conserved: 20g + 200g = 220g. Matter cannot be created or destroyed.',str:'Conservation of mass: the total mass before mixing equals the total mass after mixing. Dissolving hides the salt but doesn\u2019t remove its mass.'},
+opts:['200 grams, because the salt disappears','180 grams, because some salt evaporates','220 grams, because matter is conserved','More than 220 grams, because dissolving creates new matter'],str:'Conservation of mass: the total mass before mixing equals the total mass after mixing. Dissolving hides the salt but doesn\u2019t remove its mass.'},
 
 {p:null,sec:'science',std:'ES.5.4',skill:'Weathering and Erosion',diff:'challenging',type:'mc',
 text:'A river flows through a valley for thousands of years. Over time, the valley becomes wider and deeper. This is primarily an example of\u2014',
-opts:['deposition','erosion','volcanic activity','condensation'],
-cor:1,exp:'Erosion is the process where water, wind, or ice wears away rock and soil and carries it to new locations. A river carving a valley wider and deeper over time is a classic example of water erosion.',str:'Erosion = wearing away and moving earth material. Deposition = dropping material in a new place. Rivers erode their banks and beds, then deposit sediment downstream.'},
+opts:['deposition','erosion','volcanic activity','condensation'],str:'Erosion = wearing away and moving earth material. Deposition = dropping material in a new place. Rivers erode their banks and beds, then deposit sediment downstream.'},
 
 {p:null,sec:'science',std:'ES.5.5',skill:'Earth\u2019s Resources',diff:'ceiling',type:'mc',
 text:'Fossil fuels like coal and oil are considered nonrenewable resources. Which statement best explains why?',
-opts:['They are too expensive to be useful for very long.','They form over millions of years from ancient organisms, so they cannot be replaced within a human lifetime.','They can only be found in a few countries.','They are replaced every time a volcano erupts.'],
-cor:1,exp:'Fossil fuels formed from the remains of organisms that lived millions of years ago, buried under heat and pressure. Since this process takes millions of years, we use them far faster than they can form\u2014making them nonrenewable.',str:'Nonrenewable = cannot be replaced in a human lifetime. Renewable (solar, wind, water) = naturally replenished. Fossil fuels took millions of years to form.'},
+opts:['They are too expensive to be useful for very long.','They form over millions of years from ancient organisms, so they cannot be replaced within a human lifetime.','They can only be found in a few countries.','They are replaced every time a volcano erupts.'],str:'Nonrenewable = cannot be replaced in a human lifetime. Renewable (solar, wind, water) = naturally replenished. Fossil fuels took millions of years to form.'},
 
 {p:null,sec:'science',std:'PS.5.6',skill:'Light and Shadow',diff:'challenging',type:'mc',
 text:'Chase holds a flashlight behind a glass of water, a wooden block, and a piece of wax paper. Which material will allow some light through but scatter it, creating a blurry image?',
-opts:['Glass of water (transparent)','Wooden block (opaque)','Wax paper (translucent)','All three materials will produce the same result'],
-cor:2,exp:'Translucent materials (wax paper, frosted glass) allow some light to pass through but scatter it, so you can\u2019t see a clear image. Transparent lets light through clearly. Opaque blocks all light.',str:'Three types: Transparent = clear (glass). Translucent = blurry/scattered (wax paper). Opaque = blocked (wood). This is about how materials interact with light.'},
+opts:['Glass of water (transparent)','Wooden block (opaque)','Wax paper (translucent)','All three materials will produce the same result'],str:'Three types: Transparent = clear (glass). Translucent = blurry/scattered (wax paper). Opaque = blocked (wood). This is about how materials interact with light.'},
 
 {p:null,sec:'science',std:'SI.5.2',skill:'Experimental Design',diff:'ceiling',type:'mc',
 text:'A student wants to test whether the amount of fertilizer affects plant height. She sets up 4 identical plants and gives them different amounts of fertilizer but the same water, soil, and sunlight for 30 days.\n\nWhat is the independent variable in this experiment?',
-opts:['The height of the plants after 30 days','The amount of fertilizer given to each plant','The amount of water given to each plant','The type of soil used'],
-cor:1,exp:'The independent variable is what the scientist deliberately changes\u2014in this case, the amount of fertilizer. Plant height is the dependent variable (what she measures). Water, soil, and sunlight are controlled variables.',str:'Independent variable = what YOU change on purpose. Dependent variable = what you MEASURE as a result. Controlled variables = what you keep the SAME.'},
+opts:['The height of the plants after 30 days','The amount of fertilizer given to each plant','The amount of water given to each plant','The type of soil used'],str:'Independent variable = what YOU change on purpose. Dependent variable = what you MEASURE as a result. Controlled variables = what you keep the SAME.'},
 
 {p:null,sec:'science',std:'LS.5.4',skill:'Human Body Systems',diff:'ceiling',type:'mc',
 text:'The circulatory system and the respiratory system work together to keep the body functioning. Which statement best describes how these two systems interact?',
-opts:['The respiratory system digests food and the circulatory system absorbs nutrients.','The respiratory system brings oxygen into the lungs, and the circulatory system transports that oxygen through blood to all cells in the body.','The circulatory system sends signals to the brain, and the respiratory system moves muscles.','The respiratory system filters waste from the blood, and the circulatory system exhales carbon dioxide.'],
-cor:1,exp:'The respiratory system handles gas exchange in the lungs (oxygen in, carbon dioxide out). The circulatory system (heart and blood vessels) then carries oxygen-rich blood to every cell. They are partners: one acquires oxygen, the other delivers it.',str:'Body systems work together. Respiratory = breathing (O2 in, CO2 out). Circulatory = transportation (blood carries O2, nutrients, waste). Together they deliver oxygen to cells.'},
+opts:['The respiratory system digests food and the circulatory system absorbs nutrients.','The respiratory system brings oxygen into the lungs, and the circulatory system transports that oxygen through blood to all cells in the body.','The circulatory system sends signals to the brain, and the respiratory system moves muscles.','The respiratory system filters waste from the blood, and the circulatory system exhales carbon dioxide.'],str:'Body systems work together. Respiratory = breathing (O2 in, CO2 out). Circulatory = transportation (blood carries O2, nutrients, waste). Together they deliver oxygen to cells.'},
 
 {p:null,sec:'science',std:'ES.5.6',skill:'Weather vs Climate',diff:'challenging',type:'mc',
 text:'Which statement describes CLIMATE rather than WEATHER?',
-opts:['It is raining heavily in Dallas this afternoon.','The temperature dropped 15 degrees overnight in Chicago.','The Amazon rainforest receives over 80 inches of rainfall per year on average.','A tornado warning has been issued for central Oklahoma today.'],
-cor:2,exp:'Climate is the average weather pattern over a long period of time (years/decades). The Amazon\u2019s yearly average rainfall describes climate. The other options describe specific, short-term weather events.',str:'Weather = what\u2019s happening RIGHT NOW (today\u2019s rain). Climate = the long-term average pattern (this region is usually hot and wet). "Climate is what you expect; weather is what you get."'},
+opts:['It is raining heavily in Dallas this afternoon.','The temperature dropped 15 degrees overnight in Chicago.','The Amazon rainforest receives over 80 inches of rainfall per year on average.','A tornado warning has been issued for central Oklahoma today.'],str:'Weather = what\u2019s happening RIGHT NOW (today\u2019s rain). Climate = the long-term average pattern (this region is usually hot and wet). "Climate is what you expect; weather is what you get."'},
 
 {p:null,sec:'science',std:'PS.5.1',skill:'States of Matter',diff:'challenging',type:'mc',
 text:'When liquid water is heated to 100\u00b0C at sea level, it boils and turns into water vapor. What happens to the water molecules during this change?',
-opts:['The molecules are destroyed and new ones are created.','The molecules move faster and spread farther apart as they gain energy.','The molecules shrink and become lighter.','The molecules stop moving completely.'],
-cor:1,exp:'During boiling, water molecules gain kinetic energy from heat. They move faster and spread apart, changing from liquid (close together, sliding) to gas (far apart, moving freely). The molecules themselves don\u2019t change\u2014only their energy and spacing.',str:'Phase changes are about energy and molecular motion. Solid = vibrate in place. Liquid = slide past each other. Gas = fly freely. Adding heat = more motion.'},
+opts:['The molecules are destroyed and new ones are created.','The molecules move faster and spread farther apart as they gain energy.','The molecules shrink and become lighter.','The molecules stop moving completely.'],str:'Phase changes are about energy and molecular motion. Solid = vibrate in place. Liquid = slide past each other. Gas = fly freely. Adding heat = more motion.'},
 
 // ========== SOCIAL STUDIES (Q47-Q55) ==========
 
 {p:null,sec:'ss',std:'USH.5.6',skill:'Causes of Civil War',diff:'challenging',type:'mc',
 text:'Which of the following was a PRIMARY cause of the Civil War?',
-opts:['Disagreements over the national anthem','Conflict between Northern and Southern states over the expansion of slavery into new territories','A dispute over which city should be the nation\u2019s capital','Competition between states to build the tallest buildings'],
-cor:1,exp:'The central conflict was whether slavery would expand into new western territories and states. The North wanted to restrict slavery\u2019s expansion; the South wanted to protect and extend it. This disagreement drove the nation toward war.',str:'The Civil War had many causes, but the core issue was slavery\u2014specifically, whether it would spread to new territories. Economic, political, and moral arguments all connected back to this.'},
+opts:['Disagreements over the national anthem','Conflict between Northern and Southern states over the expansion of slavery into new territories','A dispute over which city should be the nation\u2019s capital','Competition between states to build the tallest buildings'],str:'The Civil War had many causes, but the core issue was slavery\u2014specifically, whether it would spread to new territories. Economic, political, and moral arguments all connected back to this.'},
 
 {p:null,sec:'ss',std:'USH.5.7',skill:'Reconstruction',diff:'ceiling',type:'mc',
 text:'After the Civil War, the 13th, 14th, and 15th Amendments were added to the Constitution. Together, these amendments\u2014',
-opts:['gave women the right to vote in all elections','abolished slavery, granted citizenship and equal protection to formerly enslaved people, and protected voting rights regardless of race','created the national banking system','established term limits for the President'],
-cor:1,exp:'13th = abolished slavery. 14th = granted citizenship and equal protection under law. 15th = protected the right to vote regardless of race or previous condition of servitude. Together they form the Reconstruction Amendments.',str:'Reconstruction Amendments: 13th (freedom), 14th (citizenship + equal protection), 15th (voting rights). These were meant to secure rights for formerly enslaved people.'},
+opts:['gave women the right to vote in all elections','abolished slavery, granted citizenship and equal protection to formerly enslaved people, and protected voting rights regardless of race','created the national banking system','established term limits for the President'],str:'Reconstruction Amendments: 13th (freedom), 14th (citizenship + equal protection), 15th (voting rights). These were meant to secure rights for formerly enslaved people.'},
 
 {p:null,sec:'ss',std:'USH.5.4',skill:'Key Figures \u2014 Revolution',diff:'challenging',type:'mc',
 text:'Thomas Jefferson is primarily remembered for his role in the American Revolution because he\u2014',
-opts:['commanded the Continental Army at Valley Forge','wrote the Declaration of Independence, arguing for the colonies\u2019 right to self-governance','invented the printing press to spread revolutionary ideas','served as the first Chief Justice of the Supreme Court'],
-cor:1,exp:'Jefferson was the principal author of the Declaration of Independence (1776), which laid out the philosophical argument for why the colonies had the right to break from Britain. Washington commanded the army; Franklin was the diplomat.',str:'Key figures: Jefferson = Declaration of Independence. Washington = military commander + 1st President. Franklin = diplomat to France. Adams = argued for independence in Congress.'},
+opts:['commanded the Continental Army at Valley Forge','wrote the Declaration of Independence, arguing for the colonies\u2019 right to self-governance','invented the printing press to spread revolutionary ideas','served as the first Chief Justice of the Supreme Court'],str:'Key figures: Jefferson = Declaration of Independence. Washington = military commander + 1st President. Franklin = diplomat to France. Adams = argued for independence in Congress.'},
 
 {p:null,sec:'ss',std:'CIV.5.3',skill:'Checks and Balances',diff:'ceiling',type:'mc',
 text:'The President vetoes a bill passed by Congress. Congress then votes and overrides the veto with a two-thirds majority in both chambers. This is an example of\u2014',
-opts:['the President having unlimited power over laws','the system of checks and balances, where each branch can limit the power of the others','the judicial branch declaring a law unconstitutional','Congress having no power against the President'],
-cor:1,exp:'The veto is the executive branch checking the legislative branch. The override is the legislative branch checking the executive branch back. This back-and-forth is exactly what checks and balances is designed to do\u2014prevent any one branch from having too much power.',str:'Checks and balances = each branch can limit the others. President checks Congress (veto). Congress checks President (override, impeachment). Courts check both (judicial review).'},
+opts:['the President having unlimited power over laws','the system of checks and balances, where each branch can limit the power of the others','the judicial branch declaring a law unconstitutional','Congress having no power against the President'],str:'Checks and balances = each branch can limit the others. President checks Congress (veto). Congress checks President (override, impeachment). Courts check both (judicial review).'},
 
 {p:null,sec:'ss',std:'GEO.5.3',skill:'Human-Environment Interaction',diff:'challenging',type:'mc',
 text:'In the early 1800s, settlers moving westward cut down forests to build farms and towns. This is an example of\u2014',
-opts:['humans adapting to their environment without changing it','humans modifying their environment to meet their needs','the environment forcing humans to move to new locations','humans having no impact on the natural world'],
-cor:1,exp:'Cutting forests to build farms and towns is a direct modification of the environment. Humans changed the landscape to suit their needs for agriculture and shelter. This is human-environment interaction.',str:'Three types of human-environment interaction: 1) Humans ADAPT to environment, 2) Humans MODIFY environment, 3) Humans DEPEND on environment. Clearing land = modifying.'},
+opts:['humans adapting to their environment without changing it','humans modifying their environment to meet their needs','the environment forcing humans to move to new locations','humans having no impact on the natural world'],str:'Three types of human-environment interaction: 1) Humans ADAPT to environment, 2) Humans MODIFY environment, 3) Humans DEPEND on environment. Clearing land = modifying.'},
 
 {p:null,sec:'ss',std:'ECON.5.2',skill:'Supply and Demand',diff:'ceiling',type:'mc',
 text:'A popular new video game is released, but the manufacturer only produced a small number of copies. What will most likely happen to the price?',
-opts:['The price will decrease because fewer people want it.','The price will stay exactly the same regardless of how many copies exist.','The price will increase because demand is high but supply is low.','The price will increase only if the government raises taxes on video games.'],
-cor:2,exp:'When demand is high (many people want it) and supply is low (few copies available), prices rise. This is the basic law of supply and demand\u2014scarcity drives up price.',str:'Supply and demand: High demand + low supply = higher prices. Low demand + high supply = lower prices. This applies to everything from toys to houses to oil.'},
+opts:['The price will decrease because fewer people want it.','The price will stay exactly the same regardless of how many copies exist.','The price will increase because demand is high but supply is low.','The price will increase only if the government raises taxes on video games.'],str:'Supply and demand: High demand + low supply = higher prices. Low demand + high supply = lower prices. This applies to everything from toys to houses to oil.'},
 
 {p:null,sec:'ss',std:'USH.5.3',skill:'Colonial Economy',diff:'challenging',type:'mc',
 text:'The economy of the Southern colonies in the 1700s was primarily based on\u2014',
-opts:['manufacturing and factory work','fishing and shipbuilding','large-scale agriculture using enslaved labor, growing cash crops like tobacco and rice','fur trading with Native Americans'],
-cor:2,exp:'Southern colonies (Virginia, Carolinas, Georgia) had warm climates and fertile soil suited to plantation agriculture. Cash crops like tobacco, rice, and indigo were grown on large plantations that relied heavily on enslaved labor.',str:'Colonial regional economies: New England = trade, fishing, shipbuilding. Middle = farming (breadbasket), trade. Southern = plantation agriculture (tobacco, rice, indigo) using enslaved labor.'},
+opts:['manufacturing and factory work','fishing and shipbuilding','large-scale agriculture using enslaved labor, growing cash crops like tobacco and rice','fur trading with Native Americans'],str:'Colonial regional economies: New England = trade, fishing, shipbuilding. Middle = farming (breadbasket), trade. Southern = plantation agriculture (tobacco, rice, indigo) using enslaved labor.'},
 
 {p:null,sec:'ss',std:'USH.5.8',skill:'Westward Expansion',diff:'ceiling',type:'mc',
 text:'The concept of "Manifest Destiny" was used in the 1800s to justify\u2014',
-opts:['ending the practice of slavery throughout the United States','the belief that the United States was destined to expand across the entire North American continent from the Atlantic to the Pacific','returning all territory to Native American nations','building the first railroad connecting New York to Philadelphia'],
-cor:1,exp:'Manifest Destiny was the 19th-century belief that Americans were destined (by God and nature) to spread across the continent. It was used to justify westward expansion, the displacement of Native peoples, and the acquisition of new territories.',str:'Manifest Destiny = "it\u2019s our destiny to expand coast to coast." Used to justify the Louisiana Purchase, Oregon Trail settlement, Mexican-American War, and displacement of Native Americans.'},
+opts:['ending the practice of slavery throughout the United States','the belief that the United States was destined to expand across the entire North American continent from the Atlantic to the Pacific','returning all territory to Native American nations','building the first railroad connecting New York to Philadelphia'],str:'Manifest Destiny = "it\u2019s our destiny to expand coast to coast." Used to justify the Louisiana Purchase, Oregon Trail settlement, Mexican-American War, and displacement of Native Americans.'},
 
 {p:null,sec:'ss',std:'CIV.5.4',skill:'Rights and Responsibilities',diff:'challenging',type:'mc',
 text:'Which of the following is a civic RESPONSIBILITY (something citizens should do) rather than a civic RIGHT (something citizens are guaranteed)?',
-opts:['Freedom of speech','The right to a fair trial','Serving on a jury when called','The right to vote in elections'],
-cor:2,exp:'Jury duty is a civic responsibility\u2014citizens are expected to serve when called to help the justice system function. Freedom of speech, fair trial, and voting are rights guaranteed by the Constitution.',str:'Rights = what you ARE GUARANTEED (speech, trial, vote). Responsibilities = what you SHOULD DO (jury duty, pay taxes, obey laws, stay informed). Both are essential to democracy.'}
+opts:['Freedom of speech','The right to a fair trial','Serving on a jury when called','The right to vote in elections'],str:'Rights = what you ARE GUARANTEED (speech, trial, vote). Responsibilities = what you SHOULD DO (jury duty, pay taxes, obey laws, stay informed). Both are essential to democracy.'}
 ];
 
 // ==================== ENGINE ====================
@@ -533,11 +530,11 @@ function submitTest(){
   if(submitted)return;submitted=true;closeModal();clearInterval(timerInterval);saveCurrentWriting();
   const elapsed=Math.floor((Date.now()-startTime)/1000),today=new Date().toISOString().split('T')[0];
   const allAns=Q.map((q,i)=>{const a=answers[i];
-    if(q.type==='mc')return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'mc',question:q.text,selectedOption:a!==undefined?a:-1,selectedText:a!==undefined?q.opts[a]:'Not answered',correctOption:q.cor,correctText:q.opts[q.cor]};
+    if(q.type==='mc')return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'mc',question:q.text,selectedOption:a!==undefined?a:-1,selectedText:a!==undefined?q.opts[a]:'Not answered',correctOption:_ac[currentQuestion],correctText:q.opts[_ac[currentQuestion]]};
     return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'written',question:q.text,response:a||''}});
 
-  const secSum={};SECTIONS.forEach(sec=>{let c=0,t=0;for(let i=sec.range[0];i<=Math.min(sec.range[1],Q.length-1);i++){if(Q[i]&&Q[i].type==='mc'){t++;if(answers[i]===Q[i].cor)c++}}secSum[sec.id]={correct:c,total:t,pct:t>0?Math.round(c/t*100):0}});
-  const totalMC=Q.filter(q=>q.type==='mc').length,correctMC=Q.filter((q,i)=>q.type==='mc'&&answers[i]===q.cor).length;
+  const secSum={};SECTIONS.forEach(sec=>{let c=0,t=0;for(let i=sec.range[0];i<=Math.min(sec.range[1],Q.length-1);i++){if(Q[i]&&Q[i].type==='mc'){t++;if(answers[i]===_ac[i])c++}}secSum[sec.id]={correct:c,total:t,pct:t>0?Math.round(c/t*100):0}});
+  const totalMC=Q.filter(q=>q.type==='mc').length,correctMC=Q.filter((q,i)=>q.type==='mc'&&answers[i]===_ac[currentQuestion]).length;
 
   const payload={action:'saveDiagnosticResults',student:CONFIG.student,grade:CONFIG.grade,testId:CONFIG.testId,testLabel:CONFIG.testLabel,timestamp:new Date().toISOString(),answers:allAns,
     summary:{totalQuestions:Q.length,answeredQuestions:Object.keys(answers).length,totalTimeSeconds:elapsed,effortScore:Math.round(Object.keys(answers).length/Q.length*100),sections:secSum,correctMC,totalMC,percentCorrect:Math.round(correctMC/totalMC*100)}};
@@ -567,8 +564,8 @@ function showTutorReview(correctMC,totalMC,elapsed,secSum){
   const pct=Math.round(correctMC/totalMC*100),min=Math.floor(elapsed/60),bm=estimateScores(pct);
   let dm='';if(pct>=90)dm='Outstanding scan results, Chase. All systems running at peak efficiency across every sector. Keep this trajectory!';else if(pct>=75)dm='Solid mission performance. You\u2019re showing real strength across subjects. Let\u2019s calibrate the areas you missed.';else if(pct>=60)dm='Good effort, pilot. Let\u2019s debrief the questions you missed \u2014 that\u2019s how we upgrade your systems.';else dm='Every miss is intel for the next mission. Let\u2019s walk through the debrief and build your skills.';
 
-  const wrong=[];Q.forEach((q,i)=>{if(q.type==='mc'&&answers[i]!==q.cor)wrong.push({num:i+1,q,ua:answers[i]!==undefined?q.opts[answers[i]]:'Not answered',ca:q.opts[q.cor]})});
-  const skillMap={};Q.forEach((q,i)=>{if(q.type!=='mc')return;if(!skillMap[q.skill])skillMap[q.skill]={c:0,t:0};skillMap[q.skill].t++;if(answers[i]===q.cor)skillMap[q.skill].c++});
+  const wrong=[];Q.forEach((q,i)=>{if(q.type==='mc'&&answers[i]!==_ac[currentQuestion])wrong.push({num:i+1,q,ua:answers[i]!==undefined?q.opts[answers[i]]:'Not answered',ca:q.opts[_ac[currentQuestion]]})});
+  const skillMap={};Q.forEach((q,i)=>{if(q.type!=='mc')return;if(!skillMap[q.skill])skillMap[q.skill]={c:0,t:0};skillMap[q.skill].t++;if(answers[i]===_ac[currentQuestion])skillMap[q.skill].c++});
 
   let h=`<div class="review-score"><div class="big">${correctMC}/${totalMC}</div><div class="pct">${pct}% \u00b7 ${min} min</div><div class="tutor-msg">\u201C${dm}\u201D \u2014 Doug</div></div>
   <div class="points-banner"><div class="pts">+15 PTS CREDITED</div></div>

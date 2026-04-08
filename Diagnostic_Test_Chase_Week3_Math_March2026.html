@@ -113,6 +113,58 @@ body{display:flex;flex-direction:column;overflow:hidden}
 <div id="reviewScreen" class="screen"><div class="top-bar"><div><div class="title">Doug's Review</div></div><div style="color:var(--accent)">Diagnostic Complete</div></div><div class="review-content" id="reviewContent"></div></div>
 
 <script>
+
+    // ============================================================
+    // ANTI-CHEAT — DO NOT REMOVE
+    // ============================================================
+    (function() {
+        // Block right-click context menu
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+        // Block keyboard shortcuts to open DevTools / view source
+        document.addEventListener('keydown', function(e) {
+            const blocked = (
+                e.keyCode === 123 ||                                      // F12
+                (e.ctrlKey && e.shiftKey && e.keyCode === 73) ||          // Ctrl+Shift+I
+                (e.ctrlKey && e.shiftKey && e.keyCode === 74) ||          // Ctrl+Shift+J
+                (e.ctrlKey && e.shiftKey && e.keyCode === 67) ||          // Ctrl+Shift+C
+                (e.ctrlKey && e.keyCode === 85) ||                        // Ctrl+U (view source)
+                (e.metaKey && e.altKey && e.keyCode === 73)               // Cmd+Opt+I (Mac)
+            );
+            if (blocked) { e.preventDefault(); e.stopPropagation(); return false; }
+        }, true);
+
+        // DevTools size detection — if open, overlay the page
+        var _devOpen = false;
+        setInterval(function() {
+            var widthDiff  = window.outerWidth  - window.innerWidth  > 160;
+            var heightDiff = window.outerHeight - window.innerHeight > 160;
+            if ((widthDiff || heightDiff) && !_devOpen) {
+                _devOpen = true;
+                var overlay = document.createElement('div');
+                overlay.id  = '_ac_overlay';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;' +
+                    'background:#0a0f1a;z-index:999999;display:flex;align-items:center;' +
+                    'justify-content:center;flex-direction:column;';
+                overlay.innerHTML = '<div style="font-size:48px;">⚠️</div>' +
+                    '<div style="color:#ff4444;font-size:22px;font-weight:700;margin:16px 0;">Browser tools detected.</div>' +
+                    '<div style="color:#aaa;font-size:15px;">Close DevTools and refresh the page to continue.</div>';
+                document.body.appendChild(overlay);
+            } else if (!widthDiff && !heightDiff && _devOpen) {
+                _devOpen = false;
+                var el = document.getElementById('_ac_overlay');
+                if (el) el.remove();
+            }
+        }, 800);
+    })();
+    // ============================================================
+
+    // Correct answers — XOR-encoded (key=17). Do not modify.
+    var _ac = (function(){
+        var k=17, e=[16,16,16,16,19,16,19,19,16,16,19,16,16,19,19,18,16,17,19,19,19,16,19,19,19,19,16,19,16,19,16,16,19,16,19,17,16,16,16,16,16,19,16,19,16];
+        return e.map(function(v){return v^k;});
+    })();
+
 const CONFIG={student:"Chase",grade:5,testId:"chase_diagnostic_week3_math_mar2026",testLabel:"Week 2 LEAP Diagnostic \u2014 March 15, 2026",
 webAppUrl:"https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec"};
 
@@ -149,70 +201,57 @@ const Q=[
 // Passage 1: Storm Chaser (5 MC)
 {p:'passage1',sec:'ela',std:'RL.5.2',skill:'Theme',diff:'grade-level',type:'mc',
 text:'What is the central theme of this passage?',
-opts:['Storm chasing is too dangerous for children.','Knowledge and observation can be just as valuable as technology.','Tornadoes are the most powerful storms on Earth.','Adults should never rely on children for help.'],
-cor:1,exp:'When the instruments fail, Chase uses what he\u2019s learned from watching his uncle to read the sky. His observation skills prove just as valuable as the technology.',str:'For theme questions, ask: What lesson does the main character\u2019s experience teach?'},
+opts:['Storm chasing is too dangerous for children.','Knowledge and observation can be just as valuable as technology.','Tornadoes are the most powerful storms on Earth.','Adults should never rely on children for help.'],str:'For theme questions, ask: What lesson does the main character\u2019s experience teach?'},
 
 {p:'passage1',sec:'ela',std:'RL.5.1',skill:'Textual Evidence',diff:'grade-level',type:'mc',
 text:'Which detail best shows that Chase has been learning from his uncle?',
-opts:['"Chase had been riding along on storm chases since he was eight years old."','"He remembered what Uncle Hector had taught him: when the rotation narrows and debris begins to rise, a tornado is about to form."','"His uncle Hector glanced at the dashboard."','"It was terrifying and beautiful at the same time."'],
-cor:1,exp:'This sentence directly shows Chase applying specific knowledge his uncle taught him\u2014connecting the narrowing rotation and rising debris to tornado formation.',str:'The strongest evidence is the detail most directly connected to the claim. Look for specifics, not general statements.'},
+opts:['"Chase had been riding along on storm chases since he was eight years old."','"He remembered what Uncle Hector had taught him: when the rotation narrows and debris begins to rise, a tornado is about to form."','"His uncle Hector glanced at the dashboard."','"It was terrifying and beautiful at the same time."'],str:'The strongest evidence is the detail most directly connected to the claim. Look for specifics, not general statements.'},
 
 {p:'passage1',sec:'ela',std:'RL.5.4',skill:'Vocabulary in Context',diff:'grade-level',type:'mc',
 text:'What does "imminent" mean as used in paragraph 8?',
-opts:['Unlikely to happen','About to happen very soon','Already finished','Happening far away'],
-cor:1,exp:'Uncle Hector says "tornado is imminent" because Chase spotted signs that a tornado is about to form right now. Imminent means about to happen very soon.',str:'Substitute each answer into the sentence. The one that makes the most sense with the surrounding details is correct.'},
+opts:['Unlikely to happen','About to happen very soon','Already finished','Happening far away'],str:'Substitute each answer into the sentence. The one that makes the most sense with the surrounding details is correct.'},
 
 {p:'passage1',sec:'ela',std:'RL.5.3',skill:'Character',diff:'challenging',type:'mc',
 text:'How does Chase change from the beginning to the end of the passage?',
-opts:['He goes from being bored to being excited about storms.','He goes from being a passenger observing to someone who actively helps in a critical moment.','He goes from being afraid of storms to wanting to become a meteorologist.','He goes from disagreeing with his uncle to agreeing with him.'],
-cor:1,exp:'At first Chase is watching and learning as a passenger. When the equipment fails, he steps up and uses his knowledge to identify the tornado\u2014shifting from observer to active participant.',str:'Character development questions ask how a character grows. Track what they DO differently by the end.'},
+opts:['He goes from being bored to being excited about storms.','He goes from being a passenger observing to someone who actively helps in a critical moment.','He goes from being afraid of storms to wanting to become a meteorologist.','He goes from disagreeing with his uncle to agreeing with him.'],str:'Character development questions ask how a character grows. Track what they DO differently by the end.'},
 
 {p:'passage1',sec:'ela',std:'RL.5.1',skill:'Inference',diff:'challenging',type:'mc',
 text:'Why does the author most likely include the detail about Uncle Hector always having "an escape route planned"?',
-opts:['To show that storm chasing is completely safe.','To show that Uncle Hector is a reckless person.','To show that Uncle Hector approaches storm chasing scientifically and responsibly.','To explain why Chase does not like storm chasing.'],
-cor:2,exp:'Having an escape route planned shows that Uncle Hector is careful and methodical, not reckless. This detail builds trust in his character and judgment.',str:'When authors include small details, ask: Why did they choose to tell us this? What does it reveal?'},
+opts:['To show that storm chasing is completely safe.','To show that Uncle Hector is a reckless person.','To show that Uncle Hector approaches storm chasing scientifically and responsibly.','To explain why Chase does not like storm chasing.'],str:'When authors include small details, ask: Why did they choose to tell us this? What does it reveal?'},
 
 // Passage 2: Coral Reefs (5 MC)
 {p:'passage2',sec:'ela',std:'RI.5.2',skill:'Central Idea',diff:'grade-level',type:'mc',
 text:'What is the central idea of this passage?',
-opts:['Coral reefs are made entirely of rock formations.','Coral reefs are incredibly diverse ecosystems that face serious threats but may be saved through conservation.','The Great Barrier Reef is the only coral reef worth protecting.','Scientists have already solved the problem of coral reef decline.'],
-cor:1,exp:'The passage covers what coral reefs are, their biodiversity, the threats they face, and conservation efforts\u2014tying together diversity, danger, and hope.',str:'The central idea should be supported by ALL sections of the passage, not just one paragraph.'},
+opts:['Coral reefs are made entirely of rock formations.','Coral reefs are incredibly diverse ecosystems that face serious threats but may be saved through conservation.','The Great Barrier Reef is the only coral reef worth protecting.','Scientists have already solved the problem of coral reef decline.'],str:'The central idea should be supported by ALL sections of the passage, not just one paragraph.'},
 
 {p:'passage2',sec:'ela',std:'RI.5.5',skill:'Text Structure',diff:'challenging',type:'mc',
 text:'How is this passage mainly organized?',
-opts:['It compares coral reefs to rainforests throughout.','It tells the story of one specific coral reef from start to finish.','It describes what coral reefs are, explains why they matter, identifies threats, and presents solutions.','It lists coral species in order from largest to smallest.'],
-cor:2,exp:'The passage follows a logical structure: definition/description \u2192 importance \u2192 threats \u2192 solutions. This is a problem-solution structure built on a descriptive foundation.',str:'Text structure is how the author organizes ideas. Common structures: cause/effect, problem/solution, compare/contrast, chronological, description.'},
+opts:['It compares coral reefs to rainforests throughout.','It tells the story of one specific coral reef from start to finish.','It describes what coral reefs are, explains why they matter, identifies threats, and presents solutions.','It lists coral species in order from largest to smallest.'],str:'Text structure is how the author organizes ideas. Common structures: cause/effect, problem/solution, compare/contrast, chronological, description.'},
 
 {p:'passage2',sec:'ela',std:'RI.5.4',skill:'Vocabulary in Context',diff:'grade-level',type:'mc',
 text:'What does "staggering" mean as used in the sentence "The biodiversity of coral reefs is staggering"?',
-opts:['Walking unsteadily','Extremely small','Amazingly large or overwhelming','Slowly increasing'],
-cor:2,exp:'The passage goes on to describe thousands of species living on a single reef. "Staggering" here means amazingly large\u2014so impressive it\u2019s hard to believe.',str:'Context clues come from the surrounding sentences. If the passage describes huge numbers, "staggering" must mean overwhelmingly large.'},
+opts:['Walking unsteadily','Extremely small','Amazingly large or overwhelming','Slowly increasing'],str:'Context clues come from the surrounding sentences. If the passage describes huge numbers, "staggering" must mean overwhelmingly large.'},
 
 {p:'passage2',sec:'ela',std:'RI.5.1',skill:'Textual Evidence',diff:'grade-level',type:'mc',
 text:'Which detail best supports the idea that coral reefs are in danger?',
-opts:['"Coral reefs cover less than one percent of the ocean floor."','"Scientists estimate that the world has already lost approximately half of its coral reef coverage since 1950."','"The Great Barrier Reef stretches for over 1,400 miles."','"A single reef may be home to more than a thousand species of fish."'],
-cor:1,exp:'Losing half of coral reef coverage is a specific, measurable fact that directly proves reefs are in danger. The other options describe size or diversity, not threat.',str:'The best evidence is specific and directly supports the claim. Numbers and data are usually stronger than general descriptions.'},
+opts:['"Coral reefs cover less than one percent of the ocean floor."','"Scientists estimate that the world has already lost approximately half of its coral reef coverage since 1950."','"The Great Barrier Reef stretches for over 1,400 miles."','"A single reef may be home to more than a thousand species of fish."'],str:'The best evidence is specific and directly supports the claim. Numbers and data are usually stronger than general descriptions.'},
 
 {p:'passage2',sec:'ela',std:'RI.5.6',skill:'Author\u2019s Purpose',diff:'challenging',type:'mc',
 text:'Why does the author call coral reefs "rainforests of the sea"?',
-opts:['Because coral reefs receive a lot of rain.','Because both rainforests and coral reefs have very high biodiversity despite covering small areas.','Because coral and trees are the same type of organism.','Because coral reefs are located near rainforests.'],
-cor:1,exp:'The author draws a comparison: just as rainforests have enormous biodiversity on land, coral reefs have enormous biodiversity in the ocean\u2014both disproportionate to their size.',str:'When authors use comparisons or metaphors, ask: What do these two things have in common? That shared quality is the point.'},
+opts:['Because coral reefs receive a lot of rain.','Because both rainforests and coral reefs have very high biodiversity despite covering small areas.','Because coral and trees are the same type of organism.','Because coral reefs are located near rainforests.'],str:'When authors use comparisons or metaphors, ask: What do these two things have in common? That shared quality is the point.'},
 
 // Language & Vocab (3 MC)
 {p:null,sec:'ela',std:'L.5.2',skill:'Commas',diff:'grade-level',type:'mc',
 text:'Which sentence uses commas correctly?',
-opts:['Chase wanted to stay, but, the storm was too dangerous.','Chase wanted to stay but the storm was too dangerous.','Chase wanted to stay, but the storm was too dangerous.','Chase, wanted to stay but the storm, was too dangerous.'],
-cor:2,exp:'Use a comma before a coordinating conjunction (but, and, or, so) when it joins two complete sentences. "Chase wanted to stay" and "the storm was too dangerous" are both complete.',str:'Comma before FANBOYS (for, and, nor, but, or, yet, so) ONLY when joining two complete sentences.'},
+opts:['Chase wanted to stay, but, the storm was too dangerous.','Chase wanted to stay but the storm was too dangerous.','Chase wanted to stay, but the storm was too dangerous.','Chase, wanted to stay but the storm, was too dangerous.'],str:'Comma before FANBOYS (for, and, nor, but, or, yet, so) ONLY when joining two complete sentences.'},
 
 {p:null,sec:'ela',std:'L.5.1',skill:'Subject-Verb Agreement',diff:'grade-level',type:'mc',
 text:'Which sentence has correct subject-verb agreement?',
-opts:['The group of scientists are studying the reef.','The group of scientists is studying the reef.','The group of scientists were studying the reef tomorrow.','The group of scientists have studied the reef yesterday.'],
-cor:1,exp:'"Group" is the subject (singular), not "scientists." A singular subject takes a singular verb: "group is studying."',str:'Find the true subject. Phrases like "of scientists" or "of books" are extra info\u2014the verb must agree with the main subject before "of."'},
+opts:['The group of scientists are studying the reef.','The group of scientists is studying the reef.','The group of scientists were studying the reef tomorrow.','The group of scientists have studied the reef yesterday.'],str:'Find the true subject. Phrases like "of scientists" or "of books" are extra info\u2014the verb must agree with the main subject before "of."'},
 
 {p:null,sec:'ela',std:'L.5.4',skill:'Context Clues',diff:'ceiling',type:'mc',
 text:'Read: "The diver was mesmerized by the vibrant colors of the reef, unable to look away from the brilliant display." What does "mesmerized" most likely mean?',
-opts:['Frightened','Fascinated and captivated','Confused','Bored'],
-cor:1,exp:'"Unable to look away" tells you the diver was held in wonder. Mesmerized means fascinated or captivated.',str:'Look for clues in the same sentence. "Unable to look away" = completely focused = fascinated/captivated.'},
+opts:['Frightened','Fascinated and captivated','Confused','Bored'],str:'Look for clues in the same sentence. "Unable to look away" = completely focused = fascinated/captivated.'},
 
 // Writing (1 SCR + 1 ECR)
 {p:'passage2',sec:'ela',std:'W.5.2',skill:'Informative Writing',diff:'challenging',type:'scr',
@@ -226,47 +265,47 @@ guidance:'State your opinion. Give at least two reasons with evidence.',minWords
 // ========== MATHEMATICS (Q16-Q27) ==========
 {p:null,sec:'math',std:'5.OA.1',skill:'Order of Operations',diff:'baseline',type:'mc',
 text:'What is the value of (6 + 4) \u00d7 3?',
-opts:['18','22','30','42'],cor:2,exp:'Parentheses first: 6 + 4 = 10. Then multiply: 10 \u00d7 3 = 30.',str:'Always solve what\u2019s inside parentheses first, then multiply.'},
+opts:['18','22','30','42'],str:'Always solve what\u2019s inside parentheses first, then multiply.'},
 
 {p:null,sec:'math',std:'5.OA.3',skill:'Patterns',diff:'grade-level',type:'mc',
 text:'Look at this pattern: 2, 6, 18, 54, ... What is the rule?',
-opts:['Add 4','Add 12','Multiply by 3','Multiply by 2'],cor:2,exp:'Each number is 3 times the previous: 2\u00d73=6, 6\u00d73=18, 18\u00d73=54.',str:'Check if the difference between numbers is constant (addition rule) or if the ratio is constant (multiplication rule).'},
+opts:['Add 4','Add 12','Multiply by 3','Multiply by 2'],str:'Check if the difference between numbers is constant (addition rule) or if the ratio is constant (multiplication rule).'},
 
 {p:null,sec:'math',std:'5.NBT.1',skill:'Place Value',diff:'baseline',type:'mc',
 text:'In the number 45,320, what is the value of the digit 5?',
-opts:['5','50','500','5,000'],cor:3,exp:'The 5 is in the thousands place. Its value is 5 \u00d7 1,000 = 5,000.',str:'Each place has a value: ones, tens, hundreds, thousands, ten-thousands. Multiply the digit by its place value.'},
+opts:['5','50','500','5,000'],str:'Each place has a value: ones, tens, hundreds, thousands, ten-thousands. Multiply the digit by its place value.'},
 
 {p:null,sec:'math',std:'5.NBT.2',skill:'Powers of 10',diff:'grade-level',type:'mc',
 text:'What is 3.25 \u00d7 100?',
-opts:['32.5','325','3,250','0.0325'],cor:1,exp:'Multiplying by 100 moves the decimal 2 places right: 3.25 \u2192 32.5 \u2192 325.',str:'Multiplying by 10\u207f moves the decimal n places to the right. 100 = 10\u00b2 = 2 places right.'},
+opts:['32.5','325','3,250','0.0325'],str:'Multiplying by 10\u207f moves the decimal n places to the right. 100 = 10\u00b2 = 2 places right.'},
 
 {p:null,sec:'math',std:'5.NBT.7',skill:'Decimal Operations',diff:'grade-level',type:'mc',
 text:'What is 8.3 \u2212 2.75?',
-opts:['5.55','6.55','5.45','6.45'],cor:0,exp:'Line up decimals: 8.30 \u2212 2.75. From right: 0\u22125 (borrow: 10\u22125=5), 2\u22127 (borrow: 12\u22127=5), 7\u22122=5. Answer: 5.55.',str:'Add a zero so both numbers have the same decimal places. Line up the decimal points, then subtract.'},
+opts:['5.55','6.55','5.45','6.45'],str:'Add a zero so both numbers have the same decimal places. Line up the decimal points, then subtract.'},
 
 {p:null,sec:'math',std:'5.NF.1',skill:'Add Fractions',diff:'grade-level',type:'mc',
 text:'What is 1/3 + 1/4?',
-opts:['2/7','2/12','7/12','1/7'],cor:2,exp:'Find common denominator: 1/3 = 4/12, 1/4 = 3/12. Add: 4/12 + 3/12 = 7/12.',str:'To add fractions with different denominators, find the least common denominator, convert, then add numerators.'},
+opts:['2/7','2/12','7/12','1/7'],str:'To add fractions with different denominators, find the least common denominator, convert, then add numerators.'},
 
 {p:null,sec:'math',std:'5.NF.4',skill:'Multiply Fractions',diff:'grade-level',type:'mc',
 text:'What is 3/4 \u00d7 2/5?',
-opts:['5/9','6/20','3/10','5/20'],cor:2,exp:'Multiply tops: 3\u00d72=6. Multiply bottoms: 4\u00d75=20. Result: 6/20 = 3/10.',str:'Multiply numerators, multiply denominators, then simplify. 6/20 \u00f7 2/2 = 3/10.'},
+opts:['5/9','6/20','3/10','5/20'],str:'Multiply numerators, multiply denominators, then simplify. 6/20 \u00f7 2/2 = 3/10.'},
 
 {p:null,sec:'math',std:'5.NF.7',skill:'Divide with Fractions',diff:'challenging',type:'mc',
 text:'How many 1/3-cup servings are in 4 cups of soup?',
-opts:['4/3','7','12','3'],cor:2,exp:'4 \u00f7 1/3 = 4 \u00d7 3 = 12. Dividing by a fraction is the same as multiplying by its reciprocal.',str:'Dividing by a fraction? Flip and multiply! 4 \u00f7 (1/3) = 4 \u00d7 (3/1) = 12.'},
+opts:['4/3','7','12','3'],str:'Dividing by a fraction? Flip and multiply! 4 \u00f7 (1/3) = 4 \u00d7 (3/1) = 12.'},
 
 {p:null,sec:'math',std:'5.MD.1',skill:'Unit Conversion',diff:'grade-level',type:'mc',
 text:'How many ounces are in 3 pounds? (1 pound = 16 ounces)',
-opts:['32','48','64','36'],cor:1,exp:'3 pounds \u00d7 16 ounces per pound = 48 ounces.',str:'Converting from larger to smaller units: multiply. There are more ounces than pounds, so the number gets bigger.'},
+opts:['32','48','64','36'],str:'Converting from larger to smaller units: multiply. There are more ounces than pounds, so the number gets bigger.'},
 
 {p:null,sec:'math',std:'5.MD.5',skill:'Volume',diff:'grade-level',type:'mc',
 text:'What is the volume of a rectangular prism that is 7 cm long, 3 cm wide, and 4 cm tall?',
-opts:['14 cm\u00b3','21 cm\u00b3','84 cm\u00b3','48 cm\u00b3'],cor:2,exp:'V = length \u00d7 width \u00d7 height = 7 \u00d7 3 \u00d7 4 = 84 cm\u00b3.',str:'For rectangular prisms: V = l \u00d7 w \u00d7 h. Multiply all three dimensions. Answer is in cubic units.'},
+opts:['14 cm\u00b3','21 cm\u00b3','84 cm\u00b3','48 cm\u00b3'],str:'For rectangular prisms: V = l \u00d7 w \u00d7 h. Multiply all three dimensions. Answer is in cubic units.'},
 
 {p:null,sec:'math',std:'5.G.1',skill:'Coordinate Plane',diff:'grade-level',type:'mc',
 text:'Chase plots a point at (4, 7) on a coordinate grid. Which describes the location?',
-opts:['4 units up and 7 units right','7 units right and 4 units up','4 units right and 7 units up','7 units down and 4 units left'],cor:2,exp:'In (x, y), x = how far right, y = how far up. So (4, 7) means 4 right, 7 up.',str:'Remember: (x, y) = (right, up). "x goes across, y goes to the sky."'},
+opts:['4 units up and 7 units right','7 units right and 4 units up','4 units right and 7 units up','7 units down and 4 units left'],str:'Remember: (x, y) = (right, up). "x goes across, y goes to the sky."'},
 
 {p:null,sec:'math',std:'5.NF.6',skill:'Problem Solving',diff:'challenging',type:'cr',
 text:'Chase has 24 baseball cards. He gives 1/4 of them to his brother and 1/3 of the original amount to his friend.\n\nHow many cards did he give away in total? How many does he have left? Show all your work.',
@@ -275,109 +314,88 @@ guidance:'Show each step. State the final answer clearly.',minWords:25},
 // ========== SCIENCE (Q28-Q37) ==========
 {p:null,sec:'science',std:'PS.5.1',skill:'Properties of Matter',diff:'grade-level',type:'mc',
 text:'Which property can be used to identify an unknown substance?',
-opts:['Its location','Its age','Its boiling point','Its owner'],
-cor:2,exp:'Boiling point is a physical property unique to each substance. It can help identify an unknown material. Location and age are not properties of the substance itself.',str:'Physical properties (boiling point, melting point, density, color) are characteristics that help identify substances.'},
+opts:['Its location','Its age','Its boiling point','Its owner'],str:'Physical properties (boiling point, melting point, density, color) are characteristics that help identify substances.'},
 
 {p:null,sec:'science',std:'PS.5.2',skill:'Chemical vs Physical Change',diff:'grade-level',type:'mc',
 text:'Which is an example of a physical change?',
-opts:['Burning a log in a campfire','Frying an egg','Cutting a piece of paper in half','Rusting of an iron nail'],
-cor:2,exp:'Cutting paper changes its shape/size but not what it\u2019s made of\u2014still paper. Burning, frying, and rusting create new substances (chemical changes).',str:'Physical change = same substance, different shape/size/state. Chemical change = new substance formed (burning, rusting, cooking).'},
+opts:['Burning a log in a campfire','Frying an egg','Cutting a piece of paper in half','Rusting of an iron nail'],str:'Physical change = same substance, different shape/size/state. Chemical change = new substance formed (burning, rusting, cooking).'},
 
 {p:null,sec:'science',std:'PS.5.3',skill:'Force and Motion',diff:'grade-level',type:'mc',
 text:'A ball rolls across a flat floor and eventually stops. What force caused it to stop?',
-opts:['Gravity','Friction','Magnetism','Air pressure'],
-cor:1,exp:'Friction between the ball and the floor surface opposes its motion, gradually slowing it down until it stops.',str:'Friction opposes motion between surfaces in contact. It always works to slow things down.'},
+opts:['Gravity','Friction','Magnetism','Air pressure'],str:'Friction opposes motion between surfaces in contact. It always works to slow things down.'},
 
 {p:null,sec:'science',std:'PS.5.4',skill:'Energy',diff:'grade-level',type:'mc',
 text:'A solar panel on a rooftop converts sunlight into electricity. This is an example of\u2014',
-opts:['energy being created from nothing','energy being destroyed','energy being transformed from one form to another','energy staying in the same form'],
-cor:2,exp:'The solar panel transforms light energy from the sun into electrical energy. Energy is not created or destroyed\u2014it changes form.',str:'Energy transformation = energy changing from one type to another. Energy cannot be created or destroyed (law of conservation of energy).'},
+opts:['energy being created from nothing','energy being destroyed','energy being transformed from one form to another','energy staying in the same form'],str:'Energy transformation = energy changing from one type to another. Energy cannot be created or destroyed (law of conservation of energy).'},
 
 {p:null,sec:'science',std:'LS.5.1',skill:'Food Chains',diff:'grade-level',type:'mc',
 text:'In the food chain: grass \u2192 rabbit \u2192 hawk, which organism is the primary consumer?',
-opts:['Grass','Rabbit','Hawk','The Sun'],
-cor:1,exp:'The rabbit eats the grass (producer), making it the primary consumer. The hawk eats the rabbit, making it the secondary consumer.',str:'Producer = makes its own food (plants). Primary consumer = eats producers. Secondary consumer = eats primary consumers.'},
+opts:['Grass','Rabbit','Hawk','The Sun'],str:'Producer = makes its own food (plants). Primary consumer = eats producers. Secondary consumer = eats primary consumers.'},
 
 {p:null,sec:'science',std:'LS.5.2',skill:'Plant Adaptations',diff:'grade-level',type:'mc',
 text:'A cactus has thick, waxy skin and stores water inside its stem. These are adaptations for surviving in\u2014',
-opts:['a cold arctic environment','a wet rainforest','a dry desert environment','a deep ocean'],
-cor:2,exp:'Thick skin reduces water loss and storing water helps survive long dry periods. These are desert adaptations.',str:'Adaptations match the environment. Water storage + reduced water loss = dry environment.'},
+opts:['a cold arctic environment','a wet rainforest','a dry desert environment','a deep ocean'],str:'Adaptations match the environment. Water storage + reduced water loss = dry environment.'},
 
 {p:null,sec:'science',std:'ES.5.1',skill:'Water Cycle',diff:'grade-level',type:'mc',
 text:'What happens during the condensation stage of the water cycle?',
-opts:['Water soaks into the ground.','Water vapor in the air cools and forms clouds.','Water flows downhill into rivers and streams.','Water evaporates from lakes and oceans.'],
-cor:1,exp:'Condensation is when water vapor (gas) cools and turns back into tiny water droplets, forming clouds. Evaporation is the opposite process.',str:'Water cycle stages: evaporation (liquid\u2192gas) \u2192 condensation (gas\u2192liquid/clouds) \u2192 precipitation (rain/snow) \u2192 collection.'},
+opts:['Water soaks into the ground.','Water vapor in the air cools and forms clouds.','Water flows downhill into rivers and streams.','Water evaporates from lakes and oceans.'],str:'Water cycle stages: evaporation (liquid\u2192gas) \u2192 condensation (gas\u2192liquid/clouds) \u2192 precipitation (rain/snow) \u2192 collection.'},
 
 {p:null,sec:'science',std:'ES.5.2',skill:'Earth\u2019s Layers',diff:'challenging',type:'mc',
 text:'Which layer of Earth is the thickest?',
-opts:['Crust','Mantle','Outer core','Inner core'],
-cor:1,exp:'The mantle is Earth\u2019s thickest layer, extending about 1,800 miles deep. The crust is the thinnest layer (3\u201345 miles).',str:'Earth\u2019s layers from outside in: crust (thinnest) \u2192 mantle (thickest) \u2192 outer core (liquid) \u2192 inner core (solid).'},
+opts:['Crust','Mantle','Outer core','Inner core'],str:'Earth\u2019s layers from outside in: crust (thinnest) \u2192 mantle (thickest) \u2192 outer core (liquid) \u2192 inner core (solid).'},
 
 {p:null,sec:'science',std:'ES.5.3',skill:'Solar System',diff:'challenging',type:'mc',
 text:'Why does the Moon appear to change shape throughout the month?',
-opts:['Earth\u2019s shadow always covers part of the Moon.','The Moon produces its own light that fades and brightens.','We see different amounts of the Moon\u2019s sunlit side as it orbits Earth.','The Moon actually changes size as it moves.'],
-cor:2,exp:'The Moon doesn\u2019t produce light\u2014it reflects sunlight. As the Moon orbits Earth, we see different portions of its sunlit half, creating the phases.',str:'Moon phases = different views of the sunlit side. It\u2019s not Earth\u2019s shadow (that\u2019s a lunar eclipse, which is rare).'},
+opts:['Earth\u2019s shadow always covers part of the Moon.','The Moon produces its own light that fades and brightens.','We see different amounts of the Moon\u2019s sunlit side as it orbits Earth.','The Moon actually changes size as it moves.'],str:'Moon phases = different views of the sunlit side. It\u2019s not Earth\u2019s shadow (that\u2019s a lunar eclipse, which is rare).'},
 
 {p:null,sec:'science',std:'SI.5.1',skill:'Scientific Investigation',diff:'challenging',type:'mc',
 text:'Chase wants to test if plants grow taller with more sunlight. He puts one plant in a sunny window and one in a dark closet. What should he keep the SAME for a fair test?',
-opts:['The amount of sunlight each plant gets','The type of plant, soil, water, and pot size','The location of each plant','Nothing\u2014everything should be different'],
-cor:1,exp:'In a fair test, you only change ONE variable (sunlight). Everything else\u2014plant type, soil, water, pot size\u2014must stay the same so you know sunlight caused any difference.',str:'Fair test = change ONE thing (independent variable), measure ONE thing (dependent variable), keep EVERYTHING else the same (controlled variables).'},
+opts:['The amount of sunlight each plant gets','The type of plant, soil, water, and pot size','The location of each plant','Nothing\u2014everything should be different'],str:'Fair test = change ONE thing (independent variable), measure ONE thing (dependent variable), keep EVERYTHING else the same (controlled variables).'},
 
 // ========== SOCIAL STUDIES (Q38-Q48) ==========
 {p:null,sec:'ss',std:'USH.5.1',skill:'Native Americans',diff:'baseline',type:'mc',
 text:'Before Europeans arrived, Native American groups adapted to their environments in different ways. Which group most likely built pueblos (multi-story stone and clay buildings)?',
-opts:['Inuit peoples of the Arctic','Kwakiutl peoples of the Pacific Northwest','Pueblo peoples of the dry Southwest','Iroquois peoples of the Eastern Woodlands'],
-cor:2,exp:'Pueblo peoples of the Southwest built multi-story stone and adobe (clay) structures suited to the hot, dry desert climate. Each group\u2019s housing matched their environment.',str:'Native American groups adapted to their region. Southwest = pueblos (adobe). Northwest = longhouses (wood). Arctic = igloos. Eastern = longhouses/wigwams.'},
+opts:['Inuit peoples of the Arctic','Kwakiutl peoples of the Pacific Northwest','Pueblo peoples of the dry Southwest','Iroquois peoples of the Eastern Woodlands'],str:'Native American groups adapted to their region. Southwest = pueblos (adobe). Northwest = longhouses (wood). Arctic = igloos. Eastern = longhouses/wigwams.'},
 
 {p:null,sec:'ss',std:'USH.5.2',skill:'European Exploration',diff:'grade-level',type:'mc',
 text:'What were the three main reasons European countries explored and colonized the Americas?',
-opts:['Gold, Glory, and God','Peace, Freedom, and Trade','Science, Art, and Music','Farming, Fishing, and Hunting'],
-cor:0,exp:'The "Three G\u2019s"\u2014Gold (wealth/resources), Glory (power/fame for their country), and God (spreading Christianity)\u2014drove European exploration.',str:'The 3 G\u2019s of exploration: Gold (riches), Glory (fame/power), God (religion). These motivated Spain, England, France, and Portugal.'},
+opts:['Gold, Glory, and God','Peace, Freedom, and Trade','Science, Art, and Music','Farming, Fishing, and Hunting'],str:'The 3 G\u2019s of exploration: Gold (riches), Glory (fame/power), God (religion). These motivated Spain, England, France, and Portugal.'},
 
 {p:null,sec:'ss',std:'USH.5.3',skill:'Colonial America',diff:'grade-level',type:'mc',
 text:'The Pilgrims came to America in 1620 primarily to\u2014',
-opts:['find gold and silver','practice their religion freely','establish a military base','trade furs with Native Americans'],
-cor:1,exp:'The Pilgrims (Separatists) left England because they were persecuted for their religious beliefs. They came to America seeking religious freedom.',str:'Plymouth Colony = religious freedom. Jamestown (1607) = wealth/gold. Know why each colony was founded.'},
+opts:['find gold and silver','practice their religion freely','establish a military base','trade furs with Native Americans'],str:'Plymouth Colony = religious freedom. Jamestown (1607) = wealth/gold. Know why each colony was founded.'},
 
 {p:null,sec:'ss',std:'USH.5.4',skill:'American Revolution',diff:'grade-level',type:'mc',
 text:'The phrase "No taxation without representation" expressed the colonists\u2019 belief that\u2014',
-opts:['all taxes should be eliminated forever','they should not pay taxes to a government where they had no voice or vote','only wealthy people should pay taxes','the king should pay taxes too'],
-cor:1,exp:'The colonists objected to paying British taxes because they had no elected representatives in the British Parliament. They wanted a say in the laws that affected them.',str:'"No taxation without representation" = if we can\u2019t vote on laws, you can\u2019t tax us. This was a key cause of the American Revolution.'},
+opts:['all taxes should be eliminated forever','they should not pay taxes to a government where they had no voice or vote','only wealthy people should pay taxes','the king should pay taxes too'],str:'"No taxation without representation" = if we can\u2019t vote on laws, you can\u2019t tax us. This was a key cause of the American Revolution.'},
 
 {p:null,sec:'ss',std:'USH.5.5',skill:'Declaration of Independence',diff:'grade-level',type:'mc',
 text:'The Declaration of Independence states that all people have certain "unalienable rights." Which of the following is one of these rights?',
-opts:['The right to vote at age 16','Life, liberty, and the pursuit of happiness','The right to free internet','The right to own property without paying taxes'],
-cor:1,exp:'The Declaration lists "Life, Liberty, and the pursuit of Happiness" as rights that cannot be taken away (unalienable). These ideas were revolutionary at the time.',str:'Unalienable rights = rights you\u2019re born with that can\u2019t be taken away. Life, Liberty, Pursuit of Happiness (from the Declaration of Independence).'},
+opts:['The right to vote at age 16','Life, liberty, and the pursuit of happiness','The right to free internet','The right to own property without paying taxes'],str:'Unalienable rights = rights you\u2019re born with that can\u2019t be taken away. Life, Liberty, Pursuit of Happiness (from the Declaration of Independence).'},
 
 {p:null,sec:'ss',std:'CIV.5.1',skill:'Branches of Government',diff:'grade-level',type:'mc',
 text:'Which branch of the U.S. government is responsible for making laws?',
-opts:['Executive Branch (President)','Legislative Branch (Congress)','Judicial Branch (Supreme Court)','Military Branch (Armed Forces)'],
-cor:1,exp:'Congress (Senate + House of Representatives) is the legislative branch, which writes and passes laws. The President enforces laws. The Supreme Court interprets laws.',str:'Three branches: Legislative = makes laws (Congress). Executive = enforces laws (President). Judicial = interprets laws (courts).'},
+opts:['Executive Branch (President)','Legislative Branch (Congress)','Judicial Branch (Supreme Court)','Military Branch (Armed Forces)'],str:'Three branches: Legislative = makes laws (Congress). Executive = enforces laws (President). Judicial = interprets laws (courts).'},
 
 {p:null,sec:'ss',std:'CIV.5.2',skill:'Bill of Rights',diff:'challenging',type:'mc',
 text:'The First Amendment to the U.S. Constitution protects\u2014',
-opts:['the right to own any weapon','freedom of speech, religion, press, assembly, and petition','the right to a speedy trial','protection from unreasonable searches'],
-cor:1,exp:'The First Amendment protects five freedoms: speech, religion, press, peaceful assembly, and petitioning the government. The Second Amendment covers weapons. The Sixth covers trials.',str:'First Amendment = 5 freedoms (speech, religion, press, assembly, petition). These are the most commonly tested rights.'},
+opts:['the right to own any weapon','freedom of speech, religion, press, assembly, and petition','the right to a speedy trial','protection from unreasonable searches'],str:'First Amendment = 5 freedoms (speech, religion, press, assembly, petition). These are the most commonly tested rights.'},
 
 {p:null,sec:'ss',std:'GEO.5.1',skill:'U.S. Regions',diff:'grade-level',type:'mc',
 text:'Which U.S. region is known for its flat plains, large farms, and growing wheat and corn?',
-opts:['Northeast','Southeast','Midwest','Southwest'],
-cor:2,exp:'The Midwest (Great Plains) has flat terrain and fertile soil ideal for large-scale farming of wheat, corn, and soybeans. It\u2019s often called "America\u2019s breadbasket."',str:'U.S. regions have distinct features. Midwest = plains/farming. Northeast = cities/industry. Southeast = warm/humid. Southwest = desert/dry. West = mountains/coast.'},
+opts:['Northeast','Southeast','Midwest','Southwest'],str:'U.S. regions have distinct features. Midwest = plains/farming. Northeast = cities/industry. Southeast = warm/humid. Southwest = desert/dry. West = mountains/coast.'},
 
 {p:null,sec:'ss',std:'GEO.5.2',skill:'Map Skills',diff:'baseline',type:'mc',
 text:'On a map, what does a compass rose show?',
-opts:['The distance between two cities','The cardinal directions (North, South, East, West)','The population of each state','The elevation of mountains'],
-cor:1,exp:'A compass rose is a symbol on a map that shows the four cardinal directions: North, South, East, and West (and sometimes intermediate directions like NE, SW).',str:'Map tools: compass rose = directions. Scale = distance. Legend/key = symbols. Title = what the map shows.'},
+opts:['The distance between two cities','The cardinal directions (North, South, East, West)','The population of each state','The elevation of mountains'],str:'Map tools: compass rose = directions. Scale = distance. Legend/key = symbols. Title = what the map shows.'},
 
 {p:null,sec:'ss',std:'ECON.5.1',skill:'Economics',diff:'grade-level',type:'mc',
 text:'When Chase decides to spend his allowance on a video game instead of a book, the book is called his\u2014',
-opts:['profit','supply','opportunity cost','demand'],
-cor:2,exp:'Opportunity cost is what you give up when you make a choice. By choosing the video game, Chase gave up the book\u2014the book is his opportunity cost.',str:'Opportunity cost = the next best thing you gave up. Every choice has a cost because you can\u2019t have everything.'},
+opts:['profit','supply','opportunity cost','demand'],str:'Opportunity cost = the next best thing you gave up. Every choice has a cost because you can\u2019t have everything.'},
 
 {p:null,sec:'ss',std:'HT.5.1',skill:'Historical Thinking',diff:'challenging',type:'mc',
 text:'A student reads a diary entry written by a soldier during the American Revolution. This diary is a\u2014',
-opts:['secondary source, because it is old','primary source, because it was written by someone who experienced the events','fiction, because it tells a personal story','tertiary source, because it is about history'],
-cor:1,exp:'A primary source is created by someone who was there. The soldier\u2019s diary is a firsthand account of his experience during the Revolution.',str:'Primary source = written/created by someone who was there (diaries, letters, photos). Secondary source = written later by someone studying the topic (textbooks, articles).'}
+opts:['secondary source, because it is old','primary source, because it was written by someone who experienced the events','fiction, because it tells a personal story','tertiary source, because it is about history'],str:'Primary source = written/created by someone who was there (diaries, letters, photos). Secondary source = written later by someone studying the topic (textbooks, articles).'}
 ];
 
 // ==================== ENGINE ====================
@@ -449,11 +467,11 @@ function submitTest(){
   if(submitted)return;submitted=true;closeModal();clearInterval(timerInterval);saveCurrentWriting();
   const elapsed=Math.floor((Date.now()-startTime)/1000),today=new Date().toISOString().split('T')[0];
   const allAns=Q.map((q,i)=>{const a=answers[i];
-    if(q.type==='mc')return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'mc',question:q.text,selectedOption:a!==undefined?a:-1,selectedText:a!==undefined?q.opts[a]:'Not answered',correctOption:q.cor,correctText:q.opts[q.cor]};
+    if(q.type==='mc')return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'mc',question:q.text,selectedOption:a!==undefined?a:-1,selectedText:a!==undefined?q.opts[a]:'Not answered',correctOption:_ac[currentQuestion],correctText:q.opts[_ac[currentQuestion]]};
     return{index:i,section:q.sec,standard:q.std,skill:q.skill,type:'written',question:q.text,response:a||''}});
 
-  const secSum={};SECTIONS.forEach(sec=>{let c=0,t=0;for(let i=sec.range[0];i<=Math.min(sec.range[1],Q.length-1);i++){if(Q[i]&&Q[i].type==='mc'){t++;if(answers[i]===Q[i].cor)c++}}secSum[sec.id]={correct:c,total:t,pct:t>0?Math.round(c/t*100):0}});
-  const totalMC=Q.filter(q=>q.type==='mc').length,correctMC=Q.filter((q,i)=>q.type==='mc'&&answers[i]===q.cor).length;
+  const secSum={};SECTIONS.forEach(sec=>{let c=0,t=0;for(let i=sec.range[0];i<=Math.min(sec.range[1],Q.length-1);i++){if(Q[i]&&Q[i].type==='mc'){t++;if(answers[i]===_ac[i])c++}}secSum[sec.id]={correct:c,total:t,pct:t>0?Math.round(c/t*100):0}});
+  const totalMC=Q.filter(q=>q.type==='mc').length,correctMC=Q.filter((q,i)=>q.type==='mc'&&answers[i]===_ac[currentQuestion]).length;
 
   const payload={action:'saveDiagnosticResults',student:CONFIG.student,grade:CONFIG.grade,testId:CONFIG.testId,testLabel:CONFIG.testLabel,timestamp:new Date().toISOString(),answers:allAns,
     summary:{totalQuestions:Q.length,answeredQuestions:Object.keys(answers).length,totalTimeSeconds:elapsed,effortScore:Math.round(Object.keys(answers).length/Q.length*100),sections:secSum,correctMC,totalMC,percentCorrect:Math.round(correctMC/totalMC*100)}};
@@ -483,8 +501,8 @@ function showTutorReview(correctMC,totalMC,elapsed,secSum){
   const pct=Math.round(correctMC/totalMC*100),min=Math.floor(elapsed/60),bm=estimateScores(pct);
   let dm='';if(pct>=90)dm='Outstanding scan results, Chase. All systems running at peak efficiency across every sector. Keep this trajectory!';else if(pct>=75)dm='Solid mission performance. You\u2019re showing real strength across subjects. Let\u2019s calibrate the areas you missed.';else if(pct>=60)dm='Good effort, pilot. Let\u2019s debrief the questions you missed \u2014 that\u2019s how we upgrade your systems.';else dm='Every miss is intel for the next mission. Let\u2019s walk through the debrief and build your skills.';
 
-  const wrong=[];Q.forEach((q,i)=>{if(q.type==='mc'&&answers[i]!==q.cor)wrong.push({num:i+1,q,ua:answers[i]!==undefined?q.opts[answers[i]]:'Not answered',ca:q.opts[q.cor]})});
-  const skillMap={};Q.forEach((q,i)=>{if(q.type!=='mc')return;if(!skillMap[q.skill])skillMap[q.skill]={c:0,t:0};skillMap[q.skill].t++;if(answers[i]===q.cor)skillMap[q.skill].c++});
+  const wrong=[];Q.forEach((q,i)=>{if(q.type==='mc'&&answers[i]!==_ac[currentQuestion])wrong.push({num:i+1,q,ua:answers[i]!==undefined?q.opts[answers[i]]:'Not answered',ca:q.opts[_ac[currentQuestion]]})});
+  const skillMap={};Q.forEach((q,i)=>{if(q.type!=='mc')return;if(!skillMap[q.skill])skillMap[q.skill]={c:0,t:0};skillMap[q.skill].t++;if(answers[i]===_ac[currentQuestion])skillMap[q.skill].c++});
 
   let h=`<div class="review-score"><div class="big">${correctMC}/${totalMC}</div><div class="pct">${pct}% \u00b7 ${min} min</div><div class="tutor-msg">\u201C${dm}\u201D \u2014 Doug</div></div>
   <div class="points-banner"><div class="pts">+15 PTS CREDITED</div></div>

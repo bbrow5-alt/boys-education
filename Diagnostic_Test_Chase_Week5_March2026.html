@@ -879,6 +879,58 @@
   </div>
 
   <script>
+
+    // ============================================================
+    // ANTI-CHEAT — DO NOT REMOVE
+    // ============================================================
+    (function() {
+        // Block right-click context menu
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+        // Block keyboard shortcuts to open DevTools / view source
+        document.addEventListener('keydown', function(e) {
+            const blocked = (
+                e.keyCode === 123 ||                                      // F12
+                (e.ctrlKey && e.shiftKey && e.keyCode === 73) ||          // Ctrl+Shift+I
+                (e.ctrlKey && e.shiftKey && e.keyCode === 74) ||          // Ctrl+Shift+J
+                (e.ctrlKey && e.shiftKey && e.keyCode === 67) ||          // Ctrl+Shift+C
+                (e.ctrlKey && e.keyCode === 85) ||                        // Ctrl+U (view source)
+                (e.metaKey && e.altKey && e.keyCode === 73)               // Cmd+Opt+I (Mac)
+            );
+            if (blocked) { e.preventDefault(); e.stopPropagation(); return false; }
+        }, true);
+
+        // DevTools size detection — if open, overlay the page
+        var _devOpen = false;
+        setInterval(function() {
+            var widthDiff  = window.outerWidth  - window.innerWidth  > 160;
+            var heightDiff = window.outerHeight - window.innerHeight > 160;
+            if ((widthDiff || heightDiff) && !_devOpen) {
+                _devOpen = true;
+                var overlay = document.createElement('div');
+                overlay.id  = '_ac_overlay';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;' +
+                    'background:#0a0f1a;z-index:999999;display:flex;align-items:center;' +
+                    'justify-content:center;flex-direction:column;';
+                overlay.innerHTML = '<div style="font-size:48px;">⚠️</div>' +
+                    '<div style="color:#ff4444;font-size:22px;font-weight:700;margin:16px 0;">Browser tools detected.</div>' +
+                    '<div style="color:#aaa;font-size:15px;">Close DevTools and refresh the page to continue.</div>';
+                document.body.appendChild(overlay);
+            } else if (!widthDiff && !heightDiff && _devOpen) {
+                _devOpen = false;
+                var el = document.getElementById('_ac_overlay');
+                if (el) el.remove();
+            }
+        }, 800);
+    })();
+    // ============================================================
+
+    // Correct answers — XOR-encoded (key=17). Do not modify.
+    var _ac = (function(){
+        var k=17, e=[16,16,19,16,19,16,19,16,16,16,16,19,16,16,16,16,16,19,16,16,17,19,16,17,17,16,19,19,19,16,16,16,16,17,16,16,16,16,16,16,16,16,19,16,16,16,16,16,19,16,16,16];
+        return e.map(function(v){return v^k;});
+    })();
+
     const CONFIG = {
       student: "Chase",
       grade: 5,
@@ -938,8 +990,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'What does Marco ask Elena not to do with her painting?',
         opts: ['Paint him again', 'Submit it to the competition', 'Show anyone else', 'Change the title'],
-        cor: 1,
-        exp: 'Marco directly says: "You can\'t submit this." He is upset that she wants to enter his portrait in the competition.',
         str: 'Find the exact moment where Marco expresses his objection. What does he specifically tell Elena not to do?',
         passage: 'passage1'
       },
@@ -952,8 +1002,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'What is the central conflict Elena faces in this story?',
         opts: ['She cannot paint as well as she wants to', 'She must choose between her personal achievement and her loyalty to her friend', 'Her art teacher is pressuring her to submit the painting', 'Marco is angry that Elena paints better than he does'],
-        cor: 1,
-        exp: 'Elena must decide between submitting the exceptional portrait (which would help her art) or respecting Marco\'s wish to keep the image private. This is what "stands at a crossroads" means.',
         str: 'A conflict is when a character faces two difficult choices. What two things does Elena want that are in opposition?',
         passage: 'passage1'
       },
@@ -965,8 +1013,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'Why does Marco feel betrayed when he sees the portrait?',
         opts: ['He doesn\'t like how Elena painted his eyes', 'He never agreed to be the subject of a painting', 'He discovers Elena shared his private struggles with the art teacher', 'He wants to be famous as a painter too'],
-        cor: 2,
-        exp: 'Marco says: "These are things we talk about alone. Private things. I trusted you." He feels Elena shared secrets without permission. The painting exposed his vulnerability without his consent.',
         str: 'Think about what Marco says makes him upset. What did Elena do that violated his trust?',
         passage: 'passage1'
       },
@@ -978,8 +1024,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'When the passage says Elena "felt her world tilt," what does this suggest?',
         opts: ['Elena was standing on an uneven floor', 'Elena\'s understanding of her friendship suddenly changed', 'Elena was becoming dizzy from the shock', 'Elena was about to fall over from being emotional'],
-        cor: 1,
-        exp: '"World tilting" is a metaphor for losing your sense of stability or balance. It suggests her perspective on the friendship and what she thought was right has suddenly shifted.',
         str: 'Metaphors describe one thing in terms of another. What is Elena\'s emotional state when she realizes Marco\'s objection?',
         passage: 'passage1'
       },
@@ -991,8 +1035,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'Which detail from the passage best supports that Elena and Marco have a deeply trusting relationship?',
         opts: ['Elena showed Marco her painting before submitting it', 'Elena and Marco have been friends since third grade', 'Marco knew about Elena\'s parents\' divorce and Elena knew about his learning disability', 'Elena\'s art teacher said the painting was exceptional'],
-        cor: 2,
-        exp: 'The passage states they knew about each other\'s most private struggles—information shared in confidence. This shows deep trust, not just friendship duration.',
         str: 'Look for evidence that shows Marco and Elena share personal, private information with each other.',
         passage: 'passage1'
       },
@@ -1004,8 +1046,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'What is the author suggesting when she writes, "sometimes choosing what\'s right means choosing against yourself"?',
         opts: ['It\'s never right to think about your own needs', 'Making ethical decisions sometimes requires personal sacrifice', 'Elena should have submitted the painting anyway', 'Friends should always agree with each other'],
-        cor: 1,
-        exp: 'Elena gave up her chance to win the competition to respect Marco\'s boundaries. The author is saying that doing the right thing isn\'t always the easiest or most rewarding choice for you personally.',
         str: 'This quote appears in a key moment. What choice did Elena make that was right but cost her something?',
         passage: 'passage1'
       },
@@ -1018,8 +1058,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'The passage suggests that adults might not understand something about Elena\'s decision. Based on the text, what is that something?',
         opts: ['That art competitions are unimportant to young people', 'That achieving personal dreams is difficult', 'That maintaining friendship sometimes requires sacrificing your own goals', 'That learning to paint takes a very long time'],
-        cor: 2,
-        exp: 'The passage specifically states: "something adults don\'t always understand: sometimes choosing what\'s right means choosing against yourself." Adults might prioritize achievement; Elena prioritizes loyalty.',
         str: 'The passage directly tells you what adults might not understand. What did Elena do that illustrates this?',
         passage: 'passage1'
       },
@@ -1031,8 +1069,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'How does Elena\'s understanding of friendship change from the beginning to the end of the story?',
         opts: ['She learns that close friendships aren\'t worth keeping', 'She learns that loyalty sometimes requires sacrifice and that true friendship is deeper than personal success', 'She learns that Marco isn\'t really her friend', 'She learns that art is more important than people'],
-        cor: 1,
-        exp: 'At the start, Elena and Marco share secrets but Elena didn\'t realize that loyalty meant respecting those confidences completely. By the end, she defines friendship as choosing Marco over her achievement, showing grown understanding.',
         str: 'What does Elena learn or realize by choosing to withdraw the painting?',
         passage: 'passage1'
       },
@@ -1044,8 +1080,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'The portrait titled "See Me" remains in Elena\'s studio, "unseen by anyone but them." What does the author suggest this painting now symbolizes?',
         opts: ['Elena\'s failure as an artist', 'The private, protected nature of their true friendship', 'That Elena is not brave enough to share her work', 'That the painting is not good enough for public display'],
-        cor: 1,
-        exp: 'The title "See Me" was about Marco being seen and vulnerable. By keeping it private, it becomes a symbol of how Elena truly "sees" Marco—she sees his need for privacy and protection. It\'s sacred to their friendship, not public.',
         str: 'Think about the painting\'s title "See Me" and its private location. What does this represent about their friendship?',
         passage: 'passage1'
       },
@@ -1057,8 +1091,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'When Marco says "My eyes that see how much I\'m struggling?", what is he implying about the painting?',
         opts: ['The painting is anatomically inaccurate', 'The painting visibly conveys his emotional vulnerability and private pain', 'He doesn\'t like the color blue', 'Elena used the wrong technique to paint eyes'],
-        cor: 1,
-        exp: 'Marco is saying the painting reveals his inner struggle visually—that anyone looking at it would see his pain. He\'s upset because it exposes something he wanted to keep private.',
         str: 'Marco is connecting what the painting reveals about him to his struggles. What does he fear the painting shows?',
         passage: 'passage1'
       },
@@ -1070,8 +1102,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'The passage describes Marco\'s voice as "strange" and "flat." What does this word choice reveal about his emotional state?',
         opts: ['Marco is being sarcastic and joking', 'Marco is emotionally withdrawn and hurt, suppressing anger', 'Marco doesn\'t care about Elena anymore', 'Marco is excited but trying to hide it'],
-        cor: 1,
-        exp: '"Strange" and "flat" suggest Marco is disconnected, cold, and pulling away—signs of hurt and betrayal. He\'s not yelling; he\'s shutting down emotionally.',
         str: 'When someone\'s voice becomes "flat," what does that usually indicate about their emotional state?',
         passage: 'passage1'
       },
@@ -1084,8 +1114,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'Which statement best captures the deeper meaning of Elena\'s decision to withdraw the painting and paint a landscape instead?',
         opts: ['Elena learned that landscapes are easier to paint than portraits', 'Elena values winning competitions more than she values Marco\'s feelings', 'Elena discovers that true friendship sometimes requires choosing your friend\'s dignity over your own achievement', 'Elena decided that she doesn\'t actually want to be an artist'],
-        cor: 2,
-        exp: 'This action reveals that Elena now understands loyalty as both action and restraint. She\'s willing to sacrifice recognition to protect Marco\'s autonomy and privacy—the deepest form of respect in friendship.',
         str: 'This decision is about more than just one painting. What principle of friendship does Elena demonstrate?',
         passage: 'passage1'
       },
@@ -1097,8 +1125,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'The passage shows that "Marco looked at her differently again—not like she\'d betrayed his trust, but like she\'d chosen him." What does this shift in his perspective suggest about Marco\'s character?',
         opts: ['Marco was never really upset in the first place', 'Marco values being chosen over being right; his hurt can heal through Elena\'s concrete action', 'Marco doesn\'t actually care about Elena\'s career', 'Marco realized the painting was not very good after all'],
-        cor: 1,
-        exp: 'Marco\'s change shows he was hurt because he felt used and not prioritized. When Elena\'s actions prove she chooses him, his trust restores. This reveals that Marco needs to feel valued, not just liked.',
         str: 'What does Marco\'s shift in how he "looked at her" tell us about what he truly needed from Elena?',
         passage: 'passage1'
       },
@@ -1110,8 +1136,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'According to the passage, what is the relationship between wetland loss and storm damage in Louisiana?',
         opts: ['Wetland loss has no effect on storm damage', 'As wetlands disappear, storms cause more damage because the natural barrier is weakened', 'Storms cause wetland loss, but wetlands do not affect storms', 'Wetland loss only affects fishing, not storm damage'],
-        cor: 1,
-        exp: 'The passage explains that wetlands act as a natural storm barrier. When wetlands are lost, that protective buffer shrinks, meaning storms hit communities with more force and cause greater damage.',
         str: 'Look for cause-and-effect chains: losing wetlands → less protection → more storm damage. Trace the logic step by step.',
         passage: 'passage2'
       },
@@ -1123,8 +1147,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'In the literary passage, when the author describes Elena\'s choice as one that "cost her something real," what does "cost" most likely mean?',
         opts: ['A price she paid with money', 'A sacrifice that caused her emotional pain or loss', 'A mistake she could easily fix later', 'An expense her parents would cover'],
-        cor: 1,
-        exp: 'In this context, "cost" is used figuratively to mean a sacrifice or loss — not money. Elena gave up something meaningful (the competition advantage) to do the right thing for Marco.',
         str: 'When a familiar word appears in an unusual context, substitute each answer choice into the sentence to see which one makes the most sense with the story\'s meaning.',
         passage: 'passage1'
       },
@@ -1139,8 +1161,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'What is 24 × 5?',
         opts: ['100', '120', '140', '150'],
-        cor: 1,
-        exp: '24 × 5 = (20 × 5) + (4 × 5) = 100 + 20 = 120',
         str: 'Break the number into tens and ones. Multiply each part by 5, then add them together.',
         passage: null
       },
@@ -1152,8 +1172,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'What is 72 ÷ 8?',
         opts: ['8', '9', '10', '12'],
-        cor: 1,
-        exp: 'If 8 × 9 = 72, then 72 ÷ 8 = 9. Think: "8 times what equals 72?"',
         str: 'Use your multiplication facts. Ask yourself: "8 times what number equals 72?"',
         passage: null
       },
@@ -1166,8 +1184,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'What is 2/3 + 3/8?',
         opts: ['5/11', '5/24', '16/24 + 9/24 = 25/24', 'Cannot be added'],
-        cor: 2,
-        exp: 'Find LCD (24). 2/3 = 16/24; 3/8 = 9/24. Sum: 16/24 + 9/24 = 25/24 (or 1 1/24)',
         str: 'Step 1: Find the Least Common Denominator (LCD) of 3 and 8 → 24. Step 2: Convert 2/3 to 16/24 (multiply top & bottom by 8). Step 3: Convert 3/8 to 9/24 (multiply by 3). Step 4: Add: 16/24 + 9/24 = 25/24',
         passage: null
       },
@@ -1179,11 +1195,7 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'A recipe calls for 3/4 cup of flour. If you make 2/3 of the recipe, how much flour do you need?',
         opts: ['1/4 cup', '5/12 cup', '6/7 cup', '1 1/2 cups'],
-        cor: 1,
-        exp: '3/4 × 2/3 = 6/12 = 1/2. Wait—check: (3 × 2)/(4 × 3) = 6/12 = 1/2. But 5/12 is listed. Let me recalculate: 3/4 × 2/3 = (3×2)/(4×3) = 6/12 = 1/2. 1/2 is not an option. Reviewing: The answer should be 1/2, but we have 5/12 as an option. If divided differently: no. The correct is 6/12 simplified to 1/2. Since that\'s not listed, but 5/12 is closest... Actually: 3/4 × 2/3 definitively = 6/12 = 1/2. Hmm. For the test: answer 1 is 1/4 cup (wrong), 2 is 5/12 cup. Let\'s verify 5/12: could this be a different approach? No. 1/2 cup is correct. Since 1/2 is not an option, and we must choose, option 1 (1/4) and option 2 (5/12) are close. Actually, 1/2 = 6/12. 5/12 is not 1/2. Best match is option 1 if there\'s an error. Let me recompute: 3/4 × 2/3: numerator = 3×2=6, denominator = 4×3=12, so 6/12=1/2. Wait—option 2 says "5/12 cup" which is incorrect. For the test, marking cor=1 but that gives "1/4 cup" which is also wrong. This is problematic. Let me re-read: "3/4 × 2/3". That\'s definitely 1/2. Neither 1/4 nor 5/12 is correct. For testing purposes, I\'ll mark the closest or the most instructive. Actually, checking the multiplication: (3/4) * (2/3) = (3*2)/(4*3) = 6/12 = 1/2. So cor=1 (1/4) is wrong, cor=2 (5/12) is wrong. Best practice: set cor to the least wrong or rewrite. Since we\'re testing, let me rewrite with correct options.',
         opts: ['1/4 cup', '1/2 cup', '3/4 cup', '1 cup'],
-        cor: 1,
-        exp: 'Multiply 3/4 × 2/3 = (3 × 2)/(4 × 3) = 6/12 = 1/2 cup. To multiply fractions, multiply numerators together and denominators together, then simplify.',
         str: 'To multiply fractions: (numerator × numerator) ÷ (denominator × denominator). Then simplify the result.',
         passage: null
       },
@@ -1195,8 +1207,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'What is 0.6 × 1.2?',
         opts: ['0.72', '0.82', '1.8', '7.2'],
-        cor: 0,
-        exp: '0.6 × 1.2: Multiply 6 × 12 = 72. Count decimal places: 0.6 (1 place) and 1.2 (1 place) = 2 total. Place decimal 2 spots from right: 0.72',
         str: 'Ignore decimals and multiply: 6 × 12 = 72. Count total decimal places in both numbers (here: 2). Place the decimal 2 spaces from the right: 0.72',
         passage: null
       },
@@ -1208,8 +1218,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'Chase is baking cookies. He buys 3 boxes of mix ($2 each) and 2 bags of chocolate chips ($3 each). What is his total cost?',
         opts: ['$5', '$11', '$12', '$15'],
-        cor: 2,
-        exp: 'Step 1: 3 × $2 = $6 (cost of mix). Step 2: 2 × $3 = $6 (cost of chocolate chips). Step 3: $6 + $6 = $12.',
         str: 'Separate the problem: (boxes × price per box) + (bags × price per bag). Calculate each part, then add.',
         passage: null
       },
@@ -1221,8 +1229,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'A water bottle holds 2 liters. Chase drinks 250 milliliters. How many milliliters are left?',
         opts: ['1,500 mL', '1,750 mL', '2,250 mL', '2,500 mL'],
-        cor: 1,
-        exp: 'Convert 2 liters to milliliters: 2 L × 1,000 mL/L = 2,000 mL. Subtract what he drank: 2,000 − 250 = 1,750 mL.',
         str: 'First convert units so they\'re the same. Remember: 1 liter = 1,000 milliliters. Then subtract.',
         passage: null
       },
@@ -1235,11 +1241,7 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'Chase has 3 1/2 yards of ribbon. He uses 2/3 of it for a project. How much ribbon is left?',
         opts: ['1 1/6 yards', '1 1/2 yards', '1 5/6 yards', '2 1/3 yards'],
-        cor: 0,
-        exp: 'Convert 3 1/2 to improper: 7/2. Find 2/3 of 7/2: (2/3) × (7/2) = 14/6 = 2 1/3 yards used. Subtract from total: 7/2 − 2 1/3 = 21/6 − 4/6 = 17/6 = 2 5/6. Wait, let me recalculate: 7/2 = 21/6. 2 1/3 = 7/3 = 14/6. So 21/6 − 14/6 = 7/6 = 1 1/6. Actually: used = (2/3)×(7/2) = 14/6 = 7/3 = 2 1/3. Remaining = 7/2 − 7/3 = 21/6 − 14/6 = 7/6 = 1 1/6. Cor should be 0.',
         opts: ['1 1/6 yards', '1 1/2 yards', '1 5/6 yards', '2 1/3 yards'],
-        cor: 0,
-        exp: 'Step 1: Convert 3 1/2 to improper fraction: 7/2. Step 2: Find amount used: (2/3) × (7/2) = 14/6 = 7/3 = 2 1/3 yards. Step 3: Find amount remaining: 7/2 − 7/3 = 21/6 − 14/6 = 7/6 = 1 1/6 yards.',
         str: 'Find the amount used (multiply: what fraction × total), then subtract from the original amount.',
         passage: null
       },
@@ -1251,8 +1253,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'A bakery makes 247 cookies and puts them into boxes of 6. How many full boxes can they fill, and how many cookies are left over?',
         opts: ['40 boxes with 7 cookies left', '41 boxes with 1 cookie left', '41 boxes with 2 cookies left', '42 boxes with 0 cookies left'],
-        cor: 1,
-        exp: '247 ÷ 6: 6 × 41 = 246, with 1 remainder. So 41 full boxes and 1 cookie left over. Check: (41 × 6) + 1 = 246 + 1 = 247 ✓',
         str: 'Divide: Ask "how many times does 6 go into 247?" Find the quotient, then multiply back and subtract to find the remainder.',
         passage: null
       },
@@ -1264,8 +1264,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'A point is located at coordinates (4, 7) on a coordinate plane. Which describes its location?',
         opts: ['4 units up and 7 units right', '7 units up and 4 units right', '4 units right and 7 units up', '4 units left and 7 units down'],
-        cor: 2,
-        exp: 'In coordinate notation (x, y): first number is horizontal (right), second is vertical (up). So (4, 7) means 4 units right and 7 units up.',
         str: 'Remember: (x, y) means x-coordinate (horizontal/left-right) first, y-coordinate (vertical/up-down) second.',
         passage: null
       },
@@ -1277,8 +1275,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'What is the value of (8 + 4) × 3 − 5?',
         opts: ['19', '26', '31', '35'],
-        cor: 2,
-        exp: 'Step 1: Solve inside parentheses: 8 + 4 = 12. Step 2: Multiply: 12 × 3 = 36. Step 3: Subtract: 36 − 5 = 31.',
         str: 'Order of Operations: Parentheses first, then Multiplication/Division, then Addition/Subtraction from left to right.',
         passage: null
       },
@@ -1291,8 +1287,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'A recipe calls for 3/4 cup of sugar per batch. If Chase has 3 cups of sugar, how many batches can he make?',
         opts: ['2 batches', '3 batches', '4 batches', '5 batches'],
-        cor: 2,
-        exp: '3 ÷ (3/4) = 3 × (4/3) = 12/3 = 4 batches. To divide by a fraction, multiply by its reciprocal.',
         str: 'Dividing by a fraction = multiplying by its reciprocal. The reciprocal of 3/4 is 4/3.',
         passage: null
       },
@@ -1304,8 +1298,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'An L-shaped prism can be divided into two rectangular boxes: one is 5 m long, 2 m wide, 3 m tall; the other is 3 m long, 2 m wide, 2 m tall. What is the total volume?',
         opts: ['30 cubic meters', '42 cubic meters', '72 cubic meters', '102 cubic meters'],
-        cor: 1,
-        exp: 'Box 1: 5 × 2 × 3 = 30 cubic meters. Box 2: 3 × 2 × 2 = 12 cubic meters. Total: 30 + 12 = 42 cubic meters.',
         str: 'Find the volume of each rectangular section separately (length × width × height), then add them together.',
         passage: null
       },
@@ -1317,8 +1309,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'A baker uses 2/3 of a bag of flour to make one batch of bread. If he has 4 bags of flour, how many full batches can he make?',
         opts: ['4 batches', '6 batches', '8 batches', '3 batches'],
-        cor: 1,
-        exp: '4 bags ÷ 2/3 bag per batch = 4 × 3/2 = 12/2 = 6 batches. To divide by a fraction, multiply by its reciprocal.',
         str: 'Division by a fraction: "How many 2/3s fit in 4?" Flip the fraction and multiply: 4 × 3/2 = 6.',
         passage: null
       },
@@ -1330,8 +1320,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'Point A is at (2, 5) and Point B is at (2, 9) on a coordinate plane. What is the distance between Point A and Point B?',
         opts: ['7 units', '4 units', '14 units', '3 units'],
-        cor: 1,
-        exp: 'Both points share the same x-coordinate (2), so the distance is just the difference in y-coordinates: 9 − 5 = 4 units.',
         str: 'When two points share an x-coordinate, the distance is just |y₂ − y₁|. Same for shared y-coordinates: |x₂ − x₁|.',
         passage: null
       },
@@ -1346,8 +1334,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'When ice melts into water, what type of change is this?',
         opts: ['A chemical change', 'A physical change', 'A mixture', 'A permanent change'],
-        cor: 1,
-        exp: 'Ice turning to water is a physical change because the water can be refrozen. The substance itself (H₂O) doesn\'t change—only its form.',
         str: 'Physical changes can be reversed. Chemical changes create new substances. Can ice turn back into ice? Yes, so it\'s physical.',
         passage: null
       },
@@ -1359,8 +1345,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'In a simple food chain, grass is eaten by rabbits, and rabbits are eaten by hawks. Which organism is the producer?',
         opts: ['Grass', 'Rabbit', 'Hawk', 'Soil'],
-        cor: 0,
-        exp: 'Producers are plants that make their own energy from sunlight. Rabbits and hawks are consumers.',
         str: 'Producers make their own food (plants). Consumers eat other organisms.',
         passage: null
       },
@@ -1373,8 +1357,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'Two students push on opposite sides of a box with equal force. The box does not move. What is this an example of?',
         opts: ['Unbalanced forces', 'Balanced forces', 'Gravity', 'Friction only'],
-        cor: 1,
-        exp: 'When forces are equal in opposite directions, they balance each other out. Balanced forces result in no movement.',
         str: 'Balanced forces are equal and opposite—they cancel out. Unbalanced forces cause motion.',
         passage: null
       },
@@ -1386,8 +1368,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'In the water cycle, what happens during evaporation?',
         opts: ['Water condenses into clouds', 'Water rises from water bodies as a gas due to heat', 'Water falls as precipitation', 'Water filters through soil'],
-        cor: 1,
-        exp: 'Evaporation is when water from oceans, lakes, and soil turns into water vapor (gas) and rises. Heat from the sun provides energy.',
         str: 'Evaporation = heating water so it becomes invisible gas. It rises into the atmosphere.',
         passage: null
       },
@@ -1399,8 +1379,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'What is the role of decomposers, such as bacteria and fungi, in an ecosystem?',
         opts: ['They capture energy from the sun', 'They break down dead organisms and return nutrients to the soil', 'They hunt and eat other animals', 'They prevent erosion'],
-        cor: 1,
-        exp: 'Decomposers break down dead matter and waste, returning nutrients to soil so plants can use them again.',
         str: 'Decomposers are "nature\'s recyclers." They turn dead things into soil nutrients.',
         passage: null
       },
@@ -1412,8 +1390,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'A light bulb converts electrical energy into light and heat energy. This is an example of:',
         opts: ['Energy creation', 'Energy transfer', 'Energy destruction', 'Energy storage'],
-        cor: 1,
-        exp: 'Energy is neither created nor destroyed (conservation of energy). It changes from one form to another. Here, electrical → light and heat.',
         str: 'Energy transfer/transformation = energy changing from one form to another.',
         passage: null
       },
@@ -1426,8 +1402,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'A river carries soil and rocks downhill, eventually depositing them in a delta at the ocean. Which processes does this illustrate?',
         opts: ['Weathering only', 'Erosion and deposition', 'Deposition only', 'Weathering and erosion only'],
-        cor: 1,
-        exp: 'Erosion = river moving soil/rocks. Deposition = soil/rocks settling in delta. Weathering (breakdown by wind/water) happens too but is not emphasized here.',
         str: 'Erosion = moving material. Deposition = dropping/settling material. Weathering = breaking it apart.',
         passage: null
       },
@@ -1439,8 +1413,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'Louisiana\'s wetlands are disappearing due to erosion and saltwater intrusion. How would this most likely affect animals that depend on freshwater marshes?',
         opts: ['They would benefit from more saltwater', 'Their habitat would shrink, reducing food and shelter availability', 'They would migrate to mountains', 'They would adapt instantly to saltwater conditions'],
-        cor: 1,
-        exp: 'Loss of freshwater marsh habitat means loss of food sources and nesting areas. Animals cannot instantly adapt, and many cannot survive in saltwater.',
         str: 'When a habitat disappears, animals lose shelter, food, and breeding grounds. They must leave or face declining populations.',
         passage: null
       },
@@ -1453,8 +1425,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'When sugar dissolves completely in water, creating a clear liquid, what is this mixture called? And why is it different from a mixture of sand and water?',
         opts: ['A colloid; sugar dissolves while sand does not', 'A solution; the sugar is completely dissolved while sand stays separate', 'A suspension; both are the same', 'A compound; they are chemically bonded'],
-        cor: 1,
-        exp: 'A solution is when a substance dissolves completely (sugar in water). A mixture (sand + water) shows visible separate parts. Solutions appear uniform.',
         str: 'Solution = completely dissolved (can\'t see particles). Mixture = visible separate parts. Both are different from chemical compounds.',
         passage: null
       },
@@ -1466,8 +1436,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'When you rub your hands together quickly on a cold day, what energy transformation occurs?',
         opts: ['Chemical energy transforms to light energy', 'Mechanical energy (motion) transforms to thermal energy (heat)', 'Thermal energy transforms to mechanical energy', 'Sound energy transforms to thermal energy'],
-        cor: 1,
-        exp: 'Rubbing your hands uses mechanical energy (motion). Friction converts that motion into thermal energy (heat), warming your hands.',
         str: 'Friction always converts mechanical energy into thermal energy. That\'s why rubbing, grinding, and braking all produce heat.',
         passage: null
       },
@@ -1482,8 +1450,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'Which colonial region was known for plantation agriculture and slavery?',
         opts: ['New England', 'Middle Colonies', 'Southern Colonies', 'Western Colonies'],
-        cor: 2,
-        exp: 'The Southern Colonies developed large plantations growing tobacco, rice, and indigo that relied heavily on enslaved labor.',
         str: 'Each colonial region had different economies. Southern colonies = large farms (plantations). New England = smaller farms and fishing.',
         passage: null
       },
@@ -1495,8 +1461,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'One major reason European explorers sailed to the Americas in the 1400s-1500s was:',
         opts: ['To find new sports', 'To search for spices, gold, and trade routes', 'To escape bad weather', 'To discover technology'],
-        cor: 1,
-        exp: 'European explorers sought wealth (gold, spices) and new trade routes to Asia. Economic motivation was primary.',
         str: 'Think about what was valuable to Europeans then: spices were expensive, gold was rare, new trade routes meant wealth.',
         passage: null
       },
@@ -1509,8 +1473,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'As a result of European exploration, Native American populations experienced:',
         opts: ['Increased trade and wealth', 'New diseases, loss of land, and population decline', 'Improved farming techniques', 'Opportunities to travel to Europe'],
-        cor: 1,
-        exp: 'Europeans brought diseases (smallpox, measles) that devastated Native Americans. Colonization also meant loss of ancestral lands and autonomy.',
         str: 'Causes (European arrival) → Effects (disease, land loss, cultural disruption). One major effect was disease spreading rapidly.',
         passage: null
       },
@@ -1522,8 +1484,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'Which of the following was a major cause of the American Revolution?',
         opts: ['France wanted control of the colonies', 'Colonists wanted representation in the British Parliament but were denied it', 'The king of England was poor', 'Colonists refused to learn English'],
-        cor: 1,
-        exp: 'Taxation without representation was the rallying cry. Colonists paid taxes to Britain but had no elected representatives in Parliament.',
         str: 'Remember: "No taxation without representation!" Colonists were taxed but couldn\'t vote or have a say in decisions.',
         passage: null
       },
@@ -1535,8 +1495,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'Which occurred first, leading to the others?',
         opts: ['The Declaration of Independence was signed', 'British forces taxed the colonists without representation', 'George Washington became president', 'The Constitution was written'],
-        cor: 1,
-        exp: 'British taxation (1760s) sparked colonial anger → protests and conflict (1775-1776) → Declaration of Independence (1776) → war → Constitution.',
         str: 'Think cause-and-effect: unfair taxation made colonists angry, which led to protests, which led to revolution.',
         passage: null
       },
@@ -1548,8 +1506,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'Why did many early American settlements develop near rivers?',
         opts: ['Rivers were cold in winter', 'Rivers provided fresh water, transportation, and fertile soil for farming', 'Rivers prevented disease', 'Rivers had gold'],
-        cor: 1,
-        exp: 'Rivers were essential: drinking water, fish for food, transportation for trade, and water-enriched soil for crops.',
         str: 'Think about what settlers need: water, food, transportation. Rivers provided all three.',
         passage: null
       },
@@ -1562,8 +1518,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'European exploration and colonization caused major changes to Native American societies. Which was NOT a direct consequence?',
         opts: ['Loss of ancestral lands and displacement', 'Introduction of new animals like horses and cattle', 'Immediate political union of all tribes', 'Spread of European diseases'],
-        cor: 2,
-        exp: 'Native American tribes never formed one unified government in response to colonization. They remained distinct nations. Land loss, new animals, and disease were direct consequences.',
         str: 'Direct consequences = things that happened as a result. Tribes did not unite into one government; they stayed separate.',
         passage: null
       },
@@ -1575,8 +1529,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'New England\'s rocky soil and long winters made large-scale farming difficult, so colonists developed different economic activities. Which of the following was an economic activity in New England?',
         opts: ['Large-scale plantation farming', 'Fishing, shipbuilding, and trade', 'Ranching and cattle herding', 'Large-scale tobacco farming'],
-        cor: 1,
-        exp: 'New England\'s geography (rocky land, cold climate) favored fishing (Atlantic coast), shipbuilding, and maritime trade, not farming like Southern colonies.',
         str: 'Geography shapes economy: Poor farming land → people turn to what\'s available (fishing, forests for ships, trade routes).',
         passage: null
       },
@@ -1589,8 +1541,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'The colonists\' grievance of "taxation without representation" was central to their demand for independence. This grievance best reflects which founding principle of American government?',
         opts: ['That the king should have absolute power', 'That citizens should have a voice in government through representation', 'That taxes should never be collected', 'That colonies should be independent from each other'],
-        cor: 1,
-        exp: 'The principle of representation/democracy emerged from this conflict: citizens must have a voice in decisions affecting them, especially taxes. This shaped the Constitution.',
         str: 'This grievance wasn\'t just about taxes—it was about power and fairness. It led to the principle that government should represent the people.',
         passage: null
       },
@@ -1602,8 +1552,6 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         type: 'mc',
         text: 'The President vetoes a bill passed by Congress. Congress then votes to override the veto with a two-thirds majority. This is an example of:',
         opts: ['The President making laws', 'Checks and balances between branches of government', 'The judicial branch interpreting laws', 'Congress declaring war'],
-        cor: 1,
-        exp: 'Checks and balances means each branch can limit the power of the others. The President checks Congress by vetoing bills; Congress checks the President by overriding vetoes with a 2/3 vote.',
         str: 'Checks and balances = branches limiting each other\'s power. Veto = President checks Congress. Override = Congress checks back.',
         passage: null
       }
@@ -1681,10 +1629,10 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
       // Feedback
       const feedback = document.getElementById('feedbackArea');
       if (answers[index] !== null) {
-        const isCorrect = answers[index] === q.cor;
+        const isCorrect = answers[index] === _ac[currentQuestion];
         feedback.innerHTML = `<div class="feedback ${isCorrect ? 'correct' : 'incorrect'}">
           <div class="feedback-label">${isCorrect ? '✓ Correct!' : '✗ Incorrect'}</div>
-          <div class="feedback-content">${isCorrect ? '' : '<strong>Your answer:</strong> ' + q.opts[answers[index]] + '<br><strong>Correct answer:</strong> ' + q.opts[q.cor] + '<br><br>'}<strong>Explanation:</strong> ${q.exp}</div>
+          <div class="feedback-content">${isCorrect ? '' : '<strong>Your answer:</strong> ' + q.opts[answers[index]] + '<br><strong>Correct answer:</strong> ' + q.opts[_ac[currentQuestion]] + '<br><br>'}<strong>Explanation:</strong> ${q.exp}</div>
           ${q.str ? `<div class="strategy"><strong>Strategy:</strong> ${q.str}</div>` : ''}
         </div>`;
         feedback.style.display = 'block';
@@ -1759,7 +1707,7 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
 
     function calculateResults() {
       const correct = answers.reduce((sum, ans, idx) => {
-        return sum + (ans === Q[idx].cor ? 1 : 0);
+        return sum + (ans === _ac[idx] ? 1 : 0);
       }, 0);
 
       const percentage = Math.round((correct / 50) * 100);
@@ -1785,7 +1733,7 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         const range = sec.range;
         let sectionCorrect = 0;
         for (let i = range[0]; i <= range[1]; i++) {
-          if (answers[i] === Q[i].cor) sectionCorrect++;
+          if (answers[i] === _ac[i]) sectionCorrect++;
         }
         const count = range[1] - range[0] + 1;
         const secPct = Math.round((sectionCorrect / count) * 100);
@@ -1802,7 +1750,7 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
       Q.forEach((q, idx) => {
         if (!skillMap[q.std]) skillMap[q.std] = { correct: 0, total: 0, skill: q.skill };
         skillMap[q.std].total++;
-        if (answers[idx] === q.cor) skillMap[q.std].correct++;
+        if (answers[idx] === _ac[currentQuestion]) skillMap[q.std].correct++;
       });
 
       let skillsHTML = '';
@@ -1831,7 +1779,7 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
       let reviewHTML = '';
       let wrongCount = 0;
       Q.forEach((q, idx) => {
-        if (answers[idx] !== null && answers[idx] !== q.cor) {
+        if (answers[idx] !== null && answers[idx] !== _ac[currentQuestion]) {
           wrongCount++;
           if (wrongCount <= 10) {
             reviewHTML += `<div class="review-item">
@@ -1842,7 +1790,7 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
               </div>
               <div class="review-answer">
                 <div class="answer-label">Correct:</div>
-                <div class="answer-correct">${q.opts[q.cor]}</div>
+                <div class="answer-correct">${q.opts[_ac[currentQuestion]]}</div>
               </div>
               <div class="review-explanation">${q.exp}</div>
               ${q.str ? `<div class="review-strategy"><strong>Next time:</strong> ${q.str}</div>` : ''}
@@ -1873,7 +1821,7 @@ The wetlands are not just beautiful natural areas to visit or study. They are es
         testId: CONFIG.testId,
         student: CONFIG.student,
         answers: answers,
-        questions: Q.map(q => ({ sec: q.sec, std: q.std, skill: q.skill, diff: q.diff, text: q.text, opts: q.opts, cor: q.cor, exp: q.exp, str: q.str, passage: q.passage })),
+        questions: Q.map(q => ({ sec: q.sec, std: q.std, skill: q.skill, diff: q.diff, text: q.text, opts: q.opts, exp: q.exp, str: q.str, passage: q.passage })),
         passages: PASSAGES,
         sections: SECTIONS,
         score: percentage,

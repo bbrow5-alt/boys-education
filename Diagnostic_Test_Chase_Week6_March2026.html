@@ -459,6 +459,58 @@
   </div>
 
   <script>
+
+    // ============================================================
+    // ANTI-CHEAT — DO NOT REMOVE
+    // ============================================================
+    (function() {
+        // Block right-click context menu
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+        // Block keyboard shortcuts to open DevTools / view source
+        document.addEventListener('keydown', function(e) {
+            const blocked = (
+                e.keyCode === 123 ||                                      // F12
+                (e.ctrlKey && e.shiftKey && e.keyCode === 73) ||          // Ctrl+Shift+I
+                (e.ctrlKey && e.shiftKey && e.keyCode === 74) ||          // Ctrl+Shift+J
+                (e.ctrlKey && e.shiftKey && e.keyCode === 67) ||          // Ctrl+Shift+C
+                (e.ctrlKey && e.keyCode === 85) ||                        // Ctrl+U (view source)
+                (e.metaKey && e.altKey && e.keyCode === 73)               // Cmd+Opt+I (Mac)
+            );
+            if (blocked) { e.preventDefault(); e.stopPropagation(); return false; }
+        }, true);
+
+        // DevTools size detection — if open, overlay the page
+        var _devOpen = false;
+        setInterval(function() {
+            var widthDiff  = window.outerWidth  - window.innerWidth  > 160;
+            var heightDiff = window.outerHeight - window.innerHeight > 160;
+            if ((widthDiff || heightDiff) && !_devOpen) {
+                _devOpen = true;
+                var overlay = document.createElement('div');
+                overlay.id  = '_ac_overlay';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;' +
+                    'background:#0a0f1a;z-index:999999;display:flex;align-items:center;' +
+                    'justify-content:center;flex-direction:column;';
+                overlay.innerHTML = '<div style="font-size:48px;">⚠️</div>' +
+                    '<div style="color:#ff4444;font-size:22px;font-weight:700;margin:16px 0;">Browser tools detected.</div>' +
+                    '<div style="color:#aaa;font-size:15px;">Close DevTools and refresh the page to continue.</div>';
+                document.body.appendChild(overlay);
+            } else if (!widthDiff && !heightDiff && _devOpen) {
+                _devOpen = false;
+                var el = document.getElementById('_ac_overlay');
+                if (el) el.remove();
+            }
+        }, 800);
+    })();
+    // ============================================================
+
+    // Correct answers — XOR-encoded (key=17). Do not modify.
+    var _ac = (function(){
+        var k=17, e=[17,16,16,16,16,16,16,16,16,16,16,16,16,19,19,16,17,16,16,16,16,17,17,19,17,16,16,16,16,17,19,19,16,16,16,16,16,16,16,16,16,19,16,16,16,16,16,19,18,16];
+        return e.map(function(v){return v^k;});
+    })();
+
     const CONFIG = {
       student: "Chase",
       grade: 5,
@@ -556,8 +608,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'He is too tired to climb the stairs and fix the light himself',
           'He no longer cares what happens to the lighthouse equipment'
         ],
-        cor: 0,
-        exp: 'Reeves resists at first, but after Davi explains that the light will die and ships are out there, Reeves pauses and then quietly tells him where the tools are. The turning point is Davi\'s argument about the ships\u2014Reeves recognizes the danger is real.',
         str: 'Look at the moment just before Reeves gives in. What does Davi say that changes the captain\'s mind? That\'s the cause; Reeves telling him about the tools is the effect.',
         passage: 'passage1'
       },
@@ -575,8 +625,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           '"You\'ll learn discipline," she\'d told him. "And Captain Reeves needs young eyes."',
           '"Don\'t touch the primary gear assembly."'
         ],
-        cor: 1,
-        exp: 'This detail shows the exact moment Reeves changes his mind. He searches Davi\'s face (weighing the situation), pauses in silence (internal deliberation), then sets down his pen (decision made). Option A shows Reeves resisting, not yielding. Option C is about Davi\'s mother. Option D is a caution during cooperation, not the reason he agreed.',
         str: 'For Part B evidence questions, the best answer directly shows the moment of change described in Part A. Look for the pivot point\u2014where the character shifts from one position to another.',
         passage: 'passage1'
       },
@@ -595,8 +643,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'Technology is more reliable than human judgment during emergencies',
           'Courage means never feeling afraid when facing danger'
         ],
-        cor: 1,
-        exp: 'The story shows Davi going beyond his assigned duties (trim the wick, maintain the schedule) to improvise a repair that saves ships. The theme is about initiative\u2014recognizing when following rules is not enough and having the courage to act. Option A contradicts the story\'s message. Option D is wrong because Davi IS afraid ("his heart hammering") but acts anyway.',
         str: 'A theme is the lesson the whole story teaches, not just one event. Ask: what did the main character learn, and what does the author want the reader to take away?',
         passage: 'passage1'
       },
@@ -614,8 +660,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           '"You taught me where to look. I just had the hands to fix it."',
           '"The captain\'s instructions were clear: trim the wick, maintain the rotation schedule, log the weather."'
         ],
-        cor: 1,
-        exp: 'This quote explicitly states the theme: doing the right thing mattered more than following the rules. Option A shows action but doesn\'t state the theme. Option C is about humility and mentorship, a secondary idea. Option D describes the rules Davi was supposed to follow but doesn\'t convey the theme about going beyond them.',
         str: 'The best evidence for a theme question will be a line that captures the story\'s central message, not just an action or event. Look for the line that could stand alone as the moral.',
         passage: 'passage1'
       },
@@ -634,8 +678,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'Government agencies intentionally released them to control native fish populations',
           'Other invasive species had already eliminated competition in the river system'
         ],
-        cor: 1,
-        exp: 'The passage states three factors directly: "no natural predators, an abundant food supply, and females capable of producing up to one million eggs per year." These combined to cause the population explosion.',
         str: 'When a question asks for the PRIMARY reason, look for the explanation the author gives the most detail about. The passage lists three specific factors together\u2014that combination is the answer.',
         passage: 'passage2'
       },
@@ -653,8 +695,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           '"Today, in some stretches of the Illinois River, Asian carp make up over 90 percent of the total fish biomass."',
           '"The plan seemed reasonable at the time."'
         ],
-        cor: 1,
-        exp: 'This sentence directly lists the three factors (no predators, abundant food, high reproduction) that explain rapid population growth. Option C describes a result of the growth, not the cause. Option A explains how they arrived, not why they multiplied. Option D is the author\'s commentary.',
         str: 'Evidence for a "why" question must explain the cause, not describe the result. Option C is tempting because it shows HOW MUCH they grew, but the question asks WHY they grew\u2014those are different things.',
         passage: 'passage2'
       },
@@ -673,8 +713,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'They consume all the oxygen in the water through their own breathing',
           'They block rivers from flowing into lakes, reducing water circulation'
         ],
-        cor: 1,
-        exp: 'The passage describes a chain reaction: zebra mussels filter water \u2192 water becomes clearer \u2192 sunlight penetrates deeper \u2192 algae grows on lake bottom \u2192 algae decays \u2192 oxygen depleted \u2192 dead zones. This is an indirect cause because several steps connect mussels to dead zones.',
         str: 'The word INDIRECTLY means there are steps in between. Trace the chain of cause and effect: what does the mussel do first, what happens next, and what is the final result?',
         passage: 'passage2'
       },
@@ -692,8 +730,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           '"Lake Erie has experienced expanding dead zones since the zebra mussel invasion, threatening a commercial fishing industry worth over $1 billion annually."',
           '"A single water treatment plant in Monroe, Michigan spent $500,000 in one year removing zebra mussels from its intake pipes."'
         ],
-        cor: 1,
-        exp: 'This is the only option that traces the full chain: filtering \u2192 clearer water \u2192 sunlight \u2192 algae growth \u2192 oxygen depletion. Option A describes only the first step. Option C states the result without the chain. Option D is about infrastructure damage, a different topic.',
         str: 'When a question asks about a chain of events, the best evidence will show multiple connected steps, not just the beginning or the end of the chain.',
         passage: 'passage2'
       },
@@ -711,8 +747,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'Davi was smarter than Captain Reeves because he was younger',
           'The lighthouse should have been replaced with modern equipment years ago'
         ],
-        cor: 1,
-        exp: 'A strong argumentative claim is specific and directly addresses the topic. Option B identifies the specific consequence (risked lives) of the specific action (refusing repair). Option A is an insult, not an argument. Option C is unsupported logic. Option D changes the subject.',
         str: 'A strong claim names the specific action being criticized AND the specific harm it caused. Vague claims or personal attacks are weak arguments.',
         passage: 'passage1'
       },
@@ -730,8 +764,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'Fish are important animals that deserve protection',
           'Scientists should stop studying invasive species and focus on other problems'
         ],
-        cor: 1,
-        exp: 'Option B is the strongest claim because it takes a clear position (increase funding), identifies who should act (government), and gives a specific reason (damage cost exceeds prevention cost). This is a complete argumentative claim with evidence-based reasoning.',
         str: 'A strong argumentative claim has three parts: WHO should act, WHAT they should do, and WHY (the reason). Check each option for all three parts.',
         passage: 'passage2'
       },
@@ -749,8 +781,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'Made a loud roaring sound',
           'Changed color from yellow to blue'
         ],
-        cor: 1,
-        exp: 'Context clues help here: the flame is described as having problems throughout the passage (flickering, going out during watch). "Guttered" means to flicker and burn unsteadily, as a candle does when disturbed by wind. The "fractured rainbows" suggest irregular, broken light patterns consistent with flickering.',
         str: 'Replace each answer choice in the original sentence and see which one makes the most sense with the surrounding details. The passage already told us the light was failing.',
         passage: 'passage1'
       },
@@ -768,8 +798,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'The damage only affects one species at a time',
           'The effects are unpredictable and happen randomly'
         ],
-        cor: 1,
-        exp: 'A "chain reaction" means one event causes the next, which causes the next. The passage demonstrates this: mussels filter water \u2192 water clears \u2192 algae grows \u2192 oxygen depletes \u2192 dead zones form. Each step triggers the next in a connected sequence.',
         str: 'Break the phrase into parts: "chain" means linked together, "reaction" means a response. Together they describe events that are connected\u2014each one causing the next.',
         passage: 'passage2'
       },
@@ -787,8 +815,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'He dislikes Captain Reeves and wants to prove the old man wrong',
           'He is lazy and avoids doing his assigned duties'
         ],
-        cor: 1,
-        exp: 'Davi spent an hour examining the problem (observant), figured out what was wrong on his own (resourceful), and chose to act to save ships despite the risk (responsible). He is respectful to Reeves throughout and even credits him at the end.',
         str: 'To infer character traits, look at what the character DOES, not just what they say. List Davi\'s actions: he examined the lamp, identified the problem, argued his case, climbed the tower, and made the repair.',
         passage: 'passage1'
       },
@@ -806,8 +832,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'By describing a cause-and-effect chain showing how zebra mussels damage ecosystems and infrastructure',
           'By listing arguments for and against removing zebra mussels'
         ],
-        cor: 2,
-        exp: 'The zebra mussel section follows a cause-and-effect structure: arrival (cause) \u2192 filtering behavior (cause) \u2192 infrastructure damage and ecological chain reaction (effects). The author traces how one problem leads to another. It is not primarily comparative, chronological, or argumentative.',
         str: 'Ask yourself: what is the author\'s main purpose in the zebra mussel section? Is it to compare, to tell a time sequence, to show how one thing causes another, or to debate? The answer reveals the text structure.',
         passage: 'passage2'
       },
@@ -825,8 +849,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'To connect the specific examples back to a broader lesson about how well-intentioned decisions can produce serious, unforeseen harm',
           'To summarize all the scientific data presented earlier in the passage'
         ],
-        cor: 2,
-        exp: 'The final paragraph zooms out from the specific examples (carp, mussels) to state a broader lesson: a "practical" decision in the 1970s produced billions in damage. The author\'s purpose is to connect the details to a larger idea about unintended consequences. It doesn\'t introduce new topics, argue for a specific law, or just summarize data.',
         str: 'Final paragraphs often serve a special purpose: they connect specific examples to a bigger idea or lesson. Ask: what is the author trying to leave the reader thinking about?',
         passage: 'passage2'
       },
@@ -841,8 +863,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'What is 2/5 + 1/3?',
         opts: ['3/8', '11/15', '3/15', '7/15'],
-        cor: 1,
-        exp: 'Find a common denominator: LCD of 5 and 3 is 15. Convert: 2/5 = 6/15 and 1/3 = 5/15. Add: 6/15 + 5/15 = 11/15.',
         str: 'When adding fractions with different denominators, find the LCD first. Multiply each fraction\'s numerator and denominator to get equivalent fractions, then add the numerators.',
         passage: null
       },
@@ -855,8 +875,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'What is 3/4 \u00d7 2/7?',
         opts: ['6/28', '5/11', '6/11', '5/28'],
-        cor: 0,
-        exp: 'Multiply numerators: 3 \u00d7 2 = 6. Multiply denominators: 4 \u00d7 7 = 28. Result: 6/28 which simplifies to 3/14. The answer 6/28 is listed and is correct (equivalent to 3/14).',
         str: 'Fraction multiplication is straightforward: multiply tops together and bottoms together. You can simplify before or after multiplying.',
         passage: null
       },
@@ -869,8 +887,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'What is 4.56 + 3.78?',
         opts: ['7.34', '8.34', '8.24', '7.24'],
-        cor: 1,
-        exp: '4.56 + 3.78: Add hundredths: 6 + 8 = 14 (write 4, carry 1). Add tenths: 5 + 7 + 1 = 13 (write 3, carry 1). Add ones: 4 + 3 + 1 = 8. Answer: 8.34.',
         str: 'Line up the decimal points and add column by column from right to left, carrying when needed. Double-check by estimating: 4.5 + 3.8 is about 8.3.',
         passage: null
       },
@@ -883,8 +899,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'What is 0.6 \u00d7 0.8?',
         opts: ['4.8', '0.48', '0.048', '48'],
-        cor: 1,
-        exp: 'Multiply as whole numbers: 6 \u00d7 8 = 48. Count decimal places: 0.6 has 1 decimal place, 0.8 has 1 decimal place, so the answer has 2 decimal places. Move the decimal: 48 becomes 0.48.',
         str: 'For decimal multiplication: (1) ignore decimals and multiply whole numbers, (2) count total decimal places in BOTH factors, (3) place that many decimal places in your answer.',
         passage: null
       },
@@ -897,8 +911,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'A store sells notebooks for $3 each and pens for $2 each. Maria buys 4 notebooks and 6 pens. She pays with a $50 bill. How much change does she receive?',
         opts: ['$24', '$26', '$20', '$30'],
-        cor: 1,
-        exp: 'Notebooks: 4 \u00d7 $3 = $12. Pens: 6 \u00d7 $2 = $12. Total spent: $12 + $12 = $24. Change: $50 \u2212 $24 = $26.',
         str: 'Break multi-step problems into parts: (1) find the cost of each item type, (2) find the total, (3) subtract from the amount paid. Write each step down.',
         passage: null
       },
@@ -911,8 +923,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'Which expression represents this situation: "A farmer picks 8 bushels of apples on Monday. On Tuesday, he picks 3 times as many as Monday, then gives away 5 bushels."',
         opts: ['8 + 3 \u00d7 5', '(8 \u00d7 3) \u2212 5', '8 \u00d7 (3 \u2212 5)', '3 \u00d7 (8 \u2212 5)'],
-        cor: 1,
-        exp: 'Tuesday he picks 3 times Monday\'s amount: 8 \u00d7 3 = 24. Then he gives away 5: 24 \u2212 5 = 19. The expression is (8 \u00d7 3) \u2212 5. The parentheses ensure multiplication happens first.',
         str: 'Translate the words into math step by step: "3 times as many as Monday" = 3 \u00d7 8. "Then gives away 5" = subtract 5. Parentheses group the multiplication.',
         passage: null
       },
@@ -925,8 +935,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'Evaluate: 7 + 3 \u00d7 (12 \u2212 4) \u2212 2',
         opts: ['29', '78', '27', '31'],
-        cor: 0,
-        exp: 'Follow PEMDAS. Parentheses first: 12 \u2212 4 = 8. Multiplication: 3 \u00d7 8 = 24. Left to right addition/subtraction: 7 + 24 \u2212 2 = 29.',
         str: 'PEMDAS: Parentheses, Exponents, Multiplication/Division (left to right), Addition/Subtraction (left to right). Always handle parentheses first.',
         passage: null
       },
@@ -939,8 +947,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'Which list contains ONLY prime numbers?',
         opts: ['2, 7, 11, 23', '2, 9, 11, 23', '1, 3, 5, 7', '3, 5, 15, 17'],
-        cor: 0,
-        exp: '2 (prime), 7 (prime), 11 (prime), 23 (prime) \u2014 all have exactly two factors (1 and themselves). Option B: 9 = 3 \u00d7 3, not prime. Option C: 1 is neither prime nor composite. Option D: 15 = 3 \u00d7 5, not prime.',
         str: 'A prime number has exactly two factors: 1 and itself. Check each number in the list. Remember: 1 is NOT prime, and 2 is the only even prime.',
         passage: null
       },
@@ -953,8 +959,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'A rectangular box has a length of 6 inches, a width of 4 inches, and a height of 3 inches. What is the volume of the box?',
         opts: ['13 cubic inches', '48 cubic inches', '72 cubic inches', '26 cubic inches'],
-        cor: 2,
-        exp: 'Volume = length \u00d7 width \u00d7 height = 6 \u00d7 4 \u00d7 3 = 72 cubic inches. Option A is the sum (6+4+3). Option D is double the sum. Always multiply for volume.',
         str: 'Volume of a rectangular prism = l \u00d7 w \u00d7 h. Units are CUBIC (inches cubed). A common mistake is adding the dimensions instead of multiplying.',
         passage: null
       },
@@ -967,8 +971,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'An L-shaped figure is made of two rectangular prisms. Prism A is 5 cm long, 3 cm wide, and 2 cm tall. Prism B is 4 cm long, 3 cm wide, and 2 cm tall. What is the total volume?',
         opts: ['54 cubic cm', '30 cubic cm', '24 cubic cm', '17 cubic cm'],
-        cor: 0,
-        exp: 'Volume of Prism A: 5 \u00d7 3 \u00d7 2 = 30 cubic cm. Volume of Prism B: 4 \u00d7 3 \u00d7 2 = 24 cubic cm. Total: 30 + 24 = 54 cubic cm.',
         str: 'For composite shapes, calculate each prism\'s volume separately, then add them together. Don\'t try to find one formula for the whole shape.',
         passage: null
       },
@@ -981,8 +983,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'Point P is located at (3, 7) on a coordinate plane. If Point P is moved 4 units to the right and 2 units down, what are the new coordinates?',
         opts: ['(7, 9)', '(7, 5)', '(\u22121, 9)', '(1, 5)'],
-        cor: 1,
-        exp: 'Starting at (3, 7). Moving right increases x: 3 + 4 = 7. Moving down decreases y: 7 \u2212 2 = 5. New point: (7, 5).',
         str: 'On a coordinate plane: right = increase x, left = decrease x, up = increase y, down = decrease y. Remember: x comes first in the ordered pair (x, y).',
         passage: null
       },
@@ -995,8 +995,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'How many cups are in 3 quarts? (1 quart = 4 cups)',
         opts: ['7 cups', '12 cups', '9 cups', '16 cups'],
-        cor: 1,
-        exp: '1 quart = 4 cups. So 3 quarts = 3 \u00d7 4 = 12 cups.',
         str: 'For unit conversions, multiply the number of larger units by the conversion factor. 3 quarts \u00d7 4 cups per quart = 12 cups.',
         passage: null
       },
@@ -1009,8 +1007,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'The number 4,500 is 10 times as great as which number?',
         opts: ['45,000', '450', '4,510', '45'],
-        cor: 1,
-        exp: 'If 4,500 is 10 times a number, divide 4,500 by 10: 4,500 \u00f7 10 = 450. Check: 450 \u00d7 10 = 4,500. Correct.',
         str: '"10 times as great" means you multiplied by 10 to get 4,500. To find the original, divide by 10. Dividing by 10 moves each digit one place to the right.',
         passage: null
       },
@@ -1023,8 +1019,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'Sarah ran 3/4 of a mile on Monday and 5/6 of a mile on Tuesday. How much farther did she run on Tuesday than on Monday?',
         opts: ['2/2 mile', '1/12 mile', '2/10 mile', '8/10 mile'],
-        cor: 1,
-        exp: 'Find 5/6 \u2212 3/4. LCD of 6 and 4 is 12. Convert: 5/6 = 10/12, 3/4 = 9/12. Subtract: 10/12 \u2212 9/12 = 1/12 mile.',
         str: 'For "how much farther" questions, subtract the smaller distance from the larger. Find the LCD first, convert both fractions, then subtract numerators.',
         passage: null
       },
@@ -1037,8 +1031,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'A recipe calls for 2/3 cup of sugar. If Marcus wants to make 1 1/2 times the recipe, how much sugar does he need?',
         opts: ['1 cup', '3/3 cup', '2/6 cup', '5/6 cup'],
-        cor: 0,
-        exp: 'Convert 1 1/2 to an improper fraction: 3/2. Multiply: 2/3 \u00d7 3/2 = 6/6 = 1 cup. Note that options A and B are technically both equal to 1, but "1 cup" is the simplified, standard answer.',
         str: 'When scaling a recipe, convert mixed numbers to improper fractions first, then multiply. Simplify your answer: 6/6 = 1 whole.',
         passage: null
       },
@@ -1053,8 +1045,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'Which of the following is a chemical change?',
         opts: ['Cutting paper into smaller pieces', 'Melting ice into water', 'Burning wood to produce ash and smoke', 'Dissolving sugar in water'],
-        cor: 2,
-        exp: 'Burning wood is a chemical change because it produces new substances (ash, smoke, carbon dioxide) that are different from the original wood. Cutting, melting, and dissolving are physical changes\u2014the substance itself doesn\'t change identity.',
         str: 'Chemical changes create NEW substances that can\'t easily be changed back. Physical changes alter form or state but keep the same substance. Ask: did new materials form?',
         passage: null
       },
@@ -1067,8 +1057,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'A student seals 50 grams of baking soda and vinegar in a closed container. After the reaction produces bubbles and fizzing, what will the total mass be?',
         opts: ['Less than 50 grams because gas escaped', 'More than 50 grams because new substances formed', 'Exactly 50 grams because matter is conserved', 'It depends on how much fizzing occurred'],
-        cor: 2,
-        exp: 'The law of conservation of matter states that matter cannot be created or destroyed in a chemical reaction. Since the container is sealed (gas cannot escape), the total mass remains 50 grams. The gas produced is still inside the container.',
         str: 'Key phrase: "sealed container." If nothing enters or leaves, mass stays the same. Conservation of matter = total mass before = total mass after.',
         passage: null
       },
@@ -1081,8 +1069,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'A soccer ball is rolling across a grass field and gradually slows to a stop. Which force is primarily responsible for the ball stopping?',
         opts: ['Gravity pulling the ball downward', 'Friction between the ball and the grass', 'Air pressure pushing the ball backward', 'The magnetic field of the Earth'],
-        cor: 1,
-        exp: 'Friction is the force that opposes motion when two surfaces are in contact. The grass surface creates friction against the rolling ball, gradually slowing it down. Gravity acts downward (not backward), and Earth\'s magnetic field doesn\'t affect a soccer ball.',
         str: 'When an object slows down on a surface, the main force is usually friction. Friction always opposes the direction of motion.',
         passage: null
       },
@@ -1100,8 +1086,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'The spoon absorbed light energy from the room and converted it to heat',
           'The metal in the spoon generated its own heat through a chemical reaction'
         ],
-        cor: 1,
-        exp: 'Conduction is the transfer of heat through direct contact. Metal is an excellent conductor. Heat moves from the hot soup through the metal spoon to the cooler handle. Heat always flows from warmer objects to cooler ones.',
         str: 'Heat transfer through a solid material is called conduction. Metal conducts heat very well, which is why metal handles get hot. Heat moves from hot \u2192 cold, not cold \u2192 hot.',
         passage: null
       },
@@ -1119,8 +1103,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'Soil, minerals, and oxygen',
           'Nitrogen, hydrogen, and moonlight'
         ],
-        cor: 1,
-        exp: 'Photosynthesis requires three inputs: carbon dioxide (from air), water (from soil/roots), and sunlight (energy source). The plant uses these to produce glucose (sugar) and oxygen. Oxygen and sugar are OUTPUTS, not inputs.',
         str: 'Remember the photosynthesis equation: CO2 + H2O + sunlight \u2192 sugar + O2. The question asks for INPUTS (what goes in), not outputs (what comes out).',
         passage: null
       },
@@ -1138,8 +1120,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'All organisms in the pond would immediately go extinct',
           'Eagle populations would increase because they would eat more algae'
         ],
-        cor: 1,
-        exp: 'With fewer small fish eating algae, algae populations would increase (less predation). With fewer small fish for large fish to eat, large fish populations would decrease (less food). This is a cascading effect through the food web. Eagles don\'t eat algae.',
         str: 'Trace the food chain in both directions from the affected species. If small fish decrease: what eats them? (large fish lose food \u2192 decrease). What do they eat? (algae get less predation \u2192 increase).',
         passage: null
       },
@@ -1152,8 +1132,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'Which layer of Earth\'s atmosphere do we live in and where most weather occurs?',
         opts: ['Stratosphere', 'Troposphere', 'Mesosphere', 'Thermosphere'],
-        cor: 1,
-        exp: 'The troposphere is the lowest layer of Earth\'s atmosphere, extending from the surface to about 7\u201312 miles up. It contains most of the atmosphere\'s water vapor and is where nearly all weather occurs. The stratosphere is above it and contains the ozone layer.',
         str: 'Think "tropo" sounds like "trouble"\u2014it\'s where all the weather "trouble" happens. It\'s the layer closest to the ground where we live.',
         passage: null
       },
@@ -1171,8 +1149,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'The parking lot made the air temperature colder, causing more rain',
           'Cars on the parking lot pushed water toward the streets'
         ],
-        cor: 1,
-        exp: 'Grass and soil absorb rainwater (permeability). Pavement is impermeable\u2014water cannot soak through it. Instead, water runs off the surface as runoff, flowing into streets and storm drains. More impermeable surface = more runoff = more flooding.',
         str: 'Think about what happens when rain hits grass vs. pavement. Grass soaks it up; pavement makes it run off. More runoff = more water flowing to low areas = flooding.',
         passage: null
       },
@@ -1190,8 +1166,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'The time it takes for each cup to freeze',
           'The size of the cups'
         ],
-        cor: 1,
-        exp: 'The independent variable is what the experimenter deliberately changes. She changed the type of water (fresh vs. salt) to see its effect. The time to freeze is the dependent variable (what she measures). The freezer temperature and cup size are controlled variables (kept the same).',
         str: 'Independent variable = what YOU change on purpose. Dependent variable = what you MEASURE to see results. Controlled variables = what you keep the SAME.',
         passage: null
       },
@@ -1209,8 +1183,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'Birds declined because the pesticides directly poisoned them',
           'Fish populations declined because farmers caught too many'
         ],
-        cor: 1,
-        exp: 'The scenario shows a chain reaction: pesticides kill aquatic insects \u2192 fish lose food source \u2192 fish decline \u2192 birds lose food source \u2192 birds decline. The pesticides didn\'t directly kill the birds; the effect cascaded through the food web. This demonstrates interconnectedness of ecosystems.',
         str: 'Trace each step in the chain. The question asks which conclusion is BEST supported by ALL the evidence in the scenario, not just one part of it.',
         passage: null
       },
@@ -1225,8 +1197,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'In the feudal system of medieval Europe, what did a lord give to a vassal in exchange for military service and loyalty?',
         opts: ['Money and jewels', 'Land (called a fief)', 'Ships and weapons', 'A seat on the king\'s council'],
-        cor: 1,
-        exp: 'Under feudalism, a lord granted land (a fief) to a vassal. In return, the vassal promised military service, loyalty, and other obligations. This exchange of land for service was the foundation of the feudal system.',
         str: 'Feudalism was based on a land-for-service exchange. Lords had land; vassals had military skill. The fief (land grant) connected them.',
         passage: null
       },
@@ -1239,8 +1209,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'Which group formed the largest portion of the population in medieval feudal society and did most of the farming?',
         opts: ['Knights', 'Clergy', 'Serfs and peasants', 'Nobles and lords'],
-        cor: 2,
-        exp: 'Serfs and peasants made up roughly 90% of medieval society. They worked the land owned by lords, grew the food, and paid taxes and rents. They had the least social power despite being the largest group.',
         str: 'The feudal pyramid: King at top, then nobles/lords, then knights, then serfs/peasants at the bottom (largest group). The people at the bottom always outnumber those above.',
         passage: null
       },
@@ -1258,8 +1226,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'Ended the feudal system in England immediately',
           'Created the first democratic government in world history'
         ],
-        cor: 1,
-        exp: 'The Magna Carta\'s key principle was that the king was not above the law. It limited royal power by requiring the king to follow established rules. It did NOT give voting rights to all citizens (only protected noble rights), did not end feudalism, and England was not a democracy.',
         str: 'The Magna Carta\'s big idea: NO ONE is above the law, not even the king. It limited the king\'s power. Be careful\u2014it protected NOBLE rights, not everyone\'s rights.',
         passage: null
       },
@@ -1277,8 +1243,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'To escape religious persecution in Europe',
           'To discover new animals for European zoos'
         ],
-        cor: 1,
-        exp: 'European exploration was primarily driven by economic motives: finding new trade routes to Asia (especially after the Ottoman Empire blocked overland routes) and acquiring valuable resources like gold, silver, and spices. Nations like Spain and Portugal competed for wealth and power.',
         str: 'Remember the 3 G\'s of exploration: God, Glory, and Gold. The PRIMARY motivation was economic\u2014wealth and trade routes. Religious spread was secondary.',
         passage: null
       },
@@ -1296,8 +1260,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'Native American crops like corn and potatoes were taken to Europe',
           'European explorers brought new languages that replaced native languages'
         ],
-        cor: 1,
-        exp: 'The most devastating effect of the Columbian Exchange on Native Americans was the spread of European diseases, particularly smallpox. Historians estimate that 50\u201390% of the indigenous population died from diseases to which they had no natural immunity. This was far more destructive than any other single factor.',
         str: 'The question asks for the MOST devastating consequence. While all options describe real exchanges, disease killed the greatest number of people\u2014more than wars or any other factor.',
         passage: null
       },
@@ -1315,8 +1277,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'Conquering European nations and collecting tribute',
           'Mining diamonds and exporting them to Asia'
         ],
-        cor: 1,
-        exp: 'Ghana\'s wealth came from controlling trans-Saharan trade routes, particularly the exchange of gold (abundant in West Africa) and salt (scarce in West Africa but abundant in the Sahara). Ghana\'s kings taxed traders passing through their territory, making the kingdom enormously wealthy.',
         str: 'Ghana\'s wealth formula: gold from the south + salt from the north + taxes on the trade route through Ghana = enormous wealth.',
         passage: null
       },
@@ -1334,8 +1294,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'Invented a new system of writing used throughout West Africa',
           'Led a military invasion that conquered the Ottoman Empire'
         ],
-        cor: 1,
-        exp: 'Mansa Musa\'s 1324 pilgrimage to Mecca is one of history\'s most famous journeys. He traveled with a caravan of 60,000 people and distributed so much gold in Cairo, Egypt that he crashed the local gold market, causing inflation that lasted over a decade. This demonstrated that Mali was one of the wealthiest empires in the world.',
         str: 'Mansa Musa is famous for his wealth and his pilgrimage. The key detail is that he gave away so much gold it hurt Egypt\'s economy\u2014that\'s how rich Mali was.',
         passage: null
       },
@@ -1353,8 +1311,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'The letter provides evidence of European attitudes toward indigenous peoples but reflects the sailor\'s cultural bias rather than objective truth about Native Americans',
           'The letter is a secondary source because it was written after the voyage ended'
         ],
-        cor: 2,
-        exp: 'Primary sources reveal the perspectives and biases of their authors. This letter tells us about European attitudes (viewing natives as potential servants) but is filtered through the sailor\'s cultural bias. It is not objective truth about Native Americans. It IS a primary source (written by a participant), and being old does not make it unreliable\u2014bias does.',
         str: 'When analyzing primary sources, ask: WHO wrote this? WHAT was their perspective? Does the source tell us more about the writer\'s attitudes or about objective reality?',
         passage: null
       },
@@ -1367,8 +1323,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         type: 'mc',
         text: 'On a map, the compass rose shows cardinal directions. If you are traveling from the Atlantic Ocean toward the center of the United States, you are generally traveling:',
         opts: ['North', 'South', 'East', 'West'],
-        cor: 3,
-        exp: 'The Atlantic Ocean is on the east coast of the United States. Traveling from the Atlantic toward the center of the country means traveling west (inland, away from the east coast).',
         str: 'Picture the United States: Atlantic Ocean on the right (east), Pacific Ocean on the left (west). Moving from the Atlantic inward = moving west.',
         passage: null
       },
@@ -1386,8 +1340,6 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           'The signing of the Magna Carta',
           'The fall of the Roman Empire'
         ],
-        cor: 1,
-        exp: 'The demand for cheap labor on plantations (growing sugar, tobacco, cotton) in the Americas was a primary driver of the transatlantic slave trade. European colonizers forcibly transported millions of Africans to the Americas to work on these plantations. The printing press (1440s), Magna Carta (1215), and fall of Rome (476 CE) all predate American colonization.',
         str: 'Look at the cause-and-effect chain: plantations needed labor \u2192 colonizers needed workers \u2192 transatlantic slave trade. Check the timeline\u2014the other options happened before American colonization.',
         passage: null
       }
@@ -1496,10 +1448,10 @@ The lesson of invasive species is fundamentally about unintended consequences. A
       // Feedback
       const feedback = document.getElementById('feedbackArea');
       if (answers[index] !== null) {
-        const isCorrect = answers[index] === q.cor;
+        const isCorrect = answers[index] === _ac[currentQuestion];
         feedback.innerHTML = `<div class="feedback ${isCorrect ? 'correct' : 'incorrect'}">
           <div class="feedback-label">${isCorrect ? '\u2713 Correct!' : '\u2717 Incorrect'}</div>
-          <div class="feedback-content">${isCorrect ? '' : '<strong>Your answer:</strong> ' + q.opts[answers[index]] + '<br><strong>Correct answer:</strong> ' + q.opts[q.cor] + '<br><br>'}<strong>Explanation:</strong> ${q.exp}</div>
+          <div class="feedback-content">${isCorrect ? '' : '<strong>Your answer:</strong> ' + q.opts[answers[index]] + '<br><strong>Correct answer:</strong> ' + q.opts[_ac[currentQuestion]] + '<br><br>'}<strong>Explanation:</strong> ${q.exp}</div>
           ${q.str ? `<div class="strategy"><strong>Strategy:</strong> ${q.str}</div>` : ''}
         </div>`;
         feedback.style.display = 'block';
@@ -1577,7 +1529,7 @@ The lesson of invasive species is fundamentally about unintended consequences. A
 
     function calculateResults() {
       const correct = answers.reduce((sum, ans, idx) => {
-        return sum + (ans === Q[idx].cor ? 1 : 0);
+        return sum + (ans === _ac[idx] ? 1 : 0);
       }, 0);
 
       const percentage = Math.round((correct / 50) * 100);
@@ -1603,7 +1555,7 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         const range = sec.range;
         let sectionCorrect = 0;
         for (let i = range[0]; i <= range[1]; i++) {
-          if (answers[i] === Q[i].cor) sectionCorrect++;
+          if (answers[i] === _ac[i]) sectionCorrect++;
         }
         const count = range[1] - range[0] + 1;
         const secPct = Math.round((sectionCorrect / count) * 100);
@@ -1620,7 +1572,7 @@ The lesson of invasive species is fundamentally about unintended consequences. A
       Q.forEach((q, idx) => {
         if (!skillMap[q.std]) skillMap[q.std] = { correct: 0, total: 0, skill: q.skill };
         skillMap[q.std].total++;
-        if (answers[idx] === q.cor) skillMap[q.std].correct++;
+        if (answers[idx] === _ac[currentQuestion]) skillMap[q.std].correct++;
       });
 
       let skillsHTML = '';
@@ -1649,7 +1601,7 @@ The lesson of invasive species is fundamentally about unintended consequences. A
       let reviewHTML = '';
       let wrongCount = 0;
       Q.forEach((q, idx) => {
-        if (answers[idx] !== null && answers[idx] !== q.cor) {
+        if (answers[idx] !== null && answers[idx] !== _ac[currentQuestion]) {
           wrongCount++;
           if (wrongCount <= 10) {
             reviewHTML += `<div class="review-item">
@@ -1660,7 +1612,7 @@ The lesson of invasive species is fundamentally about unintended consequences. A
               </div>
               <div class="review-answer">
                 <div class="answer-label">Correct:</div>
-                <div class="answer-correct">${q.opts[q.cor]}</div>
+                <div class="answer-correct">${q.opts[_ac[currentQuestion]]}</div>
               </div>
               <div class="review-explanation">${q.exp}</div>
               ${q.str ? `<div class="review-strategy"><strong>Next time:</strong> ${q.str}</div>` : ''}
@@ -1692,7 +1644,7 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         testId: CONFIG.testId,
         student: CONFIG.student,
         answers: answers,
-        questions: Q.map(q => ({ sec: q.sec, std: q.std, skill: q.skill, diff: q.diff, text: q.text, opts: q.opts, cor: q.cor, exp: q.exp, str: q.str, passage: q.passage })),
+        questions: Q.map(q => ({ sec: q.sec, std: q.std, skill: q.skill, diff: q.diff, text: q.text, opts: q.opts, exp: q.exp, str: q.str, passage: q.passage })),
         passages: PASSAGES,
         sections: SECTIONS,
         score: percentage,
@@ -1732,9 +1684,9 @@ The lesson of invasive species is fundamentally about unintended consequences. A
           question: q.text.substring(0, 200),
           selectedOption: answers[idx],
           selectedText: answers[idx] !== null ? q.opts[answers[idx]] : null,
-          correctOption: q.cor,
-          correctText: q.opts[q.cor],
-          isCorrect: answers[idx] === q.cor
+          correctOption: _ac[currentQuestion],
+          correctText: q.opts[_ac[currentQuestion]],
+          isCorrect: answers[idx] === _ac[currentQuestion]
         };
       });
 
@@ -1744,7 +1696,7 @@ The lesson of invasive species is fundamentally about unintended consequences. A
         var secCorrect = 0;
         var secTotal = sec.range[1] - sec.range[0] + 1;
         for (var i = sec.range[0]; i <= sec.range[1]; i++) {
-          if (answers[i] === Q[i].cor) secCorrect++;
+          if (answers[i] === _ac[i]) secCorrect++;
         }
         sectionSummary[sec.id] = { correct: secCorrect, total: secTotal, pct: Math.round((secCorrect / secTotal) * 100) };
       });

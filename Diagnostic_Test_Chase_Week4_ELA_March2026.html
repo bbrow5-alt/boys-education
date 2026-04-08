@@ -148,6 +148,58 @@ body{display:flex;flex-direction:column;overflow:hidden}
 </div>
 
 <script>
+
+    // ============================================================
+    // ANTI-CHEAT — DO NOT REMOVE
+    // ============================================================
+    (function() {
+        // Block right-click context menu
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+        // Block keyboard shortcuts to open DevTools / view source
+        document.addEventListener('keydown', function(e) {
+            const blocked = (
+                e.keyCode === 123 ||                                      // F12
+                (e.ctrlKey && e.shiftKey && e.keyCode === 73) ||          // Ctrl+Shift+I
+                (e.ctrlKey && e.shiftKey && e.keyCode === 74) ||          // Ctrl+Shift+J
+                (e.ctrlKey && e.shiftKey && e.keyCode === 67) ||          // Ctrl+Shift+C
+                (e.ctrlKey && e.keyCode === 85) ||                        // Ctrl+U (view source)
+                (e.metaKey && e.altKey && e.keyCode === 73)               // Cmd+Opt+I (Mac)
+            );
+            if (blocked) { e.preventDefault(); e.stopPropagation(); return false; }
+        }, true);
+
+        // DevTools size detection — if open, overlay the page
+        var _devOpen = false;
+        setInterval(function() {
+            var widthDiff  = window.outerWidth  - window.innerWidth  > 160;
+            var heightDiff = window.outerHeight - window.innerHeight > 160;
+            if ((widthDiff || heightDiff) && !_devOpen) {
+                _devOpen = true;
+                var overlay = document.createElement('div');
+                overlay.id  = '_ac_overlay';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;' +
+                    'background:#0a0f1a;z-index:999999;display:flex;align-items:center;' +
+                    'justify-content:center;flex-direction:column;';
+                overlay.innerHTML = '<div style="font-size:48px;">⚠️</div>' +
+                    '<div style="color:#ff4444;font-size:22px;font-weight:700;margin:16px 0;">Browser tools detected.</div>' +
+                    '<div style="color:#aaa;font-size:15px;">Close DevTools and refresh the page to continue.</div>';
+                document.body.appendChild(overlay);
+            } else if (!widthDiff && !heightDiff && _devOpen) {
+                _devOpen = false;
+                var el = document.getElementById('_ac_overlay');
+                if (el) el.remove();
+            }
+        }, 800);
+    })();
+    // ============================================================
+
+    // Correct answers — XOR-encoded (key=17). Do not modify.
+    var _ac = (function(){
+        var k=17, e=[19,16,16,16,19,16,16,16,16,16,19,16,19,16,16,16,16,19,16,19,19,16,16,16,16,16,16,16,16,19,16,16,16,19,19,18,18,16,19,16,16,17,16,16,16,16,16,16,16,19];
+        return e.map(function(v){return v^k;});
+    })();
+
 const CONFIG={student:"Chase",grade:5,testId:"chase_diagnostic_week4_ela_mar2026",testLabel:"Week 4 ELA Diagnostic",webAppUrl:"https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec"};
 
 const PASSAGES={
@@ -188,111 +240,111 @@ const SECTIONS=[
 const Q=[
 // ========== READING COMPREHENSION (Q1-Q20) ==========
 // Passage 1: Luna and Lost Library (5 MC)
-{p:'passage1',sec:'read',std:'RL.5.1',skill:'Details',diff:'baseline',type:'mc',text:'What does Luna go to the attic to find?',opts:['Her grandmother','Books','Her grandmother\'s reading glasses','The dark'],cor:2,exp:'The passage says Luna went to the attic "to find her grandmother\'s reading glasses, which she\'d misplaced."',str:'Look for directly stated information in the passage.'},
+{p:'passage1',sec:'read',std:'RL.5.1',skill:'Details',diff:'baseline',type:'mc',text:'What does Luna go to the attic to find?',opts:['Her grandmother','Books','Her grandmother\'s reading glasses','The dark'],str:'Look for directly stated information in the passage.'},
 
-{p:'passage1',sec:'read',std:'RL.5.2',skill:'Main Idea',diff:'baseline',type:'mc',text:'What is the main idea of this story?',opts:['Attics are dark and scary.','Luna discovers something beautiful and loses her fear of the dark.','Grandmothers lose their glasses often.','Luna likes to read books.'],cor:1,exp:'The passage shows Luna overcoming her fear by discovering the magical library. Her fear disappears when she finds something worth exploring.',str:'The main idea is what the story teaches us, not just what happens.'},
+{p:'passage1',sec:'read',std:'RL.5.2',skill:'Main Idea',diff:'baseline',type:'mc',text:'What is the main idea of this story?',opts:['Attics are dark and scary.','Luna discovers something beautiful and loses her fear of the dark.','Grandmothers lose their glasses often.','Luna likes to read books.'],str:'The main idea is what the story teaches us, not just what happens.'},
 
-{p:'passage1',sec:'read',std:'RL.5.3',skill:'Character Analysis',diff:'grade-level',type:'mc',text:'How does Luna feel about the dark at the beginning of the story?',opts:['She enjoys it.','She is afraid of it.','She thinks it\'s peaceful.','She doesn\'t think about it.'],cor:1,exp:'"Luna had always been afraid of the dark" and "she would leave every light in her room on." This shows her fear clearly.',str:'Look at what the character does and says to understand their feelings.'},
+{p:'passage1',sec:'read',std:'RL.5.3',skill:'Character Analysis',diff:'grade-level',type:'mc',text:'How does Luna feel about the dark at the beginning of the story?',opts:['She enjoys it.','She is afraid of it.','She thinks it\'s peaceful.','She doesn\'t think about it.'],str:'Look at what the character does and says to understand their feelings.'},
 
-{p:'passage1',sec:'read',std:'RL.5.4',skill:'Word Choice',diff:'grade-level',type:'mc',text:'When the author says Luna "forgot her fear," what does this mean?',opts:['She no longer remembered being scared.','She became so interested in the books that her fear disappeared.','She decided to move to the attic.','She fell asleep.'],cor:1,exp:'Luna was so amazed by the library that her fear didn\'t matter anymore. The moment made her forget to be scared.',str:'"Forgot" can mean to stop thinking or caring about something because you\'re focused on something else.'},
+{p:'passage1',sec:'read',std:'RL.5.4',skill:'Word Choice',diff:'grade-level',type:'mc',text:'When the author says Luna "forgot her fear," what does this mean?',opts:['She no longer remembered being scared.','She became so interested in the books that her fear disappeared.','She decided to move to the attic.','She fell asleep.'],str:'"Forgot" can mean to stop thinking or caring about something because you\'re focused on something else.'},
 
-{p:'passage1',sec:'read',std:'RL.5.5',skill:'Inference',diff:'challenging',type:'mc',text:'What does Luna learn by the end of the story?',opts:['Darkness is completely safe.','The library was her grandmother\'s favorite place.','Darkness can hide beautiful things, not just scary ones.','She should be brave in all situations.'],cor:2,exp:'"The darkness wasn\'t her enemy. It was where the most beautiful discoveries waited." Luna learns that darkness holds wonderful things.',str:'Inferences go beyond what\'s stated—they\'re conclusions based on details.'},
+{p:'passage1',sec:'read',std:'RL.5.5',skill:'Inference',diff:'challenging',type:'mc',text:'What does Luna learn by the end of the story?',opts:['Darkness is completely safe.','The library was her grandmother\'s favorite place.','Darkness can hide beautiful things, not just scary ones.','She should be brave in all situations.'],str:'Inferences go beyond what\'s stated—they\'re conclusions based on details.'},
 
 // Passage 2: Ant Colonies (5 MC)
-{p:'passage2',sec:'read',std:'RI.5.1',skill:'Key Details',diff:'baseline',type:'mc',text:'What do pheromones help ants do?',opts:['Build chambers','Communicate with each other','Find the queen','Stay warm'],cor:1,exp:'"They communicate through chemical signals called pheromones. When one ant finds a path to food, it leaves a pheromone trail that other ants follow."',str:'Pheromones are chemicals that carry messages between ants.'},
+{p:'passage2',sec:'read',std:'RI.5.1',skill:'Key Details',diff:'baseline',type:'mc',text:'What do pheromones help ants do?',opts:['Build chambers','Communicate with each other','Find the queen','Stay warm'],str:'Pheromones are chemicals that carry messages between ants.'},
 
-{p:'passage2',sec:'read',std:'RI.5.2',skill:'Main Idea',diff:'baseline',type:'mc',text:'What is the passage mainly about?',opts:['How ants find food.','How ants build homes using teamwork and pheromones.','Why ants are better builders than humans.','Different types of food ants eat.'],cor:1,exp:'The passage explains how ants construct colonies and how they communicate to do it without a leader.',str:'The main idea summarizes the passage in one sentence.'},
+{p:'passage2',sec:'read',std:'RI.5.2',skill:'Main Idea',diff:'baseline',type:'mc',text:'What is the passage mainly about?',opts:['How ants find food.','How ants build homes using teamwork and pheromones.','Why ants are better builders than humans.','Different types of food ants eat.'],str:'The main idea summarizes the passage in one sentence.'},
 
-{p:'passage2',sec:'read',std:'RI.5.3',skill:'Compare/Contrast',diff:'grade-level',type:'mc',text:'How are army ants different from other ant species described in the passage?',opts:['They build the largest mounds.','They don\'t build permanent homes—they create temporary shelter.','They use more pheromones.','They don\'t have a queen.'],cor:1,exp:'"The most sophisticated ants, like army ants, don\'t build permanent homes at all—they create temporary bivouacs from their own bodies."',str:'Comparing means finding differences between things.'},
+{p:'passage2',sec:'read',std:'RI.5.3',skill:'Compare/Contrast',diff:'grade-level',type:'mc',text:'How are army ants different from other ant species described in the passage?',opts:['They build the largest mounds.','They don\'t build permanent homes—they create temporary shelter.','They use more pheromones.','They don\'t have a queen.'],str:'Comparing means finding differences between things.'},
 
-{p:'passage2',sec:'read',std:'RI.5.4',skill:'Vocabulary',diff:'grade-level',type:'mc',text:'What does "remarkable" mean in "What\'s truly remarkable is that ants..."?',opts:['Sad','Surprising and impressive','Common','Difficult to see'],cor:1,exp:'"Remarkable" describes the amazing fact that ants work together without a leader. It means worthy of attention.',str:'Look at context clues—what makes it worthy of mention?'},
+{p:'passage2',sec:'read',std:'RI.5.4',skill:'Vocabulary',diff:'grade-level',type:'mc',text:'What does "remarkable" mean in "What\'s truly remarkable is that ants..."?',opts:['Sad','Surprising and impressive','Common','Difficult to see'],str:'Look at context clues—what makes it worthy of mention?'},
 
-{p:'passage2',sec:'read',std:'RI.5.5',skill:'Author\'s Purpose',diff:'challenging',type:'mc',text:'Why does the author describe how army ants create shelter using their own bodies?',opts:['To show that some ant species have failed.','To give an example of a different, creative solution to the shelter problem.','To prove that humans cannot build shelters.','To show that army ants are weak.'],cor:1,exp:'This example shows different ants solve the same problem in different ways, supporting the idea of ant adaptability.',str:'Authors include examples to support their main points.'},
+{p:'passage2',sec:'read',std:'RI.5.5',skill:'Author\'s Purpose',diff:'challenging',type:'mc',text:'Why does the author describe how army ants create shelter using their own bodies?',opts:['To show that some ant species have failed.','To give an example of a different, creative solution to the shelter problem.','To prove that humans cannot build shelters.','To show that army ants are weak.'],str:'Authors include examples to support their main points.'},
 
 // Passage 3: Monarch Migration (5 MC)
-{p:'passage3',sec:'read',std:'RI.5.1',skill:'Facts & Details',diff:'baseline',type:'mc',text:'How far do monarch butterflies migrate?',opts:['500 miles','1,000 miles','Nearly 2,000 miles','5,000 miles'],cor:2,exp:'"Millions of monarch butterflies begin a journey that spans nearly 2,000 miles from Canada to Mexico."',str:'Look for numbers and measurements in informational text.'},
+{p:'passage3',sec:'read',std:'RI.5.1',skill:'Facts & Details',diff:'baseline',type:'mc',text:'How far do monarch butterflies migrate?',opts:['500 miles','1,000 miles','Nearly 2,000 miles','5,000 miles'],str:'Look for numbers and measurements in informational text.'},
 
-{p:'passage3',sec:'read',std:'RI.5.2',skill:'Central Idea',diff:'grade-level',type:'mc',text:'What is the central idea of this passage?',opts:['Monarch butterflies are beautiful.','The monarch migration is remarkable and still mysterious.','Mexico has the best climate for butterflies.','Butterflies live longer than other insects.'],cor:1,exp:'The passage explains how amazing this journey is and lists mysteries scientists are still uncovering.',str:'Central idea = the most important point about the whole passage.'},
+{p:'passage3',sec:'read',std:'RI.5.2',skill:'Central Idea',diff:'grade-level',type:'mc',text:'What is the central idea of this passage?',opts:['Monarch butterflies are beautiful.','The monarch migration is remarkable and still mysterious.','Mexico has the best climate for butterflies.','Butterflies live longer than other insects.'],str:'Central idea = the most important point about the whole passage.'},
 
-{p:'passage3',sec:'read',std:'RI.5.3',skill:'Cause & Effect',diff:'grade-level',type:'mc',text:'Why can\'t individual monarch butterflies complete the entire round-trip migration?',opts:['They are too small.','They don\'t have wings strong enough.','They don\'t live long enough—the round trip takes longer than one butterfly\'s lifespan.','They get lost.'],cor:2,exp:'"No individual butterfly completes the entire round trip... The butterflies that fly south live for six months or more—much longer than the generation born in spring."',str:'Cause and effect = why something happens.'},
+{p:'passage3',sec:'read',std:'RI.5.3',skill:'Cause & Effect',diff:'grade-level',type:'mc',text:'Why can\'t individual monarch butterflies complete the entire round-trip migration?',opts:['They are too small.','They don\'t have wings strong enough.','They don\'t live long enough—the round trip takes longer than one butterfly\'s lifespan.','They get lost.'],str:'Cause and effect = why something happens.'},
 
-{p:'passage3',sec:'read',std:'RI.5.4',skill:'Vocabulary',diff:'challenging',type:'mc',text:'What does "navigate" mean as used in the passage?',opts:['Fly in circles','Find direction and stay on course','Hide from predators','Look for food'],cor:1,exp:'"They navigate by the sun and Earth\'s magnetic field." Navigate means to find your way and stay on the right path.',str:'Navigation is about finding direction.'},
+{p:'passage3',sec:'read',std:'RI.5.4',skill:'Vocabulary',diff:'challenging',type:'mc',text:'What does "navigate" mean as used in the passage?',opts:['Fly in circles','Find direction and stay on course','Hide from predators','Look for food'],str:'Navigation is about finding direction.'},
 
-{p:'passage3',sec:'read',std:'RI.5.5',skill:'Inference',diff:'challenging',type:'mc',text:'What can you infer about monarch butterflies\' abilities?',opts:['They are smarter than other insects.','They somehow have built-in navigation systems that guide them without experience.','They remember routes from previous years.','They just fly randomly.'],cor:1,exp:'"They\'ve never made this journey before, yet they somehow know exactly where to go" and "Scientists believe the butterflies might inherit a kind of genetic map." They have instinctive knowledge.',str:'Inference = using facts to make a logical conclusion.'},
+{p:'passage3',sec:'read',std:'RI.5.5',skill:'Inference',diff:'challenging',type:'mc',text:'What can you infer about monarch butterflies\' abilities?',opts:['They are smarter than other insects.','They somehow have built-in navigation systems that guide them without experience.','They remember routes from previous years.','They just fly randomly.'],str:'Inference = using facts to make a logical conclusion.'},
 
 // Passages 4A & 4B: Healthy Diet (5 MC)
-{p:'passage4a',sec:'read',std:'RI.5.1',skill:'Details',diff:'baseline',type:'mc',text:'According to the passage, what do grains provide?',opts:['Vitamins','Energy','Muscle building','Strong bones'],cor:1,exp:'"Grains give you energy throughout the day."',str:'Find the specific sentence that answers the question.'},
+{p:'passage4a',sec:'read',std:'RI.5.1',skill:'Details',diff:'baseline',type:'mc',text:'According to the passage, what do grains provide?',opts:['Vitamins','Energy','Muscle building','Strong bones'],str:'Find the specific sentence that answers the question.'},
 
-{p:'passage4a',sec:'read',std:'RI.5.2',skill:'Main Idea',diff:'baseline',type:'mc',text:'What is the main purpose of Passage A?',opts:['To explain why junk food is bad.','To describe the five food groups and what each provides.','To show recipes for healthy meals.','To convince people to never eat sugar.'],cor:1,exp:'Passage A identifies the five food groups and the nutrients each provides for a healthy body.',str:'Purpose answers: Why did the author write this?'},
+{p:'passage4a',sec:'read',std:'RI.5.2',skill:'Main Idea',diff:'baseline',type:'mc',text:'What is the main purpose of Passage A?',opts:['To explain why junk food is bad.','To describe the five food groups and what each provides.','To show recipes for healthy meals.','To convince people to never eat sugar.'],str:'Purpose answers: Why did the author write this?'},
 
-{p:'passage4b',sec:'read',std:'RI.5.3',skill:'Compare/Contrast',diff:'grade-level',type:'mc',text:'Which idea appears in both passages?',opts:['Healthy food is always boring.','Fried foods are dangerous.','Eating well helps you stay healthy.','Vegetables taste better when roasted.'],cor:2,exp:'Passage A says a balanced diet keeps you healthy. Passage B says healthy eating "sets you up for a lifetime of good health." Both focus on health benefits.',str:'Look for ideas that appear in multiple passages.'},
+{p:'passage4b',sec:'read',std:'RI.5.3',skill:'Compare/Contrast',diff:'grade-level',type:'mc',text:'Which idea appears in both passages?',opts:['Healthy food is always boring.','Fried foods are dangerous.','Eating well helps you stay healthy.','Vegetables taste better when roasted.'],str:'Look for ideas that appear in multiple passages.'},
 
-{p:'passage4b',sec:'read',std:'RI.5.4',skill:'Word Meaning',diff:'challenging',type:'mc',text:'When the passage says "starting healthy eating habits now," what does this suggest?',opts:['You should eat different foods every week.','The healthy habits you develop now will continue into adulthood.','You need to eat lots of vegetables.','Healthy eating is only for adults.'],cor:1,exp:'"Starting healthy eating habits now, while you\'re young, sets you up for a lifetime of good health." Starting now means these habits will continue.',str:'Consider the context and what comes after.'},
+{p:'passage4b',sec:'read',std:'RI.5.4',skill:'Word Meaning',diff:'challenging',type:'mc',text:'When the passage says "starting healthy eating habits now," what does this suggest?',opts:['You should eat different foods every week.','The healthy habits you develop now will continue into adulthood.','You need to eat lots of vegetables.','Healthy eating is only for adults.'],str:'Consider the context and what comes after.'},
 
-{p:'passage4b',sec:'read',std:'RI.5.5',skill:'Inference',diff:'challenging',type:'mc',text:'What does the author believe is the best way to enjoy healthy eating?',opts:['Eat the same foods every day.','Have someone else prepare all your meals.','Experiment with different foods and cooking methods.','Only eat raw vegetables.'],cor:2,exp:'"Try new foods and finding combinations you enjoy" and "cooking meals with family, you learn valuable skills." The author promotes exploration and involvement.',str:'Inference = what can you reasonably conclude from the evidence?'},
+{p:'passage4b',sec:'read',std:'RI.5.5',skill:'Inference',diff:'challenging',type:'mc',text:'What does the author believe is the best way to enjoy healthy eating?',opts:['Eat the same foods every day.','Have someone else prepare all your meals.','Experiment with different foods and cooking methods.','Only eat raw vegetables.'],str:'Inference = what can you reasonably conclude from the evidence?'},
 
 // ========== VOCABULARY IN CONTEXT (Q21-Q30) ==========
-{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'baseline',type:'mc',text:'Read: "The old attic was dusty and musty, filled with decades of forgotten memories." What does "musty" mean?',opts:['Organized','Bright and cheerful','Having a stale, moldy smell','Very cold'],cor:2,exp:'"Dusty and musty" go together. Musty describes a stale smell that happens when a place has been closed off for a long time.',str:'Words near an unknown word can give you clues to its meaning.'},
+{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'baseline',type:'mc',text:'Read: "The old attic was dusty and musty, filled with decades of forgotten memories." What does "musty" mean?',opts:['Organized','Bright and cheerful','Having a stale, moldy smell','Very cold'],str:'Words near an unknown word can give you clues to its meaning.'},
 
-{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'baseline',type:'mc',text:'Read: "The ant colony is like a bustling city with thousands of workers busy at their tasks." What does "bustling" mean?',opts:['Quiet','Busy and active','Dangerous','Underground'],cor:1,exp:'"Bustling" describes a place full of activity. "Busy at their tasks" confirms the meaning.',str:'Look for descriptive words near the vocabulary word.'},
+{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'baseline',type:'mc',text:'Read: "The ant colony is like a bustling city with thousands of workers busy at their tasks." What does "bustling" mean?',opts:['Quiet','Busy and active','Dangerous','Underground'],str:'Look for descriptive words near the vocabulary word.'},
 
-{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'grade-level',type:'mc',text:'Read: "The monarch butterfly\'s migration is an astonishing journey that has puzzled scientists for years." What does "astonishing" mean?',opts:['Dangerous','Surprising and wonderful','Difficult','Very long'],cor:1,exp:'"Astonishing" describes something that amazes and surprises people. Scientists are puzzled, showing it\'s remarkable.',str:'If something causes wonder or questions, it\'s likely astonishing.'},
+{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'grade-level',type:'mc',text:'Read: "The monarch butterfly\'s migration is an astonishing journey that has puzzled scientists for years." What does "astonishing" mean?',opts:['Dangerous','Surprising and wonderful','Difficult','Very long'],str:'If something causes wonder or questions, it\'s likely astonishing.'},
 
-{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'grade-level',type:'mc',text:'Read: "The recipe calls for diverse ingredients, including both familiar and exotic spices." What does "diverse" mean?',opts:['Expensive','Varied and different','Familiar','All the same'],cor:1,exp:'"Diverse ingredients" includes "both familiar and exotic spices"—showing variety and difference.',str:'When words include "both" and lists, they usually show variety.'},
+{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'grade-level',type:'mc',text:'Read: "The recipe calls for diverse ingredients, including both familiar and exotic spices." What does "diverse" mean?',opts:['Expensive','Varied and different','Familiar','All the same'],str:'When words include "both" and lists, they usually show variety.'},
 
-{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'challenging',type:'mc',text:'Read: "The queen ant was the nucleus of the colony; all activities revolved around her." What does "nucleus" mean?',opts:['A large group','A central point around which things revolve','A type of ant','A small egg'],cor:1,exp:'"Nucleus" here means the central, most important part. "All activities revolved around her" shows she\'s at the center.',str:'The structure of the sentence shows that the nucleus is the center.'},
+{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'challenging',type:'mc',text:'Read: "The queen ant was the nucleus of the colony; all activities revolved around her." What does "nucleus" mean?',opts:['A large group','A central point around which things revolve','A type of ant','A small egg'],str:'The structure of the sentence shows that the nucleus is the center.'},
 
-{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'challenging',type:'mc',text:'Read: "The explorer navigated through the labyrinth of tunnels, trying to find the exit." What does "labyrinth" mean?',opts:['A dark place','A confusing system of passages','A rope','A mountain'],cor:1,exp:'"Labyrinth of tunnels" where someone is "trying to find the exit" shows it\'s a complex, maze-like place.',str:'If someone struggles to find their way, they\'re in a complex system.'},
+{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'challenging',type:'mc',text:'Read: "The explorer navigated through the labyrinth of tunnels, trying to find the exit." What does "labyrinth" mean?',opts:['A dark place','A confusing system of passages','A rope','A mountain'],str:'If someone struggles to find their way, they\'re in a complex system.'},
 
-{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'challenging',type:'mc',text:'Read: "The butterflies navigate by the sun and Earth\'s magnetic field, displaying an innate ability to find their destination." What does "innate" mean?',opts:['Learned through practice','Born with it, natural to the organism','Developed over time','Taught by other butterflies'],cor:1,exp:'"Innate ability" they have without learning—a natural skill they\'re born with, not taught.',str:'"Innate" is inborn and natural—the opposite of learned.'},
+{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'challenging',type:'mc',text:'Read: "The butterflies navigate by the sun and Earth\'s magnetic field, displaying an innate ability to find their destination." What does "innate" mean?',opts:['Learned through practice','Born with it, natural to the organism','Developed over time','Taught by other butterflies'],str:'"Innate" is inborn and natural—the opposite of learned.'},
 
-{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'ceiling',type:'mc',text:'Read: "The old library had a quaint charm, with its small rooms and narrow shelves." What does "quaint" mean?',opts:['Broken down','Old-fashioned in a charming way','Very expensive','Ugly and sad'],cor:1,exp:'"Quaint charm" with "small rooms and narrow shelves" paints a picture of something charming and old-fashioned.',str:'Quaint usually describes something pleasantly old or simple.'},
+{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'ceiling',type:'mc',text:'Read: "The old library had a quaint charm, with its small rooms and narrow shelves." What does "quaint" mean?',opts:['Broken down','Old-fashioned in a charming way','Very expensive','Ugly and sad'],str:'Quaint usually describes something pleasantly old or simple.'},
 
-{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'ceiling',type:'mc',text:'Read: "The monarch\'s migration is a phenomenon that scientists study with great interest." What does "phenomenon" mean?',opts:['A problem','A remarkable event or fact worthy of study','A type of butterfly','A seasonal change'],cor:1,exp:'"Phenomenon" that scientists study with interest shows it\'s a remarkable, worthy-of-study fact or event.',str:'Phenomena are remarkable events that attract attention.'},
+{p:null,sec:'vocab',std:'L.5.4',skill:'Context Clues',diff:'ceiling',type:'mc',text:'Read: "The monarch\'s migration is a phenomenon that scientists study with great interest." What does "phenomenon" mean?',opts:['A problem','A remarkable event or fact worthy of study','A type of butterfly','A seasonal change'],str:'Phenomena are remarkable events that attract attention.'},
 
 // ========== GRAMMAR & LANGUAGE (Q31-Q40) ==========
-{p:null,sec:'gram',std:'L.5.1',skill:'Pronoun Agreement',diff:'baseline',type:'mc',text:'Which sentence uses pronouns correctly?',opts:['The butterfly lost their way.','The butterflies lost its way.','The butterflies lost their way.','The butterfly lost my way.'],cor:2,exp:'Plural noun "butterflies" needs plural pronoun "their." Singular "butterfly" needs singular "its."',str:'Match pronouns to their antecedents: singular with singular, plural with plural.'},
+{p:null,sec:'gram',std:'L.5.1',skill:'Pronoun Agreement',diff:'baseline',type:'mc',text:'Which sentence uses pronouns correctly?',opts:['The butterfly lost their way.','The butterflies lost its way.','The butterflies lost their way.','The butterfly lost my way.'],str:'Match pronouns to their antecedents: singular with singular, plural with plural.'},
 
-{p:null,sec:'gram',std:'L.5.1',skill:'Verb Tense',diff:'baseline',type:'mc',text:'Which sentence has the correct verb tense?',opts:['Luna goes to the attic and found the library.','Luna goes to the attic and finds the library.','Luna went to the attic and finds the library.','Luna goes to the attic and will find the library.'],cor:1,exp:'All verbs in one sentence should use the same tense. "Goes" and "finds" are both present tense.',str:'Keep the same verb tense throughout a sentence.'},
+{p:null,sec:'gram',std:'L.5.1',skill:'Verb Tense',diff:'baseline',type:'mc',text:'Which sentence has the correct verb tense?',opts:['Luna goes to the attic and found the library.','Luna goes to the attic and finds the library.','Luna went to the attic and finds the library.','Luna goes to the attic and will find the library.'],str:'Keep the same verb tense throughout a sentence.'},
 
-{p:null,sec:'gram',std:'L.5.2',skill:'Sentence Structure',diff:'grade-level',type:'mc',text:'Which is a complete sentence?',opts:['Running through the attic.','Luna discovered the library.','The old shelves and dusty books.','Because she was curious.'],cor:1,exp:'"Luna discovered the library" has a subject (Luna) and predicate (discovered the library).',str:'A complete sentence needs a subject and a verb.'},
+{p:null,sec:'gram',std:'L.5.2',skill:'Sentence Structure',diff:'grade-level',type:'mc',text:'Which is a complete sentence?',opts:['Running through the attic.','Luna discovered the library.','The old shelves and dusty books.','Because she was curious.'],str:'A complete sentence needs a subject and a verb.'},
 
-{p:null,sec:'gram',std:'L.5.2',skill:'Run-on Sentences',diff:'grade-level',type:'mc',text:'Which revision fixes the run-on sentence? "Ants build colonies they work together they communicate with pheromones."',opts:['Ants build colonies, they work together, they communicate with pheromones.','Ants build colonies, work together, and communicate with pheromones.','Ants build colonies they work together and they communicate with pheromones.','Ants build colonies, and they work together they communicate.'],cor:1,exp:'Option B combines three related ideas using a parallel structure with a comma and "and"—cleaner and more grammatical.',str:'Fix run-on sentences by joining ideas with conjunctions or creating separate sentences.'},
+{p:null,sec:'gram',std:'L.5.2',skill:'Run-on Sentences',diff:'grade-level',type:'mc',text:'Which revision fixes the run-on sentence? "Ants build colonies they work together they communicate with pheromones."',opts:['Ants build colonies, they work together, they communicate with pheromones.','Ants build colonies, work together, and communicate with pheromones.','Ants build colonies they work together and they communicate with pheromones.','Ants build colonies, and they work together they communicate.'],str:'Fix run-on sentences by joining ideas with conjunctions or creating separate sentences.'},
 
-{p:null,sec:'gram',std:'L.5.3',skill:'Capitalization',diff:'grade-level',type:'mc',text:'Which sentence is capitalized correctly?',opts:['The monarch butterflies Migrate to Mexico.','The Monarch Butterflies migrate to mexico.','The monarch butterflies migrate to Mexico.','the monarch butterflies migrate to Mexico.'],cor:2,exp:'Only the first word and proper nouns (Mexico) should be capitalized. "Monarch" and "butterfly" are not proper nouns here.',str:'Capitalize the first word of a sentence and proper nouns only.'},
+{p:null,sec:'gram',std:'L.5.3',skill:'Capitalization',diff:'grade-level',type:'mc',text:'Which sentence is capitalized correctly?',opts:['The monarch butterflies Migrate to Mexico.','The Monarch Butterflies migrate to mexico.','The monarch butterflies migrate to Mexico.','the monarch butterflies migrate to Mexico.'],str:'Capitalize the first word of a sentence and proper nouns only.'},
 
-{p:null,sec:'gram',std:'L.5.3',skill:'Punctuation',diff:'challenging',type:'mc',text:'Which sentence is punctuated correctly?',opts:['Healthy foods include: fruits vegetables and grains.','Healthy foods include fruits vegetables, and grains.','Healthy foods include fruits, vegetables, and grains.','Healthy foods include fruits, vegetables and grains'],cor:2,exp:'Use commas in lists. The comma before "and" is optional but preferred (Oxford comma).',str:'Use commas to separate items in a list.'},
+{p:null,sec:'gram',std:'L.5.3',skill:'Punctuation',diff:'challenging',type:'mc',text:'Which sentence is punctuated correctly?',opts:['Healthy foods include: fruits vegetables and grains.','Healthy foods include fruits vegetables, and grains.','Healthy foods include fruits, vegetables, and grains.','Healthy foods include fruits, vegetables and grains'],str:'Use commas to separate items in a list.'},
 
-{p:null,sec:'gram',std:'L.5.3',skill:'Apostrophes',diff:'challenging',type:'mc',text:'Which sentence uses apostrophes correctly?',opts:['The antz colony is impressive.','The ants colony is impressive.','The ant\'s colony is impressive.','The ants\' colony is impressive.'],cor:3,exp:'"Ants\'" (plural possessive) shows the colony belongs to multiple ants.',str:'Use \' to show possession. For plural nouns, add the apostrophe after the s.'},
+{p:null,sec:'gram',std:'L.5.3',skill:'Apostrophes',diff:'challenging',type:'mc',text:'Which sentence uses apostrophes correctly?',opts:['The antz colony is impressive.','The ants colony is impressive.','The ant\'s colony is impressive.','The ants\' colony is impressive.'],str:'Use \' to show possession. For plural nouns, add the apostrophe after the s.'},
 
-{p:null,sec:'gram',std:'L.5.3',skill:'Word Choice',diff:'challenging',type:'mc',text:'Which word best completes the sentence? "The library was _____ of mysteries and adventures."',opts:['full','filled','brimming','all of the above'],cor:3,exp:'All three words work, but "brimming" (overflowing) is most vivid and engaging.',str:'Choose words that create the strongest image or meaning.'},
+{p:null,sec:'gram',std:'L.5.3',skill:'Word Choice',diff:'challenging',type:'mc',text:'Which word best completes the sentence? "The library was _____ of mysteries and adventures."',opts:['full','filled','brimming','all of the above'],str:'Choose words that create the strongest image or meaning.'},
 
-{p:null,sec:'gram',std:'L.5.3',skill:'Adjectives',diff:'ceiling',type:'mc',text:'Which sentence uses adjectives most effectively?',opts:['The red flower was pretty and nice.','The crimson rose swayed gracefully.','The flower was a kind of red.','The flower was there.'],cor:1,exp:'"Crimson" (more specific than "red") and "gracefully" (more vivid than "pretty") create a stronger image.',str:'Specific, vivid adjectives paint better pictures than vague ones.'},
+{p:null,sec:'gram',std:'L.5.3',skill:'Adjectives',diff:'ceiling',type:'mc',text:'Which sentence uses adjectives most effectively?',opts:['The red flower was pretty and nice.','The crimson rose swayed gracefully.','The flower was a kind of red.','The flower was there.'],str:'Specific, vivid adjectives paint better pictures than vague ones.'},
 
 // ========== WRITING & TEXT STRUCTURE (Q41-Q50) ==========
-{p:null,sec:'write',std:'W.5.1',skill:'Opinion Writing',diff:'baseline',type:'mc',text:'Which is an opinion statement?',opts:['Cats are animals.','Ants live in colonies.','Pizza is the most delicious food.','The sun rises in the east.'],cor:2,exp:'"Most delicious" expresses a judgment. The others are facts that can be proven.',str:'Opinions are beliefs or judgments, not facts.'},
+{p:null,sec:'write',std:'W.5.1',skill:'Opinion Writing',diff:'baseline',type:'mc',text:'Which is an opinion statement?',opts:['Cats are animals.','Ants live in colonies.','Pizza is the most delicious food.','The sun rises in the east.'],str:'Opinions are beliefs or judgments, not facts.'},
 
-{p:null,sec:'write',std:'W.5.2',skill:'Informative Writing',diff:'baseline',type:'mc',text:'Which sentence would best fit in an informative paragraph about monarch butterflies?',opts:['I think monarchs are beautiful.','Monarch butterflies migrate nearly 2,000 miles.','I love butterflies.','Butterflies should be protected.'],cor:1,exp:'This sentence provides factual information. The others are opinions.',str:'Informative writing focuses on facts and details.'},
+{p:null,sec:'write',std:'W.5.2',skill:'Informative Writing',diff:'baseline',type:'mc',text:'Which sentence would best fit in an informative paragraph about monarch butterflies?',opts:['I think monarchs are beautiful.','Monarch butterflies migrate nearly 2,000 miles.','I love butterflies.','Butterflies should be protected.'],str:'Informative writing focuses on facts and details.'},
 
-{p:null,sec:'write',std:'W.5.3',skill:'Narrative Details',diff:'grade-level',type:'mc',text:'Which sentence adds the most interesting detail to a narrative?',opts:['Luna climbed the stairs.','Luna climbed the wooden stairs slowly, her heart pounding.','The stairs went up.','There were stairs.'],cor:1,exp:'This sentence includes sensory details and shows emotion, making it more vivid and engaging.',str:'Good narrative details show how characters feel and what they experience.'},
+{p:null,sec:'write',std:'W.5.3',skill:'Narrative Details',diff:'grade-level',type:'mc',text:'Which sentence adds the most interesting detail to a narrative?',opts:['Luna climbed the stairs.','Luna climbed the wooden stairs slowly, her heart pounding.','The stairs went up.','There were stairs.'],str:'Good narrative details show how characters feel and what they experience.'},
 
-{p:null,sec:'write',std:'W.5.3',skill:'Dialogue',diff:'grade-level',type:'mc',text:'How should dialogue be punctuated? "Look at these books Luna said."',opts:['"Look at these books," Luna said.','"Look at these books", Luna said.',"Look at these books," luna said.",'Look at these books," Luna said.'],cor:0,exp:'Commas go inside quotation marks before the closing quote. Capitalize the speaker\'s name.',str:'Dialogue: "Exact words," character said. Words are quoted; the speaker is not.'},
+{p:null,sec:'write',std:'W.5.3',skill:'Dialogue',diff:'grade-level',type:'mc',text:'How should dialogue be punctuated? "Look at these books Luna said."',opts:['"Look at these books," Luna said.','"Look at these books", Luna said.',"Look at these books," luna said.",'Look at these books," Luna said.'],str:'Dialogue: "Exact words," character said. Words are quoted; the speaker is not.'},
 
-{p:null,sec:'write',std:'L.5.5',skill:'Figurative Language',diff:'challenging',type:'mc',text:'Which sentence uses a metaphor?',opts:['Luna was as brave as a lion.','The library was a treasure chest of stories.','Luna bravely entered the dark attic.','The books were sitting on the shelf.'],cor:1,exp:'A metaphor directly compares two things. "Library = treasure chest" shows the library\'s value without using "like" or "as."',str:'Metaphor: X is Y. Simile: X is like Y.'},
+{p:null,sec:'write',std:'L.5.5',skill:'Figurative Language',diff:'challenging',type:'mc',text:'Which sentence uses a metaphor?',opts:['Luna was as brave as a lion.','The library was a treasure chest of stories.','Luna bravely entered the dark attic.','The books were sitting on the shelf.'],str:'Metaphor: X is Y. Simile: X is like Y.'},
 
-{p:null,sec:'write',std:'L.5.5',skill:'Simile',diff:'challenging',type:'mc',text:'Which sentence uses a simile?',opts:['The colony was an organized community.','The ants worked like tiny robots.','Ants are very small insects.','The queen ant ruled the colony.'],cor:1,exp:'"Like" signals a simile. It compares ants to robots using "like."',str:'Simile always uses "like" or "as."'},
+{p:null,sec:'write',std:'L.5.5',skill:'Simile',diff:'challenging',type:'mc',text:'Which sentence uses a simile?',opts:['The colony was an organized community.','The ants worked like tiny robots.','Ants are very small insects.','The queen ant ruled the colony.'],str:'Simile always uses "like" or "as."'},
 
-{p:null,sec:'write',std:'W.5.3',skill:'Story Structure',diff:'challenging',type:'mc',text:'In Luna\'s story, the turning point comes when:',opts:['She climbs the attic stairs.','She discovers the library.','She realizes the darkness holds beautiful things.','She returns to her room.'],cor:1,exp:'This moment changes her fear into curiosity and wonder. It\'s when the main problem shifts.',str:'The turning point is when everything changes for the character.'},
+{p:null,sec:'write',std:'W.5.3',skill:'Story Structure',diff:'challenging',type:'mc',text:'In Luna\'s story, the turning point comes when:',opts:['She climbs the attic stairs.','She discovers the library.','She realizes the darkness holds beautiful things.','She returns to her room.'],str:'The turning point is when everything changes for the character.'},
 
-{p:null,sec:'write',std:'W.5.3',skill:'Supporting Details',diff:'ceiling',type:'mc',text:'Which detail best supports the idea that "Passage A explains the importance of balance in healthy eating"?',opts:['Fruits taste sweet.','A healthy diet includes foods from all five food groups.','Some people don\'t like vegetables.','Mexico produces lots of food.'],cor:1,exp:'"All five food groups" and "getting the right amounts from each" directly supports the importance of balance.',str:'Supporting details must directly relate to and prove the main idea.'},
+{p:null,sec:'write',std:'W.5.3',skill:'Supporting Details',diff:'ceiling',type:'mc',text:'Which detail best supports the idea that "Passage A explains the importance of balance in healthy eating"?',opts:['Fruits taste sweet.','A healthy diet includes foods from all five food groups.','Some people don\'t like vegetables.','Mexico produces lots of food.'],str:'Supporting details must directly relate to and prove the main idea.'},
 
-{p:null,sec:'write',std:'W.5.3',skill:'Topic Sentence',diff:'ceiling',type:'mc',text:'Which could be a good topic sentence for a paragraph about why healthy eating is enjoyable?',opts:['People eat three meals a day.','Healthy eating doesn\'t have to be boring if you try new foods and cooking methods.','Food comes from farms.','Everyone likes different foods.'],cor:1,exp:'This sentence introduces the main idea: healthy eating can be enjoyable. Other options are too general or unrelated.',str:'A topic sentence introduces the main idea of a paragraph.'},
+{p:null,sec:'write',std:'W.5.3',skill:'Topic Sentence',diff:'ceiling',type:'mc',text:'Which could be a good topic sentence for a paragraph about why healthy eating is enjoyable?',opts:['People eat three meals a day.','Healthy eating doesn\'t have to be boring if you try new foods and cooking methods.','Food comes from farms.','Everyone likes different foods.'],str:'A topic sentence introduces the main idea of a paragraph.'},
 
-{p:'passage1',sec:'read',std:'RL.5.2',skill:'Theme Recognition',diff:'baseline',type:'mc',text:'Which best describes Luna\'s journey in the story?',opts:['From curious to fearful','From fearful to curious and brave','From brave to uncertain','From uncertain to unchanged'],cor:1,exp:'Luna starts afraid of darkness but ends discovering its beauty. She transforms from fearful to curious and brave.',str:'Character journeys show how characters change and grow.'},
+{p:'passage1',sec:'read',std:'RL.5.2',skill:'Theme Recognition',diff:'baseline',type:'mc',text:'Which best describes Luna\'s journey in the story?',opts:['From curious to fearful','From fearful to curious and brave','From brave to uncertain','From uncertain to unchanged'],str:'Character journeys show how characters change and grow.'},
 
-{p:null,sec:'vocab',std:'L.5.4',skill:'Word Patterns',diff:'grade-level',type:'mc',text:'Based on the word "reorganize," what does the prefix "re-" mean?',opts:['Not','Again','Before','Together'],cor:1,exp:'"Reorganize" means to organize again. The prefix "re-" means "again."',str:'Common prefixes: re- (again), un- (not), pre- (before), mis- (wrong).'},
+{p:null,sec:'vocab',std:'L.5.4',skill:'Word Patterns',diff:'grade-level',type:'mc',text:'Based on the word "reorganize," what does the prefix "re-" mean?',opts:['Not','Again','Before','Together'],str:'Common prefixes: re- (again), un- (not), pre- (before), mis- (wrong).'},
 
-{p:null,sec:'gram',std:'L.5.1',skill:'Subject-Verb Agreement',diff:'grade-level',type:'mc',text:'Which sentence has correct subject-verb agreement?',opts:['The book on the shelf are interesting.','The books on the shelf is interesting.','The books on the shelf are interesting.','The book on the shelf were interesting.'],cor:2,exp:'Plural subject "books" needs plural verb "are." The prepositional phrase "on the shelf" doesn\'t change the subject number.',str:'The subject determines the verb. Ignore prepositional phrases when finding the subject.'}
+{p:null,sec:'gram',std:'L.5.1',skill:'Subject-Verb Agreement',diff:'grade-level',type:'mc',text:'Which sentence has correct subject-verb agreement?',opts:['The book on the shelf are interesting.','The books on the shelf is interesting.','The books on the shelf are interesting.','The book on the shelf were interesting.'],str:'The subject determines the verb. Ignore prepositional phrases when finding the subject.'}
 ];
 
 let currentQ=0,answers={},flags=new Set(),startTime=0;
@@ -398,20 +450,20 @@ function closeModal(){
 
 function finishTest(){
   const today=new Date().toISOString().split('T')[0];
-  const correct=Object.keys(answers).filter(i=>answers[i]===Q[i].cor).length;
+  const correct=Object.keys(answers).filter(i=>answers[i]===_ac[i]).length;
   const score=Math.round((correct/Q.length)*100);
 
   const skillScores={};
   SECTIONS.forEach(sec=>{
     let c=0,t=0;
     for(let i=sec.range[0];i<=Math.min(sec.range[1],Q.length-1);i++){
-      if(Q[i]&&Q[i].cor!==undefined){t++;if(answers[i]===Q[i].cor)c++}
+      if(Q[i]&&_ac[i]!==undefined){t++;if(answers[i]===_ac[i])c++}
     }
     skillScores[sec.name]={correct:c,total:t,pct:t>0?Math.round((c/t)*100):0};
   });
 
   const allAns={};
-  Q.forEach((q,i)=>{allAns[i]={q:q.text,answer:answers[i]!==undefined?q.opts[answers[i]]:'—',correct:answers[i]===q.cor};});
+  Q.forEach((q,i)=>{allAns[i]={q:q.text,answer:answers[i]!==undefined?q.opts[answers[i]]:'—',correct:answers[i]===_ac[currentQuestion]};});
 
   const payload={action:'saveDiagnosticResults',student:CONFIG.student,grade:CONFIG.grade,testId:CONFIG.testId,testLabel:CONFIG.testLabel,timestamp:new Date().toISOString(),answers:allAns,score,skillScores};
 
