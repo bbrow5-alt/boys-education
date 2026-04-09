@@ -1034,7 +1034,9 @@
         showScreen('summaryScreen');
 
         saveSession(totalCorrect, totalQuestions, totalTimeMin, overallPct);
-        syncSession(totalCorrect, totalQuestions, totalTimeMin, overallPct);
+        // V15 handleFinalizeSession (called above) writes the Sessions row AND
+        // upserts DailyTracking with the correct sessionBonus tier — no further
+        // POST needed.
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -1067,26 +1069,6 @@
             localStorage.setItem(CONFIG.signalKey, JSON.stringify({
                 completed: true, timestamp: data.timestamp, date: TODAY, points: 15
             }));
-        } catch (e) {}
-    }
-
-    function syncSession(correct, total, duration, pct) {
-        // V15 finalizeSession already wrote the Sessions row (source: ai_v15) and an
-        // initial DailyTracking row (with sessionBonus: 0). We re-upsert DailyTracking
-        // here to set the bonus tier (2/1/0) since finalizeSession doesn't compute it.
-        // Do NOT POST saveSession — that creates a duplicate Sessions row tagged 'fallback'.
-        try {
-            fetch(APPS_SCRIPT_URL, {
-                method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({
-                    action: 'saveDailyTracking',
-                    date: TODAY,
-                    student: CONFIG.student,
-                    session: true,
-                    comprehensionPct: pct,
-                    sessionBonus: pct >= 80 ? 2 : pct >= 60 ? 1 : 0
-                })
-            });
         } catch (e) {}
     }
 

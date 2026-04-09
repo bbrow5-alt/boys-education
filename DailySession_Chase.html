@@ -773,21 +773,15 @@
         card.innerHTML = html;
         showScreen('summaryScreen');
         saveSession(totalCorrect, totalQuestions, totalTime, overallPct);
-        syncSession(totalCorrect, totalQuestions, totalTime, overallPct);
+        // V15 handleFinalizeSession (called above) writes the Sessions row AND
+        // upserts DailyTracking with the correct sessionBonus tier — no further
+        // POST needed.
     }
 
     function saveSession(correct, total, duration, pct) {
         const data = { completed: true, date: TODAY, timestamp: new Date().toISOString(), correct, total, pct, duration, phases: {}, writingCompleted: !!writingResponse, mode: CONFIG.mode };
         PHASES.forEach(p => { if (phaseResults[p.id]) data.phases[p.id] = { correct: phaseResults[p.id].correct, total: phaseResults[p.id].total, pct: phaseResults[p.id].pct, timeMin: Math.round(phaseResults[p.id].timeMs / 60000) }; });
         try { localStorage.setItem(CONFIG.sessionKey, JSON.stringify({ [TODAY]: data })); localStorage.setItem(CONFIG.signalKey, JSON.stringify({ completed: true, timestamp: data.timestamp, date: TODAY, points: 15 })); } catch (e) {}
-    }
-
-    function syncSession(correct, total, duration, pct) {
-        // V15 finalizeSession already wrote the Sessions row (source: ai_v15) and an
-        // initial DailyTracking row (with sessionBonus: 0). We re-upsert DailyTracking
-        // here to set the bonus tier (2/1/0) since finalizeSession doesn't compute it.
-        // Do NOT POST saveSession — that creates a duplicate Sessions row tagged 'fallback'.
-        try { fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'saveDailyTracking', date: TODAY, student: CONFIG.student, session: true, comprehensionPct: pct, sessionBonus: pct >= 80 ? 2 : pct >= 60 ? 1 : 0 }) }); } catch (e) {}
     }
 
     function returnToDashboard() { window.location.href = CONFIG.dashboardUrl; }
