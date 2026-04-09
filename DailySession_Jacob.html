@@ -1071,32 +1071,10 @@
     }
 
     function syncSession(correct, total, duration, pct) {
-        const subjectBreakdown = {};
-        PHASES.forEach(p => {
-            if (phaseResults[p.id]) subjectBreakdown[p.id] = phaseResults[p.id].pct + '%';
-        });
-
-        try {
-            fetch(APPS_SCRIPT_URL, {
-                method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({
-                    action: 'saveSession',
-                    student: CONFIG.student,
-                    date: TODAY,
-                    sessionId: SESSION_ID,
-                    topic: PHASES.map(p => p.name).join('; '),
-                    questionsCorrect: correct,
-                    questionsTotal: total,
-                    comprehensionPct: pct,
-                    writingCompleted: !!writingResponse,
-                    points: 15,
-                    durationMinutes: duration,
-                    mode: CONFIG.mode,
-                    subjectBreakdown: subjectBreakdown
-                })
-            });
-        } catch (e) {}
-
+        // V15 finalizeSession already wrote the Sessions row (source: ai_v15) and an
+        // initial DailyTracking row (with sessionBonus: 0). We re-upsert DailyTracking
+        // here to set the bonus tier (2/1/0) since finalizeSession doesn't compute it.
+        // Do NOT POST saveSession — that creates a duplicate Sessions row tagged 'fallback'.
         try {
             fetch(APPS_SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
