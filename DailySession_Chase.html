@@ -434,14 +434,18 @@
 
     async function initSession() {
         showScreen('loadingScreen');
-        document.querySelector('.loading-text').textContent = 'Doug is preparing your mission briefing...';
+        // Cold-start question generation can take 60-120s server-side. Tell Chase to be patient.
+        document.querySelector('.loading-text').innerHTML =
+            'Doug is preparing your mission briefing...<br>' +
+            '<span style="font-size:13px; color:#5a6a7a; display:block; margin-top:12px;">' +
+            'First load can take up to 2 minutes &mdash; please wait, do not refresh.</span>';
 
         const data = await aiGet('startSession', {
             student: CONFIG.student,
             sessionId: SESSION_ID,
             isWednesday: IS_WEDNESDAY,
             targetDate: TARGET_DATE
-        }, 90000);
+        }, 180000); // 3 minute timeout — server cold starts can hit 90-120s
 
         // Server may reject with a date validation error
         if (data && data.error) {
@@ -451,16 +455,26 @@
             return;
         }
 
-        if (data && data.phases) {
-            sessionData = data.phases;
-            // Session truly starts now — set timer origin
-            sessionStartTime = Date.now();
-            startTimer();
-            startPhase(0);
-        } else {
-            // Total failure
-            document.querySelector('.loading-text').textContent = 'Mission briefing failed. Please refresh and try again.';
+        // FAIL LOUD: if we got nothing or no phases, do NOT proceed into a broken mission.
+        if (!data || !data.phases || Object.keys(data.phases).length === 0) {
+            document.getElementById('noWorkTitle').textContent = 'Mission Could Not Load';
+            document.getElementById('noWorkSubtitle').innerHTML =
+                'Doug couldn&rsquo;t prepare your mission briefing. The server is probably ' +
+                'warming up.<br><br>' +
+                '<button onclick="window.location.reload()" style="background:#00ff41; color:#0a0e1a; ' +
+                'border:none; padding:12px 24px; border-radius:8px; font-size:14px; font-weight:700; ' +
+                'cursor:pointer; font-family:\'Courier New\',monospace;">Try Again</button><br><br>' +
+                '<span style="font-size:12px; color:#5a6a7a;">If this keeps happening, tell Dad and ' +
+                'we&rsquo;ll fix it. Your day will still count.</span>';
+            showNoWorkScreen();
+            return;
         }
+
+        sessionData = data.phases;
+        // Mission truly starts now — set timer origin
+        sessionStartTime = Date.now();
+        startTimer();
+        startPhase(0);
     }
 
     function initPhaseBar() {

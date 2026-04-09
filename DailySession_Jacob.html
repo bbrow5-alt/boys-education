@@ -495,6 +495,15 @@
     }
 
     async function initSession() {
+        // Cold-start question generation can take 60-120s server-side. Tell Jacob to be patient.
+        var loadingTextEl = document.querySelector('#loadingScreen .loading-text');
+        if (loadingTextEl) {
+            loadingTextEl.innerHTML =
+                'Gary is preparing your session...<br>' +
+                '<span style="font-size:13px; color:#a89968; display:block; margin-top:12px;">' +
+                'First load can take up to 2 minutes &mdash; please wait, do not refresh.</span>';
+        }
+
         var data = await aiGet('startSession', {
             student: CONFIG.studentLower,
             grade: CONFIG.grade,
@@ -502,7 +511,7 @@
             sessionId: SESSION_ID,
             isWednesday: IS_WEDNESDAY ? 'true' : 'false',
             targetDate: TARGET_DATE
-        }, 90000);
+        }, 180000); // 3 minute timeout — server cold starts can hit 90-120s
 
         // Server may reject with a date validation error (e.g. localStorage was
         // out of sync with the actual DailyTracking state). Show a friendly screen.
@@ -513,9 +522,24 @@
             return;
         }
 
-        if (data && data.phases) {
-            sessionData = data.phases;
+        // FAIL LOUD: if we got nothing or no phases, do NOT proceed into a broken session.
+        // The previous version cascaded into startPhase(0) with empty sessionData and
+        // showed a misleading red "Session unavailable" message inside the phase content.
+        if (!data || !data.phases || Object.keys(data.phases).length === 0) {
+            document.getElementById('noWorkTitle').textContent = 'Session Could Not Load';
+            document.getElementById('noWorkSubtitle').innerHTML =
+                'Gary couldn&rsquo;t prepare your session. This usually means the server is ' +
+                'warming up.<br><br>' +
+                '<button onclick="window.location.reload()" style="background:#c9a84c; color:#0d1117; ' +
+                'border:none; padding:12px 24px; border-radius:8px; font-size:14px; font-weight:700; ' +
+                'cursor:pointer; font-family:Georgia,serif;">Try Again</button><br><br>' +
+                '<span style="font-size:12px; color:#a89968;">If this keeps happening, tell Dad and ' +
+                'we&rsquo;ll fix it. Your day will still count.</span>';
+            showNoWorkScreen();
+            return;
         }
+
+        sessionData = data.phases;
 
         // Now start the timer — session begins after content loads
         sessionStartTime = Date.now();
