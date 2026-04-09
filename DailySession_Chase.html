@@ -144,8 +144,22 @@
             <div style="width: 32px;"></div>
         </div>
 
+        <div id="sessionDateBanner" style="display:none; text-align:center; padding:10px 12px; margin-bottom:12px; border-radius:8px; font-size:13px; font-family:'Courier New',monospace; letter-spacing:1px; background:rgba(0,255,65,0.06); border:1px solid rgba(0,255,65,0.25); color:#00ff41;">
+            <span id="sessionDateLabel">Session for Today</span>
+            <span id="sessionAheadBadge" style="display:none; margin-left:8px; padding:2px 8px; background:#ffaa00; color:#0a0e1a; border-radius:4px; font-size:10px; font-weight:700;">WORKING AHEAD</span>
+        </div>
+
         <div class="phase-bar" id="phaseBar"></div>
         <div class="phase-label-bar" id="phaseLabelBar"></div>
+
+        <div class="screen" id="noWorkScreen">
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:400px; gap:20px; text-align:center; padding:24px;">
+                <div style="font-size:64px;">&#127916;</div>
+                <h2 id="noWorkTitle" style="color:#00ff41; font-size:24px; font-weight:400;">Mission Status</h2>
+                <div id="noWorkSubtitle" style="color:#5a6a7a; font-size:15px; line-height:1.6; max-width:420px;"></div>
+                <button class="btn-primary" onclick="returnToDashboard()" style="margin-top:12px;">Return to Base</button>
+            </div>
+        </div>
 
         <div class="screen" id="loadingScreen">
             <div class="loading-container">
@@ -214,6 +228,13 @@
             <div class="summary-container">
                 <h2 class="summary-title">MISSION COMPLETE</h2>
                 <div class="summary-card" id="summaryCard"></div>
+                <div id="getAheadOffer" style="display:none; background:linear-gradient(135deg, rgba(255,170,0,0.10) 0%, rgba(0,255,65,0.04) 100%); border:1px solid rgba(255,170,0,0.4); border-radius:10px; padding:16px; text-align:center; margin-bottom:12px;">
+                    <div style="font-size:24px; margin-bottom:6px;">&#9889;</div>
+                    <div style="font-size:15px; color:#ffaa00; font-weight:700; margin-bottom:4px;">Get Ahead — Start Tomorrow's Mission</div>
+                    <div style="font-size:12px; color:#5a6a7a; margin-bottom:4px;">Earn the right to a day off. Work-ahead is allowed for ONE day only.</div>
+                    <div id="getAheadDate" style="font-size:11px; color:#00ff41; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;"></div>
+                    <button class="btn-primary" onclick="startTomorrowSession()" style="width:auto; padding:10px 24px; background:#ffaa00; color:#0a0e1a;">Start Tomorrow's Mission</button>
+                </div>
                 <div id="keepGoingOffer" style="background:linear-gradient(135deg, rgba(0,191,255,0.08) 0%, rgba(0,255,65,0.04) 100%); border:1px solid rgba(0,191,255,0.3); border-radius:10px; padding:16px; text-align:center; margin-bottom:12px;">
                     <div style="font-size:20px; margin-bottom:6px;">&#9889;</div>
                     <div style="font-size:15px; color:#00ff41; font-weight:700; margin-bottom:4px;">Want to keep going?</div>
@@ -276,11 +297,47 @@
     };
 
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec';
-    const TODAY = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
-    const IS_WEDNESDAY = new Date().getDay() === 3;
     const SESSION_ID = crypto.randomUUID();
+    const MIN_SESSION_MINUTES = 15;
 
-    if (TODAY > CONFIG.leapDate && CONFIG.mode === 'leap_prep') {
+    // ─── Date helpers (local-time, never UTC) ───
+    function _fmtDate(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+    function _addDays(dateStr, n) { const [y,m,d] = dateStr.split('-').map(Number); return _fmtDate(new Date(y, m-1, d+n)); }
+    function _dow(dateStr) { const [y,m,d] = dateStr.split('-').map(Number); return new Date(y, m-1, d).getDay(); }
+    function _isChaseDay(dateStr) { const dow = _dow(dateStr); return dow === 0 || (dow >= 1 && dow <= 4); } // Sun-Thu
+    function _friendly(dateStr) { const [y,m,d] = dateStr.split('-').map(Number); return new Date(y, m-1, d).toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' }); }
+    function _isComplete(dateStr) {
+        try { const s = JSON.parse(localStorage.getItem(CONFIG.sessionKey) || '{}'); return !!(s[dateStr] && s[dateStr].completed); }
+        catch (e) { return false; }
+    }
+
+    const REAL_TODAY = _fmtDate(new Date());
+    const TOMORROW = _addDays(REAL_TODAY, 1);
+
+    // ─── Decide which session date this run is for ───
+    // MODE values:
+    //   'today'           → run REAL_TODAY's session
+    //   'ahead'           → today is done, run TOMORROW's session (work-ahead)
+    //   'caught_up'       → today done AND tomorrow done — max work-ahead reached
+    //   'no_session_day'  → REAL_TODAY isn't a session day for this boy (Fri/Sat for Chase)
+    let TARGET_DATE = REAL_TODAY;
+    let MODE = 'today';
+    (function decideTarget() {
+        const todayIsSession = _isChaseDay(REAL_TODAY);
+        const todayDone = _isComplete(REAL_TODAY);
+        const tomorrowIsSession = _isChaseDay(TOMORROW);
+        const tomorrowDone = _isComplete(TOMORROW);
+        if (!todayIsSession) { MODE = 'no_session_day'; return; }
+        if (!todayDone) { TARGET_DATE = REAL_TODAY; MODE = 'today'; return; }
+        if (tomorrowIsSession && !tomorrowDone) { TARGET_DATE = TOMORROW; MODE = 'ahead'; return; }
+        MODE = 'caught_up';
+    })();
+
+    // IS_WEDNESDAY drives the writing prompt — must be relative to the SESSION date,
+    // not the calendar date, so a Tuesday→Wednesday work-ahead still gets writing.
+    const IS_WEDNESDAY = _dow(TARGET_DATE) === 3;
+
+    if (REAL_TODAY > CONFIG.leapDate && CONFIG.mode === 'leap_prep') {
         CONFIG.mode = 'act_prep';
     }
 
@@ -312,12 +369,68 @@
     // No fallback data — all questions come from the server via startSession
 
     document.addEventListener('DOMContentLoaded', () => {
-        initPhaseBar();
         document.getElementById('backBtn').addEventListener('click', () => {
             document.getElementById('exitModal').classList.add('show');
         });
+
+        // Branch on MODE before doing anything else
+        if (MODE === 'caught_up') {
+            showCaughtUpScreen();
+            return;
+        }
+        if (MODE === 'no_session_day') {
+            showNoSessionDayScreen();
+            return;
+        }
+
+        initPhaseBar();
+        updateSessionDateBanner();
         initSession();
     });
+
+    function updateSessionDateBanner() {
+        const banner = document.getElementById('sessionDateBanner');
+        const lbl = document.getElementById('sessionDateLabel');
+        const badge = document.getElementById('sessionAheadBadge');
+        if (!banner || !lbl) return;
+        lbl.textContent = 'Session for ' + _friendly(TARGET_DATE);
+        badge.style.display = MODE === 'ahead' ? 'inline-block' : 'none';
+        banner.style.display = 'block';
+    }
+
+    function showNoWorkScreen() {
+        document.getElementById('phaseBar').style.display = 'none';
+        document.getElementById('phaseLabelBar').style.display = 'none';
+        document.getElementById('sessionDateBanner').style.display = 'none';
+        showScreen('noWorkScreen');
+    }
+
+    function showCaughtUpScreen() {
+        let next = _addDays(TOMORROW, 1);
+        for (let i = 0; i < 7 && !_isChaseDay(next); i++) next = _addDays(next, 1);
+        document.getElementById('noWorkTitle').textContent = 'All Caught Up!';
+        document.getElementById('noWorkSubtitle').innerHTML =
+            'You&rsquo;ve done today&rsquo;s mission AND tomorrow&rsquo;s. ' +
+            'That&rsquo;s the max work-ahead &mdash; you can&rsquo;t get further ahead.<br><br>' +
+            'Your next mission is <strong>' + _friendly(next) + '</strong>.';
+        showNoWorkScreen();
+    }
+
+    function showNoSessionDayScreen() {
+        let next = _addDays(REAL_TODAY, 1);
+        for (let i = 0; i < 7 && !_isChaseDay(next); i++) next = _addDays(next, 1);
+        document.getElementById('noWorkTitle').textContent = 'No Mission Today';
+        document.getElementById('noWorkSubtitle').innerHTML =
+            'Today isn&rsquo;t a scheduled mission day for you. ' +
+            'Your next mission is <strong>' + _friendly(next) + '</strong>.';
+        showNoWorkScreen();
+    }
+
+    function startTomorrowSession() {
+        // Reload — init re-reads localStorage, sees today done + tomorrow eligible,
+        // and runs in MODE='ahead' with a fresh SESSION_ID.
+        window.location.reload();
+    }
 
     async function initSession() {
         showScreen('loadingScreen');
@@ -326,8 +439,17 @@
         const data = await aiGet('startSession', {
             student: CONFIG.student,
             sessionId: SESSION_ID,
-            isWednesday: IS_WEDNESDAY
+            isWednesday: IS_WEDNESDAY,
+            targetDate: TARGET_DATE
         }, 90000);
+
+        // Server may reject with a date validation error
+        if (data && data.error) {
+            document.getElementById('noWorkTitle').textContent = 'Cannot Start Mission';
+            document.getElementById('noWorkSubtitle').textContent = data.error;
+            showNoWorkScreen();
+            return;
+        }
 
         if (data && data.phases) {
             sessionData = data.phases;
@@ -744,7 +866,8 @@
         const result = await aiGet('finalizeSession', {
             sessionId: SESSION_ID,
             student: CONFIG.student,
-            durationMinutes: totalTime
+            durationMinutes: totalTime,
+            targetDate: TARGET_DATE
         }, 15000);
 
         if (result && result.error === 'Session too short') {
@@ -776,12 +899,28 @@
         // V15 handleFinalizeSession (called above) writes the Sessions row AND
         // upserts DailyTracking with the correct sessionBonus tier — no further
         // POST needed.
+
+        // Work-ahead offer: only after completing TODAY's session, and only if
+        // tomorrow is a Chase mission day (Sun-Thu).
+        if (MODE === 'today' && _isChaseDay(TOMORROW)) {
+            const offer = document.getElementById('getAheadOffer');
+            const dateLbl = document.getElementById('getAheadDate');
+            if (offer && dateLbl) {
+                dateLbl.textContent = 'For ' + _friendly(TOMORROW);
+                offer.style.display = 'block';
+            }
+        }
     }
 
     function saveSession(correct, total, duration, pct) {
-        const data = { completed: true, date: TODAY, timestamp: new Date().toISOString(), correct, total, pct, duration, phases: {}, writingCompleted: !!writingResponse, mode: CONFIG.mode };
+        const data = { completed: true, date: TARGET_DATE, timestamp: new Date().toISOString(), sessionId: SESSION_ID, correct, total, pct, duration, phases: {}, writingCompleted: !!writingResponse, mode: CONFIG.mode, workedAhead: MODE === 'ahead' };
         PHASES.forEach(p => { if (phaseResults[p.id]) data.phases[p.id] = { correct: phaseResults[p.id].correct, total: phaseResults[p.id].total, pct: phaseResults[p.id].pct, timeMin: Math.round(phaseResults[p.id].timeMs / 60000) }; });
-        try { localStorage.setItem(CONFIG.sessionKey, JSON.stringify({ [TODAY]: data })); localStorage.setItem(CONFIG.signalKey, JSON.stringify({ completed: true, timestamp: data.timestamp, date: TODAY, points: 15 })); } catch (e) {}
+        try {
+            const existing = JSON.parse(localStorage.getItem(CONFIG.sessionKey) || '{}');
+            existing[TARGET_DATE] = data;
+            localStorage.setItem(CONFIG.sessionKey, JSON.stringify(existing));
+            localStorage.setItem(CONFIG.signalKey, JSON.stringify({ completed: true, timestamp: data.timestamp, date: TARGET_DATE, points: 15 }));
+        } catch (e) {}
     }
 
     function returnToDashboard() { window.location.href = CONFIG.dashboardUrl; }
@@ -905,18 +1044,18 @@
     function saveBonusPractice(answered, correct, duration) {
         try {
             const existing = JSON.parse(localStorage.getItem(BONUS_KEY) || '{}');
-            if (!existing[TODAY]) existing[TODAY] = { answered: 0, correct: 0, duration: 0, sessions: 0 };
-            existing[TODAY].answered += answered; existing[TODAY].correct += correct; existing[TODAY].duration += duration; existing[TODAY].sessions += 1;
-            existing[TODAY].timestamp = new Date().toISOString();
+            if (!existing[REAL_TODAY]) existing[REAL_TODAY] = { answered: 0, correct: 0, duration: 0, sessions: 0 };
+            existing[REAL_TODAY].answered += answered; existing[REAL_TODAY].correct += correct; existing[REAL_TODAY].duration += duration; existing[REAL_TODAY].sessions += 1;
+            existing[REAL_TODAY].timestamp = new Date().toISOString();
             localStorage.setItem(BONUS_KEY, JSON.stringify(existing));
-            localStorage.setItem(CONFIG.studentLower + '_bonus_signal', JSON.stringify({ date: TODAY, answered: existing[TODAY].answered, correct: existing[TODAY].correct }));
+            localStorage.setItem(CONFIG.studentLower + '_bonus_signal', JSON.stringify({ date: REAL_TODAY, answered: existing[REAL_TODAY].answered, correct: existing[REAL_TODAY].correct }));
         } catch (e) {}
-        try { fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'saveDailyTracking', date: TODAY, student: CONFIG.student, bonusPractice: true, bonusAnswered: answered, bonusCorrect: correct, bonusDuration: duration }) }); } catch (e) {}
+        try { fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'saveDailyTracking', date: REAL_TODAY, student: CONFIG.student, bonusPractice: true, bonusAnswered: answered, bonusCorrect: correct, bonusDuration: duration }) }); } catch (e) {}
     }
 
     window.addEventListener('beforeunload', () => {
         if (currentPhaseIndex >= 0 && currentPhaseIndex < PHASES.length) {
-            try { localStorage.setItem(CONFIG.sessionKey + '_partial', JSON.stringify({ date: TODAY, phaseIndex: currentPhaseIndex, phaseResults, timestamp: new Date().toISOString() })); } catch (e) {}
+            try { localStorage.setItem(CONFIG.sessionKey + '_partial', JSON.stringify({ date: TARGET_DATE, phaseIndex: currentPhaseIndex, phaseResults, timestamp: new Date().toISOString() })); } catch (e) {}
         }
         if (bonusAnswered > 0 && bonusStartTime) {
             saveBonusPractice(bonusAnswered, bonusCorrectCount, Math.round((Date.now() - bonusStartTime) / 60000));
