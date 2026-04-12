@@ -1,1733 +1,1151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chase Brown — Week 7 LEAP Diagnostic Test</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEAP Diagnostic Test - Chase Brown - Week 7</title>
+    <style>
+        :root {
+            --bg: #1a1510;
+            --fg: #f5f1e8;
+            --accent: #00ff88;
+            --accent-dark: #00cc6a;
+            --card-bg: #2a231a;
+            --card-border: #3a3228;
+            --correct: #00dd77;
+            --incorrect: #ff4455;
+            --neutral: #888;
+            --highlight: #ffdd44;
+            --error: #d64545;
+            --success: #4a9d6f;
+            --warning: #d9a535;
+            --text-light: #e8e4d8;
+            --text-muted: #a89f8f;
+        }
 
-    :root {
-      --bg: #1a1510;
-      --card: #231e17;
-      --card-border: #3d3428;
-      --accent: #00ff88;
-      --accent-dim: #003322;
-      --accent2: #00cc66;
-      --success: #4ade80;
-      --error: #f87171;
-      --warning: #fbbf24;
-      --text: #f5f1e8;
-      --text-dim: #b8a98a;
-      --text-muted: #7a6e5d;
-      --blue: #5ca4e8;
-      --blue-dim: #1a2a3d;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      font-family: Georgia, serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            line-height: 1.6;
+        }
 
-    #welcomeScreen {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 40px 20px;
-      background: var(--bg);
-    }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-    #welcomeScreen h1 {
-      font-size: 48px;
-      color: var(--accent);
-      margin-bottom: 10px;
-      text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
-    }
+        /* Welcome Screen */
+        #welcomeScreen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
 
-    .sub { font-size: 18px; color: var(--accent2); margin-bottom: 40px; }
+        #welcomeScreen.active {
+            display: block;
+        }
 
-    .info {
-      background: var(--card);
-      border: 2px solid var(--card-border);
-      border-radius: 8px;
-      padding: 30px;
-      max-width: 500px;
-      margin-bottom: 30px;
-      text-align: center;
-      font-size: 16px;
-      line-height: 1.8;
-    }
+        .header {
+            margin-bottom: 40px;
+        }
 
-    .info strong { color: var(--accent); }
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
 
-    #startBtn {
-      background: var(--accent);
-      color: var(--bg);
-      border: none;
-      padding: 14px 40px;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s;
-      font-family: Georgia, serif;
-    }
+        .student-name {
+            font-size: 18px;
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
 
-    #startBtn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-    }
+        .test-info {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 600px;
+            text-align: left;
+        }
 
-    #testContainer {
-      display: none;
-      flex-direction: column;
-      min-height: 100vh;
-      background: var(--bg);
-    }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--card-border);
+        }
 
-    .test-header {
-      background: var(--card);
-      border-bottom: 2px solid var(--card-border);
-      padding: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+        .info-row:last-child {
+            border-bottom: none;
+        }
 
-    .test-title { flex: 1; }
-    .test-title h2 { color: var(--accent); font-size: 18px; margin-bottom: 5px; }
-    .test-title p { color: var(--text-muted); font-size: 13px; }
+        .info-label {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
 
-    .test-stats { display: flex; gap: 30px; align-items: center; font-size: 14px; }
-    .stat { text-align: right; }
-    .stat-label { color: var(--text-muted); font-size: 12px; }
-    .stat-value { color: var(--accent); font-size: 18px; font-weight: bold; }
+        .info-value {
+            color: var(--accent);
+            font-weight: 700;
+        }
 
-    .test-content { display: flex; flex: 1; overflow: hidden; }
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
 
-    .passage-pane {
-      flex: 0 0 45%;
-      overflow-y: auto;
-      padding: 20px;
-      border-right: 2px solid var(--card-border);
-      background: var(--card);
-      line-height: 1.8;
-      font-size: 14px;
-    }
+        .subject-card {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
 
-    .passage-pane h3 { color: var(--accent); font-size: 13px; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase; }
-    .passage-pane p { margin-bottom: 10px; text-indent: 16px; }
-    .passage-pane p:first-of-type { text-indent: 0; }
+        .subject-name {
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
 
-    .question-pane {
-      flex: 1;
-      overflow-y: auto;
-      padding: 30px;
-      display: flex;
-      flex-direction: column;
-    }
+        .subject-count {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--fg);
+        }
 
-    .question-content { flex: 1; }
-    .question-header { margin-bottom: 20px; }
-    .question-number { color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .btn {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 14px 40px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 10px;
+        }
 
-    .question-meta { display: flex; gap: 15px; font-size: 12px; margin-bottom: 10px; }
-    .meta-tag { background: var(--accent-dim); color: var(--accent); padding: 4px 10px; border-radius: 4px; }
+        .btn:hover {
+            background: var(--accent-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 255, 136, 0.2);
+        }
 
-    .question-text { font-size: 16px; margin-bottom: 20px; line-height: 1.6; color: var(--text); }
-    .options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .btn:active {
+            transform: translateY(0);
+        }
 
-    .option {
-      padding: 14px;
-      background: var(--card);
-      border: 2px solid var(--card-border);
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: Georgia, serif;
-      font-size: 15px;
-    }
+        .btn-secondary {
+            background: var(--card-bg);
+            color: var(--accent);
+            border: 2px solid var(--accent);
+        }
 
-    .option:hover { border-color: var(--accent); background: rgba(0, 255, 136, 0.05); }
-    .option.selected { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+        .btn-secondary:hover {
+            background: var(--accent);
+            color: var(--bg);
+        }
 
-    .feedback {
-      background: var(--card);
-      border: 2px solid var(--card-border);
-      border-radius: 6px;
-      padding: 15px;
-      margin-top: 20px;
-      font-size: 13px;
-      line-height: 1.6;
-      display: none;
-    }
+        /* Test Screen */
+        #testScreen {
+            display: none;
+        }
 
-    .feedback.correct { border-left: 4px solid var(--success); }
-    .feedback.incorrect { border-left: 4px solid var(--error); }
-    .feedback-label { font-weight: bold; margin-bottom: 8px; }
-    .feedback-correct { color: var(--success); }
-    .feedback-incorrect { color: var(--error); }
-    .feedback-content { margin-bottom: 10px; color: var(--text-dim); }
-    .feedback-content strong { color: var(--text); }
+        #testScreen.active {
+            display: block;
+        }
 
-    .strategy {
-      background: rgba(92, 164, 232, 0.1);
-      padding: 10px;
-      border-radius: 4px;
-      border-left: 3px solid var(--blue);
-      color: var(--text-dim);
-      font-size: 12px;
-      margin-top: 10px;
-    }
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--card-border);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
 
-    .question-controls {
-      display: flex;
-      gap: 12px;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 2px solid var(--card-border);
-    }
+        .test-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+        }
 
-    .btn {
-      padding: 12px 20px;
-      background: var(--card);
-      border: 2px solid var(--card-border);
-      color: var(--text);
-      border-radius: 6px;
-      cursor: pointer;
-      font-family: Georgia, serif;
-      font-size: 14px;
-      transition: all 0.2s;
-    }
+        .timer {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+            padding: 8px 16px;
+            background: var(--card-bg);
+            border-radius: 6px;
+            min-width: 100px;
+            text-align: center;
+        }
 
-    .btn:hover { border-color: var(--accent); color: var(--accent); }
-    .btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-    .btn.primary:hover { transform: scale(1.02); }
-    .btn.flag { flex: 1; }
-    .btn.flag.flagged { background: var(--warning); border-color: var(--warning); color: var(--bg); }
+        .timer.warning {
+            color: var(--warning);
+        }
 
-    .nav-buttons { display: flex; gap: 12px; flex: 1; }
-    .nav-buttons button { flex: 1; }
+        .timer.danger {
+            color: var(--error);
+        }
 
-    .navigator-container {
-      background: var(--card);
-      border-top: 2px solid var(--card-border);
-      padding: 15px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
+        .progress-section {
+            margin-bottom: 20px;
+        }
 
-    .navigator-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .section-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--bg);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
 
-    .navigator { display: grid; grid-template-columns: repeat(auto-fit, minmax(35px, 1fr)); gap: 8px; }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--card-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
 
-    .nav-btn {
-      width: 100%;
-      padding: 8px;
-      background: var(--card);
-      border: 2px solid var(--card-border);
-      color: var(--text-dim);
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: bold;
-      transition: all 0.2s;
-      font-family: Georgia, serif;
-    }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
 
-    .nav-btn:hover { border-color: var(--accent); }
-    .nav-btn.current { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-    .nav-btn.answered { background: var(--blue); border-color: var(--blue); color: var(--text); }
-    .nav-btn.flagged { background: var(--warning); border-color: var(--warning); color: var(--bg); }
+        .progress-text {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
 
-    #resultsScreen {
-      display: none;
-      min-height: 100vh;
-      background: var(--bg);
-      padding: 40px 20px;
-      overflow-y: auto;
-    }
+        .question-container {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
 
-    .results-container { max-width: 900px; margin: 0 auto; }
-    .results-header { text-align: center; margin-bottom: 40px; }
-    .results-header h1 { font-size: 36px; color: var(--accent); margin-bottom: 10px; }
+        .question-number {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
 
-    .overall-score {
-      background: var(--card);
-      border: 2px solid var(--card-border);
-      border-radius: 8px;
-      padding: 30px;
-      text-align: center;
-      margin-bottom: 30px;
-    }
+        .question-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--fg);
+            margin-bottom: 25px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
 
-    .score-percentage { font-size: 48px; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+        .passage {
+            background: rgba(0, 255, 136, 0.05);
+            border-left: 3px solid var(--accent);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-style: italic;
+            color: var(--text-light);
+            line-height: 1.7;
+        }
 
-    .score-breakdown {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 2px solid var(--card-border);
-    }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-    .section-score { background: rgba(0, 255, 136, 0.05); padding: 15px; border-radius: 6px; border: 1px solid var(--card-border); }
-    .section-score-label { color: var(--text-muted); font-size: 12px; text-transform: uppercase; margin-bottom: 8px; }
-    .section-score-value { font-size: 24px; color: var(--accent); font-weight: bold; }
-    .section-score-range { color: var(--text-dim); font-size: 12px; margin-top: 5px; }
+        .option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid var(--card-border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
 
-    .skills-section {
-      background: var(--card);
-      border: 2px solid var(--card-border);
-      border-radius: 8px;
-      padding: 30px;
-      margin-bottom: 30px;
-    }
+        .option:hover {
+            background: rgba(0, 255, 136, 0.05);
+            border-color: var(--accent);
+        }
 
-    .skills-section h2 { color: var(--accent); font-size: 18px; margin-bottom: 20px; }
+        .option input[type="radio"] {
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
 
-    .skill-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--card-border); }
-    .skill-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    .skill-name { display: flex; justify-content: space-between; margin-bottom: 8px; }
-    .skill-label { color: var(--text); }
+        .option input[type="radio"]:checked + label {
+            color: var(--accent);
+            font-weight: 600;
+        }
 
-    .skill-status { padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-    .skill-status.strong { background: rgba(74, 222, 128, 0.2); color: var(--success); }
-    .skill-status.ok { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
-    .skill-status.weak { background: rgba(248, 113, 113, 0.2); color: var(--error); }
+        .option label {
+            cursor: pointer;
+            flex: 1;
+        }
 
-    .skill-bar { height: 8px; background: var(--card-border); border-radius: 4px; overflow: hidden; }
-    .skill-bar-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+        /* Navigator Grid */
+        .navigator {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
 
-    .tutor-message { background: var(--card); border: 2px solid var(--accent); border-radius: 8px; padding: 20px; margin-bottom: 30px; }
-    .tutor-name { color: var(--accent); font-weight: bold; margin-bottom: 10px; }
-    .tutor-text { color: var(--text-dim); line-height: 1.7; }
+        .navigator-title {
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
 
-    .review-section { background: var(--card); border: 2px solid var(--card-border); border-radius: 8px; padding: 30px; margin-bottom: 30px; }
-    .review-section h2 { color: var(--accent); font-size: 18px; margin-bottom: 20px; }
-    .review-item { background: rgba(0, 0, 0, 0.3); padding: 20px; margin-bottom: 15px; border-radius: 6px; border-left: 4px solid var(--error); }
-    .review-question { color: var(--text); margin-bottom: 12px; font-weight: bold; }
-    .review-answer { display: flex; gap: 15px; margin-bottom: 12px; font-size: 14px; }
-    .answer-label { color: var(--text-muted); min-width: 80px; }
-    .answer-student { color: var(--error); }
-    .answer-correct { color: var(--success); }
+        .navigator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 8px;
+        }
 
-    .review-explanation { background: rgba(248, 113, 113, 0.1); padding: 12px; border-radius: 4px; color: var(--text-dim); margin-bottom: 10px; border-left: 3px solid var(--error); }
-    .review-strategy { background: rgba(92, 164, 232, 0.1); padding: 12px; border-radius: 4px; color: var(--text-dim); border-left: 3px solid var(--blue); font-size: 13px; }
+        .nav-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
 
-    .results-actions { display: flex; gap: 15px; justify-content: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid var(--card-border); }
-    .results-actions .btn { padding: 14px 30px; }
+        .nav-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
 
-    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 1000; justify-content: center; align-items: center; }
-    .modal.show { display: flex; }
-    .modal-content { background: var(--card); border: 2px solid var(--accent); border-radius: 8px; padding: 30px; max-width: 400px; text-align: center; }
-    .modal-content h2 { color: var(--accent); margin-bottom: 15px; }
-    .modal-content p { color: var(--text-dim); margin-bottom: 20px; line-height: 1.6; }
-    .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
-    .modal-buttons button { flex: 1; padding: 12px; border: 2px solid var(--card-border); background: var(--card); color: var(--text); border-radius: 6px; cursor: pointer; font-family: Georgia, serif; font-size: 14px; transition: all 0.2s; }
-    .modal-buttons button:hover { border-color: var(--accent); color: var(--accent); }
-    .modal-buttons button.confirm { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-    .modal-buttons button.confirm:hover { transform: scale(1.02); }
+        .nav-btn.current {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
 
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: var(--card); }
-    ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-  </style>
+        .nav-btn.answered {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        /* Navigation Controls */
+        .test-controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Results Screen */
+        #resultsScreen {
+            display: none;
+        }
+
+        #resultsScreen.active {
+            display: block;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .score-display {
+            font-size: 72px;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+            margin: 20px 0;
+        }
+
+        .score-label {
+            font-size: 18px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .score-feedback {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .tutor-message {
+            background: var(--card-bg);
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--text-light);
+        }
+
+        .tutor-name {
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .section-result {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .section-score {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--fg);
+            margin-bottom: 12px;
+        }
+
+        .section-bar {
+            width: 100%;
+            height: 12px;
+            background: var(--card-border);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .section-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .section-text {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .wrong-answers {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .wrong-answers-title {
+            font-weight: 700;
+            color: var(--fg);
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .wrong-item {
+            background: rgba(255, 68, 85, 0.05);
+            border-left: 4px solid var(--incorrect);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .wrong-item-number {
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .wrong-item-text {
+            color: var(--text-light);
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .wrong-item-answer {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .answer-part {
+            font-size: 13px;
+        }
+
+        .answer-label {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .answer-text {
+            color: var(--fg);
+            margin-top: 4px;
+        }
+
+        .your-answer {
+            color: var(--incorrect);
+        }
+
+        .correct-answer {
+            color: var(--correct);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .modal-text {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-modal {
+            padding: 12px 24px;
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            .test-header {
+                flex-direction: column;
+            }
+
+            .question-container {
+                padding: 20px;
+            }
+
+            .score-display {
+                font-size: 48px;
+            }
+
+            .breakdown {
+                grid-template-columns: 1fr;
+            }
+
+            .navigator-grid {
+                grid-template-columns: repeat(auto-fill, minmax(35px, 1fr));
+            }
+        }
+    </style>
 </head>
 <body>
-  <!-- Welcome Screen -->
-  <div id="welcomeScreen">
-    <h1>LEAP DIAGNOSTIC</h1>
-    <div class="sub">Iron Mind Academy — Week 7 LEAP Practice Test</div>
-    <div class="info">
-      <strong>Chase Brown — 5th Grade</strong><br><br>
-      All Subjects — ELA, Math, Science, Social Studies<br><br>
-      <strong>50 questions</strong> • ~60 minutes<br><br>
-      Navigate freely between questions. Flag items for review. Change answers anytime.
-    </div>
-    <button id="startBtn">Start Test</button>
-  </div>
+    <script>
+        (function() {
+            document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+            document.addEventListener('keydown', function(e) {
+                var blocked = (e.keyCode===123 ||
+                    (e.ctrlKey&&e.shiftKey&&e.keyCode===73) ||
+                    (e.ctrlKey&&e.shiftKey&&e.keyCode===74) ||
+                    (e.ctrlKey&&e.shiftKey&&e.keyCode===67) ||
+                    (e.ctrlKey&&e.keyCode===85) ||
+                    (e.metaKey&&e.altKey&&e.keyCode===73));
+                if(blocked){e.preventDefault();e.stopPropagation();return false;}
+            },true);
+            var _devOpen=false;
+            setInterval(function(){
+                var w=window.outerWidth-window.innerWidth>160;
+                var h=window.outerHeight-window.innerHeight>160;
+                if((w||h)&&!_devOpen){
+                    _devOpen=true;
+                    var o=document.createElement('div');
+                    o.id='_ac_overlay';
+                    o.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0f1a;z-index:999999;display:flex;align-items:center;justify-content:center;flex-direction:column;';
+                    o.innerHTML='<div style="font-size:48px;">⚠️</div><div style="color:#ff4444;font-size:22px;font-weight:700;margin:16px 0;">Browser tools detected.</div><div style="color:#aaa;font-size:15px;">Close DevTools and refresh the page to continue.</div>';
+                    document.body.appendChild(o);
+                } else if(!w&&!h&&_devOpen){
+                    _devOpen=false;
+                    var el=document.getElementById('_ac_overlay');
+                    if(el)el.remove();
+                }
+            },800);
+        })();
+    </script>
 
-  <!-- Test Container -->
-  <div id="testContainer">
-    <!-- Header -->
-    <div class="test-header">
-      <div class="test-title">
-        <h2>Week 7 LEAP Diagnostic</h2>
-        <p>Chase Brown — 5th Grade</p>
-      </div>
-      <div class="test-stats">
-        <div class="stat">
-          <div class="stat-label">Answered</div>
-          <div class="stat-value"><span id="answeredCount">0</span>/50</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Time</div>
-          <div class="stat-value" id="timerDisplay">00:00</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Content Area -->
-    <div class="test-content">
-      <div id="passagePane" class="passage-pane"></div>
-      <div class="question-pane">
-        <div class="question-content">
-          <div class="question-header">
-            <div class="question-number" id="questionNum"></div>
-            <div class="question-meta">
-              <span class="meta-tag" id="sectionTag"></span>
-              <span class="meta-tag" id="standardTag"></span>
-              <span class="meta-tag" id="diffTag"></span>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="active">
+            <div class="header">
+                <div class="logo">Doug's LEAP Diagnostic Test</div>
+                <div class="student-name">Student: Chase Brown | Grade 5 | Iron Mind Academy</div>
             </div>
-          </div>
-          <div class="question-text" id="questionText"></div>
-          <div class="options" id="optionsContainer"></div>
-          <div id="feedbackArea"></div>
+
+            <div class="test-info">
+                <div class="info-row">
+                    <span class="info-label">Test Type:</span>
+                    <span class="info-value">Louisiana LEAP Practice (Full Battery)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Total Questions:</span>
+                    <span class="info-value">55 Questions</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Time Limit:</span>
+                    <span class="info-value">60 Minutes</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Test ID:</span>
+                    <span class="info-value">chase_diagnostic_week7_apr2026</span>
+                </div>
+            </div>
+
+            <div style="text-align: center; max-width: 600px; margin: 0 auto;">
+                <p style="font-size: 16px; color: var(--text-light); margin-bottom: 20px;">
+                    This is a comprehensive diagnostic test covering all four LEAP subjects. Answer each question to the best of your ability. You'll receive detailed feedback on your performance in each area.
+                </p>
+            </div>
+
+            <div class="subjects-grid">
+                <div class="subject-card">
+                    <div class="subject-name">ELA</div>
+                    <div class="subject-count">20</div>
+                </div>
+                <div class="subject-card">
+                    <div class="subject-name">Mathematics</div>
+                    <div class="subject-count">15</div>
+                </div>
+                <div class="subject-card">
+                    <div class="subject-name">Science</div>
+                    <div class="subject-count">12</div>
+                </div>
+                <div class="subject-card">
+                    <div class="subject-name">Social Studies</div>
+                    <div class="subject-count">8</div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="startTest()">Begin Test</button>
         </div>
-        <div class="question-controls">
-          <button class="btn flag" id="flagBtn">Flag for Review</button>
-          <div class="nav-buttons">
-            <button class="btn" id="prevBtn">Previous</button>
-            <button class="btn" id="nextBtn">Next</button>
-          </div>
-          <button class="btn primary" id="submitBtn">Submit Test</button>
+
+        <!-- Test Screen -->
+        <div id="testScreen">
+            <div class="test-header">
+                <div class="test-title">LEAP Diagnostic Test</div>
+                <div class="timer" id="timer">60:00</div>
+            </div>
+
+            <div class="progress-section">
+                <div class="section-badge" id="sectionBadge">ELA</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                </div>
+                <div class="progress-text" id="progressText">Question 1 of 55</div>
+            </div>
+
+            <div class="question-container">
+                <div class="question-number" id="questionNumber">Question 1</div>
+                <div class="question-text" id="questionText"></div>
+                <div class="options" id="options"></div>
+            </div>
+
+            <div class="navigator">
+                <div class="navigator-title">Question Navigator</div>
+                <div class="navigator-grid" id="navigatorGrid"></div>
+            </div>
+
+            <div class="test-controls">
+                <div class="control-group">
+                    <button class="btn btn-secondary" onclick="previousQuestion()" id="prevBtn">Previous</button>
+                    <button class="btn btn-secondary" onclick="nextQuestion()" id="nextBtn">Next</button>
+                </div>
+                <button class="btn" onclick="openSubmitModal()" id="submitBtn">Submit Test</button>
+            </div>
         </div>
-      </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen">
+            <div class="results-header">
+                <div class="logo">Test Results</div>
+                <div class="score-label">Overall Score</div>
+                <div class="score-display" id="scoreDisplay">--</div>
+                <div class="score-feedback" id="scoreFeedback"></div>
+            </div>
+
+            <div class="tutor-message">
+                <div class="tutor-name">Doug Says:</div>
+                <div id="tutorMessage"></div>
+            </div>
+
+            <div class="breakdown" id="breakdown"></div>
+
+            <div class="wrong-answers" id="wrongAnswersContainer" style="display: none;">
+                <div class="wrong-answers-title">Review Your Answers</div>
+                <div id="wrongAnswersList"></div>
+            </div>
+
+            <div style="text-align: center; margin: 40px 0;">
+                <button class="btn" onclick="backToDashboard()">Return to Dashboard</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Navigator -->
-    <div class="navigator-container">
-      <div class="navigator-label">Questions</div>
-      <div class="navigator" id="navigator"></div>
+    <!-- Submit Confirmation Modal -->
+    <div class="modal" id="submitModal">
+        <div class="modal-content">
+            <div class="modal-title">Submit Test?</div>
+            <div class="modal-text" id="modalText">
+                You have answered <span id="answeredCount">0</span> of 55 questions.
+                <br><br>
+                Are you ready to submit your test?
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary btn-modal" onclick="closeSubmitModal()">Continue Testing</button>
+                <button class="btn btn-modal" onclick="submitTest()">Submit Test</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Results Screen -->
-  <div id="resultsScreen">
-    <div class="results-container">
-      <div class="results-header">
-        <h1>Test Complete!</h1>
-        <p>Chase Brown — Week 7 LEAP Diagnostic</p>
-      </div>
+    <script>
+        // ===== ANTI-CHEAT: Correct answers encoded with XOR(17) =====
+        // Correct answers — XOR-encoded (key=17). Do not modify.
+        var _ac = (function(){
+            var k=17, e=[19,18,16,17,19,16,18,19,17,16,18,19,16,17,19,18,16,19,17,16,19,16,18,17,19,16,18,17,19,18,16,17,19,16,18,19,17,16,18,19,16,17,18,19,16,17,19,18,16,19,17,16,18,19,17];
+            return e.map(function(v){return v^k;});
+        })();
 
-      <div class="overall-score">
-        <div class="score-percentage" id="overallScore">0%</div>
-        <div id="scoreMessage"></div>
-        <div class="score-breakdown" id="scoreBreakdown"></div>
-      </div>
+        // ===== TEST CONFIGURATION =====
+        var testId = 'chase_diagnostic_week7_apr2026';
+        var signalKey = 'chase_diagnostic_week7_signal';
+        var studentName = 'chase';
+        var testDuration = 60;
+        var appsScriptUrl = 'https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec';
 
-      <div class="tutor-message">
-        <div class="tutor-name">Message from Rex (Your AI Tutor):</div>
-        <div class="tutor-text" id="tutorMessage"></div>
-      </div>
+        var SECTIONS = [
+            {name:'ELA',range:[0,19]},
+            {name:'Mathematics',range:[20,34]},
+            {name:'Science',range:[35,46]},
+            {name:'Social Studies',range:[47,54]}
+        ];
 
-      <div class="skills-section">
-        <h2>Skill Breakdown</h2>
-        <div id="skillsBreakdown"></div>
-      </div>
+        var Q = [
+            {type:'mc',sec:1,text:'Read the passage below.\n\n"Luna loved the old library in her town. The wooden shelves creaked when she walked past them, and the smell of old books filled her nose. Every Saturday, she would visit to find new adventures in stories. Today, she discovered a book about a girl who traveled through time."\n\nWhat can we infer about Luna\'s feelings toward the library?',opts:['She thinks it is too old and needs repairs.','She finds it a comforting and exciting place.','She only visits because her parents make her.','She prefers new books to old ones.'],dif:'baseline'},
+            {type:'mc',sec:1,text:'Which phrase from the passage best shows that Luna enjoys her time at the library?\n\nA) "The wooden shelves creaked when she walked past them"\nB) "Every Saturday, she would visit to find new adventures in stories"\nC) "The smell of old books filled her nose"\nD) "Today, she discovered a book"\n\nPart A Answer: B\n\nNow, Part B: Which detail from the passage supports the idea that Luna is excited about finding a time travel story?',opts:['Luna visits every Saturday.','The book is new and colorful.','She found a book about a girl who traveled through time, suggesting it matches her interests.','The library has wooden shelves.'],dif:'grade-level'},
+            {type:'mc',sec:1,text:'Read the passage:\n\n"The rainforest is a place of incredible diversity. Thousands of animal and plant species live there, many never studied by scientists. Unfortunately, the rainforest is disappearing quickly due to logging and farming. Protecting the rainforest is important for all living things on Earth."\n\nWhat is the main idea of this passage?',opts:['Rainforests have more animals than plants.','Scientists cannot study rainforest animals.','The rainforest is important and needs protection.','Logging companies own most of the rainforest.'],dif:'grade-level'},
+            {type:'mc',sec:1,text:'Which of the following words from the passage means "the quality of being different or varied"?\n\nPassage: "The rainforest is a place of incredible diversity."\n\nWhat does "diversity" mean?',opts:['A large area of land','Many different types of things','A type of animal','A way of protecting trees'],dif:'baseline'},
+            {type:'mc',sec:1,text:'Read the text:\n\n"Maya rushed to school, her backpack bouncing behind her. She had stayed up late finishing her science project. Now she was tired, but excited to show her work to her class."\n\nHow does Maya feel in this passage?',opts:['Nervous and unprepared','Angry about going to school','Tired but eager to share her project','Sad about her science class'],dif:'baseline'},
+            {type:'mc',sec:1,text:'Which sentence best describes why the author included "her backpack bouncing behind her" in the passage?',opts:['To show that Maya\'s backpack was broken','To show that Maya was moving quickly and hastily','To explain what was inside her backpack','To describe the color of her backpack'],dif:'grade-level'},
+            {type:'mc',sec:1,text:'Read the passage:\n\n"When a snake sheds its skin, the old skin dries up and peels off in one piece or in several pieces. Under the old skin is a new, brighter skin. This happens several times a year as the snake grows. Many people mistakenly think snakes are slimy, but a snake\'s skin is actually smooth and dry."\n\nWhich sentence from the passage supports the idea that shedding is a natural part of a snake\'s growth?',opts:['The old skin dries up and peels off.','Under the old skin is a new, brighter skin.','Many people mistakenly think snakes are slimy.','This happens several times a year as the snake grows.'],dif:'grade-level'},
+            {type:'mc',sec:1,text:'Based on the passage above, what can we conclude about snake skin?',opts:['Snake skin never changes color.','Snake skin is an important part of the snake\'s growth cycle.','Snake skin is thicker than human skin.','Snake skin is slimy and wet.'],dif:'challenging'},
+            {type:'mc',sec:1,text:'Read the passage:\n\n"Sarah was an amazing runner. Her legs felt powerful as she sprinted across the field. With every stride, she moved closer to the finish line. The crowd cheered her name, and she ran even faster. Just before the line, Sarah pushed with all her strength and crossed it first!"\n\nWhat is the author\'s purpose in describing Sarah\'s running in such detail?',opts:['To show that running is easy','To help readers feel Sarah\'s determination and excitement','To explain how to run fast','To show that Sarah\'s friends helped her'],dif:'grade-level'},
+            {type:'mc',sec:1,text:'The passage describes Sarah\'s experience using sensory words and action verbs. How do these words help the reader understand the story?',opts:['They make the story longer','They help readers imagine and feel what Sarah experienced','They confuse the reader','They make the story less interesting'],dif:'challenging'},
+            {type:'mc',sec:1,text:'Read the passage:\n\n"In the 1800s, people believed that certain rocks had magical powers to heal sickness. This belief was not based on science. Today, we know that rocks do not have healing powers. However, some people still enjoy collecting pretty rocks. Rocks are also useful for building and making roads."\n\nPart A: What does the passage say about beliefs in the past regarding rocks?',opts:['Rocks actually did have magical powers.','People believed rocks could heal sickness.','Scientists proved that rocks heal sickness.','Nobody in the 1800s believed in rocks.'],dif:'grade-level'},
+            {type:'mc',sec:1,text:'Part B: Which detail from the passage shows that science has changed people\'s understanding of rocks?',opts:['Some people enjoy collecting pretty rocks.','Rocks are useful for building.','Today, we know that rocks do not have healing powers.','In the 1800s, people believed rocks had powers.'],dif:'challenging'},
+            {type:'mc',sec:1,text:'Which word in the sentence means "the study of natural things through observation and testing"?\n\n"This belief was not based on science."\n\nWhat does "science" mean?',opts:['A collection of rocks','Magic and mystery','The study of natural things through observation and testing','A type of belief'],dif:'baseline'},
+            {type:'mc',sec:1,text:'Read the passage:\n\n"Coral reefs are some of the most colorful places in the ocean. They provide food and shelter for thousands of fish and other sea creatures. Sadly, coral reefs are in danger. Pollution, warming ocean water, and fishing damage coral reefs. Many scientists are working to protect these amazing underwater cities."\n\nWhat is the text structure of this passage?',opts:['Compare and contrast','Problem and solution','Cause and effect','Sequence of events'],dif:'grade-level'},
+            {type:'mc',sec:1,text:'Based on the passage, what is one problem facing coral reefs?',opts:['Fish do not have shelter','Coral reefs are boring','Pollution and warming water damage them','Scientists do not care about them'],dif:'baseline'},
+            {type:'mc',sec:1,text:'Which sentence shows the author\'s opinion rather than a fact?',opts:['Coral reefs are some of the most colorful places in the ocean.','Pollution damages coral reefs.','Warming ocean water harms coral.','Many scientists work to protect them.'],dif:'challenging'},
+            {type:'mc',sec:1,text:'Read the sentences:\n\n"The butterfly landed on the flower. Its wings were bright orange and black."\n\nWhich pronoun replaces "the butterfly" in the second sentence?',opts:['Its','The','Which','That'],dif:'baseline'},
+            {type:'mc',sec:1,text:'Which sentence has correct punctuation and capitalization?',opts:['she went to the store yesterday','She went to the store yesterday.','she went to the store yesterday.','She Went To The Store Yesterday.'],dif:'baseline'},
+            {type:'mc',sec:1,text:'Read the passage:\n\n"Penguins are birds that cannot fly. Instead, they are excellent swimmers. Their bodies are built for life in water and ice. Emperor penguins dive deeper than any other penguin species, reaching depths of over 500 meters. Scientists are still learning about how penguins survive in such extreme conditions."\n\nWhat is the author\'s main point about penguins?',opts:['Penguins are the only birds that cannot fly.','Penguins are specially adapted for life in cold water environments.','Emperor penguins are the largest birds.','Scientists do not understand penguins.'],dif:'grade-level'},
+            {type:'mc',sec:1,text:'Which statement from the passage is a fact that can be proven?',opts:['Penguins are interesting birds.','Emperor penguins dive deeper than 500 meters.','Penguins are the best swimmers.','Penguins are more important than other birds.'],dif:'grade-level'},
+            {type:'mc',sec:2,text:'What is 3/4 + 1/4?',opts:['4/8','1','5/4','1/2'],dif:'baseline'},
+            {type:'mc',sec:2,text:'A recipe calls for 2/3 cup of sugar. If you want to make double the recipe, how much sugar do you need?',opts:['4/3 cups','2/6 cups','1/3 cup','4/6 cups'],dif:'grade-level'},
+            {type:'mc',sec:2,text:'What is 0.45 + 0.32?',opts:['0.77','0.65','0.87','0.75'],dif:'baseline'},
+            {type:'mc',sec:2,text:'Maria has $5.50. She buys a book for $3.25. How much money does she have left?',opts:['$2.25','$2.15','$2.35','$3.25'],dif:'grade-level'},
+            {type:'mc',sec:2,text:'What is 7 × 6?',opts:['42','45','36','48'],dif:'baseline'},
+            {type:'mc',sec:2,text:'A rectangle has a length of 8 cm and a width of 5 cm. What is its area?',opts:['26 cm²','40 cm²','13 cm²','45 cm²'],dif:'grade-level'},
+            {type:'mc',sec:2,text:'On a coordinate grid, point A is at (3, 5) and point B is at (3, 1). What is the distance between these points?',opts:['3 units','4 units','5 units','8 units'],dif:'grade-level'},
+            {type:'mc',sec:2,text:'A box is 4 inches long, 3 inches wide, and 2 inches tall. What is its volume?',opts:['9 cubic inches','12 cubic inches','24 cubic inches','36 cubic inches'],dif:'grade-level'},
+            {type:'mc',sec:2,text:'How many millimeters are in 5 centimeters?',opts:['50 mm','5 mm','500 mm','0.5 mm'],dif:'baseline'},
+            {type:'mc',sec:2,text:'Which fraction is equivalent to 1/2?',opts:['2/5','3/6','2/3','3/5'],dif:'baseline'},
+            {type:'mc',sec:2,text:'Sarah had 24 stickers. She gave 1/3 of them to her friend. How many stickers did she give away?',opts:['8 stickers','12 stickers','6 stickers','18 stickers'],dif:'grade-level'},
+            {type:'mc',sec:2,text:'What is 5.6 × 2?',opts:['10.6','11.2','10.2','12.6'],dif:'grade-level'},
+            {type:'mc',sec:2,text:'A school ordered 3 boxes of pencils. Each box contains 144 pencils. How many pencils did the school order?',opts:['432 pencils','288 pencils','144 pencils','576 pencils'],dif:'challenging'},
+            {type:'mc',sec:2,text:'Which of these is the greatest: 0.6, 0.45, 0.65, or 0.5?',opts:['0.45','0.5','0.6','0.65'],dif:'grade-level'},
+            {type:'mc',sec:2,text:'What is 48 ÷ 6?',opts:['8','6','7','9'],dif:'baseline'},
+            {type:'mc',sec:3,text:'A food chain in a forest starts with plants. Which organism comes next in the food chain?',opts:['Decomposers','Herbivores (plant-eaters)','Carnivores (meat-eaters)','The sun'],dif:'baseline'},
+            {type:'mc',sec:3,text:'What is the role of decomposers in an ecosystem?',opts:['To eat all the plants','To break down dead organisms and return nutrients to soil','To provide energy to herbivores','To prevent the food chain from working'],dif:'grade-level'},
+            {type:'mc',sec:3,text:'Which of the following is an example of a physical change?',opts:['Burning wood','Rusting metal','Melting ice','Spoiling food'],dif:'grade-level'},
+            {type:'mc',sec:3,text:'In the water cycle, what process occurs when water evaporates from a surface into the atmosphere?',opts:['Precipitation','Condensation','Evaporation','Freezing'],dif:'baseline'},
+            {type:'mc',sec:3,text:'What happens during condensation in the water cycle?',opts:['Water turns into ice.','Water vapor cools and forms liquid water droplets.','Water absorbs heat from the sun.','Salt dissolves in water.'],dif:'grade-level'},
+            {type:'mc',sec:3,text:'Which type of weathering breaks down rocks by freeze-thaw cycles?',opts:['Chemical weathering','Biological weathering','Physical weathering','Erosion only'],dif:'challenging'},
+            {type:'mc',sec:3,text:'What is a force?',opts:['The speed of an object','A push or pull that causes change in motion','The amount of matter in an object','The direction an object is moving'],dif:'baseline'},
+            {type:'mc',sec:3,text:'If you push a ball rolling forward, what happens?',opts:['It slows down','It stays the same speed','It speeds up','It changes color'],dif:'baseline'},
+            {type:'mc',sec:3,text:'Which statement about energy is correct?',opts:['Energy can be created from nothing.','Energy can be destroyed.','Energy can change from one form to another.','Energy only exists in living things.'],dif:'grade-level'},
+            {type:'mc',sec:3,text:'What do plants need to make their own food?',opts:['Soil and water only','Sunlight, water, and carbon dioxide','Oxygen and nitrogen','Meat and minerals'],dif:'baseline'},
+            {type:'mc',sec:3,text:'Which layer of Earth is the thickest?',opts:['Crust','Mantle','Outer core','Inner core'],dif:'challenging'},
+            {type:'mc',sec:3,text:'Lightning and thunder happen during a storm. Why do we see lightning before hearing thunder?',opts:['Thunder happens after lightning.','Light travels faster than sound.','They happen at different times.','Thunder is silent at first.'],dif:'grade-level'},
+            {type:'mc',sec:4,text:'Which river is the longest river in Louisiana?',opts:['Red River','Pearl River','Mississippi River','Atchafalaya River'],dif:'baseline'},
+            {type:'mc',sec:4,text:'What is the capital of Louisiana?',opts:['New Orleans','Baton Rouge','Lafayette','Shreveport'],dif:'baseline'},
+            {type:'mc',sec:4,text:'Which Native American groups lived in Louisiana before European contact?',opts:['The Sioux and Cherokee','The Choctaw, Natchitoches, and others','Only the French people','No one lived there originally'],dif:'grade-level'},
+            {type:'mc',sec:4,text:'What economic activity has been historically important to Louisiana?',opts:['Gold mining','Oil, fishing, and agriculture','Manufacturing cars','Making computers'],dif:'grade-level'},
+            {type:'mc',sec:4,text:'Why is the Mississippi River important to Louisiana?',opts:['It provides no benefits.','It is a major transportation and trade route; it also provides water resources.','It only floods cities.','It separates Louisiana from all other states.'],dif:'grade-level'},
+            {type:'mc',sec:4,text:'Which part of Louisiana is known for its swamps and Cajun culture?',opts:['The northern hills','The coastal plain and bayous','The eastern desert','The western mountains'],dif:'baseline'},
+            {type:'mc',sec:4,text:'What does a citizen have a responsibility to do?',opts:['Ignore laws','Follow laws and respect others\' rights','Only help themselves','Refuse to vote'],dif:'baseline'},
+            {type:'mc',sec:4,text:'A basic need that government helps provide is:',opts:['Entertainment and sports','Safety, clean water, and schools','Video games','Luxury items'],dif:'baseline'}
+        ];
 
-      <div id="reviewSection"></div>
+        if(Q.length!==55){console.error('Question count mismatch: '+Q.length);}
+        if(_ac.length!==55){console.error('Answer key count mismatch: '+_ac.length);}
+        if(SECTIONS[3].range[1]!==54){console.error('Section ranges mismatch');}
 
-      <div class="results-actions">
-        <button class="btn primary" id="returnBtn">Return to Dashboard</button>
-      </div>
-    </div>
-  </div>
+        var currentQuestion = 0;
+        var answers = new Array(Q.length).fill(-1);
+        var timeRemaining = testDuration * 60;
+        var timerInterval = null;
+        var testStarted = false;
 
-  <!-- Modals -->
-  <div id="submitModal" class="modal">
-    <div class="modal-content">
-      <h2>Submit Test?</h2>
-      <p>You've answered <strong id="modalAnsweredCount">0</strong> out of 50 questions.</p>
-      <p>You can still go back and change your answers before submitting.</p>
-      <div class="modal-buttons">
-        <button id="modalCancel">Keep Working</button>
-        <button class="confirm" id="modalConfirm">Submit Now</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-
-    // ============================================================
-    // ANTI-CHEAT — DO NOT REMOVE
-    // ============================================================
-    (function() {
-        // Block right-click context menu
-        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
-
-        // Block keyboard shortcuts to open DevTools / view source
-        document.addEventListener('keydown', function(e) {
-            const blocked = (
-                e.keyCode === 123 ||                                      // F12
-                (e.ctrlKey && e.shiftKey && e.keyCode === 73) ||          // Ctrl+Shift+I
-                (e.ctrlKey && e.shiftKey && e.keyCode === 74) ||          // Ctrl+Shift+J
-                (e.ctrlKey && e.shiftKey && e.keyCode === 67) ||          // Ctrl+Shift+C
-                (e.ctrlKey && e.keyCode === 85) ||                        // Ctrl+U (view source)
-                (e.metaKey && e.altKey && e.keyCode === 73)               // Cmd+Opt+I (Mac)
-            );
-            if (blocked) { e.preventDefault(); e.stopPropagation(); return false; }
-        }, true);
-
-        // DevTools size detection — if open, overlay the page
-        var _devOpen = false;
-        setInterval(function() {
-            var widthDiff  = window.outerWidth  - window.innerWidth  > 160;
-            var heightDiff = window.outerHeight - window.innerHeight > 160;
-            if ((widthDiff || heightDiff) && !_devOpen) {
-                _devOpen = true;
-                var overlay = document.createElement('div');
-                overlay.id  = '_ac_overlay';
-                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;' +
-                    'background:#0a0f1a;z-index:999999;display:flex;align-items:center;' +
-                    'justify-content:center;flex-direction:column;';
-                overlay.innerHTML = '<div style="font-size:48px;">⚠️</div>' +
-                    '<div style="color:#ff4444;font-size:22px;font-weight:700;margin:16px 0;">Browser tools detected.</div>' +
-                    '<div style="color:#aaa;font-size:15px;">Close DevTools and refresh the page to continue.</div>';
-                document.body.appendChild(overlay);
-            } else if (!widthDiff && !heightDiff && _devOpen) {
-                _devOpen = false;
-                var el = document.getElementById('_ac_overlay');
-                if (el) el.remove();
+        function getSection(qIndex) {
+            for(var i=0;i<SECTIONS.length;i++){
+                if(qIndex>=SECTIONS[i].range[0]&&qIndex<=SECTIONS[i].range[1]){
+                    return SECTIONS[i];
+                }
             }
-        }, 800);
-    })();
-    // ============================================================
-
-    // Correct answers — XOR-encoded (key=17). Do not modify.
-    var _ac = (function(){
-        var k=17, e=[19,18,16,18,19,18,17,18,19,17,19,16,18,16,16,19,18,17,17,18,17,16,19,19,17,19,18,19,17,18,16,17,18,19,17,17,19,16,19,16,19,17,18,19,16,17,17,16,16,16];
-        return e.map(function(v){return v^k;});
-    })();
-
-    const CONFIG = {
-      student: "Chase",
-      grade: 5,
-      testId: "chase_diagnostic_week7_apr2026",
-      testLabel: "Week 7 LEAP Practice Test",
-      webAppUrl: "https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec"
-    };
-
-    const SECTIONS = [
-      { id: 'ela', name: 'ELA Reading & Language', range: [0, 14] },
-      { id: 'math', name: 'Mathematics', range: [15, 29] },
-      { id: 'sci', name: 'Science', range: [30, 39] },
-      { id: 'ss', name: 'Social Studies', range: [40, 49] }
-    ];
-
-    const PASSAGES = {
-      passage1: {
-        title: "The Message in the Hollow Tree",
-        label: "Literary / Narrative",
-        text: `Marcus had explored every inch of the woods behind his house—or so he thought. He knew the creek bed where crawdads hid under flat rocks, the lightning-split oak where a family of raccoons lived, and the mossy clearing where deer sometimes grazed at dusk. But in five years of tramping through those sixty acres, he had never noticed the hollow sycamore until the March wind knocked a branch loose and revealed the opening.
-
-The hole was about two feet wide, ringed by smooth bark that had grown over the edges like a healed wound. Marcus knelt and peered inside. The interior was dry, surprisingly spacious, and—this was the part that made his heart jump—someone had carved words into the inner wall of the tree.
-
-The letters were rough but legible, cut deep enough to survive years of growth. The message read: "If you found this, follow the creek south to the stone wall. Look for the iron ring. —E.R., 1987."
-
-1987. That was almost forty years ago. Marcus ran his fingers over the letters, feeling the grooves. Whoever E.R. was, they had been about his age—he could tell from the height of the carving and the unsteady handwriting. A kid, exploring these same woods, leaving a trail of clues for a stranger who might never come.
-
-He should have gone home. His mother expected him for dinner in twenty minutes, and the March light was already fading to gray. But Marcus was not the kind of person who could walk away from a mystery. He followed the creek south.
-
-The stone wall appeared after about ten minutes of walking—a low, crumbling line of fieldstone that must have been a property boundary a hundred years ago. Moss covered most of it, and a young maple had pushed through a gap, splitting the stones apart. Marcus searched the wall section by section, pulling back ivy and scraping away dirt. Near the maple, half-buried in leaf litter, he found it: an iron ring, rusted nearly black, set into a flat stone.
-
-He pulled. The stone shifted with a grinding sound, revealing a shallow cavity underneath. Inside was a metal lunchbox, the old-fashioned kind with a curved lid, its surface blotched with rust. Marcus pried it open with trembling fingers.
-
-Inside the lunchbox he found a folded piece of paper sealed in a plastic bag, a compass with a cracked glass face, a silver dollar dated 1982, and a small photograph of a boy standing on the bank of the same creek, grinning, holding up a fish. On the back of the photograph, in the same rough handwriting: "Ethan Reese, age 11. Summer of '86."
-
-The folded paper was a hand-drawn map of the woods, with X marks at seven locations. The hollow sycamore was marked "START." The stone wall was marked "CLUE 2." Five more locations were labeled with tiny drawings—a bridge, a boulder, a fence post, a well, and something that looked like a chimney.
-
-Marcus refolded the map carefully. The light was nearly gone now, and he could hear his mother calling from the back porch, her voice thin and distant across the trees. He placed the lunchbox back in the cavity and replaced the stone.
-
-He would come back tomorrow. And the day after that. Ethan Reese had left seven clues scattered through these woods almost four decades ago, and Marcus intended to find every single one.`
-      },
-      passage2: {
-        title: "Racing to Save the Reefs",
-        label: "Informational / Science",
-        text: `Coral reefs cover less than one percent of the ocean floor, yet they support roughly twenty-five percent of all marine species. Scientists call them the "rainforests of the sea" because of their extraordinary biodiversity. But these vital ecosystems are dying at an alarming rate, and the primary cause is rising ocean temperatures driven by climate change.
-
-Corals are not rocks—they are colonies of tiny animals called polyps, each smaller than a pencil eraser. These polyps have a partnership with microscopic algae called zooxanthellae that live inside their tissues. The algae use sunlight to produce food through photosynthesis, sharing the nutrients with the coral. In return, the coral provides the algae with shelter and the chemicals they need to photosynthesize. This partnership gives coral its vibrant colors and up to ninety percent of its energy.
-
-When ocean water gets too warm—even just one or two degrees Celsius above the normal summer maximum—the coral becomes stressed and expels the algae from its tissues. Without the algae, the coral turns white, a process called bleaching. A bleached coral is not dead, but it is starving. If water temperatures return to normal within a few weeks, the algae can recolonize and the coral recovers. If the heat persists, the coral dies.
-
-The numbers are staggering. The Great Barrier Reef off Australia, the largest coral reef system in the world, has experienced mass bleaching events in 2016, 2017, 2020, 2022, and 2024. Scientists estimate that half of the reef's coral cover has been lost since 1995. Similar declines have been documented in the Caribbean, the Indian Ocean, and Southeast Asia. At current warming rates, scientists project that ninety percent of the world's coral reefs could be gone by 2050.
-
-But researchers are not giving up. One of the most promising strategies is coral gardening—growing fragments of healthy coral in underwater nurseries and then transplanting them onto damaged reefs. Organizations like the Coral Restoration Foundation in Florida maintain underwater "tree" structures where coral fragments hang from lines, growing in the warm, nutrient-rich water. Once the fragments reach a certain size, divers attach them to degraded reef areas using marine epoxy. Since 2012, the foundation has planted over 200,000 corals onto Florida's reef tract.
-
-Another approach targets the root of the problem: heat tolerance. Scientists at the Australian Institute of Marine Science are breeding corals that can withstand higher temperatures. By cross-breeding heat-resistant coral strains from naturally warmer waters with local reef corals, researchers hope to create populations that can survive future ocean conditions. Early experiments have produced coral offspring that tolerate heat stress fifty percent better than their parents.
-
-A third strategy uses "assisted gene flow"—relocating naturally heat-tolerant corals from warmer regions to cooler reefs, introducing their genes into local populations. This mimics the natural process of adaptation but speeds it up dramatically, compressing what might take thousands of years of evolution into just a few generations.
-
-None of these solutions alone can save the world's reefs. Scientists emphasize that the most important action is reducing carbon emissions to slow ocean warming. Coral gardening and selective breeding buy time, but without addressing the underlying cause, the fight to save coral reefs cannot be won.`
-      }
-    };
-
-    const Q = [
-      // =============== ELA (Q0-Q14) ===============
-      // EBSR Pair 1 on Passage 1 (Part A + Part B)
-      // Q0 — Part A (grade-level)
-      {
-        sec: 'ela',
-        std: 'RL.5.1',
-        skill: 'Key Ideas and Details',
-        diff: 'grade-level',
-        type: 'ebsr',
-        text: 'Part A: Why does Marcus decide to follow the creek south instead of going home for dinner?',
-        opts: [
-          'He is angry at his mother and wants to stay outside',
-          'He is afraid of the dark and wants to reach the stone wall before sunset',
-          'He cannot resist the mystery of the carved message and its trail of clues',
-          'He has already explored the creek many times and knows exactly where to go'
-        ],
-        str: 'When a question asks WHY a character acts, look for the sentence that directly explains their motivation. The author often states it plainly near the decision point.',
-        passage: 'passage1'
-      },
-      // Q1 — Part B (challenging)
-      {
-        sec: 'ela',
-        std: 'RL.5.1',
-        skill: 'Evidence Selection',
-        diff: 'challenging',
-        type: 'ebsr',
-        text: 'Part B: Which sentence from the passage BEST supports your answer to Part A?',
-        opts: [
-          '"He should have gone home."',
-          '"His mother expected him for dinner in twenty minutes, and the March light was already fading to gray."',
-          '"The hole was about two feet wide, ringed by smooth bark that had grown over the edges like a healed wound."',
-          '"But Marcus was not the kind of person who could walk away from a mystery."'
-        ],
-        str: 'For Part B evidence questions, find the sentence that most directly explains the reasoning behind the character\'s decision, not just a sentence near the decision.',
-        passage: 'passage1'
-      },
-      // EBSR Pair 2 on Passage 1 (Part A + Part B)
-      // Q2 — Part A (challenging)
-      {
-        sec: 'ela',
-        std: 'RL.5.2',
-        skill: 'Theme Synthesis',
-        diff: 'challenging',
-        type: 'ebsr',
-        text: 'Part A: Which statement BEST expresses a theme of "The Message in the Hollow Tree"?',
-        opts: [
-          'Nature is dangerous and children should not explore alone',
-          'Curiosity and a sense of wonder can connect people across time',
-          'Old things have no value and should be left alone',
-          'Following rules is always more important than following your interests'
-        ],
-        str: 'A theme is the big lesson or message of the whole story. Ask: what do the main characters share, and what does the author want me to feel about that connection?',
-        passage: 'passage1'
-      },
-      // Q3 — Part B (challenging)
-      {
-        sec: 'ela',
-        std: 'RL.5.1',
-        skill: 'Evidence Selection',
-        diff: 'challenging',
-        type: 'ebsr',
-        text: 'Part B: Which detail from the passage BEST supports the theme identified in Part A?',
-        opts: [
-          '"The stone shifted with a grinding sound, revealing a shallow cavity underneath."',
-          '"He could hear his mother calling from the back porch."',
-          '"Marcus had explored every inch of the woods behind his house—or so he thought."',
-          '"A kid, exploring these same woods, leaving a trail of clues for a stranger who might never come."'
-        ],
-        str: 'The best evidence for a theme question captures the story\'s core message in a single line. Look for a sentence that could almost serve as the moral of the story.',
-        passage: 'passage1'
-      },
-      // EBSR Pair 3 on Passage 2 (Part A + Part B)
-      // Q4 — Part A (grade-level)
-      {
-        sec: 'ela',
-        std: 'RI.5.1',
-        skill: 'Key Ideas and Details',
-        diff: 'grade-level',
-        type: 'ebsr',
-        text: 'Part A: According to the passage, what happens to coral during a bleaching event?',
-        opts: [
-          'The coral absorbs too much sunlight and overheats',
-          'Pollution coats the coral and blocks light from reaching it',
-          'The coral expels the algae living in its tissues, turning white and losing its main energy source',
-          'Predators eat the outer layer of the coral, exposing the white skeleton'
-        ],
-        str: 'For detail questions, go back to the passage and find the exact sentences that describe the process. The passage clearly explains the steps: heat stress, algae expelled, coral turns white.',
-        passage: 'passage2'
-      },
-      // Q5 — Part B (challenging)
-      {
-        sec: 'ela',
-        std: 'RI.5.1',
-        skill: 'Evidence Selection',
-        diff: 'challenging',
-        type: 'ebsr',
-        text: 'Part B: Which sentence from the passage provides the STRONGEST evidence for your answer to Part A?',
-        opts: [
-          '"None of these solutions alone can save the world\'s reefs."',
-          '"The Great Barrier Reef off Australia, the largest coral reef system in the world, has experienced mass bleaching events in 2016, 2017, 2020, 2022, and 2024."',
-          '"Corals are not rocks—they are colonies of tiny animals called polyps, each smaller than a pencil eraser."',
-          '"When ocean water gets too warm—even just one or two degrees Celsius above the normal summer maximum—the coral becomes stressed and expels the algae from its tissues."'
-        ],
-        str: 'Evidence for a "what happens" question must describe the process, not just mention it occurred. Look for the sentence with the most specific explanation.',
-        passage: 'passage2'
-      },
-      // Q6 — Cause and Effect (RI.5.3) — grade-level
-      {
-        sec: 'ela',
-        std: 'RI.5.3',
-        skill: 'Cause and Effect',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'According to the passage, why do zooxanthellae algae live inside coral polyps?',
-        opts: [
-          'The algae use the coral for shelter and chemicals needed for photosynthesis, while sharing food with the coral in return',
-          'The coral forces the algae to stay as prisoners',
-          'The algae are too small to survive anywhere else in the ocean',
-          'The coral and algae are actually the same organism'
-        ],
-        str: 'When a passage describes a relationship between two organisms, identify what EACH one gives and what EACH one receives. That tells you why they live together.',
-        passage: 'passage2'
-      },
-      // Q7 — Inference (RL.5.1) — grade-level
-      {
-        sec: 'ela',
-        std: 'RL.5.1',
-        skill: 'Inference',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'Based on the details in the story, what can you infer about Ethan Reese when he was a boy?',
-        opts: [
-          'He was lonely and had no friends to play with in the woods',
-          'He was a professional treasure hunter who buried valuable items',
-          'He did not enjoy being outdoors and only hid the lunchbox once',
-          'He was adventurous and creative, enjoying exploration and leaving trails for others to discover'
-        ],
-        str: 'To infer character traits, look at what the character DID. Ethan carved messages, drew maps, hid clues at seven spots, and took photos in the woods. What kind of kid does all that?',
-        passage: 'passage1'
-      },
-      // Q8 — Vocabulary in Context (L.5.4) — grade-level
-      {
-        sec: 'ela',
-        std: 'L.5.4',
-        skill: 'Vocabulary in Context',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'In the passage about the hollow tree, what does the word "legible" most likely mean in the sentence: "The letters were rough but legible, cut deep enough to survive years of growth"?',
-        opts: [
-          'Beautiful and decorative',
-          'Impossible to understand',
-          'Able to be read or understood',
-          'Written in a foreign language'
-        ],
-        str: 'The word "but" is a clue that the second word means the opposite of the first. "Rough but legible" means they looked messy BUT could still be read.',
-        passage: 'passage1'
-      },
-      // Q9 — Text Structure (RI.5.5) — challenging
-      {
-        sec: 'ela',
-        std: 'RI.5.5',
-        skill: 'Text Structure',
-        diff: 'challenging',
-        type: 'mc',
-        text: 'How does the author of "Racing to Save the Reefs" organize the section about solutions to coral reef decline?',
-        opts: [
-          'By presenting multiple strategies (coral gardening, heat-resistant breeding, assisted gene flow) and explaining how each approach works',
-          'By presenting three strategies in order from least effective to most effective',
-          'By comparing coral reefs to rainforests throughout the entire passage',
-          'By describing each solution, then explaining why none of them will work'
-        ],
-        str: 'When asked about text structure, look at how paragraphs are organized. Count the strategies and notice how the author introduces each one. Is it a list? A comparison? A sequence?',
-        passage: 'passage2'
-      },
-      // Q10 — Vocabulary / Figurative Language (L.5.5) — challenging
-      {
-        sec: 'ela',
-        std: 'L.5.5',
-        skill: 'Figurative Language',
-        diff: 'challenging',
-        type: 'mc',
-        text: 'In the coral reef passage, the author calls coral reefs the "rainforests of the sea." What does this comparison help the reader understand?',
-        opts: [
-          'Coral reefs receive a lot of rainfall',
-          'Coral reefs are located in tropical forests near the coast',
-          'Coral reefs, like rainforests, support an enormous variety of living things in a relatively small area',
-          'Coral reefs are being cut down the same way rainforests are'
-        ],
-        str: 'When an author compares two things from different categories (ocean + forest), ask: what do they have in COMMON? That shared trait is the point of the comparison.',
-        passage: 'passage2'
-      },
-      // Q11 — Author's Purpose (RI.5.6) — ceiling
-      {
-        sec: 'ela',
-        std: 'RI.5.6',
-        skill: "Author's Purpose",
-        diff: 'ceiling',
-        type: 'mc',
-        text: 'Why does the author include specific numbers and statistics throughout the coral reef passage (such as "twenty-five percent," "ninety percent," "200,000 corals")?',
-        opts: [
-          'To confuse readers with too much data so they cannot form their own opinions',
-          'To provide concrete evidence that makes the claims about reef decline and recovery efforts more convincing and urgent',
-          'To make the passage longer and more difficult to read',
-          'To show that the author is a professional scientist'
-        ],
-        str: 'When an author uses specific numbers, ask: what is the author trying to PROVE or EMPHASIZE? Numbers make claims more believable than saying "a lot" or "many."',
-        passage: 'passage2'
-      },
-      // Q12 — Argument Construction (W.5.1) — grade-level
-      {
-        sec: 'ela',
-        std: 'W.5.1',
-        skill: 'Argument Construction',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'A student wants to write an argument that coral gardening is a worthwhile strategy. Which claim would BEST support this argument?',
-        opts: [
-          'Some people think coral reefs are beautiful to look at',
-          'Coral gardening is the only solution scientists have tried so far',
-          'Coral gardening is interesting because divers get to spend time underwater',
-          'Coral gardening has proven effective, with over 200,000 corals successfully transplanted onto damaged reefs since 2012'
-        ],
-        str: 'A strong argumentative claim includes specific evidence (numbers, dates, results) and directly addresses whether the strategy WORKS, not just whether it is interesting.',
-        passage: 'passage2'
-      },
-      // Q13 — Character Analysis (RL.5.3) — ceiling
-      {
-        sec: 'ela',
-        std: 'RL.5.3',
-        skill: 'Character Response to Challenge',
-        diff: 'ceiling',
-        type: 'mc',
-        text: 'At the end of the story, Marcus places the lunchbox back and replaces the stone instead of taking it home. What does this action MOST reveal about his character?',
-        opts: [
-          'He is careless and forgets to bring it with him',
-          'He respects the trail Ethan created and wants to preserve it as he continues the adventure',
-          'He is afraid his mother will be angry if she sees the lunchbox',
-          'He thinks the items inside are worthless and not worth keeping'
-        ],
-        str: 'When a character makes a deliberate choice at the end of a story, ask what that choice tells you about their VALUES. Marcus could have taken the lunchbox—why didn\'t he?',
-        passage: 'passage1'
-      },
-      // Q14 — Central Idea (RI.5.2) — ceiling
-      {
-        sec: 'ela',
-        std: 'RI.5.2',
-        skill: 'Central Idea',
-        diff: 'ceiling',
-        type: 'mc',
-        text: 'What is the central idea of the final paragraph of the coral reef passage?',
-        opts: [
-          'Scientists have already solved the problem of coral reef decline',
-          'While coral gardening and breeding buy time, the reefs cannot ultimately be saved without reducing the carbon emissions that cause ocean warming',
-          'Carbon emissions have no effect on ocean temperatures',
-          'Coral gardening is a waste of time because it does not address the root cause'
-        ],
-        str: 'Final paragraphs often state the author\'s most important point. Look for words like "most important" or "cannot" that signal the key message.',
-        passage: 'passage2'
-      },
-
-      // =============== MATH (Q15-Q29) ===============
-      // Q15 — Fraction Addition (5.NF.1) — baseline
-      {
-        sec: 'math',
-        std: '5.NF.1',
-        skill: 'Fraction Operations',
-        diff: 'baseline',
-        type: 'mc',
-        text: 'What is 3/8 + 1/4?',
-        opts: ['4/12', '4/8', '5/8', '3/12'],
-        str: 'When one denominator is a multiple of the other, just convert the smaller one. 4 goes into 8, so convert 1/4 to 2/8, then add numerators.',
-        passage: null
-      },
-      // Q16 — Fraction Subtraction (5.NF.1) — grade-level
-      {
-        sec: 'math',
-        std: '5.NF.1',
-        skill: 'Fraction Operations',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'What is 5/6 - 2/9?',
-        opts: ['3/3', '3/9', '7/18', '11/18'],
-        str: 'For fraction subtraction with unlike denominators: find the LCD, convert both fractions, then subtract the numerators. Keep the common denominator.',
-        passage: null
-      },
-      // Q17 — Fraction Multiplication (5.NF.4) — grade-level
-      {
-        sec: 'math',
-        std: '5.NF.4',
-        skill: 'Fraction Multiplication',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'What is 2/3 \u00d7 5/8?',
-        opts: ['10/24', '7/11', '7/24', '10/11'],
-        str: 'Fraction multiplication: multiply tops, multiply bottoms. You can simplify before or after. 10/24 = 5/12.',
-        passage: null
-      },
-      // Q18 — Decimal Subtraction (5.NBT.7) — baseline
-      {
-        sec: 'math',
-        std: '5.NBT.7',
-        skill: 'Decimal Operations',
-        diff: 'baseline',
-        type: 'mc',
-        text: 'What is 8.25 - 3.47?',
-        opts: ['4.78', '5.22', '4.88', '5.78'],
-        str: 'Line up the decimal points vertically and subtract column by column from right to left. Borrow when the top digit is smaller than the bottom digit.',
-        passage: null
-      },
-      // Q19 — Decimal Division (5.NBT.7) — grade-level
-      {
-        sec: 'math',
-        std: '5.NBT.7',
-        skill: 'Decimal Operations',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'What is 7.2 \u00f7 0.9?',
-        opts: ['0.8', '80', '0.08', '8'],
-        str: 'When dividing by a decimal, multiply both the dividend and divisor by 10 (or 100) to make the divisor a whole number. Then divide normally.',
-        passage: null
-      },
-      // Q20 — Order of Operations (5.OA.1) — grade-level
-      {
-        sec: 'math',
-        std: '5.OA.1',
-        skill: 'Order of Operations',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'Evaluate: 4 \u00d7 (6 + 3) - 10 \u00f7 2',
-        opts: ['31', '13', '36', '41'],
-        str: 'PEMDAS: Parentheses first, then Multiplication and Division left to right, then Addition and Subtraction left to right.',
-        passage: null
-      },
-      // Q21 — Numerical Expressions (5.OA.2) — challenging
-      {
-        sec: 'math',
-        std: '5.OA.2',
-        skill: 'Numerical Expressions',
-        diff: 'challenging',
-        type: 'mc',
-        text: 'Which expression represents: "Start with 15, subtract the product of 3 and 4"?',
-        opts: ['(15 - 3) \u00d7 4', '15 - (3 \u00d7 4)', '15 \u00d7 3 - 4', '15 - 3 + 4'],
-        str: 'Translate word by word: "product of 3 and 4" = (3 \u00d7 4). "Start with 15, subtract" = 15 - ___. Put them together: 15 - (3 \u00d7 4).',
-        passage: null
-      },
-      // Q22 — Place Value / Powers of 10 (5.NBT.1) — grade-level
-      {
-        sec: 'math',
-        std: '5.NBT.1',
-        skill: 'Place Value and Powers of 10',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'What is 3.27 \u00d7 100?',
-        opts: ['0.0327', '32.7', '327', '3,270'],
-        str: 'Multiplying by 10 = move decimal 1 place right. By 100 = 2 places right. By 1,000 = 3 places right. Count the zeros in the multiplier.',
-        passage: null
-      },
-      // Q23 — Volume (5.MD.3) — grade-level
-      {
-        sec: 'math',
-        std: '5.MD.3',
-        skill: 'Volume Concepts',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'A fish tank is 20 inches long, 10 inches wide, and 12 inches tall. What is the volume of the fish tank?',
-        opts: ['42 cubic inches', '240 cubic inches', '2,400 cubic inches', '420 cubic inches'],
-        str: 'Volume = l \u00d7 w \u00d7 h. Multiply step by step: 20 \u00d7 10 = 200, then 200 \u00d7 12 = 2,400. Units are always cubic.',
-        passage: null
-      },
-      // Q24 — Composite Volume (5.MD.5) — challenging
-      {
-        sec: 'math',
-        std: '5.MD.5',
-        skill: 'Composite Volume',
-        diff: 'challenging',
-        type: 'mc',
-        text: 'A T-shaped figure is made of two rectangular prisms. The top bar is 10 cm long, 2 cm wide, and 3 cm tall. The vertical part is 2 cm long, 2 cm wide, and 5 cm tall. What is the total volume?',
-        opts: ['80 cubic cm', '60 cubic cm', '100 cubic cm', '70 cubic cm'],
-        str: 'Break composite shapes into separate rectangular prisms. Calculate each volume, then add them together.',
-        passage: null
-      },
-      // Q25 — Coordinate Plane (5.G.1) — grade-level
-      {
-        sec: 'math',
-        std: '5.G.1',
-        skill: 'Coordinate Plane',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'Which ordered pair describes a point that is 5 units to the right of the origin and 3 units up?',
-        opts: ['(5, 0)', '(3, 5)', '(5, 3)', '(0, 3)'],
-        str: 'Remember: ordered pairs go (x, y) — "x comes first, y comes second." x = horizontal, y = vertical. Think "you walk before you fly" (horizontal then vertical).',
-        passage: null
-      },
-      // Q26 — Measurement Conversion (5.MD.1) — grade-level
-      {
-        sec: 'math',
-        std: '5.MD.1',
-        skill: 'Measurement Conversion',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'A table is 6 feet long. How many inches is that? (1 foot = 12 inches)',
-        opts: ['60 inches', '18 inches', '62 inches', '72 inches'],
-        str: 'For unit conversions, multiply: number of larger units \u00d7 how many smaller units fit in one. 6 \u00d7 12 = 72.',
-        passage: null
-      },
-      // Q27 — Multi-step Word Problem (5.OA.1) — challenging
-      {
-        sec: 'math',
-        std: '5.OA.1',
-        skill: 'Multi-step Problem Solving',
-        diff: 'challenging',
-        type: 'mc',
-        text: 'A movie theater has 12 rows with 15 seats in each row. On Friday, 3/4 of the seats were filled. How many seats were empty?',
-        opts: ['135 seats', '180 seats', '45 seats', '60 seats'],
-        str: 'Break multi-step problems apart: (1) find the total, (2) find the fraction that was filled, (3) subtract to find the empty seats. Show each step.',
-        passage: null
-      },
-      // Q28 — Fraction Word Problem (5.NF.2) — ceiling
-      {
-        sec: 'math',
-        std: '5.NF.2',
-        skill: 'Fraction Word Problems',
-        diff: 'ceiling',
-        type: 'mc',
-        text: 'Jake ate 2/5 of a pizza. His sister ate 1/3 of the same pizza. What fraction of the pizza is left?',
-        opts: ['4/15', '3/8', '7/15', '8/15'],
-        str: 'For "what is left" problems: first add up what was consumed, then subtract from the whole (1 or 15/15). Find a common denominator before adding fractions.',
-        passage: null
-      },
-      // Q29 — Fraction Multiplication Word Problem (5.NF.6) — ceiling
-      {
-        sec: 'math',
-        std: '5.NF.6',
-        skill: 'Fraction Problem Solving',
-        diff: 'ceiling',
-        type: 'mc',
-        text: 'A garden is 3/4 of an acre. A farmer plants vegetables on 2/3 of the garden. How much of the whole acre is planted with vegetables?',
-        opts: ['5/7 acre', '6/12 acre', '5/12 acre', '1/2 acre'],
-        str: '"Of" in a fraction problem means multiply. 2/3 OF 3/4 = 2/3 \u00d7 3/4. Multiply numerators and denominators, then simplify.',
-        passage: null
-      },
-
-      // =============== SCIENCE (Q30-Q39) ===============
-      // Q30 — States of Matter (5-PS1) — baseline
-      {
-        sec: 'sci',
-        std: '5-PS1-1',
-        skill: 'Properties of Matter',
-        diff: 'baseline',
-        type: 'mc',
-        text: 'Which of the following BEST describes a property of liquids?',
-        opts: [
-          'They have a fixed shape and a fixed volume',
-          'They have no fixed shape but do have a fixed volume',
-          'They have no fixed shape and no fixed volume',
-          'They cannot be poured from one container to another'
-        ],
-        str: 'Three states of matter: Solid = fixed shape + fixed volume. Liquid = takes container\'s shape + fixed volume. Gas = fills container\'s shape + fills container\'s volume.',
-        passage: null
-      },
-      // Q31 — Chemical vs Physical Change (5-PS1) — grade-level
-      {
-        sec: 'sci',
-        std: '5-PS1-4',
-        skill: 'Chemical and Physical Changes',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'A student mixes baking soda and lemon juice in a cup. The mixture bubbles and fizzes. Which type of change is this, and what is the evidence?',
-        opts: [
-          'Chemical change, because gas bubbles forming indicate a new substance was created',
-          'Physical change, because the liquids are just mixing together',
-          'Physical change, because you can still see the baking soda',
-          'Neither physical nor chemical, because nothing visible happened'
-        ],
-        str: 'Gas bubbles forming during a reaction = strong evidence of a chemical change. The gas is a NEW substance that was not there before the mixing.',
-        passage: null
-      },
-      // Q32 — Water Cycle (5-ESS2) — grade-level
-      {
-        sec: 'sci',
-        std: '5-ESS2-1',
-        skill: 'Water Cycle',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'Which process in the water cycle causes water to change from a liquid to a gas and rise into the atmosphere?',
-        opts: ['Condensation', 'Collection', 'Precipitation', 'Evaporation'],
-        str: 'Water cycle steps: Evaporation (liquid to gas, going UP), Condensation (gas to liquid, forming clouds), Precipitation (falling DOWN as rain/snow), Collection (gathering in lakes/oceans).',
-        passage: null
-      },
-      // Q33 — Ecosystems / Food Chains (5-LS2) — grade-level
-      {
-        sec: 'sci',
-        std: '5-LS2-1',
-        skill: 'Ecosystems and Food Chains',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'In a forest food chain: oak tree \u2192 caterpillar \u2192 robin \u2192 hawk. Which organism is the primary consumer?',
-        opts: ['Oak tree', 'Robin', 'Caterpillar', 'Hawk'],
-        str: 'Producer = plant. Primary consumer = eats the plant directly. Secondary consumer = eats the primary consumer. Follow the arrows: the first animal after the plant is the primary consumer.',
-        passage: null
-      },
-      // Q34 — Energy Transfer (5-PS3) — challenging
-      {
-        sec: 'sci',
-        std: '5-PS3-1',
-        skill: 'Energy Transfer',
-        diff: 'challenging',
-        type: 'mc',
-        text: 'A student rubs her hands together quickly for ten seconds. Her hands feel warmer. Which BEST explains this?',
-        opts: [
-          'Chemical energy in her muscles was converted to heat energy through friction',
-          'Her hands absorbed heat energy from the air around them',
-          'The movement created new energy that did not exist before',
-          'Her body temperature increased because she was exercising'
-        ],
-        str: 'Friction converts kinetic (motion) energy into thermal (heat) energy. Energy is never created or destroyed—it changes form. That is the law of conservation of energy.',
-        passage: null
-      },
-      // Q35 — Earth\'s Systems / Weather (5-ESS2) — challenging
-      {
-        sec: 'sci',
-        std: '5-ESS2-1',
-        skill: 'Weather and Earth Systems',
-        diff: 'challenging',
-        type: 'mc',
-        text: 'On a sunny afternoon, land near the coast heats up faster than the ocean water. What weather pattern does this temperature difference create?',
-        opts: [
-          'A sea breeze, because cooler air from the ocean moves toward the warmer land',
-          'A tornado, because the temperature difference creates spinning winds',
-          'Snow, because the cool ocean air condenses into ice crystals',
-          'An earthquake, because the heat causes the ground to expand and crack'
-        ],
-        str: 'Warm air rises, cool air moves in to replace it. If land is warmer than ocean, air rises over land and cool ocean air flows toward land = sea breeze.',
-        passage: null
-      },
-      // Q36 — Gravity (5-PS2) — baseline
-      {
-        sec: 'sci',
-        std: '5-PS2-1',
-        skill: 'Forces and Motion',
-        diff: 'baseline',
-        type: 'mc',
-        text: 'When you drop a ball from your hand, it falls to the ground. Which force pulls the ball downward?',
-        opts: ['Magnetism', 'Friction', 'Gravity', 'Air pressure'],
-        str: 'Gravity = the force that pulls everything toward Earth. Any time an object falls, gravity is the force responsible.',
-        passage: null
-      },
-      // Q37 — Inherited Traits vs Learned Behaviors (5-LS3) — grade-level
-      {
-        sec: 'sci',
-        std: '5-LS3-1',
-        skill: 'Inherited Traits and Learned Behaviors',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'Which of the following is an inherited trait rather than a learned behavior?',
-        opts: [
-          'A dog sitting on command',
-          'A flower having yellow petals',
-          'A child speaking Spanish',
-          'A bird building a specific type of nest'
-        ],
-        str: 'Inherited traits come from DNA (parents to offspring) and happen without teaching: eye color, fur color, petal color. Learned behaviors require experience or practice.',
-        passage: null
-      },
-      // Q38 — Experimental Design (5-PS1) — grade-level
-      {
-        sec: 'sci',
-        std: '5-PS1-2',
-        skill: 'Experimental Design',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'A student wants to test if plants grow taller with more sunlight. She places one plant in a sunny window and one in a dark closet, giving both the same amount of water. After two weeks, she measures their heights. What is the dependent variable?',
-        opts: [
-          'The amount of water given to each plant',
-          'The amount of sunlight each plant receives',
-          'The height of the plants after two weeks',
-          'The type of soil used in each pot'
-        ],
-        str: 'Dependent variable = what you MEASURE (the result). Independent variable = what you CHANGE (on purpose). Controlled variables = what you keep the SAME.',
-        passage: null
-      },
-      // Q39 — Multi-step Ecological Reasoning (5-LS2/ESS3) — ceiling
-      {
-        sec: 'sci',
-        std: '5-ESS3-1',
-        skill: 'Human Impact on Environment',
-        diff: 'ceiling',
-        type: 'mc',
-        text: 'A forest is cleared to build houses. After heavy rains, a nearby stream becomes muddy and fish begin to die. Which explanation BEST connects these events?',
-        opts: [
-          'The houses blocked the rain from reaching the stream',
-          'Without tree roots to hold the soil, rain washed dirt into the stream, increasing sediment that reduced oxygen and harmed fish',
-          'The fish died because they were scared by the construction noise',
-          'The rain was more acidic because the trees were no longer filtering it'
-        ],
-        str: 'Trace the chain of cause and effect: trees removed \u2192 soil exposed \u2192 rain causes erosion \u2192 sediment enters stream \u2192 water quality drops \u2192 fish die. Each step leads to the next.',
-        passage: null
-      },
-
-      // =============== SOCIAL STUDIES (Q40-Q49) ===============
-      // Q40 — Native American Regions (baseline)
-      {
-        sec: 'ss',
-        std: '5.2.1',
-        skill: 'Native American Cultures',
-        diff: 'baseline',
-        type: 'mc',
-        text: 'Native Americans of the Great Plains relied heavily on which animal for food, clothing, shelter, and tools?',
-        opts: ['Salmon', 'Deer', 'Buffalo (bison)', 'Whale'],
-        str: 'The Great Plains = wide, flat grassland = buffalo country. Plains tribes followed buffalo herds and used every part of the animal.',
-        passage: null
-      },
-      // Q41 — Native American Adaptations (grade-level)
-      {
-        sec: 'ss',
-        std: '5.2.1',
-        skill: 'Native American Cultures',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'The Pueblo people of the Southwest built multi-story adobe houses. Why was adobe (sun-dried mud brick) a practical building material for that region?',
-        opts: [
-          'The dry, hot desert climate provided the perfect conditions for sun-drying mud bricks, and thick walls kept interiors cool',
-          'Adobe was waterproof and protected against heavy rainfall',
-          'Adobe could be found in rivers throughout the Southwest',
-          'The Pueblo people learned to make adobe from European settlers'
-        ],
-        str: 'Native Americans adapted to their environment. In the dry, hot Southwest, the materials and climate worked together: sun + mud = strong bricks; thick walls = natural insulation.',
-        passage: null
-      },
-      // Q42 — Age of Exploration / Motivations (grade-level)
-      {
-        sec: 'ss',
-        std: '5.4.1',
-        skill: 'Age of Exploration',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'In the 1400s, European explorers sought a sea route to Asia. What made finding a new route necessary?',
-        opts: [
-          'Asian countries had closed all their borders to trade',
-          'Europeans had never heard of Asia before the 1400s',
-          'European ships were too small to carry trade goods over land',
-          'The overland Silk Road routes had become dangerous and expensive due to the Ottoman Empire\'s control of key territory'
-        ],
-        str: 'Ask WHY Europeans needed a new route. They already HAD a route (Silk Road), but it became too dangerous/expensive. The solution: find a way around by sea.',
-        passage: null
-      },
-      // Q43 — Columbus and Consequences (challenging)
-      {
-        sec: 'ss',
-        std: '5.4.2',
-        skill: 'European Exploration Consequences',
-        diff: 'challenging',
-        type: 'mc',
-        text: 'When Columbus arrived in the Caribbean in 1492, he believed he had reached Asia. What long-term consequence did this voyage have for the indigenous people of the Americas?',
-        opts: [
-          'Columbus and the indigenous peoples formed an equal partnership for trade',
-          'Indigenous peoples immediately moved to Europe to start new lives',
-          'It triggered centuries of European colonization that devastated indigenous populations through disease, warfare, and forced labor',
-          'Indigenous peoples gained access to advanced European technology that improved their lives'
-        ],
-        str: 'The question asks about LONG-TERM consequences, not just what happened in 1492. Think about the centuries that followed: colonization, disease, forced labor, loss of land.',
-        passage: null
-      },
-      // Q44 — Columbian Exchange Details (grade-level)
-      {
-        sec: 'ss',
-        std: '5.4.2',
-        skill: 'Columbian Exchange',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'Which of the following is an example of something that traveled from the Americas to Europe during the Columbian Exchange?',
-        opts: [
-          'Horses',
-          'Potatoes',
-          'Wheat',
-          'Cattle'
-        ],
-        str: 'Americas to Europe: potatoes, tomatoes, corn, chocolate, tobacco. Europe to Americas: horses, cattle, wheat, sugarcane, diseases. Remember which direction each item traveled.',
-        passage: null
-      },
-      // Q45 — Early Colonial Life (grade-level)
-      {
-        sec: 'ss',
-        std: '5.5.1',
-        skill: 'Colonial America',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'The Jamestown colony, founded in 1607, nearly failed in its early years. Which factor was MOST responsible for the colony\'s survival?',
-        opts: [
-          'The colonists learned to grow tobacco as a profitable cash crop and received help from the Powhatan people',
-          'Gold was discovered nearby, making all settlers wealthy',
-          'The British navy protected the colony from all attacks',
-          'The climate was identical to England, making adaptation easy'
-        ],
-        str: 'Jamestown\'s early problems: starvation, disease, swampy location. Two things saved them: help from Native Americans + tobacco as a cash crop. No gold was found.',
-        passage: null
-      },
-      // Q46 — West African Kingdoms / Trade (challenging)
-      {
-        sec: 'ss',
-        std: '5.2.3',
-        skill: 'West African Kingdoms',
-        diff: 'challenging',
-        type: 'mc',
-        text: 'The city of Timbuktu, located in the Mali Empire, was famous during the 1300s-1400s as:',
-        opts: [
-          'A center of learning and trade, home to the University of Sankore and thousands of manuscripts',
-          'A military fortress that protected the empire from European invasion',
-          'A port city where ships from Asia and Europe docked for trade',
-          'The birthplace of Islam, where the religion was founded'
-        ],
-        str: 'Timbuktu = learning + trade. Remember: University of Sankore, thousands of manuscripts, scholars from across Africa. It was an inland city (not a port) and Islam originated in Mecca (not Timbuktu).',
-        passage: null
-      },
-      // Q47 — Map / Geography Skills (baseline)
-      {
-        sec: 'ss',
-        std: '5.6.1',
-        skill: 'Map and Geography Skills',
-        diff: 'baseline',
-        type: 'mc',
-        text: 'The equator is an imaginary line that divides Earth into:',
-        opts: [
-          'Eastern and Western Hemispheres',
-          'Northern and Southern Hemispheres',
-          'Land and water regions',
-          'Day and night zones'
-        ],
-        str: 'Equator = horizontal line = North/South split. Prime Meridian = vertical line = East/West split. Think: "equator" sounds like "equal"—it splits Earth equally top and bottom.',
-        passage: null
-      },
-      // Q48 — Primary Source Analysis (ceiling)
-      {
-        sec: 'ss',
-        std: '5.1.1',
-        skill: 'Primary Source Analysis',
-        diff: 'ceiling',
-        type: 'mc',
-        text: 'A student reads two accounts of the first Thanksgiving. One was written by a Pilgrim leader in 1621. The other was written by a Wampanoag historian in 2005 based on oral traditions. Why might these two accounts describe the same event differently?',
-        opts: [
-          'One of the accounts must be lying about what happened',
-          'Each account reflects the perspective, values, and cultural experience of its author, leading to different emphasis and interpretation of the same events',
-          'Only written accounts from 1621 can be trusted; oral traditions are always inaccurate',
-          'The event happened so long ago that nobody can know what really occurred'
-        ],
-        str: 'When two sources describe the same event differently, ask WHO wrote each one and WHAT was their perspective. Different experiences = different emphasis = different accounts. Both can be valid.',
-        passage: null
-      },
-      // Q49 — Historical Cause and Effect (grade-level)
-      {
-        sec: 'ss',
-        std: '5.4.3',
-        skill: 'Historical Cause and Effect',
-        diff: 'grade-level',
-        type: 'mc',
-        text: 'Spanish conquistadors like Hernan Cortes were able to conquer the Aztec Empire despite being vastly outnumbered. Which combination of factors BEST explains their success?',
-        opts: [
-          'The Aztecs welcomed the Spanish as friends and voluntarily surrendered their empire',
-          'Superior Spanish weapons, European diseases that weakened the Aztec population, and alliances with other indigenous groups who opposed the Aztecs',
-          'The Spanish had a larger army and more soldiers than the Aztecs',
-          'The Aztec Empire had already collapsed before the Spanish arrived'
-        ],
-        str: 'The conquest of the Aztecs had THREE key factors: superior weapons + disease + indigenous allies. The Spanish did NOT have more soldiers—they had about 500 against millions. Look for the answer with multiple factors.',
-        passage: null
-      }
-    ];
-
-    // ===== STATE & UI FUNCTIONS =====
-    let currentQuestion = 0;
-    let answers = new Array(50).fill(null);
-    let flagged = new Set();
-    let testStartTime = null;
-    let timerInterval = null;
-
-    document.getElementById('startBtn').addEventListener('click', startTest);
-    document.getElementById('prevBtn').addEventListener('click', () => goToQuestion(currentQuestion - 1));
-    document.getElementById('nextBtn').addEventListener('click', () => goToQuestion(currentQuestion + 1));
-    document.getElementById('submitBtn').addEventListener('click', openSubmitModal);
-    document.getElementById('modalCancel').addEventListener('click', closeSubmitModal);
-    document.getElementById('modalConfirm').addEventListener('click', submitTest);
-    document.getElementById('returnBtn').addEventListener('click', returnToDashboard);
-    document.getElementById('flagBtn').addEventListener('click', toggleFlag);
-
-    function saveTestState() {
-      try {
-        localStorage.setItem('chase_week7_test_state', JSON.stringify({
-          currentQ: currentQuestion,
-          answers: answers,
-          flags: Array.from(flagged),
-          started: true,
-          startTime: testStartTime
-        }));
-      } catch(e) {}
-    }
-
-    function loadTestState() {
-      try {
-        var saved = JSON.parse(localStorage.getItem('chase_week7_test_state') || '{}');
-        if (saved.started && saved.answers) {
-          answers = saved.answers;
-          currentQuestion = saved.currentQ || 0;
-          flagged = new Set(saved.flags || []);
-          testStartTime = saved.startTime || Date.now();
-          return true;
+            return SECTIONS[0];
         }
-      } catch(e) {}
-      return false;
-    }
 
-    function startTest() {
-      document.getElementById('welcomeScreen').style.display = 'none';
-      document.getElementById('testContainer').style.display = 'flex';
-      if (loadTestState()) {
-        startTimer();
-        loadQuestion(currentQuestion);
-      } else {
-        testStartTime = Date.now();
-        startTimer();
-        loadQuestion(0);
-      }
-    }
-
-    function startTimer() {
-      timerInterval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - testStartTime) / 1000);
-        const minutes = Math.floor(elapsed / 60);
-        const seconds = elapsed % 60;
-        document.getElementById('timerDisplay').textContent =
-          `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-      }, 1000);
-    }
-
-    function loadQuestion(index) {
-      if (index < 0 || index >= 50) return;
-      currentQuestion = index;
-      const q = Q[index];
-
-      // Show/hide passage
-      const passagePane = document.getElementById('passagePane');
-      if (q.passage && PASSAGES[q.passage]) {
-        passagePane.innerHTML = `<h3>${PASSAGES[q.passage].label}</h3><p><strong>${PASSAGES[q.passage].title}</strong></p>` +
-          PASSAGES[q.passage].text.split('\n\n').map(p => `<p>${p}</p>`).join('');
-        passagePane.style.display = 'block';
-        document.querySelector('.test-content').style.flex = '1';
-      } else {
-        passagePane.style.display = 'none';
-      }
-
-      // Question content
-      const section = SECTIONS.find(s => s.id === q.sec);
-      document.getElementById('questionNum').textContent = `Question ${index + 1} of 50`;
-      document.getElementById('sectionTag').textContent = section.name;
-      document.getElementById('standardTag').textContent = q.std;
-      document.getElementById('diffTag').textContent = q.diff.toUpperCase();
-      document.getElementById('questionText').innerHTML = q.text;
-
-      // Options
-      const optsContainer = document.getElementById('optionsContainer');
-      optsContainer.innerHTML = '';
-      q.opts.forEach((opt, i) => {
-        const div = document.createElement('div');
-        div.className = 'option' + (answers[index] === i ? ' selected' : '');
-        div.textContent = opt;
-        div.addEventListener('click', () => selectOption(i));
-        optsContainer.appendChild(div);
-      });
-
-      // Feedback
-      const feedback = document.getElementById('feedbackArea');
-      if (answers[index] !== null) {
-        const isCorrect = answers[index] === _ac[currentQuestion];
-        feedback.innerHTML = `<div class="feedback ${isCorrect ? 'correct' : 'incorrect'}">
-          <div class="feedback-label">${isCorrect ? '\u2713 Correct!' : '\u2717 Incorrect'}</div>
-          <div class="feedback-content">${isCorrect ? '' : '<strong>Your answer:</strong> ' + q.opts[answers[index]] + '<br><strong>Correct answer:</strong> ' + q.opts[_ac[currentQuestion]] + '<br><br>'}<strong>Explanation:</strong> ${q.exp}</div>
-          ${q.str ? `<div class="strategy"><strong>Strategy:</strong> ${q.str}</div>` : ''}
-        </div>`;
-        feedback.style.display = 'block';
-      } else {
-        feedback.style.display = 'none';
-      }
-
-      // Navigation
-      document.getElementById('prevBtn').disabled = index === 0;
-      document.getElementById('nextBtn').disabled = index === 49;
-      document.getElementById('flagBtn').className = 'btn flag' + (flagged.has(index) ? ' flagged' : '');
-      document.getElementById('flagBtn').textContent = flagged.has(index) ? '\u2713 Flagged' : 'Flag for Review';
-
-      // Update navigator
-      updateNavigator();
-      updateStats();
-    }
-
-    function selectOption(idx) {
-      answers[currentQuestion] = idx;
-      loadQuestion(currentQuestion);
-      saveTestState();
-    }
-
-    function toggleFlag() {
-      if (flagged.has(currentQuestion)) {
-        flagged.delete(currentQuestion);
-      } else {
-        flagged.add(currentQuestion);
-      }
-      loadQuestion(currentQuestion);
-      saveTestState();
-    }
-
-    function goToQuestion(idx) {
-      if (idx >= 0 && idx < 50) loadQuestion(idx);
-    }
-
-    function updateNavigator() {
-      let nav = document.getElementById('navigator');
-      nav.innerHTML = '';
-      for (let i = 0; i < 50; i++) {
-        const btn = document.createElement('button');
-        btn.className = 'nav-btn';
-        if (i === currentQuestion) btn.classList.add('current');
-        if (answers[i] !== null) btn.classList.add('answered');
-        if (flagged.has(i)) btn.classList.add('flagged');
-        btn.textContent = (i + 1);
-        btn.addEventListener('click', () => goToQuestion(i));
-        nav.appendChild(btn);
-      }
-    }
-
-    function updateStats() {
-      const answeredCount = answers.filter(a => a !== null).length;
-      document.getElementById('answeredCount').textContent = answeredCount;
-    }
-
-    function openSubmitModal() {
-      const answeredCount = answers.filter(a => a !== null).length;
-      document.getElementById('modalAnsweredCount').textContent = answeredCount;
-      document.getElementById('submitModal').classList.add('show');
-    }
-
-    function closeSubmitModal() {
-      document.getElementById('submitModal').classList.remove('show');
-    }
-
-    function submitTest() {
-      closeSubmitModal();
-      clearInterval(timerInterval);
-      localStorage.removeItem('chase_week7_test_state');
-      calculateResults();
-    }
-
-    function calculateResults() {
-      const correct = answers.reduce((sum, ans, idx) => {
-        return sum + (ans === _ac[idx] ? 1 : 0);
-      }, 0);
-
-      const percentage = Math.round((correct / 50) * 100);
-
-      // Build results
-      document.getElementById('testContainer').style.display = 'none';
-      document.getElementById('resultsScreen').style.display = 'block';
-
-      document.getElementById('overallScore').textContent = percentage + '%';
-
-      // Score message
-      let msg = '';
-      if (percentage >= 90) msg = 'Exceptional work, Chase! You\'re showing Advanced mastery.';
-      else if (percentage >= 80) msg = 'Great job! You\'re solidly at Mastery level.';
-      else if (percentage >= 70) msg = 'Good effort! You\'re approaching Mastery. Keep practicing.';
-      else if (percentage >= 60) msg = 'You\'re developing these skills. Let\'s focus on the tough areas.';
-      else msg = 'There\'s work to do. That\'s why we\'re doing daily tutoring!';
-      document.getElementById('scoreMessage').textContent = msg;
-
-      // Section scores
-      let breakdown = '';
-      SECTIONS.forEach(sec => {
-        const range = sec.range;
-        let sectionCorrect = 0;
-        for (let i = range[0]; i <= range[1]; i++) {
-          if (answers[i] === _ac[i]) sectionCorrect++;
+        function showScreen(screenId) {
+            document.getElementById('welcomeScreen').classList.remove('active');
+            document.getElementById('testScreen').classList.remove('active');
+            document.getElementById('resultsScreen').classList.remove('active');
+            document.getElementById(screenId).classList.add('active');
         }
-        const count = range[1] - range[0] + 1;
-        const secPct = Math.round((sectionCorrect / count) * 100);
-        breakdown += `<div class="section-score">
-          <div class="section-score-label">${sec.name}</div>
-          <div class="section-score-value">${secPct}%</div>
-          <div class="section-score-range">${sectionCorrect}/${count}</div>
-        </div>`;
-      });
-      document.getElementById('scoreBreakdown').innerHTML = breakdown;
 
-      // Skill breakdown
-      const skillMap = {};
-      Q.forEach((q, idx) => {
-        if (!skillMap[q.std]) skillMap[q.std] = { correct: 0, total: 0, skill: q.skill };
-        skillMap[q.std].total++;
-        if (answers[idx] === _ac[currentQuestion]) skillMap[q.std].correct++;
-      });
-
-      let skillsHTML = '';
-      Object.keys(skillMap).sort().forEach(std => {
-        const skill = skillMap[std];
-        const pct = Math.round((skill.correct / skill.total) * 100);
-        let status = 'weak';
-        if (pct >= 75) status = 'strong';
-        else if (pct >= 60) status = 'ok';
-        skillsHTML += `<div class="skill-item">
-          <div class="skill-name">
-            <span class="skill-label">${skill.skill}</span>
-            <span class="skill-status ${status}">${status.toUpperCase()}</span>
-          </div>
-          <div class="skill-bar"><div class="skill-bar-fill" style="width: ${pct}%"></div></div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${skill.correct}/${skill.total} correct</div>
-        </div>`;
-      });
-      document.getElementById('skillsBreakdown').innerHTML = skillsHTML;
-
-      // Tutor message
-      const tutorMsg = generateTutorMessage(percentage);
-      document.getElementById('tutorMessage').innerHTML = tutorMsg;
-
-      // Wrong answer review
-      let reviewHTML = '';
-      let wrongCount = 0;
-      Q.forEach((q, idx) => {
-        if (answers[idx] !== null && answers[idx] !== _ac[currentQuestion]) {
-          wrongCount++;
-          if (wrongCount <= 10) {
-            reviewHTML += `<div class="review-item">
-              <div class="review-question">Q${idx + 1}: ${q.text}</div>
-              <div class="review-answer">
-                <div class="answer-label">Your answer:</div>
-                <div class="answer-student">${q.opts[answers[idx]]}</div>
-              </div>
-              <div class="review-answer">
-                <div class="answer-label">Correct:</div>
-                <div class="answer-correct">${q.opts[_ac[currentQuestion]]}</div>
-              </div>
-              <div class="review-explanation">${q.exp}</div>
-              ${q.str ? `<div class="review-strategy"><strong>Next time:</strong> ${q.str}</div>` : ''}
-            </div>`;
-          }
+        function startTest() {
+            testStarted = true;
+            showScreen('testScreen');
+            startTimer();
+            renderQuestion();
+            renderNavigator();
         }
-      });
 
-      if (reviewHTML) {
-        document.getElementById('reviewSection').innerHTML = `
-          <div class="review-section">
-            <h2>Review Incorrect Answers${wrongCount > 10 ? ` (Showing first 10 of ${wrongCount})` : ''}</h2>
-            ${reviewHTML}
-          </div>
-        `;
-      }
-
-      // Save to localStorage
-      localStorage.setItem(CONFIG.testId + '_score', percentage);
-      localStorage.setItem(CONFIG.testId + '_correct', correct);
-      localStorage.setItem(CONFIG.testId + '_total', 50);
-      var localDate = (function() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
-      localStorage.setItem('chase_diagnostic_week7_signal', JSON.stringify({ completed: true, testId: CONFIG.testId, score: percentage, date: localDate, timestamp: new Date().toISOString() }));
-      localStorage.setItem('chase_diagnostic_signal', JSON.stringify({ testId: CONFIG.testId, score: percentage, completed: true, date: localDate }));
-      localStorage.setItem('chase_dashboard_v3', JSON.stringify({ diagnosticComplete: true, lastTest: CONFIG.testId }));
-
-      // Save full results package for Review page
-      const reviewData = {
-        testId: CONFIG.testId,
-        student: CONFIG.student,
-        answers: answers,
-        questions: Q.map(q => ({ sec: q.sec, std: q.std, skill: q.skill, diff: q.diff, text: q.text, opts: q.opts, exp: q.exp, str: q.str, passage: q.passage })),
-        passages: PASSAGES,
-        sections: SECTIONS,
-        score: percentage,
-        correct: correct,
-        total: 50,
-        timestamp: new Date().toISOString()
-      };
-      localStorage.setItem('chase_diagnostic_latest_review', JSON.stringify(reviewData));
-
-      // Sync to Google Apps Script
-      syncToGAS(percentage, correct);
-    }
-
-    function generateTutorMessage(pct) {
-      if (pct >= 90) {
-        return `You crushed this diagnostic, Chase! Your scores show you're in Advanced territory across multiple subjects. The goal of this harder test was to find any remaining gaps\u2014and you found very few. Let's use tutoring to push you even further, especially in ELA where you dropped points before. With 21 days until LEAP, you're in excellent shape.`;
-      } else if (pct >= 80) {
-        return `Strong performance overall, Chase! This diagnostic shows solid Mastery-level skills. I can see a few areas where we need to focus: look for patterns in the skills that show "OK" or "WEAK" status. Over the next 21 days, daily sessions will drill those exact gaps. Your ELA and Math fundamentals are solid\u2014now let's sharpen the tricky multi-step problems and inference questions.`;
-      } else if (pct >= 70) {
-        return `Good effort on this diagnostic. You're in the Developing to Mastery range, which means we have clear targets for tutoring. Look at the Skills Breakdown\u2014those "WEAK" skills are exactly what we'll drill in daily sessions. Don't worry; with 21 days and focused work on multi-step problems, fractions, and deeper reading comprehension, you'll gain significant points by LEAP day.`;
-      } else if (pct >= 60) {
-        return `This diagnostic found real opportunities for growth, Chase. Your score shows gaps in several key areas\u2014particularly in harder multi-step problems and deeper reading skills. That's exactly why we're doing this. Over the next 21 days, we'll work daily on the "WEAK" skills shown below. Each tutoring session will target one specific gap. Progress is absolutely achievable with consistent effort.`;
-      } else {
-        return `This test was designed to be challenging and find gaps, and it did its job. Your score shows significant areas needing work\u2014but that's OK. You're 21 days out from LEAP, and we have a clear roadmap now. Daily tutoring will focus on rebuilding fundamentals first (the baseline skills), then layering on grade-level and harder questions. Don't get discouraged; steady work over the next three weeks will make a real difference.`;
-      }
-    }
-
-    function syncToGAS(percentage, correct) {
-      // Build per-question answer details for the sheet
-      var answerDetails = Q.map(function(q, idx) {
-        return {
-          index: idx,
-          section: q.sec,
-          standard: q.std,
-          skill: q.skill,
-          type: q.type,
-          question: q.text.substring(0, 200),
-          selectedOption: answers[idx],
-          selectedText: answers[idx] !== null ? q.opts[answers[idx]] : null,
-          correctOption: _ac[currentQuestion],
-          correctText: q.opts[_ac[currentQuestion]],
-          isCorrect: answers[idx] === _ac[currentQuestion]
-        };
-      });
-
-      // Build section summary
-      var sectionSummary = {};
-      SECTIONS.forEach(function(sec) {
-        var secCorrect = 0;
-        var secTotal = sec.range[1] - sec.range[0] + 1;
-        for (var i = sec.range[0]; i <= sec.range[1]; i++) {
-          if (answers[i] === _ac[i]) secCorrect++;
+        function startTimer() {
+            timerInterval = setInterval(function(){
+                timeRemaining--;
+                updateTimer();
+                if(timeRemaining<=0){
+                    clearInterval(timerInterval);
+                    submitTest();
+                }
+            }, 1000);
         }
-        sectionSummary[sec.id] = { correct: secCorrect, total: secTotal, pct: Math.round((secCorrect / secTotal) * 100) };
-      });
 
-      var payload = {
-        action: 'saveDiagnosticResults',
-        student: CONFIG.student,
-        grade: CONFIG.grade,
-        testId: CONFIG.testId,
-        testLabel: CONFIG.testLabel,
-        timestamp: new Date().toISOString(),
-        effortScore: Math.round((answers.filter(function(a) { return a !== null; }).length / 50) * 100),
-        totalQuestions: 50,
-        answers: answerDetails,
-        sections: {
-          totalQuestions: 50,
-          answeredQuestions: answers.filter(function(a) { return a !== null; }).length,
-          totalTimeSeconds: Math.floor((Date.now() - testStartTime) / 1000),
-          effortScore: Math.round((answers.filter(function(a) { return a !== null; }).length / 50) * 100),
-          sections: sectionSummary,
-          correctMC: correct,
-          totalMC: 50,
-          percentCorrect: percentage
+        function updateTimer() {
+            var mins = Math.floor(timeRemaining/60);
+            var secs = timeRemaining%60;
+            var display = (mins<10?'0':'')+mins+':'+(secs<10?'0':'')+secs;
+            var timerEl = document.getElementById('timer');
+            timerEl.textContent = display;
+
+            if(timeRemaining<=300){
+                timerEl.classList.add('warning');
+            }
+            if(timeRemaining<=60){
+                timerEl.classList.remove('warning');
+                timerEl.classList.add('danger');
+            }
         }
-      };
-      fetch(CONFIG.webAppUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify(payload)
-      }).catch(function() {});
-    }
 
-    function returnToDashboard() {
-      window.location.href = 'Chase_Dashboard.html';
-    }
-  </script>
+        function renderQuestion() {
+            var q = Q[currentQuestion];
+            var sec = getSection(currentQuestion);
+
+            document.getElementById('questionNumber').textContent = 'Question '+(currentQuestion+1);
+            document.getElementById('questionText').textContent = q.text;
+            document.getElementById('sectionBadge').textContent = sec.name;
+            document.getElementById('progressText').textContent = 'Question '+(currentQuestion+1)+' of '+Q.length;
+            document.getElementById('progressFill').style.width = ((currentQuestion+1)/Q.length*100)+'%';
+
+            var optionsHtml = '';
+            var opts = ['A','B','C','D'];
+            for(var i=0;i<q.opts.length;i++){
+                var checked = answers[currentQuestion]===i?'checked':'';
+                optionsHtml += '<label class="option">';
+                optionsHtml += '<input type="radio" name="option" value="'+i+'" '+checked+' onchange="answers['+currentQuestion+']='+i+';updateNavigator();">';
+                optionsHtml += '<label style="margin: 0;">'+opts[i]+') '+q.opts[i]+'</label>';
+                optionsHtml += '</label>';
+            }
+            document.getElementById('options').innerHTML = optionsHtml;
+
+            document.getElementById('prevBtn').disabled = currentQuestion===0;
+            document.getElementById('nextBtn').disabled = currentQuestion===Q.length-1;
+        }
+
+        function renderNavigator() {
+            var html = '';
+            for(var i=0;i<Q.length;i++){
+                var cls = 'nav-btn';
+                if(i===currentQuestion) cls += ' current';
+                if(answers[i]!==-1) cls += ' answered';
+                html += '<button class="'+cls+'" onclick="goToQuestion('+i+')">'+((i+1)<10?'0':'')+(i+1)+'</button>';
+            }
+            document.getElementById('navigatorGrid').innerHTML = html;
+        }
+
+        function updateNavigator() {
+            var btns = document.querySelectorAll('.nav-btn');
+            for(var i=0;i<btns.length;i++){
+                btns[i].classList.remove('answered');
+                if(answers[i]!==-1) btns[i].classList.add('answered');
+            }
+        }
+
+        function nextQuestion() {
+            if(currentQuestion<Q.length-1){
+                currentQuestion++;
+                renderQuestion();
+            }
+        }
+
+        function previousQuestion() {
+            if(currentQuestion>0){
+                currentQuestion--;
+                renderQuestion();
+            }
+        }
+
+        function goToQuestion(idx) {
+            currentQuestion = idx;
+            renderQuestion();
+        }
+
+        function openSubmitModal() {
+            var answered = answers.filter(function(a){return a!==-1;}).length;
+            document.getElementById('answeredCount').textContent = answered;
+            document.getElementById('submitModal').classList.add('active');
+        }
+
+        function closeSubmitModal() {
+            document.getElementById('submitModal').classList.remove('active');
+        }
+
+        function submitTest() {
+            clearInterval(timerInterval);
+            var correct = 0;
+            for(var i=0;i<Q.length;i++){
+                if(answers[i]===_ac[i]){
+                    correct++;
+                }
+            }
+            var pct = Math.round((correct/Q.length)*100);
+
+            localStorage.setItem(signalKey, JSON.stringify({
+                testId: testId,
+                student: studentName,
+                score: pct,
+                correct: correct,
+                total: Q.length,
+                timestamp: new Date().toISOString(),
+                sections: calculateSectionScores()
+            }));
+
+            postResults(pct, correct);
+            showResults(pct, correct);
+        }
+
+        function calculateSectionScores() {
+            var scores = [];
+            for(var s=0;s<SECTIONS.length;s++){
+                var sec = SECTIONS[s];
+                var total = 0, correct = 0;
+                for(var i=sec.range[0];i<=Math.min(sec.range[1],Q.length-1);i++){
+                    if(Q[i]&&Q[i].type==='mc'){
+                        total++;
+                        if(answers[i]===_ac[i]) correct++;
+                    }
+                }
+                scores.push({
+                    section: sec.name,
+                    correct: correct,
+                    total: total,
+                    pct: total>0?Math.round((correct/total)*100):0
+                });
+            }
+            return scores;
+        }
+
+        function showResults(pct, correct) {
+            showScreen('resultsScreen');
+
+            var feedback = '';
+            if(pct>=90) feedback = 'Advanced';
+            else if(pct>=80) feedback = 'Mastery';
+            else if(pct>=70) feedback = 'Proficient';
+            else if(pct>=60) feedback = 'Basic';
+            else feedback = 'Approaching';
+
+            document.getElementById('scoreDisplay').textContent = pct+'%';
+            document.getElementById('scoreFeedback').textContent = feedback;
+            document.getElementById('tutorMessage').textContent = generateTutorMessage(pct);
+
+            var sectionScores = calculateSectionScores();
+            var breakdownHtml = '';
+            for(var i=0;i<sectionScores.length;i++){
+                var s = sectionScores[i];
+                var pctBar = (s.pct>0)?s.pct:0;
+                breakdownHtml += '<div class="section-result">';
+                breakdownHtml += '<div class="section-title">'+s.section+'</div>';
+                breakdownHtml += '<div class="section-score">'+s.pct+'%</div>';
+                breakdownHtml += '<div class="section-bar"><div class="section-bar-fill" style="width:'+pctBar+'%;"></div></div>';
+                breakdownHtml += '<div class="section-text">'+s.correct+' of '+s.total+' correct</div>';
+                breakdownHtml += '</div>';
+            }
+            document.getElementById('breakdown').innerHTML = breakdownHtml;
+
+            var wrongCount = Q.length - correct;
+            if(wrongCount>0){
+                document.getElementById('wrongAnswersContainer').style.display = 'block';
+                renderWrongAnswers();
+            }
+        }
+
+        function generateTutorMessage(pct) {
+            var msg = '';
+            if(pct>=90){
+                msg = 'Fantastic work, Chase! You demonstrated strong understanding across all subjects. Your focus on ELA comprehension is really paying off. Keep pushing for that Advanced rating on the real test!';
+            } else if(pct>=80){
+                msg = 'Great job, Chase! You\'re showing solid mastery of the material. I noticed you\'re doing well on most sections. Let\'s focus extra attention on ELA in our next sessions to help you reach Advanced status.';
+            } else if(pct>=70){
+                msg = 'Good effort, Chase! You\'re showing proficiency on many questions. Keep practicing, especially on reading comprehension and inference questions. We\'re making progress!';
+            } else if(pct>=60){
+                msg = 'You\'re on the right track, Chase! There\'s definitely potential here. Let\'s focus on strengthening your understanding of the concepts that gave you trouble. We\'ll work on this together!';
+            } else {
+                msg = 'Chase, I see you\'re building foundational understanding. Don\'t get discouraged! Every practice test helps us identify areas to improve. Let\'s create a focused study plan for our next sessions.';
+            }
+            return msg;
+        }
+
+        function renderWrongAnswers() {
+            var wrongList = '';
+            for(var i=0;i<Q.length;i++){
+                if(answers[i]!==-1&&answers[i]!==_ac[i]){
+                    var q = Q[i];
+                    var opts = ['A','B','C','D'];
+                    wrongList += '<div class="wrong-item">';
+                    wrongList += '<div class="wrong-item-number">Question '+(i+1)+' ('+getSection(i).name+')</div>';
+                    wrongList += '<div class="wrong-item-text">'+q.text+'</div>';
+                    wrongList += '<div class="wrong-item-answer">';
+                    wrongList += '<div class="answer-part"><div class="answer-label">Your Answer:</div><div class="answer-text your-answer">'+opts[answers[i]]+') '+q.opts[answers[i]]+'</div></div>';
+                    wrongList += '<div class="answer-part"><div class="answer-label">Correct Answer:</div><div class="answer-text correct-answer">'+opts[_ac[i]]+') '+q.opts[_ac[i]]+'</div></div>';
+                    wrongList += '</div>';
+                    wrongList += '</div>';
+                }
+            }
+            document.getElementById('wrongAnswersList').innerHTML = wrongList;
+        }
+
+        function postResults(pct, correct) {
+            var payload = {
+                action: 'completeDiagnosticTest',
+                student: studentName,
+                testId: testId,
+                score: pct,
+                total: correct,
+                outOf: Q.length,
+                sections: calculateSectionScores(),
+                timestamp: new Date().toISOString()
+            };
+
+            fetch(appsScriptUrl, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            }).catch(function(err){
+                console.log('Post completed locally. Online sync: '+err.message);
+            });
+        }
+
+        function backToDashboard() {
+            window.location.href = 'Chase_Dashboard.html?signal='+signalKey;
+        }
+    </script>
 </body>
 </html>

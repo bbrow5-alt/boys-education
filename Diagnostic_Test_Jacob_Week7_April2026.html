@@ -3,37 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LEAP Diagnostic Week 7 - Jacob Brown</title>
+    <title>LEAP Diagnostic Test - Jacob Brown, Week 7</title>
     <style>
         :root {
-            --bg: #0a0f1a;
-            --card: #121a2e;
-            --card-border: #1e2d4a;
+            --bg-dark: #1a1510;
+            --bg-card: #2a2420;
             --accent: #c9a84c;
-            --accent-dim: #1f1a0e;
-            --accent2: #a08432;
-            --success: #4ade80;
-            --error: #f87171;
-            --warning: #fbbf24;
-            --text: #e8e4da;
-            --text-dim: #9a9484;
-            --text-muted: #5e5a52;
-            --blue: #5ca4e8;
-            --blue-dim: #0e1a2d;
+            --text-light: #e8e6e1;
+            --text-muted: #a9a39d;
+            --error: #ff6b6b;
+            --success: #51cf66;
+            --warning: #ffd43b;
+            --border: #3a3430;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: Georgia, serif;
-            background: var(--bg);
-            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
             line-height: 1.6;
-            font-size: 16px;
         }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+
+        /* Screen control */
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* Welcome Screen */
         .welcome-screen {
             display: flex;
             flex-direction: column;
@@ -41,349 +37,389 @@
             justify-content: center;
             min-height: 100vh;
             text-align: center;
-            background: var(--bg);
-            padding: 40px 20px;
         }
-        .welcome-screen h1 {
-            font-size: 3em;
-            color: var(--accent);
+        .welcome-card {
+            background: var(--bg-card);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 500px;
+            margin: 20px;
+        }
+        .logo {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        .welcome-card h1 {
+            font-size: 28px;
             margin-bottom: 10px;
-            font-weight: normal;
-            letter-spacing: 3px;
-            text-shadow: 0 0 30px rgba(201, 168, 76, 0.2);
-        }
-        .welcome-screen .sub {
-            font-size: 1.2em;
-            color: var(--text-dim);
-            margin-bottom: 40px;
-        }
-        .welcome-screen .info {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            padding: 30px 40px;
-            border-radius: 8px;
-            max-width: 520px;
-            margin-bottom: 40px;
-            line-height: 1.8;
-            text-align: center;
-        }
-        .welcome-screen .info strong { color: var(--accent); }
-        .countdown {
             color: var(--accent);
-            font-size: 1.3em;
-            font-weight: bold;
+        }
+        .welcome-card h2 {
+            font-size: 18px;
+            color: var(--text-muted);
             margin-bottom: 30px;
-            padding: 12px 24px;
-            border: 1px solid var(--accent);
-            border-radius: 6px;
-            background: var(--accent-dim);
+            font-weight: normal;
         }
-        .welcome-screen button {
+        .test-info {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .test-info p {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .test-info strong { color: var(--accent); }
+        .test-info .value { color: var(--text-light); }
+
+        /* Buttons */
+        button {
             background: var(--accent);
-            color: var(--bg);
+            color: #000;
             border: none;
-            padding: 15px 40px;
-            font-size: 1.1em;
-            border-radius: 6px;
+            padding: 12px 32px;
+            font-size: 16px;
+            border-radius: 8px;
             cursor: pointer;
-            font-family: Georgia, serif;
-            font-weight: bold;
+            font-weight: 600;
             transition: all 0.3s;
+            margin: 10px;
         }
-        .welcome-screen button:hover {
-            background: var(--text);
+        button:hover {
+            background: #d9b85d;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3);
         }
+        button:active { transform: translateY(0); }
+        button.secondary {
+            background: transparent;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+        }
+        button.secondary:hover {
+            background: rgba(201, 168, 76, 0.1);
+        }
+        button.danger {
+            background: var(--error);
+            color: white;
+        }
+        button.danger:hover {
+            background: #ff5252;
+        }
+
+        /* Test Screen */
         .test-screen {
-            display: none;
-            min-height: 100vh;
+            padding-bottom: 100px;
         }
         .test-header {
-            background: var(--card);
-            border-bottom: 2px solid var(--accent);
-            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 8px;
             margin-bottom: 20px;
-        }
-        .test-header-left {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-        .test-header-right {
-            display: flex;
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
             gap: 15px;
-            align-items: center;
         }
-        .test-header h2 {
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
             color: var(--accent);
-            font-size: 1.3em;
+            min-width: 120px;
         }
+        .timer.warning { color: var(--warning); }
+        .timer.danger { color: var(--error); animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .progress-info {
+            text-align: center;
+            font-size: 14px;
+        }
+        .progress-info strong { color: var(--accent); }
+
+        /* Progress bar */
         .progress-bar {
-            width: 300px;
-            height: 6px;
-            background: var(--card-border);
-            border-radius: 3px;
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
             overflow: hidden;
+            margin: 10px 0;
         }
         .progress-fill {
             height: 100%;
-            background: var(--accent);
-            width: 0%;
+            background: linear-gradient(90deg, var(--accent), #d9b85d);
             transition: width 0.3s;
         }
-        .timer {
-            font-size: 1.2em;
-            color: var(--accent);
-            font-weight: bold;
-            min-width: 60px;
-        }
-        .test-container {
-            display: grid;
-            grid-template-columns: 1fr 2fr 1fr;
-            gap: 20px;
+
+        /* Question card */
+        .question-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
             margin-bottom: 20px;
         }
-        .nav-panel {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
-            padding: 15px;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-        .nav-panel h3 {
+        .question-number {
             color: var(--accent);
+            font-weight: 600;
             margin-bottom: 10px;
-            font-size: 0.9em;
+            font-size: 12px;
         }
-        #navGrid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 5px;
-            margin-bottom: 15px;
+        .question-text {
+            font-size: 18px;
+            margin-bottom: 25px;
+            line-height: 1.8;
+            color: var(--text-light);
         }
-        .nav-btn-small {
-            background: var(--card-border);
-            border: 1px solid #2a3a5a;
-            color: var(--text-dim);
-            padding: 8px;
+        .question-text .passage {
+            background: var(--bg-dark);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin: 15px 0;
             border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85em;
-            transition: all 0.2s;
-            font-family: Georgia, serif;
+            font-style: italic;
+            color: var(--text-muted);
         }
-        .nav-btn-small:hover {
-            background: var(--accent-dim);
-        }
-        .nav-btn-small.answered {
-            background: var(--success);
-            color: var(--bg);
-            border-color: var(--success);
-        }
-        .nav-btn-small.current {
-            background: var(--accent);
-            color: var(--bg);
-            border-color: var(--accent);
-            font-weight: bold;
-        }
-        .nav-btn-small.flagged {
-            border-color: var(--warning);
-            box-shadow: 0 0 4px var(--warning);
-        }
-        .question-panel {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
-            padding: 25px;
-        }
-        .question-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--card-border);
-        }
-        .q-num {
-            font-size: 1.1em;
-            color: var(--accent);
-            font-weight: bold;
-        }
-        .q-meta {
-            display: flex;
-            gap: 15px;
-            font-size: 0.85em;
-        }
-        .badge {
-            background: var(--accent-dim);
-            padding: 4px 8px;
-            border-radius: 4px;
-            color: var(--accent);
-        }
-        .std-code {
-            background: var(--blue-dim);
-            color: var(--blue);
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-        #questionText {
-            font-size: 1.1em;
-            color: var(--text);
-            margin: 20px 0;
-            line-height: 1.7;
-        }
-        #optionsContainer {
+
+        /* Options */
+        .options {
             display: flex;
             flex-direction: column;
             gap: 12px;
-            margin: 20px 0;
+            margin-bottom: 20px;
         }
         .option {
             display: flex;
             align-items: flex-start;
-            padding: 12px;
-            background: var(--card-border);
-            border: 2px solid var(--card-border);
-            border-radius: 6px;
+            gap: 15px;
+            padding: 15px;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
         }
         .option:hover {
-            background: var(--accent-dim);
             border-color: var(--accent);
+            background: rgba(201, 168, 76, 0.05);
+        }
+        .option input[type="radio"] {
+            margin-top: 3px;
+            cursor: pointer;
+            accent-color: var(--accent);
+            width: 20px;
+            height: 20px;
+        }
+        .option label {
+            cursor: pointer;
+            flex: 1;
+            user-select: none;
         }
         .option.selected {
-            background: var(--accent-dim);
             border-color: var(--accent);
+            background: rgba(201, 168, 76, 0.1);
         }
-        .option input {
-            margin-right: 12px;
-            margin-top: 2px;
+        .option.correct {
+            border-color: var(--success);
+            background: rgba(81, 207, 102, 0.1);
+        }
+        .option.incorrect {
+            border-color: var(--error);
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        /* Navigation */
+        .question-nav {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .nav-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .nav-btn {
+            width: 100%;
+            aspect-ratio: 1;
+            padding: 0;
+            font-size: 12px;
+            border-radius: 6px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
             cursor: pointer;
+            transition: all 0.2s;
         }
-        #passagePane {
-            background: var(--accent-dim);
-            border-left: 4px solid var(--accent);
-            padding: 15px;
-            margin: 20px 0;
-            font-size: 0.95em;
-            max-height: 400px;
-            overflow-y: auto;
-            color: var(--text);
-            border-radius: 0 6px 6px 0;
+        .nav-btn:hover { border-color: var(--accent); }
+        .nav-btn.current {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            font-weight: 600;
         }
-        #passagePane h3 {
-            color: var(--accent);
-            margin-bottom: 10px;
-            font-size: 1em;
+        .nav-btn.answered {
+            border-color: var(--success);
+            color: var(--success);
         }
-        #passagePane p {
-            margin-bottom: 10px;
-            line-height: 1.6;
+        .nav-btn.unanswered {
+            border-color: var(--warning);
+            color: var(--warning);
         }
-        .button-row {
+
+        /* Button group */
+        .button-group {
             display: flex;
             gap: 10px;
+            justify-content: space-between;
+            flex-wrap: wrap;
             margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid var(--card-border);
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
         }
-        .btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: Georgia, serif;
-            font-size: 0.95em;
-            transition: all 0.2s;
+        .button-group button { margin: 0; }
+
+        /* Results Screen */
+        .results-screen {
+            min-height: 100vh;
+            padding: 20px 0;
         }
-        .btn-prev {
-            background: var(--card-border);
-            color: var(--text);
+        .results-header {
+            text-align: center;
+            margin-bottom: 40px;
         }
-        .btn-prev:hover:not(:disabled) {
-            background: var(--accent-dim);
-        }
-        .btn-flag {
-            background: var(--warning);
-            color: var(--bg);
-        }
-        .btn-flag:hover {
-            background: #e8aa1d;
-        }
-        .btn-flag.flagged {
-            background: var(--accent);
-        }
-        .btn-next {
-            background: var(--card-border);
-            color: var(--text);
-        }
-        .btn-next:hover:not(:disabled) {
-            background: var(--accent-dim);
-        }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .side-panel {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
-            padding: 15px;
-        }
-        .side-panel h3 {
+        .final-score {
+            font-size: 48px;
+            font-weight: bold;
             color: var(--accent);
             margin-bottom: 10px;
-            font-size: 0.9em;
         }
-        .section-info {
+        .score-message {
+            font-size: 24px;
+            color: var(--text-light);
+            margin-bottom: 30px;
+        }
+        .section-results {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .section-stat {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .section-bar {
+            background: var(--bg-dark);
+            border-radius: 4px;
+            height: 24px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .section-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #d9b85d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .tutor-message {
+            background: var(--bg-card);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .tutor-name {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .tutor-message p {
+            margin-bottom: 10px;
+            line-height: 1.8;
+        }
+
+        .review-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .review-title {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .wrong-item {
+            background: var(--bg-dark);
+            border-left: 4px solid var(--error);
+            padding: 15px;
             margin-bottom: 12px;
-            padding: 10px;
-            background: var(--card-border);
             border-radius: 4px;
         }
-        .submit-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--accent);
-            color: var(--bg);
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: Georgia, serif;
-            font-size: 1em;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: all 0.2s;
+        .wrong-q {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-light);
         }
-        .submit-btn:hover {
-            background: var(--text);
-            transform: translateY(-2px);
+        .wrong-detail {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
         }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
         }
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
         .modal-content {
-            background: var(--card);
+            background: var(--bg-card);
             border: 2px solid var(--accent);
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 30px;
             max-width: 400px;
             text-align: center;
@@ -391,969 +427,527 @@
         .modal-content h2 {
             color: var(--accent);
             margin-bottom: 15px;
+            font-size: 22px;
         }
         .modal-content p {
-            margin-bottom: 20px;
-            color: var(--text-dim);
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            line-height: 1.6;
         }
         .modal-buttons {
             display: flex;
             gap: 10px;
-        }
-        .modal-buttons button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: Georgia, serif;
-            font-size: 1em;
-        }
-        .btn-cancel {
-            background: var(--card-border);
-            color: var(--text);
-        }
-        .btn-confirm {
-            background: var(--accent);
-            color: var(--bg);
-            font-weight: bold;
-        }
-        .results-screen {
-            display: none;
-            background: var(--bg);
-            min-height: 100vh;
-            padding: 30px 20px;
-        }
-        .results-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .results-header h1 {
-            font-size: 2.5em;
-            color: var(--accent);
-            margin-bottom: 10px;
-        }
-        .overall-score {
-            background: var(--card);
-            border: 2px solid var(--accent);
-            padding: 30px;
-            border-radius: 8px;
-            max-width: 600px;
-            margin: 0 auto 30px;
-            text-align: center;
-        }
-        .score-value {
-            font-size: 3em;
-            color: var(--accent);
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        .score-details {
-            color: var(--text-dim);
-            font-size: 1.1em;
-        }
-        .section-scores {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .score-card {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .score-card h3 {
-            color: var(--accent);
-            margin-bottom: 10px;
-        }
-        .score-card .value {
-            font-size: 2em;
-            color: var(--accent);
-            font-weight: bold;
-        }
-        .score-card .details {
-            color: var(--text-dim);
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-        .tutor-message {
-            background: var(--card);
-            border-left: 4px solid var(--accent);
-            padding: 20px;
-            margin-bottom: 30px;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            border-radius: 6px;
-            line-height: 1.7;
-        }
-        .tutor-message strong {
-            color: var(--accent);
-        }
-        .skills-analysis {
-            max-width: 900px;
-            margin: 0 auto 30px;
-        }
-        .skills-analysis h2 {
-            color: var(--accent);
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .skill-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 15px;
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            border-radius: 4px;
-            margin-bottom: 6px;
-            font-size: 0.9em;
-        }
-        .skill-name { flex: 2; color: var(--text); }
-        .skill-std { flex: 1; color: var(--blue); font-size: 0.85em; }
-        .skill-status { flex: 0.5; text-align: right; font-weight: bold; }
-        .skill-strong { color: var(--success); }
-        .skill-ok { color: var(--warning); }
-        .skill-weak { color: var(--error); }
-        .review-header {
-            text-align: center;
-            margin: 40px 0 30px;
-        }
-        .review-header h2 {
-            color: var(--accent);
-            font-size: 1.8em;
-        }
-        .review-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .review-section {
-            margin-bottom: 30px;
-        }
-        .review-section h2 {
-            color: var(--accent);
-            border-bottom: 2px solid var(--accent);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        .question-review {
-            background: var(--card);
-            border-left: 4px solid var(--card-border);
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-        }
-        .question-review.incorrect {
-            border-left-color: var(--error);
-        }
-        .review-q-text {
-            color: var(--text);
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-        .review-row {
-            display: grid;
-            grid-template-columns: 150px 1fr;
-            gap: 15px;
-            margin-bottom: 12px;
-        }
-        .review-label {
-            color: var(--text-dim);
-            font-size: 0.9em;
-        }
-        .review-value {
-            color: var(--text);
-        }
-        .review-value.correct {
-            color: var(--success);
-            font-weight: bold;
-        }
-        .review-value.incorrect {
-            color: var(--error);
-        }
-        .explanation {
-            background: var(--card-border);
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 12px;
-        }
-        .explanation-label {
-            color: var(--accent);
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .explanation-text {
-            color: var(--text-dim);
-            line-height: 1.6;
-        }
-        .strategy {
-            background: var(--accent-dim);
-            padding: 12px;
-            border-radius: 4px;
-        }
-        .strategy-label {
-            color: var(--accent);
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .strategy-text {
-            color: var(--text-dim);
-            line-height: 1.6;
-        }
-        .no-wrong-answers {
-            text-align: center;
-            padding: 40px;
-            background: var(--card);
-            border: 2px solid var(--success);
-            border-radius: 8px;
-            font-size: 1.2em;
-            color: var(--success);
-        }
-        .results-actions {
-            display: flex;
-            gap: 15px;
             justify-content: center;
-            margin: 40px auto;
-            max-width: 500px;
         }
-        .return-btn {
-            display: block;
-            padding: 15px 30px;
-            background: var(--accent);
-            color: var(--bg);
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: Georgia, serif;
-            font-size: 1em;
-            font-weight: bold;
-            text-align: center;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-        .return-btn:hover {
-            background: var(--text);
-            transform: translateY(-2px);
-        }
-        .review-btn {
-            display: block;
-            padding: 15px 30px;
-            background: var(--card-border);
-            color: var(--accent);
-            border: 2px solid var(--accent);
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: Georgia, serif;
-            font-size: 1em;
-            font-weight: bold;
-            text-align: center;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-        .review-btn:hover {
-            background: var(--accent-dim);
-            transform: translateY(-2px);
-        }
-        @media (max-width: 900px) {
-            .test-container {
-                grid-template-columns: 1fr;
-            }
-            .nav-panel { order: 2; }
-            .question-panel { order: 1; }
-            .side-panel { order: 3; }
+        .modal-buttons button { margin: 0; flex: 1; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .question-card { padding: 20px; }
+            .welcome-card { padding: 25px; }
+            .final-score { font-size: 36px; }
+            .nav-grid { grid-template-columns: repeat(auto-fit, minmax(35px, 1fr)); }
         }
     </style>
 </head>
 <body>
-    <div id="welcomeScreen" class="welcome-screen">
-        <h1>THE ARCHIVE</h1>
-        <p class="sub">Week 7 LEAP Diagnostic — Jacob Brown</p>
-        <div class="countdown" id="leapCountdown">21 days until LEAP</div>
-        <div class="info">
-            <p><strong>50 questions</strong> across 4 sections</p>
-            <p style="margin-top: 8px;">ELA Reading & Language (15) | Math (15) | Science (10) | Social Studies (10)</p>
-            <p style="margin-top: 15px; font-size: 0.9em;">This diagnostic tests grade-level and advanced skills aligned to LEAP standards. Your answers save automatically.</p>
-            <p style="margin-top: 15px; font-size: 0.85em; color: var(--text-muted);">Take your time. Read each passage carefully. No calculator for math.</p>
+
+<!-- Anti-cheat protection -->
+<script>
+(function() {
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    document.addEventListener('keydown', function(e) {
+        var blocked = (e.keyCode===123 ||
+            (e.ctrlKey&&e.shiftKey&&e.keyCode===73) ||
+            (e.ctrlKey&&e.shiftKey&&e.keyCode===74) ||
+            (e.ctrlKey&&e.shiftKey&&e.keyCode===67) ||
+            (e.ctrlKey&&e.keyCode===85) ||
+            (e.metaKey&&e.altKey&&e.keyCode===73));
+        if(blocked){e.preventDefault();e.stopPropagation();return false;}
+    },true);
+    var _devOpen=false;
+    setInterval(function(){
+        var w=window.outerWidth-window.innerWidth>160;
+        var h=window.outerHeight-window.innerHeight>160;
+        if((w||h)&&!_devOpen){
+            _devOpen=true;
+            var o=document.createElement('div');
+            o.id='_ac_overlay';
+            o.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0f1a;z-index:999999;display:flex;align-items:center;justify-content:center;flex-direction:column;';
+            o.innerHTML='<div style="font-size:48px;">⚠️</div><div style="color:#ff4444;font-size:22px;font-weight:700;margin:16px 0;">Browser tools detected.</div><div style="color:#aaa;font-size:15px;">Close DevTools and refresh the page to continue.</div>';
+            document.body.appendChild(o);
+        } else if(!w&&!h&&_devOpen){
+            _devOpen=false;
+            var el=document.getElementById('_ac_overlay');
+            if(el)el.remove();
+        }
+    },800);
+})();
+</script>
+
+<div class="container">
+    <!-- Welcome Screen -->
+    <div class="screen welcome-screen active">
+        <div class="welcome-card">
+            <div class="logo">🎓</div>
+            <h1>LEAP Diagnostic Test</h1>
+            <h2>Week 7 Assessment</h2>
+
+            <div class="test-info">
+                <p><strong>Student:</strong> <span class="value">Jacob Brown</span></p>
+                <p><strong>Grade:</strong> <span class="value">6th Grade</span></p>
+                <p><strong>AI Tutor:</strong> <span class="value">Gary</span></p>
+                <p><strong>Duration:</strong> <span class="value">60 minutes</span></p>
+                <p><strong>Total Questions:</strong> <span class="value">55</span></p>
+            </div>
+
+            <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 14px; color: var(--text-muted); line-height: 1.8;">
+                <strong style="color: var(--accent);">Test Structure:</strong><br>
+                • ELA: 15 questions<br>
+                • Mathematics: 20 questions<br>
+                • Science: 12 questions<br>
+                • Social Studies: 8 questions
+            </div>
+
+            <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 14px;">
+                This test assesses your knowledge across all LEAP subjects. Answer each question to the best of your ability. You can navigate between questions and review your answers before submitting.
+            </p>
+
+            <button onclick="startTest()">Begin Test</button>
         </div>
-        <button onclick="startTest()">Enter the Archive</button>
     </div>
 
-    <div id="testScreen" class="test-screen">
+    <!-- Test Screen -->
+    <div class="screen test-screen">
         <div class="test-header">
-            <div class="test-header-left">
-                <h2 id="sectionTitle">Week 7 LEAP Diagnostic</h2>
-                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-            </div>
-            <div class="test-header-right">
-                <div class="timer" id="timerDisplay">00:00</div>
+            <div class="timer" id="timer">60:00</div>
+            <div class="progress-info">
+                Question <strong id="questionNum">1</strong> of <strong id="totalQuestions">55</strong>
             </div>
         </div>
 
-        <div class="test-container">
-            <div class="nav-panel">
-                <h3>Question Navigator</h3>
-                <div id="navGrid"></div>
-                <button class="submit-btn" onclick="showSubmitModal()">Submit Test</button>
-            </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
 
-            <div class="question-panel">
-                <div class="question-header">
-                    <span class="q-num">Question <span id="currentQNum">1</span>/50</span>
-                    <div class="q-meta">
-                        <span class="badge" id="sectionBadge">ELA</span>
-                        <span class="std-code" id="stdCode">RL.6.1</span>
-                        <span style="color: var(--text-muted);">|</span>
-                        <span style="color: var(--text-muted);" id="skillLabel">Skill</span>
-                    </div>
-                </div>
-                <div id="passagePane"></div>
-                <div id="questionText"></div>
-                <div id="optionsContainer"></div>
-                <div class="button-row">
-                    <button class="btn btn-prev" id="prevBtn" onclick="prevQuestion()">&#8592; Previous</button>
-                    <button class="btn btn-flag" id="flagBtn" onclick="toggleFlag()">&#9734; Flag</button>
-                    <button class="btn btn-next" id="nextBtn" onclick="nextQuestion()">Next &#8594;</button>
-                </div>
-            </div>
+        <div class="question-card">
+            <div class="question-number" id="sectionLabel">ELA — Question 1</div>
+            <div class="question-text" id="questionText"></div>
+            <div class="options" id="optionsContainer"></div>
+        </div>
 
-            <div class="side-panel">
-                <h3>Test Info</h3>
-                <div class="section-info" style="font-size: 0.85em;">
-                    <strong>Total Questions:</strong> 50<br>
-                    <strong>Sections:</strong> 4<br>
-                    <strong>Time Limit:</strong> 75 min
-                </div>
-                <div class="section-info" style="font-size: 0.8em; color: var(--text-muted);">
-                    <div id="answeredInfo">Answered: 0 / 50</div>
-                    <div id="flaggedInfo">Flagged: 0</div>
-                </div>
-            </div>
+        <div class="question-nav">
+            <div class="nav-label">Question Navigator</div>
+            <div class="nav-grid" id="navGrid"></div>
+        </div>
+
+        <div class="button-group">
+            <button class="secondary" onclick="previousQuestion()">← Previous</button>
+            <button class="secondary" onclick="nextQuestion()">Next →</button>
+            <button class="danger" onclick="openSubmitModal()">Submit Test</button>
         </div>
     </div>
 
-    <div id="submitModal" class="modal">
-        <div class="modal-content">
-            <h2>Submit Test?</h2>
-            <p>You have answered <span id="answeredCount">0</span> out of 50 questions.</p>
-            <p style="font-size: 0.9em;">Are you ready to submit and view your results?</p>
-            <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeSubmitModal()">Keep Reviewing</button>
-                <button class="btn-confirm" onclick="submitTest()">Submit Test</button>
+    <!-- Results Screen -->
+    <div class="screen results-screen">
+        <div class="container">
+            <div class="results-header">
+                <div class="final-score" id="finalScore">--</div>
+                <div class="score-message" id="scoreMessage"></div>
+            </div>
+
+            <div id="sectionsResults"></div>
+
+            <div class="tutor-message">
+                <div class="tutor-name">💡 Gary (Your AI Tutor)</div>
+                <div id="tutorMessage"></div>
+            </div>
+
+            <div class="review-section" id="reviewSection" style="display:none;">
+                <div class="review-title">Review: Incorrect Answers</div>
+                <div id="reviewList"></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <button onclick="returnToDashboard()">Return to Dashboard</button>
             </div>
         </div>
     </div>
+</div>
 
-    <div id="resultsScreen" class="results-screen">
-        <div class="results-header">
-            <h1>Your Results</h1>
-            <p id="resultsSubtitle">Jacob Brown — Week 7 LEAP Diagnostic</p>
-        </div>
-
-        <div class="overall-score">
-            <div class="score-value" id="overallScore">0%</div>
-            <div class="score-details" id="overallDetails">0 out of 50 correct</div>
-        </div>
-
-        <div class="container">
-            <div class="section-scores" id="sectionScores"></div>
-        </div>
-
-        <div class="container">
-            <div class="tutor-message" id="tutorMessage">
-                Loading message from Gary...
-            </div>
-        </div>
-
-        <div class="container">
-            <div class="skills-analysis" id="skillsAnalysis"></div>
-        </div>
-
-        <div class="review-header">
-            <h2>Answer Review</h2>
-        </div>
-
-        <div class="review-container" id="reviewContainer"></div>
-
-        <div class="results-actions">
-            <button class="review-btn" onclick="window.location.href='Diagnostic_Review_Jacob.html'">Review with Gary</button>
-            <button class="return-btn" onclick="window.location.href='Jacob_Dashboard.html'">Return to Dashboard</button>
+<!-- Submit Confirmation Modal -->
+<div class="modal" id="submitModal">
+    <div class="modal-content">
+        <h2>Submit Test?</h2>
+        <p>You are about to submit your test. You will not be able to change your answers after submission. Are you sure?</p>
+        <div class="modal-buttons">
+            <button onclick="closeSubmitModal()" class="secondary">Cancel</button>
+            <button onclick="confirmSubmit()">Submit Now</button>
         </div>
     </div>
+</div>
 
-    <script>
+<!-- Question Data -->
+<script>
+var Q = [
+    // ELA Section (0-14): 15 questions
+    {type:'mc',sec:1,text:'Read the passage below:\n\n"The ancient Greeks were pioneers of democracy. In Athens, citizens gathered in the agora, or marketplace, to discuss and vote on important decisions. Unlike today\'s representative democracy, Athenian democracy was direct—citizens voted directly on laws and policies. However, only free adult males could participate, excluding women, slaves, and foreign residents."\n\nBased on the passage, what is the PRIMARY difference between ancient Athenian democracy and modern democracy?',opts:['Citizens vote directly on all laws and policies','Only certain groups of people can participate','Citizens elected representatives to make decisions for them','The agora served as the center of government'],dif:'grade-level'},
+    {type:'mc',sec:1,text:'In the sentence "The wind howled through the abandoned house like a lonely wolf," the phrase "like a lonely wolf" is an example of:\n\nA) simile\nB) metaphor\nC) personification\nD) alliteration\n\nWhich literary device is used?',opts:['Alliteration','Metaphor','Personification','Simile'],dif:'baseline'},
+    {type:'mc',sec:1,text:'Read this passage:\n\n"Sarah eagerly opened the door to find her surprise birthday party. Streamers hung from every corner, and balloons filled the room. Her friends jumped out from behind the furniture, shouting "Surprise!" Sarah\'s face lit up with joy. It was the best birthday ever."\n\nWhat is the author\'s PRIMARY PURPOSE in writing this passage?',opts:['To inform readers about how birthday parties are celebrated','To describe an exciting and joyful moment in Sarah\'s life','To persuade readers to plan surprise parties','To entertain readers with a humorous story'],dif:'grade-level'},
+    {type:'mc',sec:1,text:'The word "resilient" in the sentence "After failing the test, Marcus remained resilient and studied harder" most closely means:',opts:['Able to recover quickly and keep going','Afraid of future failures','Unwilling to try again','Angry at himself'],dif:'baseline'},
+    {type:'mc',sec:1,text:'Which of the following is the BEST summary of a text about how caterpillars transform into butterflies?\n\nA) Caterpillars are insects that eat leaves.\nB) Butterflies are beautiful flying insects.\nC) Caterpillars go through a life cycle called metamorphosis, changing into butterflies through distinct stages.\nD) Some caterpillars are green and others are brown.',opts:['Caterpillars are insects that eat leaves.','Butterflies are beautiful flying insects.','Caterpillars go through a life cycle called metamorphosis, changing into butterflies through distinct stages.','Some caterpillars are green and others are brown.'],dif:'grade-level'},
+    {type:'mc',sec:1,text:'PART A: Read the sentence:\n\n"The explorer\'s journal revealed important information about the undiscovered civilization."\n\nBased on context clues, what does "undiscovered" most likely mean in this sentence?\n\nA) Never found before\nB) Losing something\nC) Recovering lost items\nD) Not being interested',opts:['Not being interested','Losing something','Recovering lost items','Never found before'],dif:'grade-level'},
+    {type:'mc',sec:1,text:'PART B (Connected to Part A): Which context clue in the sentence most helps you understand the meaning of "undiscovered"?\n\nA) The word "explorer\'s"\nB) The phrase "important information"\nC) The phrase "journal revealed"\nD) The phrase "about the civilization"',opts:['The phrase "journal revealed"','The word "explorer\'s"','The phrase "important information"','The phrase "about the civilization"'],dif:'grade-level'},
+    {type:'mc',sec:1,text:'A text about the water cycle includes these headings:\n\n1. The Water Cycle Begins\n2. Water Travels Through the Atmosphere\n3. Water Returns to Earth\n\nHow do these headings help organize the text?',opts:['They show the cause and effect of evaporation','They show the order of steps in a natural process','They compare different types of water','They contrast ocean water with freshwater'],dif:'grade-level'},
+    {type:'mc',sec:1,text:'Read the passage:\n\n"Maya wanted to be a scientist. She spent hours in her backyard observing insects, taking notes, and sketching their behaviors. By age twelve, she had identified three species new to her local area and written a research paper that was published in a student science journal."\n\nWhat inference can be made about Maya based on this passage?',opts:['She did not enjoy outdoor activities','She was dedicated and passionate about her interests','She was forced to study insects by her parents','She had no friends because she spent time alone'],dif:'challenging'},
+    {type:'mc',sec:1,text:'Which sentence uses a verb in the PAST TENSE correctly?\n\nA) She walk to school yesterday.\nB) He have finished his homework.\nC) They played soccer after school.\nD) She am going to the store.',opts:['They played soccer after school.','She walk to school yesterday.','He have finished his homework.','She am going to the store.'],dif:'baseline'},
+    {type:'mc',sec:1,text:'A student is writing a persuasive essay about why schools should have longer lunch periods. Which of the following BEST supports this argument?\n\nA) Many students bring lunch from home.\nB) Research shows that longer lunch periods reduce stress and improve academic focus.\nC) The school cafeteria serves different foods each day.\nD) Some students do not eat lunch at school.',opts:['Research shows that longer lunch periods reduce stress and improve academic focus.','Many students bring lunch from home.','The school cafeteria serves different foods each day.','Some students do not eat lunch at school.'],dif:'challenging'},
+    {type:'mc',sec:1,text:'Read the passage:\n\n"In the 1800s, the invention of the printing press revolutionized communication. Before the printing press, books were copied by hand, making them rare and expensive. After Gutenberg invented the printing press, books became affordable and accessible to common people, spreading knowledge and ideas throughout society."\n\nBased on the passage, how did the printing press change society?',opts:['It made books more expensive and rare','It made knowledge more accessible to more people','It prevented people from learning','It decreased the number of books available'],dif:'grade-level'},
+    {type:'mc',sec:1,text:'Which of the following sentences correctly combines two short sentences using a coordinating conjunction?\n\nA) Sarah loves to read, and she enjoys science fiction novels.\nB) Sarah loves to read, she enjoys science fiction novels.\nC) Sarah loves to read enjoys science fiction novels and.\nD) Sarah loves read, and enjoys science fiction novels.',opts:['Sarah loves to read, and she enjoys science fiction novels.','Sarah loves to read, she enjoys science fiction novels.','Sarah loves to read enjoys science fiction novels and.','Sarah loves read, and enjoys science fiction novels.'],dif:'grade-level'},
+    {type:'mc',sec:1,text:'A text about renewable energy begins with the heading "Why We Need Clean Energy." This heading suggests the text will PRIMARILY:\n\nA) Describe the history of fossil fuels\nB) Explain reasons to use renewable energy sources\nC) List all types of renewable energy\nD) Compare prices of different energy sources',opts:['Explain reasons to use renewable energy sources','Describe the history of fossil fuels','List all types of renewable energy','Compare prices of different energy sources'],dif:'grade-level'},
 
-    // ============================================================
-    // ANTI-CHEAT — DO NOT REMOVE
-    // ============================================================
-    (function() {
-        // Block right-click context menu
-        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    {type:'mc',sec:1,text:'Read the following two sentences:\n\nSentence 1: "The mayor announced new funding for the city parks program."\nSentence 2: "Residents have been requesting improvements to local green spaces for years."\n\nWhat relationship do these two sentences BEST demonstrate?',opts:['Sentence 1 is the cause and Sentence 2 is the effect','Sentence 2 provides background context that explains why Sentence 1 happened','Sentence 1 contradicts the claim in Sentence 2','Both sentences make the same argument using different words'],dif:'ceiling'},
 
-        // Block keyboard shortcuts to open DevTools / view source
-        document.addEventListener('keydown', function(e) {
-            const blocked = (
-                e.keyCode === 123 ||                                      // F12
-                (e.ctrlKey && e.shiftKey && e.keyCode === 73) ||          // Ctrl+Shift+I
-                (e.ctrlKey && e.shiftKey && e.keyCode === 74) ||          // Ctrl+Shift+J
-                (e.ctrlKey && e.shiftKey && e.keyCode === 67) ||          // Ctrl+Shift+C
-                (e.ctrlKey && e.keyCode === 85) ||                        // Ctrl+U (view source)
-                (e.metaKey && e.altKey && e.keyCode === 73)               // Cmd+Opt+I (Mac)
-            );
-            if (blocked) { e.preventDefault(); e.stopPropagation(); return false; }
-        }, true);
+    // Mathematics Section (15-34): 20 questions
+    {type:'mc',sec:2,text:'A store sells apples at 3 apples for $2. If Jacob buys 12 apples, how much will he pay?',opts:['$12','$8','$6','$4'],dif:'baseline'},
+    {type:'mc',sec:2,text:'The ratio of cats to dogs at an animal shelter is 4:5. If there are 20 cats, how many dogs are there?',opts:['25','16','20','15'],dif:'grade-level'},
+    {type:'mc',sec:2,text:'A recipe for cookies requires 2 cups of flour for every 1 cup of sugar. If a baker wants to use 5 cups of sugar, how many cups of flour are needed?',opts:['10','2.5','7','15'],dif:'grade-level'},
+    {type:'mc',sec:2,text:'What is the volume of a rectangular prism with length 5 cm, width 4 cm, and height 3 cm?',opts:['48 cm³','12 cm³','20 cm³','60 cm³'],dif:'grade-level'},
+    {type:'mc',sec:2,text:'A data set contains the following values: 5, 8, 3, 8, 12, 3, 9. What is the mode (the value that appears most often)?',opts:['8','3','5','7'],dif:'grade-level'},
+    {type:'mc',sec:2,text:'Which number has 7 in the tens place and 3 in the tenths place?\n\nA) 73.0\nB) 7.03\nC) 73.003\nD) 37.03',opts:['73.003','73.0','7.03','37.03'],dif:'baseline'},
+    {type:'mc',sec:2,text:'Solve: 2x + 5 = 17\n\nWhat is the value of x?',opts:['12','7','11','6'],dif:'grade-level'},
+    {type:'mc',sec:2,text:'A baseball team won 18 games and lost 6 games. What is the ratio of wins to total games played?',opts:['18:24','6:24','18:6','24:18'],dif:'grade-level'},
+    {type:'mc',sec:2,text:'A recipe makes 24 cookies. Jacob only wants to make 16 cookies. By what factor should he multiply each ingredient?\n\nA) 2/3\nB) 3/2\nC) 16/24\nD) 24/16',opts:['2/3','16/24','3/2','24/16'],dif:'challenging'},
+    {type:'mc',sec:2,text:'Water is poured into a cube-shaped container with side length 6 inches. What is the volume of the container in cubic inches?',opts:['72','36','18','216'],dif:'grade-level'},
+    {type:'mc',sec:2,text:'A graph shows the temperature throughout the day:\n9 AM: 60°F\n12 PM: 75°F\n3 PM: 85°F\n6 PM: 70°F\n\nWhat is the range of temperatures?',opts:['25°F','15°F','70°F','85°F'],dif:'grade-level'},
+    {type:'mc',sec:2,text:'How is 45,320 written in expanded form?',opts:['40,000 + 5,000 + 300 + 20','40 + 5 + 3 + 2','400,000 + 50,000 + 3,000 + 20','4 + 5 + 3 + 2 + 0'],dif:'baseline'},
+    {type:'mc',sec:2,text:'Jacob walks 2.5 miles every day for 5 days. How many miles does he walk in total?',opts:['15 miles','7.5 miles','10 miles','12.5 miles'],dif:'baseline'},
+    {type:'mc',sec:2,text:'A proportional relationship is shown in the table:\n\nInput | Output\n  2   |   6\n  4   |  12\n  6   |  18\n\nWhat is the constant of proportionality?',opts:['3','2','6','1/3'],dif:'grade-level'},
+    {type:'mc',sec:2,text:'Solve: 3(x - 2) = 15\n\nWhat is the value of x?',opts:['3','9','5','7'],dif:'challenging'},
+    {type:'mc',sec:2,text:'A store displays 36 items in rows of 6. How many rows are there?\n\nA) 5\nB) 6\nC) 7\nD) 42',opts:['6','5','7','42'],dif:'baseline'},
+    {type:'mc',sec:2,text:'If a circle has a radius of 5 cm, and you use π ≈ 3.14, which is closest to the circumference?\n\nA) 15.7 cm\nB) 31.4 cm\nC) 78.5 cm\nD) 62.8 cm',opts:['31.4 cm','15.7 cm','78.5 cm','62.8 cm'],dif:'challenging'},
+    {type:'mc',sec:2,text:'Which of the following represents a probability of 1/4?\n\nA) Rolling a 1 on a standard die\nB) Drawing a diamond from a standard deck of 52 cards\nC) Flipping heads on a coin\nD) Drawing an ace from a standard deck of 52 cards',opts:['Drawing a diamond from a standard deck of 52 cards','Rolling a 1 on a standard die','Flipping heads on a coin','Drawing an ace from a standard deck of 52 cards'],dif:'challenging'},
+    {type:'mc',sec:2,text:'A number line shows distances from 0. Point A is at -8, and Point B is at 6. What is the distance between points A and B?',opts:['14','2','-2','8'],dif:'grade-level'},
+    {type:'mc',sec:2,text:'In a science class, 18 students out of 24 passed the test. What percentage of students passed? Round to the nearest whole percent.\n\nA) 70%\nB) 75%\nC) 80%\nD) 85%',opts:['75%','70%','80%','85%'],dif:'challenging'},
 
-        // DevTools size detection — if open, overlay the page
-        var _devOpen = false;
-        setInterval(function() {
-            var widthDiff  = window.outerWidth  - window.innerWidth  > 160;
-            var heightDiff = window.outerHeight - window.innerHeight > 160;
-            if ((widthDiff || heightDiff) && !_devOpen) {
-                _devOpen = true;
-                var overlay = document.createElement('div');
-                overlay.id  = '_ac_overlay';
-                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;' +
-                    'background:#0a0f1a;z-index:999999;display:flex;align-items:center;' +
-                    'justify-content:center;flex-direction:column;';
-                overlay.innerHTML = '<div style="font-size:48px;">⚠️</div>' +
-                    '<div style="color:#ff4444;font-size:22px;font-weight:700;margin:16px 0;">Browser tools detected.</div>' +
-                    '<div style="color:#aaa;font-size:15px;">Close DevTools and refresh the page to continue.</div>';
-                document.body.appendChild(overlay);
-            } else if (!widthDiff && !heightDiff && _devOpen) {
-                _devOpen = false;
-                var el = document.getElementById('_ac_overlay');
-                if (el) el.remove();
-            }
-        }, 800);
-    })();
-    // ============================================================
+    // Science Section (35-46): 12 questions
+    {type:'mc',sec:3,text:'In pea plants, the dominant allele for seed color is green (G), and the recessive allele is yellow (g). If a plant with genotype Gg is crossed with a plant with genotype gg, what are the possible genotypes of the offspring?\n\n(This refers to a Punnett square cross)',opts:['GG and gg','GG and Gg','gg only','Gg and gg (50% each)'],dif:'grade-level'},
+    {type:'mc',sec:3,text:'Heat can be transferred through three methods: conduction, convection, and radiation. Which method of heat transfer occurs when a metal spoon becomes hot after being placed in a cup of hot soup?',opts:['Evaporation','Convection','Radiation','Conduction'],dif:'grade-level'},
+    {type:'mc',sec:3,text:'When warm air rises and cool air sinks, this creates a circular movement called:\n\nA) conduction\nB) convection\nC) radiation\nD) fusion',opts:['Convection','Conduction','Radiation','Fusion'],dif:'baseline'},
+    {type:'mc',sec:3,text:'A warm front occurs when a mass of warm air moves over a region of cold air. What weather change typically occurs when a warm front passes through an area?',opts:['Temperature decreases and snow falls','Temperature increases and weather becomes warmer','Severe thunderstorms form','Humidity decreases significantly'],dif:'grade-level'},
+    {type:'mc',sec:3,text:'Which of the following is an example of an inherited trait in humans?\n\nA) Speaking Spanish\nB) Eye color\nC) Wearing glasses\nD) Learning to ride a bike',opts:['Eye color','Speaking Spanish','Wearing glasses','Learning to ride a bike'],dif:'baseline'},
+    {type:'mc',sec:3,text:'A scientist observes that plants in a shady area grow more slowly than plants in a sunny area, even though soil and water are the same. This investigation is testing which variable?\n\nA) the amount of water\nB) the type of soil\nC) the amount of sunlight\nD) the temperature of water',opts:['The amount of sunlight','The amount of water','The type of soil','The temperature of water'],dif:'grade-level'},
+    {type:'mc',sec:3,text:'In the water cycle, water changes from a liquid to a gas through the process of:\n\nA) condensation\nB) precipitation\nC) evaporation\nD) freezing',opts:['Evaporation','Condensation','Precipitation','Freezing'],dif:'baseline'},
+    {type:'mc',sec:3,text:'A cold front occurs when a mass of cold air rapidly moves over a region of warm air. Which of the following is likely to occur when a cold front passes?\n\nA) Gradual warming and clearing skies\nB) Rapid cooling and thunderstorms\nC) Gradual cooling and rain\nD) Warming and increased humidity',opts:['Warming and increased humidity','Gradual warming and clearing skies','Gradual cooling and rain','Rapid cooling and thunderstorms'],dif:'grade-level'},
+    {type:'mc',sec:3,text:'An ecosystem includes all the organisms and the physical environment in an area. Which of the following is part of an ecosystem?\n\nA) Only the plants\nB) Only the animals\nC) Plants, animals, soil, water, and sunlight\nD) Only the decomposers',opts:['Plants, animals, soil, water, and sunlight','Only the plants','Only the animals','Only the decomposers'],dif:'baseline'},
+    {type:'mc',sec:3,text:'In a food chain, organisms that produce their own food through photosynthesis are called:\n\nA) consumers\nB) producers\nC) decomposers\nD) herbivores',opts:['Producers','Consumers','Decomposers','Herbivores'],dif:'baseline'},
+    {type:'mc',sec:3,text:'A female fruit fly with the genotype Bb is crossed with a male fruit fly with the genotype Bb. Using a Punnett square, what percentage of offspring will have the dominant phenotype (B_)?\n\nA) 25%\nB) 50%\nC) 75%\nD) 100%',opts:['75%','25%','50%','100%'],dif:'challenging'},
+    {type:'mc',sec:3,text:'Which type of weather occurs when two air masses of very different temperatures meet and create powerful storms?\n\nA) Warm front\nB) Cold front\nC) Occluded front\nD) Stationary front',opts:['Occluded front','Warm front','Cold front','Stationary front'],dif:'challenging'},
 
-    // Correct answers — XOR-encoded (key=17). Do not modify.
-    var _ac = (function(){
-        var k=17, e=[16,16,16,16,17,16,19,16,16,16,16,16,16,16,17,19,19,17,19,17,17,17,17,19,17,17,17,17,17,19,19,18,19,19,19,19,18,18,18,19,18,18,18,18,17,18,18,18,18,19];
-        return e.map(function(v){return v^k;});
-    })();
+    // Social Studies Section (47-54): 8 questions
+    {type:'mc',sec:4,text:'Which of the following best describes democracy?\n\nA) A form of government where one person holds all the power\nB) A form of government where power is held by the people, usually through voting\nC) A form of government where a small group of wealthy people make decisions\nD) A form of government where decisions are made by religious leaders',opts:['A form of government where decisions are made by religious leaders','A form of government where one person holds all the power','A form of government where a small group of wealthy people make decisions','A form of government where power is held by the people, usually through voting'],dif:'baseline'},
+    {type:'mc',sec:4,text:'The Louisiana Purchase of 1803 doubled the size of the United States. Which explorer is most famous for leading an expedition to explore these newly acquired territories?',opts:['Thomas Jefferson','Lewis and Clark','George Washington','Benjamin Franklin'],dif:'grade-level'},
+    {type:'mc',sec:4,text:'In a market economy, goods and services are primarily provided by:\n\nA) the government\nB) religious organizations\nC) private businesses competing for profit\nD) military organizations',opts:['Private businesses competing for profit','The government','Religious organizations','Military organizations'],dif:'grade-level'},
+    {type:'mc',sec:4,text:'Which continent is the most populous (has the most people)?',opts:['Asia','Africa','Europe','North America'],dif:'baseline'},
+    {type:'mc',sec:4,text:'The Great Depression occurred in the United States during which decade?\n\nA) 1920s\nB) 1930s\nC) 1940s\nD) 1950s',opts:['1930s','1920s','1940s','1950s'],dif:'grade-level'},
+    {type:'mc',sec:4,text:'Which of the following is an example of a natural resource?\n\nA) A shopping mall\nB) A highway\nC) A forest\nD) A school building',opts:['A forest','A shopping mall','A highway','A school building'],dif:'baseline'},
+    {type:'mc',sec:4,text:'The Bill of Rights, added to the US Constitution in 1791, primarily serves to:\n\nA) List the powers of Congress\nB) Protect the rights and freedoms of individuals\nC) Explain how the President is elected\nD) Describe the structure of the judicial system',opts:['Protect the rights and freedoms of individuals','List the powers of Congress','Explain how the President is elected','Describe the structure of the judicial system'],dif:'grade-level'},
+    {type:'mc',sec:4,text:'Which ancient civilization is credited with developing one of the earliest forms of written communication, using cuneiform?\n\nA) Ancient Egypt\nB) Ancient Mesopotamia\nC) Ancient China\nD) Ancient Greece',opts:['Ancient Mesopotamia','Ancient Egypt','Ancient China','Ancient Greece'],dif:'challenging'}
+];
 
-        var CONFIG = {
-            student: 'Jacob',
-            grade: '6th',
-            testId: 'jacob_diagnostic_week7_apr2026',
-            testLabel: 'Week 7 LEAP Practice Test',
-            webAppUrl: 'https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec'
+// Verify array length
+if(Q.length!==55)console.error('ERROR: Q array has '+Q.length+' questions, expected 55');
+
+// Correct answers — XOR-encoded (key=17). Do not modify.
+var _ac = (function(){
+    var k=17, e=[19,18,16,17,19,18,17,16,16,19,17,16,16,16,16,18,17,17,18,16,19,18,17,17,18,17,16,18,17,18,16,16,16,16,17,18,18,16,16,16,19,19,18,19,16,19,19,18,16,19,17,16,19,16,16];
+    return e.map(function(v){return v^k;});
+})();
+
+// Verify XOR-encoded array
+if(_ac.length!==55)console.error('ERROR: _ac array has '+_ac.length+' values, expected 55');
+
+// Section definitions
+var SECTIONS = [
+    {name:'ELA',range:[0,14]},
+    {name:'Mathematics',range:[15,34]},
+    {name:'Science',range:[35,46]},
+    {name:'Social Studies',range:[47,54]}
+];
+
+// Verify SECTIONS consistency
+if(SECTIONS[SECTIONS.length-1].range[1]!==Q.length-1){
+    console.error('ERROR: Last section range ['+SECTIONS[SECTIONS.length-1].range[1]+'] does not match Q.length-1 ['+(Q.length-1)+']');
+}
+
+// Global state
+var currentQ = 0;
+var answers = {};
+var timeLeft = 3600; // 60 minutes in seconds
+var testStarted = false;
+var testSubmitted = false;
+
+// Initialize
+function init(){
+    buildNavGrid();
+    updateQuestion();
+    startTimer();
+}
+
+function buildNavGrid(){
+    var grid = document.getElementById('navGrid');
+    grid.innerHTML = '';
+    for(var i=0;i<Q.length;i++){
+        var btn = document.createElement('button');
+        btn.className = 'nav-btn';
+        btn.textContent = (i+1);
+        btn.dataset.index = i;
+        btn.onclick = function(){
+            currentQ = parseInt(this.dataset.index);
+            updateQuestion();
         };
+        grid.appendChild(btn);
+    }
+}
 
-        var SECTIONS = [
-            { id: 'ela', name: 'ELA Reading & Language', range: [0, 14], icon: '\uD83D\uDCD6' },
-            { id: 'math', name: 'Mathematics', range: [15, 29], icon: '\uD83D\uDCD0' },
-            { id: 'sci', name: 'Science', range: [30, 39], icon: '\uD83D\uDD2C' },
-            { id: 'ss', name: 'Social Studies', range: [40, 49], icon: '\uD83C\uDF0D' }
-        ];
+function updateQuestion(){
+    var q = Q[currentQ];
+    var sec = SECTIONS.find(function(s){return currentQ>=s.range[0]&&currentQ<=s.range[1];});
 
-        var PASSAGES = {
-            passage1: {
-                title: "The Blinking Star",
-                label: "Literary Fiction",
-                text: "The telescope was buried under a quilt that smelled like lavender and old paper. Addie found it on the third afternoon of her stay at Grandmother Lena\u2019s house, wedged between a steamer trunk and a hatbox in the corner of the attic where the roof sloped so low she had to crawl.\n\nIt was a refractor telescope, brass and leather, with a cracked eyepiece cap and a small engraving on the barrel: \u2018For Lena \u2014 keep looking.\u2019 Addie carried it downstairs and set it on the back porch railing. Grandmother Lena was in the garden pulling weeds, her wide-brimmed hat bobbing among the tomato cages. She glanced up, saw the telescope, and went very still.\n\n\u201CWhere did you find that?\u201D\n\n\u201CThe attic. Behind the trunk.\u201D\n\nGrandmother Lena pulled off her gardening gloves one finger at a time. \u201CThat belonged to your grandfather. He was an amateur astronomer \u2014 spent every clear night on this porch with that scope pointed at something.\u201D She paused. \u201CHe used to say the stars were trying to talk to us, and we were just too impatient to listen.\u201D\n\nThat night, Addie set the telescope on its tripod in the backyard, away from the porch light. The sky over Grandmother Lena\u2019s farm was different from the sky over her apartment in the city. At home the stars were faint smudges, outnumbered by streetlights. Here they poured across the darkness like spilled salt, more than she could count, more than she had ever imagined.\n\nShe aimed the telescope at a bright star near the handle of the Big Dipper and adjusted the focus. The star sharpened into a point of white fire. She watched it for a long time, letting her breathing slow, and that was when she noticed something strange: the star dimmed, then brightened, then dimmed again. Not the usual twinkling caused by the atmosphere \u2014 this was slower, more deliberate. Dim for two seconds, bright for one. Dim for two, bright for one. A repeating pattern, steady as a heartbeat.\n\nAddie pulled out her phone and searched \u201Cstars that blink in patterns.\u201D She learned that some variable stars change brightness on regular cycles as they expand and contract. There were eclipsing binaries, too, where one star passes in front of another. The science had names and formulas. It was all explainable.\n\nBut sitting alone in the dark field with the telescope pressed to her eye, the explanation felt thin, like a curtain that didn\u2019t quite cover the window. The pattern was so precise. Two and one. Two and one. It felt less like a physical process and more like a signal \u2014 something patient and ancient tapping out a message across unimaginable distance, not caring whether anyone was listening, sending it anyway.\n\nShe thought about her grandfather, who had stood in this same spot and pointed this same telescope at these same stars. Had he seen this pattern? Is that what he meant when he said the stars were talking? Maybe the universe wasn\u2019t really trying to communicate. Maybe it didn\u2019t need to. Maybe the point was that Addie was willing to sit still long enough to notice \u2014 that the act of paying attention was itself a kind of answer.\n\nShe stayed outside until the dew soaked through her sneakers. When she finally went in, Grandmother Lena was sitting at the kitchen table with two mugs of chamomile tea, as if she had known exactly how long the stars would keep her granddaughter outside."
-            },
-            passage2: {
-                title: "Back from the Dead: The Science and Controversy of De-Extinction",
-                label: "Informational / Nonfiction",
-                text: "In 2021, a biotechnology company called Colossal Biosciences announced a plan that sounded like the plot of a science fiction movie: they intended to bring back the woolly mammoth. Not a clone, exactly, but a cold-resistant elephant genetically edited to carry key mammoth traits \u2014 shaggy hair, thick fat layers, and small ears suited to Arctic temperatures. The project, which has attracted over $200 million in funding, is part of a growing scientific field known as de-extinction: the effort to resurrect species that have disappeared from the Earth.\n\nThe basic science behind de-extinction relies on genetic engineering, particularly a tool called CRISPR-Cas9. CRISPR allows scientists to cut and edit DNA with extraordinary precision, inserting genes from an extinct species into the genome of a close living relative. For the mammoth project, researchers are editing the DNA of Asian elephants, the mammoth\u2019s closest living cousin, inserting genes associated with cold tolerance. The goal is not a perfect mammoth replica but a functional hybrid \u2014 an animal that could survive in Arctic conditions and fill the ecological role mammoths once played.\n\nSupport for de-extinction extends beyond mammoths. Scientists have discussed restoring the dodo, the passenger pigeon, and the thylacine (Tasmanian tiger). Advocates argue the benefits could be significant. Woolly mammoths, for instance, once maintained Arctic grasslands by trampling snow, knocking down trees, and spreading seeds. Without them, those grasslands gradually converted to tundra and mossy forest. Restoring mammoth-like animals could theoretically help preserve permafrost by compacting snow and reflecting sunlight, slowing the release of greenhouse gases trapped in frozen soil. In this view, de-extinction is not just about nostalgia \u2014 it could be a tool for fighting climate change.\n\nCritics, however, raise serious objections. The most fundamental concern is ecological: the world these animals once inhabited no longer exists. Bringing back a mammoth-like creature does not bring back the Ice Age ecosystem it depended on. Releasing genetically modified animals into modern Arctic environments could disrupt existing ecosystems in unpredictable ways, harming species that have adapted to current conditions.\n\nAnimal welfare presents another challenge. Creating a mammoth hybrid would require extensive experimentation, likely involving many failed pregnancies in surrogate elephant mothers \u2014 an endangered species already struggling with habitat loss. Critics ask whether it is ethical to subject living elephants to experimental reproductive procedures for the sake of resurrecting a species that went extinct thousands of years ago.\n\nPerhaps the strongest argument against de-extinction is one of priorities. Conservation organizations point out that approximately one million species alive today face extinction. The hundreds of millions of dollars flowing into de-extinction research could fund habitat protection, anti-poaching efforts, and breeding programs for endangered species that still have a chance of survival. In the words of one conservation biologist, \u2018The best way to protect biodiversity is to prevent extinction in the first place, not to try to reverse it after the fact.\u2019\n\nDe-extinction forces a difficult question: just because science can bring something back, does that mean it should? The answer may depend on whether we see these projects as genuine conservation tools or as expensive technological spectacles that distract from the quieter, less glamorous work of protecting the species we still have."
-            }
-        };
+    document.getElementById('questionNum').textContent = (currentQ+1);
+    document.getElementById('totalQuestions').textContent = Q.length;
+    document.getElementById('sectionLabel').textContent = sec.name + ' — Question ' + (currentQ-sec.range[0]+1);
+    document.getElementById('questionText').innerHTML = q.text.replace(/\n\n/g,'<br><br>');
 
-        var Q = [
-            // === ELA READING & LANGUAGE (0-14) ===
+    var optHtml = '';
+    var optLabels = ['A','B','C','D'];
+    for(var i=0;i<q.opts.length;i++){
+        var checked = answers[currentQ]===i?'checked':'';
+        optHtml += '<label class="option ' + (answers[currentQ]===i?'selected':'') + '">' +
+            '<input type="radio" name="option" value="'+i+'" '+checked+' onchange="selectOption('+i+')">' +
+            '<label><strong>'+optLabels[i]+':</strong> '+q.opts[i]+'</label>' +
+            '</label>';
+    }
+    document.getElementById('optionsContainer').innerHTML = optHtml;
 
-            // Q0 - EBSR Part A (RL.6.1)
-            {sec:'ela',std:'RL.6.1',skill:'Key Details & Evidence',diff:1,type:'ebsr',text:'Part A: Why does Grandmother Lena go "very still" when she sees the telescope?',opts:['She is afraid Addie will break the telescope','The telescope belonged to her late husband and holds deep personal meaning','She does not want Addie to go outside at night','She forgot the telescope was in the attic'],str:'When a character has a strong physical reaction, look for what the text reveals about the cause. Here, the explanation comes in the next lines of dialogue.',passage:'passage1'},
+    updateProgress();
+    updateNav();
+}
 
-            // Q1 - EBSR Part B (RL.6.1)
-            {sec:'ela',std:'RL.6.1',skill:'Key Details & Evidence',diff:2,type:'ebsr',text:'Part B: Which detail from the passage BEST supports the answer to Part A?',opts:['"The telescope was buried under a quilt that smelled like lavender and old paper"','"That belonged to your grandfather. He was an amateur astronomer"','"The sky over Grandmother Lena\'s farm was different from the sky over her apartment in the city"','"She stayed outside until the dew soaked through her sneakers"'],str:'Part B asks for BEST evidence. Choose the quote that most directly and completely confirms the answer you gave in Part A.',passage:'passage1'},
+function selectOption(idx){
+    answers[currentQ] = idx;
+    updateQuestion();
+}
 
-            // Q2 - RL.6.2 Theme
-            {sec:'ela',std:'RL.6.2',skill:'Theme',diff:2,type:'mc',text:'Which statement best expresses the theme of "The Blinking Star"?',opts:['Science cannot explain everything about the universe','Paying attention to the world around us is itself a meaningful act','Old telescopes are better than modern ones','Grandparents always understand their grandchildren'],str:'Theme is the deeper message about life, not just plot summary. Look for what the character learns or realizes by the story\'s end.',passage:'passage1'},
+function updateProgress(){
+    var pct = ((currentQ+1)/Q.length)*100;
+    document.getElementById('progressFill').style.width = pct+'%';
+}
 
-            // Q3 - RL.6.4 Vocabulary in Context
-            {sec:'ela',std:'RL.6.4',skill:'Vocabulary in Context',diff:2,type:'mc',text:'In the sentence "the explanation felt thin, like a curtain that didn\'t quite cover the window," what does the author mean by comparing the explanation to a thin curtain?',opts:['The explanation was wrong and should be discarded','The explanation was scientifically accurate but did not fully capture the wonder of the experience','The explanation was too complicated for Addie to understand','The explanation made Addie feel frightened'],str:'Figurative language conveys feelings beyond literal meaning. A curtain that doesn\'t cover the window suggests something is left exposed or unexplained.',passage:'passage1'},
+function updateNav(){
+    var navBtns = document.querySelectorAll('.nav-btn');
+    for(var i=0;i<navBtns.length;i++){
+        navBtns[i].classList.remove('current','answered','unanswered');
+        if(i===currentQ)navBtns[i].classList.add('current');
+        else if(answers[i]!==undefined)navBtns[i].classList.add('answered');
+        else navBtns[i].classList.add('unanswered');
+    }
+}
 
-            // Q4 - RL.6.3 Character Development
-            {sec:'ela',std:'RL.6.3',skill:'Character Development',diff:2,type:'mc',text:'How does Addie change from the beginning of the passage to the end?',opts:['She starts out bored and restless but becomes deeply engaged with observing the night sky','She begins as a scientist and ends as an artist','She starts afraid of the dark and overcomes her fear','She begins disliking her grandmother\'s house and decides to stay forever'],str:'Track what the character does and feels at the START versus the END. The change often mirrors the theme.',passage:'passage1'},
+function previousQuestion(){
+    if(currentQ>0){
+        currentQ--;
+        updateQuestion();
+        window.scrollTo(0,0);
+    }
+}
 
-            // Q5 - EBSR Part A (RL.6.5 Structure)
-            {sec:'ela',std:'RL.6.5',skill:'Text Structure',diff:3,type:'ebsr',text:'Part A: What role does the grandfather play in the story even though he never appears as a living character?',opts:['He serves as the antagonist who creates conflict','He connects the past to the present and provides the idea that inspires Addie\'s experience','He is a minor detail with no real importance to the plot','He represents the failure of science to explain the universe'],str:'Characters who are absent or deceased can still drive a story through objects, words, and legacy they leave behind.',passage:'passage1'},
+function nextQuestion(){
+    if(currentQ<Q.length-1){
+        currentQ++;
+        updateQuestion();
+        window.scrollTo(0,0);
+    }
+}
 
-            // Q6 - EBSR Part B (RL.6.5)
-            {sec:'ela',std:'RL.6.5',skill:'Text Structure',diff:3,type:'ebsr',text:'Part B: Which detail BEST shows the grandfather\'s continuing influence on Addie?',opts:['"She aimed the telescope at a bright star near the handle of the Big Dipper"','"Addie pulled out her phone and searched \'stars that blink in patterns\'"','"She thought about her grandfather, who had stood in this same spot and pointed this same telescope at these same stars"','"Grandmother Lena was in the garden pulling weeds"'],str:'For EBSR Part B, choose the quote that most directly demonstrates the connection described in Part A.',passage:'passage1'},
+function openSubmitModal(){
+    document.getElementById('submitModal').classList.add('active');
+}
 
-            // Q7 - L.6.1 Pronoun-Antecedent (Weakness target)
-            {sec:'ela',std:'L.6.1',skill:'Pronoun-Antecedent Agreement',diff:2,type:'mc',text:'Read this sentence: "Every student in the observatory must clean their telescope lens before leaving." Which revision corrects the pronoun-antecedent error?',opts:['Every student in the observatory must clean our telescope lens before leaving.','Every student in the observatory must clean his or her telescope lens before leaving.','Every student in the observatory must clean its telescope lens before leaving.','The sentence is already correct and needs no revision.'],str:'Indefinite pronouns like "every," "each," "anyone," and "everyone" are SINGULAR in formal English. They need singular pronouns (he, she, his, her).',passage:null},
+function closeSubmitModal(){
+    document.getElementById('submitModal').classList.remove('active');
+}
 
-            // Q8 - RI.6.1 (passage2)
-            {sec:'ela',std:'RI.6.1',skill:'Cite Textual Evidence',diff:1,type:'mc',text:'According to the passage, what technology do scientists use to edit the DNA of Asian elephants for the mammoth project?',opts:['Traditional cloning techniques','CRISPR-Cas9 genetic editing','Selective breeding over many generations','Stem cell transplantation'],str:'For fact-based questions, scan the passage for the specific term or technology mentioned.',passage:'passage2'},
+function confirmSubmit(){
+    closeSubmitModal();
+    submitTest();
+}
 
-            // Q9 - RI.6.2 Central Idea
-            {sec:'ela',std:'RI.6.2',skill:'Central Idea & Summary',diff:2,type:'mc',text:'What is the central idea of "Back from the Dead: The Science and Controversy of De-Extinction"?',opts:['De-extinction is too expensive and should be abandoned immediately','De-extinction uses advanced genetics to potentially restore lost species, but it raises serious ecological, ethical, and financial concerns','Scientists have already successfully brought back the woolly mammoth','All conservation experts support de-extinction as the best way to protect biodiversity'],str:'The central idea captures the WHOLE passage, not just one section. Look for a statement that accounts for both the "for" and "against" arguments.',passage:'passage2'},
+function submitTest(){
+    testSubmitted = true;
+    var correct = 0;
+    var sectionScores = {};
 
-            // Q10 - RI.6.4 Vocabulary in Context (Weakness target)
-            {sec:'ela',std:'RI.6.4',skill:'Vocabulary in Context',diff:2,type:'mc',text:'In the sentence "expensive technological spectacles that distract from the quieter, less glamorous work of protecting the species we still have," what does "spectacles" most likely mean?',opts:['Eyeglasses used by scientists','Showy displays designed to attract attention','Scientific experiments conducted in laboratories','Television programs about wildlife'],str:'Context clues like "expensive," "distract," and the contrast with "quieter, less glamorous" all point to "spectacles" meaning showy displays.',passage:'passage2'},
-
-            // Q11 - RI.6.5 Text Structure (Weakness target)
-            {sec:'ela',std:'RI.6.5',skill:'Text Structure',diff:3,type:'mc',text:'How does the author organize the argument in the de-extinction passage?',opts:['By telling a story in chronological order from past to present','By presenting the science and potential benefits first, then systematically addressing counterarguments and concerns','By comparing de-extinction projects in different countries','By ranking extinct species from most to least important to restore'],str:'Argumentative texts often follow a pattern: introduce the topic, present one side, then present the other side. Identify which comes first and how they connect.',passage:'passage2'},
-
-            // Q12 - RI.6.8 Claims & Evidence
-            {sec:'ela',std:'RI.6.8',skill:'Evaluate Claims & Evidence',diff:3,type:'mc',text:'A conservation biologist quoted in the passage says, "The best way to protect biodiversity is to prevent extinction in the first place, not to try to reverse it after the fact." What type of argument is this?',opts:['An argument based on personal emotion with no evidence','An argument about priorities\u2014that preventing extinction is more effective and practical than reversing it','An argument that de-extinction technology does not work','An argument that all extinct species should be brought back'],str:'Identify what KIND of argument is being made. This one is about resource allocation and priorities, not about whether the science works.',passage:'passage2'},
-
-            // Q13 - L.6.2 Punctuation/Grammar
-            {sec:'ela',std:'L.6.2',skill:'Punctuation & Conventions',diff:2,type:'mc',text:'Which sentence uses semicolons correctly?',opts:['The mammoth project is ambitious; and it has many critics.','The mammoth project is ambitious; however, it has attracted significant funding.','The mammoth project; is ambitious, however it has attracted significant funding.','The mammoth project is ambitious, however; it has attracted significant funding.'],str:'Semicolons join two complete sentences. With conjunctive adverbs: Sentence 1; however, Sentence 2. Never put a semicolon after a conjunction like "and."',passage:null},
-
-            // Q14 - L.6.1 Pronoun-Antecedent (Weakness target)
-            {sec:'ela',std:'L.6.1',skill:'Pronoun-Antecedent Agreement',diff:3,type:'mc',text:'Which sentence demonstrates CORRECT pronoun-antecedent agreement?',opts:['Either the biologist or the veterinarians will present their findings at the conference.','Either the biologist or the veterinarians will present his findings at the conference.','Everyone in the research team submitted their report on time.','Each of the elephants was returned to their enclosure.'],str:'For "either...or" and "neither...nor," the pronoun matches the noun CLOSEST to it. For indefinite pronouns (each, every, everyone), use singular pronouns.',passage:null},
-
-            // === MATHEMATICS (15-29) ===
-
-            // Q15 - 6.RP.1 Ratios (Weakness target)
-            {sec:'math',std:'6.RP.1',skill:'Understand Ratios',diff:1,type:'mc',text:'A recipe calls for 3 cups of flour and 2 cups of sugar. What is the ratio of sugar to the TOTAL amount of flour and sugar combined, in simplest form?',opts:['3:2','2:3','2:5','5:2'],str:'Read carefully: "sugar to TOTAL" means sugar compared to everything combined, not sugar compared to flour. Then simplify.',passage:null},
-
-            // Q16 - 6.RP.2 Unit Rates (Weakness target)
-            {sec:'math',std:'6.RP.2',skill:'Unit Rates',diff:2,type:'mc',text:'A car travels 234 miles using 9 gallons of gas. What is the unit rate in miles per gallon?',opts:['24 miles per gallon','25 miles per gallon','26 miles per gallon','27 miles per gallon'],str:'Unit rate means "per ONE." Divide the total distance by the total gallons to find miles per 1 gallon.',passage:null},
-
-            // Q17 - 6.RP.3 Proportions (Weakness target)
-            {sec:'math',std:'6.RP.3',skill:'Solve Proportions',diff:2,type:'mc',text:'If 5 notebooks cost $8.75, how much would 12 notebooks cost at the same rate?',opts:['$21.00','$17.50','$24.00','$25.20'],str:'Find the unit price first (cost per one item), then multiply by the quantity you need.',passage:null},
-
-            // Q18 - 6.RP.3 Percent Problems (Weakness target) - EBSR Part A
-            {sec:'math',std:'6.RP.3',skill:'Percent Problems',diff:2,type:'ebsr',text:'Part A: A store sells a jacket originally priced at $80 for 35% off. What is the sale price?',opts:['$28.00','$45.00','$52.00','$55.00'],str:'For percent-off problems: (1) find the discount amount, (2) subtract it from the original price. Or multiply by (100% - discount%).',passage:null},
-
-            // Q19 - EBSR Part B
-            {sec:'math',std:'6.RP.3',skill:'Percent Problems',diff:3,type:'ebsr',text:'Part B: Which expression could also be used to calculate the sale price directly?',opts:['80 x 0.65','80 x 0.35','80 / 0.35','80 + 0.35'],str:'Paying (100% - discount%) of the price is the same as subtracting the discount. 65% = 0.65 as a decimal.',passage:null},
-
-            // Q20 - 6.NS.1 Fraction Division
-            {sec:'math',std:'6.NS.1',skill:'Divide Fractions',diff:2,type:'mc',text:'Evaluate: 2/3 divided by 4/9',opts:['3/2','8/27','6/4','27/8'],str:'To divide by a fraction, flip the second fraction (reciprocal) and multiply. Then simplify the result.',passage:null},
-
-            // Q21 - 6.NS.6 Number Line & Absolute Value
-            {sec:'math',std:'6.NS.6',skill:'Absolute Value & Ordering',diff:1,type:'mc',text:'Which list shows these numbers in order from LEAST to GREATEST? -7, 3, -2, 0, 5, -4',opts:['-7, -4, -2, 0, 3, 5','-2, -4, -7, 0, 3, 5','0, -2, 3, -4, 5, -7','5, 3, 0, -2, -4, -7'],str:'Picture a number line. Negative numbers go LEFT of zero. The more negative, the smaller the value. -7 is less than -4 is less than -2.',passage:null},
-
-            // Q22 - 6.EE.1 Order of Operations
-            {sec:'math',std:'6.EE.1',skill:'Order of Operations',diff:2,type:'mc',text:'Evaluate: 3 + 4 x (8 - 5)^2',opts:['39','63','147','21'],str:'PEMDAS: Parentheses, Exponents, Multiply/Divide (left to right), Add/Subtract (left to right). Do NOT just go left to right.',passage:null},
-
-            // Q23 - 6.EE.5 Inequalities
-            {sec:'math',std:'6.EE.5',skill:'Solve Inequalities',diff:2,type:'mc',text:'Which value of x makes the inequality 3x + 7 > 22 true?',opts:['x = 4','x = 5','x = 6','x = 3'],str:'Solve inequalities like equations (undo operations), then check which answer choices fall in the solution range.',passage:null},
-
-            // Q24 - 6.EE.7 Solve Equations
-            {sec:'math',std:'6.EE.7',skill:'Solve One-Variable Equations',diff:2,type:'mc',text:'Solve for m: 5m - 13 = 32',opts:['m = 9','m = 3.8','m = 19','m = 7'],str:'Undo operations in reverse order: first undo subtraction (add 13), then undo multiplication (divide by 5). Always check your answer.',passage:null},
-
-            // Q25 - 6.G.1 Area of Triangles
-            {sec:'math',std:'6.G.1',skill:'Area of Polygons',diff:2,type:'mc',text:'A triangle has a base of 18 cm and a height of 11 cm. What is its area?',opts:['99 cm\u00b2','198 cm\u00b2','29 cm\u00b2','144 cm\u00b2'],str:'Triangle area is always HALF of base times height: A = (1/2)bh. Don\'t forget to divide by 2.',passage:null},
-
-            // Q26 - 6.G.4 Surface Area (Weakness target)
-            {sec:'math',std:'6.G.4',skill:'Surface Area',diff:3,type:'mc',text:'A rectangular box is 6 inches long, 4 inches wide, and 3 inches tall. What is its total surface area?',opts:['108 sq in','72 sq in','84 sq in','144 sq in'],str:'A rectangular box has 3 pairs of identical faces. Find the area of each pair (lw, lh, wh), add them, then multiply by 2.',passage:null},
-
-            // Q27 - 6.G.2 Volume (Weakness target)
-            {sec:'math',std:'6.G.2',skill:'Volume Problem Solving',diff:3,type:'mc',text:'A swimming pool is shaped like a rectangular prism: 25 meters long, 10 meters wide, and 2 meters deep. If the pool is filled to 3/4 of its depth, how many cubic meters of water are in the pool?',opts:['375 cubic meters','500 cubic meters','250 cubic meters','125 cubic meters'],str:'Find the actual water depth first (fraction of total depth), then use that as the height in the volume formula.',passage:null},
-
-            // Q28 - 6.SP.3 Statistics (Weakness target)
-            {sec:'math',std:'6.SP.3',skill:'Measures of Center',diff:2,type:'mc',text:'A student\'s quiz scores are: 78, 85, 92, 85, 90. What are the mean and mode of these scores?',opts:['Mean = 86, Mode = 85','Mean = 85, Mode = 85','Mean = 86, Mode = 92','Mean = 85, Mode = 90'],str:'Mean = sum divided by count. Mode = the number that appears MOST often. They can be different values.',passage:null},
-
-            // Q29 - 6.SP.5 Interpret Data
-            {sec:'math',std:'6.SP.5',skill:'Summarize & Interpret Data',diff:3,type:'mc',text:'A data set has a median of 50 and a mean of 62. What does this tell you about the shape of the data distribution?',opts:['The data is perfectly symmetric','The data is skewed to the left (has some very low values pulling the mean down)','The data is skewed to the right (has some very high values pulling the mean up)','The data has no outliers'],str:'Mean > Median = right skew (high outliers pull mean up). Mean < Median = left skew. Mean = Median = roughly symmetric.',passage:null},
-
-            // === SCIENCE (30-39) ===
-
-            // Q30 - Life Science: Cells
-            {sec:'sci',std:'MS-LS1-2',skill:'Cell Structure & Function',diff:1,type:'mc',text:'Which cell structure controls what substances enter and leave the cell?',opts:['The nucleus','The cell wall','The cell membrane','The mitochondria'],str:'Think of each organelle\'s specific job: nucleus = control center/DNA, cell membrane = gatekeeper, mitochondria = energy, cell wall = rigid support (plants only).',passage:null},
-
-            // Q31 - Life Science: Ecosystems - Energy Flow
-            {sec:'sci',std:'MS-LS2-3',skill:'Energy in Ecosystems',diff:2,type:'mc',text:'In a food chain: grass -> grasshopper -> frog -> hawk, which organism contains the MOST energy?',opts:['The hawk, because it is the top predator','The frog, because it eats both plants and animals','The grasshopper, because insects are very active','The grass, because energy decreases at each level of the food chain'],str:'The 10% rule: only about 10% of energy transfers from one level to the next. Producers always have the MOST total energy.',passage:null},
-
-            // Q32 - Life Science: Photosynthesis - EBSR Part A
-            {sec:'sci',std:'MS-LS1-6',skill:'Photosynthesis',diff:2,type:'ebsr',text:'Part A: What are the products of photosynthesis?',opts:['Carbon dioxide and water','Nitrogen and protein','Oxygen and glucose','Water and minerals'],str:'Remember: photosynthesis INPUTS are CO2 + H2O + light. OUTPUTS (products) are glucose + O2. It is the reverse of cellular respiration.',passage:null},
-
-            // Q33 - EBSR Part B
-            {sec:'sci',std:'MS-LS1-6',skill:'Photosynthesis',diff:3,type:'ebsr',text:'Part B: Where in a plant cell does photosynthesis primarily take place?',opts:['In the mitochondria','In the cell membrane','In the chloroplasts','In the nucleus'],str:'Chloroplasts = photosynthesis (making food). Mitochondria = cellular respiration (using food for energy). These are complementary processes.',passage:null},
-
-            // Q34 - Earth Science: Water Cycle
-            {sec:'sci',std:'MS-ESS2-4',skill:'Water Cycle',diff:2,type:'mc',text:'During which process of the water cycle does water vapor in the atmosphere change back into liquid water droplets, forming clouds?',opts:['Evaporation','Precipitation','Condensation','Transpiration'],str:'Evaporation = liquid to gas. Condensation = gas to liquid (cloud formation). Precipitation = water falling from clouds. Transpiration = water released by plants.',passage:null},
-
-            // Q35 - Earth Science: Space
-            {sec:'sci',std:'MS-ESS1-1',skill:'Earth-Sun-Moon System',diff:2,type:'mc',text:'What causes the phases of the Moon as seen from Earth?',opts:['Earth\'s shadow falls on different parts of the Moon each night','The Moon produces its own light that changes brightness','The Moon\'s position relative to the Earth and Sun changes, so we see different portions of its sunlit side','Clouds in Earth\'s atmosphere block parts of the Moon'],str:'Moon phases are about geometry: the Moon always has one half lit by the Sun, but we see different amounts of that lit half depending on where the Moon is in its orbit.',passage:null},
-
-            // Q36 - Physical Science: Energy Transformations
-            {sec:'sci',std:'MS-PS3-5',skill:'Energy Transformations',diff:2,type:'mc',text:'When a student rubs her hands together rapidly, her palms feel warm. What energy transformation is occurring?',opts:['Chemical energy to light energy','Thermal energy to kinetic energy','Electrical energy to sound energy','Kinetic (mechanical) energy to thermal (heat) energy'],str:'Friction converts motion (kinetic energy) into heat (thermal energy). This is why rubbing, grinding, and braking all produce warmth.',passage:null},
-
-            // Q37 - Physical Science: Waves
-            {sec:'sci',std:'MS-PS4-1',skill:'Wave Properties',diff:2,type:'mc',text:'A sound wave has a frequency of 440 Hz. If the speed of sound in air is 330 m/s, what is the wavelength of this sound wave?',opts:['0.50 meters','145,200 meters','1.33 meters','0.75 meters'],str:'The wave equation: v = f x lambda. To find wavelength, divide speed by frequency. Check units: m/s divided by Hz (1/s) = meters.',passage:null},
-
-            // Q38 - Earth Science: Weather
-            {sec:'sci',std:'MS-ESS2-5',skill:'Weather Systems',diff:3,type:'mc',text:'A weather map shows a large "H" over a region. What conditions would you MOST expect in that area?',opts:['Heavy rain and thunderstorms','Tornadoes and severe wind damage','Blizzards and heavy snow','Clear skies, calm winds, and dry weather'],str:'High pressure = sinking air = clear and calm. Low pressure = rising air = clouds and storms. Remember: H = happy weather, L = lousy weather.',passage:null},
-
-            // Q39 - Physical Science: Newton's Laws
-            {sec:'sci',std:'MS-PS2-1',skill:'Forces & Motion',diff:3,type:'mc',text:'A book sits motionless on a table. According to Newton\'s First Law, what must be true about the forces acting on the book?',opts:['No forces are acting on the book','The force of gravity is the only force acting on the book','The forces acting on the book are balanced (net force is zero)','The book is accelerating downward but the table stops it'],str:'An object at rest does NOT mean no forces. It means all forces CANCEL OUT (balanced forces, net force = 0). Gravity + normal force = zero net force.',passage:null},
-
-            // === SOCIAL STUDIES (40-49) — Ancient World History ===
-
-            // Q40 - Mesopotamia: Hammurabi
-            {sec:'ss',std:'WH.6.1',skill:'Early Civilizations - Mesopotamia',diff:1,type:'mc',text:'Hammurabi\'s Code, created around 1754 BCE in Babylon, is historically significant because it was one of the first:',opts:['Religious texts written on papyrus','Scientific textbooks describing astronomy and mathematics','Democratic constitutions allowing citizens to vote','Written sets of laws that established uniform rules for an entire empire'],str:'Written law is revolutionary because it makes rules public and consistent. Before written law, rules depended on who was in power and could change without notice.',passage:null},
-
-            // Q41 - Ancient Egypt: Social Structure
-            {sec:'ss',std:'WH.6.2',skill:'Ancient Egypt - Society',diff:2,type:'mc',text:'In ancient Egypt, the pharaoh was considered both a political ruler and a:',opts:['Democratically elected representative of the people','Foreign conqueror who ruled by force','Military general with no religious role','Living god who served as an intermediary between humans and the divine'],str:'In many ancient civilizations, political and religious authority were combined. The pharaoh\'s divine status was the foundation of Egyptian governance.',passage:null},
-
-            // Q42 - Ancient Egypt: Geography - EBSR Part A
-            {sec:'ss',std:'WH.6.2',skill:'Ancient Egypt - Geography',diff:2,type:'ebsr',text:'Part A: Why did ancient Egyptians call their land "Kemet," meaning "black land"?',opts:['Because the night sky was very dark over the desert','Because Egyptian clothing was predominantly black','Because the pyramids were built from black stone','Because the Nile\'s annual flooding deposited dark, fertile soil along its banks'],str:'Geography shaped ancient civilizations. The Nile\'s flooding created a narrow strip of fertile land that made Egyptian civilization possible.',passage:null},
-
-            // Q43 - EBSR Part B
-            {sec:'ss',std:'WH.6.2',skill:'Ancient Egypt - Geography',diff:3,type:'ebsr',text:'Part B: How did the geography described in Part A directly influence Egyptian civilization?',opts:['It forced Egyptians to become nomadic herders who moved with their livestock','It made Egypt vulnerable to constant flooding disasters that destroyed cities','It prevented Egypt from trading with neighboring civilizations','It provided reliable agricultural land that supported a large, settled population and surplus food production'],str:'Agricultural surplus is the KEY to civilization: surplus food -> population growth -> specialization -> cities -> complex society.',passage:null},
-
-            // Q44 - Ancient Greece: Athens vs. Sparta
-            {sec:'ss',std:'WH.6.3',skill:'Ancient Greece - City-States',diff:2,type:'mc',text:'Which statement BEST describes a key difference between Athens and Sparta?',opts:['Athens focused on trade, arts, and democracy, while Sparta focused on military discipline and strength','Athens was located in Africa while Sparta was in Europe','Athens had no army while Sparta had no navy','Athens and Sparta were identical in their values and government'],str:'Athens = mind (democracy, philosophy, arts). Sparta = body (military, discipline, strength). This contrast is a core concept in ancient Greek history.',passage:null},
-
-            // Q45 - Ancient Rome: Fall of the Republic
-            {sec:'ss',std:'WH.6.4',skill:'Ancient Rome - Republic to Empire',diff:3,type:'mc',text:'Which factor contributed MOST to the fall of the Roman Republic and the rise of the Roman Empire?',opts:['The invention of new farming technology','The Roman gods abandoned the city','Rome\'s population decreased dramatically due to disease','Powerful military generals like Julius Caesar gained personal armies and challenged the Senate\'s authority'],str:'The Republic died when military power overtook political power. Generals with loyal armies could challenge the Senate\u2014something the Republic\'s founders never anticipated.',passage:null},
-
-            // Q46 - Ancient India: Caste System
-            {sec:'ss',std:'WH.6.5',skill:'Ancient India - Society',diff:2,type:'mc',text:'The caste system in ancient India organized society into rigid social classes. Which statement BEST describes its impact?',opts:['It allowed people to freely choose any occupation they wanted','It encouraged equality and democratic participation for all citizens','It applied only to rulers and had no effect on ordinary people','It created a strict social hierarchy where a person\'s occupation and social status were determined by birth, with little possibility of change'],str:'The caste system was rigid and hereditary\u2014your birth determined your entire social position. Understanding this helps explain India\'s social structure for centuries.',passage:null},
-
-            // Q47 - Ancient China: Silk Road
-            {sec:'ss',std:'WH.6.6',skill:'Ancient China - Trade',diff:2,type:'mc',text:'The Silk Road was significant because it:',opts:['Was a single road built by the Chinese government connecting Beijing to Rome','Connected China to Australia across the Pacific Ocean','Was used exclusively for transporting silk and nothing else','Was a network of trade routes that facilitated the exchange of goods, ideas, religions, and technologies between East and West'],str:'The Silk Road exchanged more than goods\u2014it spread ideas, religions, technologies, and even diseases. It was the ancient world\'s internet of cultural exchange.',passage:null},
-
-            // Q48 - Ancient China: Dynastic Cycle
-            {sec:'ss',std:'WH.6.6',skill:'Ancient China - Government',diff:3,type:'mc',text:'The Chinese concept of the "Mandate of Heaven" stated that:',opts:['All Chinese emperors were considered gods who could never be removed from power','The emperor was chosen through democratic elections by all citizens','Only members of the military could become emperor','A ruler\'s right to govern came from divine approval, which could be lost if the ruler became unjust or incompetent'],str:'The Mandate of Heaven justified both ruling AND overthrowing rulers. It created a cycle: new dynasty gains mandate -> rules well -> becomes corrupt -> loses mandate -> new dynasty.',passage:null},
-
-            // Q49 - Comparing Civilizations
-            {sec:'ss',std:'WH.6.7',skill:'Comparing Ancient Civilizations',diff:3,type:'mc',text:'All of the following ancient civilizations developed near major rivers EXCEPT:',opts:['Egypt (Nile River)','Mesopotamia (Tigris and Euphrates Rivers)','Greece (Aegean Sea and mountainous terrain)','India (Indus River)'],str:'River valley civilizations (Egypt, Mesopotamia, India, China) relied on rivers for farming. Greece\'s geography was different: mountains and sea led to city-states and maritime trade.',passage:null}
-        ];
-
-        var currentQ = 0;
-        var testStarted = false;
-        var testSubmitted = false;
-        var answers = {};
-        var flags = {};
-        var testStartTime = 0;
-
-        // LEAP countdown
-        (function() {
-            var leap = new Date(2026, 3, 27); // April 27, 2026
-            var now = new Date();
-            var diff = Math.ceil((leap - now) / (1000 * 60 * 60 * 24));
-            var el = document.getElementById('leapCountdown');
-            if (el) el.textContent = diff + ' days until LEAP';
-        })();
-
-        function startTest() {
-            testStarted = true;
-            testStartTime = Date.now();
-            loadTestState();
-            document.getElementById('welcomeScreen').style.display = 'none';
-            document.getElementById('testScreen').style.display = 'block';
-            renderNavigator();
-            renderQuestion();
-            startTimer();
-        }
-
-        function renderNavigator() {
-            var grid = document.getElementById('navGrid');
-            grid.innerHTML = '';
-            var answeredCount = 0;
-            var flaggedCount = 0;
-            for (var i = 0; i < 50; i++) {
-                var btn = document.createElement('button');
-                btn.className = 'nav-btn-small';
-                btn.textContent = i + 1;
-                if (answers[i] !== undefined) { btn.classList.add('answered'); answeredCount++; }
-                if (flags[i]) { btn.classList.add('flagged'); flaggedCount++; }
-                if (i === currentQ) btn.classList.add('current');
-                (function(idx) {
-                    btn.onclick = function() { currentQ = idx; renderQuestion(); renderNavigator(); };
-                })(i);
-                grid.appendChild(btn);
-            }
-            document.getElementById('answeredInfo').textContent = 'Answered: ' + answeredCount + ' / 50';
-            document.getElementById('flaggedInfo').textContent = 'Flagged: ' + flaggedCount;
-            document.getElementById('progressFill').style.width = (answeredCount / 50 * 100) + '%';
-        }
-
-        function renderQuestion() {
-            var q = Q[currentQ];
-            document.getElementById('currentQNum').textContent = currentQ + 1;
-
-            // Find section
-            var secInfo = null;
-            for (var s = 0; s < SECTIONS.length; s++) {
-                if (currentQ >= SECTIONS[s].range[0] && currentQ <= SECTIONS[s].range[1]) {
-                    secInfo = SECTIONS[s];
-                    break;
+    for(var i=0;i<SECTIONS.length;i++){
+        var sec = SECTIONS[i];
+        var total = 0, correct_sec = 0;
+        for(var j=sec.range[0];j<=Math.min(sec.range[1],Q.length-1);j++){
+            if(Q[j]&&Q[j].type==='mc'){
+                total++;
+                if(answers[j]===_ac[j]){
+                    correct++;
+                    correct_sec++;
                 }
             }
-            document.getElementById('sectionBadge').textContent = secInfo ? secInfo.icon + ' ' + secInfo.name : '';
-            document.getElementById('sectionTitle').textContent = secInfo ? secInfo.name : 'Week 7 LEAP Diagnostic';
-            document.getElementById('stdCode').textContent = q.std;
-            document.getElementById('skillLabel').textContent = q.skill;
+        }
+        sectionScores[sec.name] = {correct:correct_sec,total:total};
+    }
 
-            // Passage
-            var pp = document.getElementById('passagePane');
-            if (q.passage && PASSAGES[q.passage]) {
-                pp.style.display = 'block';
-                var p = PASSAGES[q.passage];
-                pp.innerHTML = '<h3>' + p.label + ': ' + p.title + '</h3>' + p.text.split('\n\n').map(function(par) { return '<p>' + par + '</p>'; }).join('');
-            } else {
-                pp.style.display = 'none';
-            }
+    var pct = Math.round((correct/Q.length)*100);
+    var totalAnswered = Object.keys(answers).length;
 
-            // Question text
-            document.getElementById('questionText').innerHTML = '<div style="font-size:1.1em;line-height:1.7;">' + q.text + '</div>';
+    showResults(pct,correct,totalAnswered,sectionScores);
 
-            // Options
-            var opts = document.getElementById('optionsContainer');
-            opts.innerHTML = '';
-            var letters = ['A', 'B', 'C', 'D'];
-            q.opts.forEach(function(opt, i) {
-                var label = document.createElement('label');
-                label.className = 'option';
-                if (answers[currentQ] === i) label.classList.add('selected');
-                label.innerHTML = '<input type="radio" name="answer" value="' + i + '" ' + (answers[currentQ] === i ? 'checked' : '') + ' onchange="selectAnswer(' + i + ')"> <strong>' + letters[i] + '.</strong>&nbsp; ' + opt;
-                opts.appendChild(label);
-            });
+    // Send data to Apps Script
+    var payload = {
+        action:'completeDiagnosticTest',
+        student:'jacob',
+        testId:'jacob_diagnostic_week7_apr2026',
+        score:pct,
+        total:correct,
+        outOf:Q.length,
+        sections:Object.keys(sectionScores).map(function(name){
+            return {name:name,correct:sectionScores[name].correct,total:sectionScores[name].total};
+        }),
+        timestamp:new Date().toISOString()
+    };
 
-            // Flag button
-            document.getElementById('flagBtn').classList.toggle('flagged', !!flags[currentQ]);
-            document.getElementById('flagBtn').innerHTML = flags[currentQ] ? '&#9733; Flagged' : '&#9734; Flag';
+    fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec',{
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+    }).catch(function(e){console.log('Analytics sent');});
+}
 
-            // Nav buttons
-            document.getElementById('prevBtn').disabled = currentQ === 0;
-            document.getElementById('nextBtn').disabled = currentQ === 49;
+function showResults(pct,correct,total,sectionScores){
+    var grade = pct>=90?'Advanced':pct>=80?'Proficient':pct>=70?'Developing':'Needs Improvement';
+    var message = '';
+
+    if(grade==='Advanced'){
+        message = 'Excellent work! Your understanding across all subjects is very strong. Keep pushing yourself with more challenging problems.';
+    } else if(grade==='Proficient'){
+        message = 'Great job! You\'re showing solid understanding. Review the sections where you had difficulty, and keep practicing.';
+    } else if(grade==='Developing'){
+        message = 'Good effort! You\'re building understanding. Let\'s focus on the areas that gave you trouble and work through more practice problems together.';
+    } else {
+        message = 'Let\'s work together! I\'ve identified your weak areas. We\'ll start with the basics and build up gradually. You\'ve got this!';
+    }
+
+    document.getElementById('finalScore').textContent = pct+'%';
+    document.getElementById('scoreMessage').textContent = grade;
+
+    var sectionsHtml = '';
+    for(var i=0;i<SECTIONS.length;i++){
+        var sec = SECTIONS[i];
+        var s = sectionScores[sec.name];
+        var secPct = Math.round((s.correct/s.total)*100);
+        sectionsHtml += '<div class="section-results">' +
+            '<div class="section-title">' +
+            '<span>'+sec.name+'</span>' +
+            '<span class="section-stat">'+s.correct+'/'+s.total+' correct ('+secPct+'%)</span>' +
+            '</div>' +
+            '<div class="section-bar">' +
+            '<div class="section-fill" style="width:'+secPct+'%">'+secPct+'%</div>' +
+            '</div>' +
+            '</div>';
+    }
+    document.getElementById('sectionsResults').innerHTML = sectionsHtml;
+
+    document.getElementById('tutorMessage').innerHTML = '<p>'+message+'</p>' +
+        '<p><strong style="color:var(--accent);">What\'s next:</strong> Review your incorrect answers below, focus on the weak areas we\'ve identified, and we\'ll tackle a new practice test next week. You\'re making great progress!</p>';
+
+    // Build review section
+    var wrong = [];
+    for(var i=0;i<Q.length;i++){
+        if(answers[i]!==_ac[i]){
+            wrong.push(i);
+        }
+    }
+
+    if(wrong.length>0){
+        document.getElementById('reviewSection').style.display='block';
+        var reviewHtml = '';
+        for(var i=0;i<Math.min(wrong.length,10);i++){
+            var qIdx = wrong[i];
+            var q = Q[qIdx];
+            var sec = SECTIONS.find(function(s){return qIdx>=s.range[0]&&qIdx<=s.range[1];});
+            var userAns = answers[qIdx];
+            var correctAns = _ac[qIdx];
+            var optLabels = ['A','B','C','D'];
+            reviewHtml += '<div class="wrong-item">' +
+                '<div class="wrong-q">Question '+(qIdx+1)+' ('+sec.name+')</div>' +
+                '<div class="wrong-detail"><strong>You answered:</strong> '+optLabels[userAns]+') '+q.opts[userAns]+'</div>' +
+                '<div class="wrong-detail"><strong>Correct answer:</strong> '+optLabels[correctAns]+') '+q.opts[correctAns]+'</div>' +
+                '</div>';
+        }
+        if(wrong.length>10){
+            reviewHtml += '<div style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:15px;">... and '+(wrong.length-10)+' more incorrect answers</div>';
+        }
+        document.getElementById('reviewList').innerHTML = reviewHtml;
+    }
+
+    showScreen('results');
+}
+
+function startTimer(){
+    var timerEl = document.getElementById('timer');
+    var interval = setInterval(function(){
+        timeLeft--;
+        var mins = Math.floor(timeLeft/60);
+        var secs = timeLeft%60;
+        timerEl.textContent = (mins<10?'0':'')+mins+':'+(secs<10?'0':'')+secs;
+
+        if(timeLeft<=300){
+            timerEl.classList.add('warning');
+        }
+        if(timeLeft<=60){
+            timerEl.classList.remove('warning');
+            timerEl.classList.add('danger');
         }
 
-        function selectAnswer(i) {
-            answers[currentQ] = i;
-            saveTestState();
-            renderNavigator();
-            renderQuestion();
-        }
-
-        function toggleFlag() {
-            flags[currentQ] = !flags[currentQ];
-            saveTestState();
-            renderNavigator();
-            renderQuestion();
-        }
-
-        function prevQuestion() {
-            if (currentQ > 0) {
-                currentQ--;
-                renderQuestion();
-                renderNavigator();
-            }
-        }
-
-        function nextQuestion() {
-            if (currentQ < 49) {
-                currentQ++;
-                renderQuestion();
-                renderNavigator();
-            }
-        }
-
-        function showSubmitModal() {
-            var answered = Object.keys(answers).length;
-            document.getElementById('answeredCount').textContent = answered;
-            document.getElementById('submitModal').classList.add('active');
-        }
-
-        function closeSubmitModal() {
-            document.getElementById('submitModal').classList.remove('active');
-        }
-
-        function submitTest() {
-            testSubmitted = true;
-            closeSubmitModal();
-            document.getElementById('testScreen').style.display = 'none';
-
-            // Calculate results
-            var correctCount = 0;
-            var bySection = {};
-            SECTIONS.forEach(function(sec) { bySection[sec.id] = { correct: 0, total: sec.range[1] - sec.range[0] + 1 }; });
-            var wrongAnswers = [];
-            var skillResults = {};
-
-            Q.forEach(function(q, i) {
-                var isCorrect = answers[i] === _ac[currentQuestion];
-                if (isCorrect) {
-                    correctCount++;
-                    bySection[q.sec].correct++;
-                } else {
-                    wrongAnswers.push({ q: q, qNum: i + 1, studentAns: answers[i] !== undefined ? q.opts[answers[i]] : 'Not answered', correctAns: q.opts[_ac[currentQuestion]] });
-                }
-                // Track skills
-                var key = q.std + '|' + q.skill;
-                if (!skillResults[key]) skillResults[key] = { std: q.std, skill: q.skill, correct: 0, total: 0 };
-                skillResults[key].total++;
-                if (isCorrect) skillResults[key].correct++;
-            });
-
-            var percentage = Math.round(100 * correctCount / 50);
-
-            // Show results
-            document.getElementById('resultsSubtitle').textContent = 'Jacob Brown \u2014 Week 7 LEAP Diagnostic';
-            document.getElementById('overallScore').textContent = percentage + '%';
-            document.getElementById('overallDetails').textContent = correctCount + ' out of 50 correct';
-
-            // Section scores
-            var scoreHtml = '';
-            SECTIONS.forEach(function(sec) {
-                var data = bySection[sec.id];
-                var pct = Math.round(100 * data.correct / data.total);
-                scoreHtml += '<div class="score-card"><h3>' + sec.icon + ' ' + sec.name + '</h3><div class="value">' + pct + '%</div><div class="details">' + data.correct + '/' + data.total + '</div></div>';
-            });
-            document.getElementById('sectionScores').innerHTML = scoreHtml;
-
-            // Skills analysis
-            var skillsHtml = '<h2>Skills Analysis</h2>';
-            var skillKeys = Object.keys(skillResults);
-            skillKeys.forEach(function(key) {
-                var sr = skillResults[key];
-                var pct = Math.round(100 * sr.correct / sr.total);
-                var status, statusClass;
-                if (pct >= 80) { status = 'Strong'; statusClass = 'skill-strong'; }
-                else if (pct >= 50) { status = 'OK'; statusClass = 'skill-ok'; }
-                else { status = 'Weak'; statusClass = 'skill-weak'; }
-                skillsHtml += '<div class="skill-row"><span class="skill-name">' + sr.skill + '</span><span class="skill-std">' + sr.std + '</span><span class="skill-status ' + statusClass + '">' + status + ' (' + sr.correct + '/' + sr.total + ')</span></div>';
-            });
-            document.getElementById('skillsAnalysis').innerHTML = skillsHtml;
-
-            // Tutor message (Gary)
-            var tutorMsg = '';
-            if (percentage >= 90) {
-                tutorMsg = '<strong>Gary says:</strong> Jacob, outstanding work. You scored ' + percentage + '% on this Week 7 diagnostic. That\u2019s the kind of performance that tells me you\u2019re not just memorizing\u2014you\u2019re thinking. With 21 days until LEAP, you\u2019re in a strong position. Let\u2019s keep sharpening the edge on those advanced questions. The daily sessions will push you on the standards where even one miss matters. Stay focused and trust the process.';
-            } else if (percentage >= 80) {
-                tutorMsg = '<strong>Gary says:</strong> Jacob, solid performance\u2014' + percentage + '%. You\u2019re showing real command of grade-level material. The gaps I\u2019m seeing are specific, which is good\u2014that means we can target them. With 21 days until LEAP, your daily sessions will hammer the weak spots: ratios, text structure, and any standard where you dropped points. Keep reading passages carefully and showing your math work. You\u2019re building something here.';
-            } else if (percentage >= 70) {
-                tutorMsg = '<strong>Gary says:</strong> Jacob, you scored ' + percentage + '%. That\u2019s honest progress, and diagnostics exist to show us where to dig deeper. You\u2019re solid on the fundamentals, but some of the multi-step and evidence-based questions need more practice. With 21 days until LEAP, here\u2019s what we do: daily sessions will focus on your weakest standards\u2014especially ratios, proportions, and vocabulary in context. Read every passage twice. Show every math step. You\u2019ve got the ability\u2014now we build the consistency.';
-            } else if (percentage >= 60) {
-                tutorMsg = '<strong>Gary says:</strong> Jacob, you scored ' + percentage + '%. I know that\u2019s not where you want to be, but this is exactly why we do diagnostics\u2014to find the gaps before LEAP does. We have 21 days. That\u2019s enough time to make real improvement if you commit to the daily sessions. Math fundamentals\u2014ratios, fractions, equations\u2014need daily reps. For ELA, slow down on the passages: read them fully before touching the questions. I believe in your ability to close these gaps. Let\u2019s get to work.';
-            } else {
-                tutorMsg = '<strong>Gary says:</strong> Jacob, you scored ' + percentage + '%. I\u2019m not going to sugarcoat it\u2014there\u2019s work to do. But here\u2019s what I know: diagnostics measure where you are right now, not where you\u2019ll be in 21 days. Every daily session between now and LEAP is a chance to strengthen a skill. We\u2019re going to focus on the basics first\u2014ratios, reading comprehension, key vocabulary\u2014and build from there. Don\u2019t get discouraged. The fact that you sat down and took this test shows commitment. Now let\u2019s channel that into consistent daily practice.';
-            }
-            document.getElementById('tutorMessage').innerHTML = tutorMsg;
-
-            // Review of wrong answers
-            var reviewHtml = '';
-            if (wrongAnswers.length === 0) {
-                reviewHtml = '<div class="no-wrong-answers">Perfect score! You got all 50 questions correct!</div>';
-            } else {
-                var bySecWrong = { ela: [], math: [], sci: [], ss: [] };
-                wrongAnswers.forEach(function(w) { bySecWrong[w.q.sec].push(w); });
-                SECTIONS.forEach(function(sec) {
-                    if (bySecWrong[sec.id].length > 0) {
-                        reviewHtml += '<div class="review-section"><h2>' + sec.icon + ' ' + sec.name + '</h2>';
-                        bySecWrong[sec.id].forEach(function(w) {
-                            reviewHtml += '<div class="question-review incorrect">' +
-                                '<div class="review-q-text">Q' + w.qNum + ': ' + w.q.text + '</div>' +
-                                '<div class="review-row"><div class="review-label">Your Answer:</div><div class="review-value incorrect">' + w.studentAns + '</div></div>' +
-                                '<div class="review-row"><div class="review-label">Correct Answer:</div><div class="review-value correct">' + w.correctAns + '</div></div>' +
-                                '<div class="explanation"><div class="explanation-label">Explanation:</div><div class="explanation-text">' + w.q.exp + '</div></div>' +
-                                '<div class="strategy"><div class="strategy-label">Strategy Tip:</div><div class="strategy-text">' + w.q.str + '</div></div>' +
-                            '</div>';
-                        });
-                        reviewHtml += '</div>';
-                    }
-                });
-            }
-            document.getElementById('reviewContainer').innerHTML = reviewHtml;
-            document.getElementById('resultsScreen').style.display = 'block';
-
-            // === DATA SAVING ===
-
-            // 1. Convert answers to array
-            var answersArr = [];
-            for (var i = 0; i < 50; i++) answersArr[i] = answers[i] !== undefined ? answers[i] : null;
-
-            // 2. Save review data to localStorage
-            var reviewData = {
-                testId: CONFIG.testId,
-                student: CONFIG.student,
-                answers: answersArr,
-                questions: Q.map(function(q) { return { sec: q.sec, std: q.std, skill: q.skill, diff: q.diff, text: q.text, opts: q.opts, exp: q.exp, str: q.str, passage: q.passage }; }),
-                passages: PASSAGES,
-                sections: SECTIONS,
-                score: percentage,
-                correct: correctCount,
-                total: 50,
-                timestamp: new Date().toISOString()
-            };
-            localStorage.setItem('jacob_diagnostic_latest_review', JSON.stringify(reviewData));
-
-            // 3. Save signals with date and testId
-            var localDate = (function() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
-            localStorage.setItem('jacob_diagnostic_week7_signal', JSON.stringify({ completed: true, testId: CONFIG.testId, score: percentage, date: localDate, timestamp: new Date().toISOString() }));
-            localStorage.setItem('jacob_diagnostic_signal', JSON.stringify({ testId: CONFIG.testId, score: percentage, completed: true, date: localDate }));
-
-            // 4. Sync to Google Apps Script
-            var answerDetails = Q.map(function(q, idx) {
-                return {
-                    index: idx, section: q.sec, standard: q.std, skill: q.skill, type: q.type,
-                    question: q.text.substring(0, 200),
-                    selectedOption: answersArr[idx],
-                    selectedText: answersArr[idx] !== null ? q.opts[answersArr[idx]] : null,
-                    correctOption: _ac[currentQuestion], correctText: q.opts[_ac[currentQuestion]],
-                    isCorrect: answersArr[idx] === _ac[currentQuestion]
-                };
-            });
-            var sectionSummary = {};
-            SECTIONS.forEach(function(sec) {
-                var secCorrect = 0, secTotal = sec.range[1] - sec.range[0] + 1;
-                for (var i = sec.range[0]; i <= sec.range[1]; i++) { if (answersArr[i] === _ac[i]) secCorrect++; }
-                sectionSummary[sec.id] = { correct: secCorrect, total: secTotal, pct: Math.round((secCorrect / secTotal) * 100) };
-            });
-            var payload = {
-                action: 'saveDiagnosticResults',
-                student: CONFIG.student,
-                grade: CONFIG.grade,
-                testId: CONFIG.testId,
-                testLabel: CONFIG.testLabel,
-                timestamp: new Date().toISOString(),
-                effortScore: Math.round((answersArr.filter(function(a) { return a !== null; }).length / 50) * 100),
-                totalQuestions: 50,
-                answers: answerDetails,
-                sections: {
-                    totalQuestions: 50,
-                    answeredQuestions: answersArr.filter(function(a) { return a !== null; }).length,
-                    totalTimeSeconds: Math.floor((Date.now() - testStartTime) / 1000),
-                    effortScore: Math.round((answersArr.filter(function(a) { return a !== null; }).length / 50) * 100),
-                    sections: sectionSummary,
-                    correctMC: correctCount,
-                    totalMC: 50,
-                    percentCorrect: percentage
-                }
-            };
-            fetch(CONFIG.webAppUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).catch(function() {});
-
-            // Clear test state
-            localStorage.removeItem('jacob_week7_test_state');
-        }
-
-        function startTimer() {
-            setInterval(function() {
-                var elapsed = Math.floor((Date.now() - testStartTime) / 1000);
-                var mins = Math.floor(elapsed / 60);
-                var secs = elapsed % 60;
-                document.getElementById('timerDisplay').textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
-            }, 1000);
-        }
-
-        function saveTestState() {
-            localStorage.setItem('jacob_week7_test_state', JSON.stringify({ currentQ: currentQ, answers: answers, flags: flags, started: true }));
-        }
-
-        function loadTestState() {
-            var saved = JSON.parse(localStorage.getItem('jacob_week7_test_state') || '{}');
-            if (saved.started) {
-                currentQ = saved.currentQ || 0;
-                answers = saved.answers || {};
-                flags = saved.flags || {};
+        if(timeLeft<=0){
+            clearInterval(interval);
+            if(!testSubmitted){
+                submitTest();
             }
         }
-    </script>
+    },1000);
+}
+
+function showScreen(name){
+    document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+    if(name==='welcome')document.querySelector('.welcome-screen').classList.add('active');
+    else if(name==='test')document.querySelector('.test-screen').classList.add('active');
+    else if(name==='results')document.querySelector('.results-screen').classList.add('active');
+}
+
+function startTest(){
+    testStarted = true;
+    showScreen('test');
+    init();
+}
+
+function returnToDashboard(){
+    window.location.href = 'Jacob_Dashboard.html?signal=jacob_diagnostic_week7_signal';
+}
+
+// Start on load
+window.onload = function(){
+    showScreen('welcome');
+};
+</script>
+
 </body>
 </html>
