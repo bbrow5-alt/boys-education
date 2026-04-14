@@ -809,6 +809,32 @@ function submitTest(){
 
     showResults(pct,correct,totalAnswered,sectionScores);
 
+    // Write localStorage signal so dashboard knows test is complete
+    var today = new Date().toISOString().slice(0,10);
+    var signalData = {
+        completed: true,
+        testId:'jacob_diagnostic_week8_apr2026',
+        student:'jacob',
+        score:pct,
+        correct:correct,
+        total:Q.length,
+        date:today,
+        timestamp:new Date().toISOString(),
+        points:15
+    };
+    localStorage.setItem('jacob_diagnostic_week8_signal', JSON.stringify(signalData));
+    localStorage.setItem('jacob_diagnostic_signal', JSON.stringify(signalData));
+
+    // Update dashboard localStorage
+    var dashKey = 'jacob_dashboard_v3';
+    var dashData = JSON.parse(localStorage.getItem(dashKey) || '{}');
+    if (!dashData.days) dashData.days = {};
+    if (!dashData.days[today]) dashData.days[today] = {};
+    dashData.days[today].session = true;
+    dashData.days[today].diagnosticComplete = true;
+    dashData.days[today].diagnosticPoints = 15;
+    localStorage.setItem(dashKey, JSON.stringify(dashData));
+
     // Send data to Apps Script
     var payload = {
         action:'completeDiagnosticTest',
@@ -828,7 +854,48 @@ function submitTest(){
         mode:'no-cors',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify(payload)
-    }).catch(function(e){console.log('Analytics sent');});
+    }).catch(function(e){console.log('completeDiagnosticTest sent');});
+
+    // Save detailed diagnostic results (per-question answers) to DiagnosticResults sheet
+    var allAnswers = [];
+    for(var i=0;i<Q.length;i++){
+        var q = Q[i];
+        var sec = SECTIONS.find(function(s){return i>=s.range[0]&&i<=s.range[1];});
+        allAnswers.push({
+            index:i,
+            section:sec?sec.name.toLowerCase():'unknown',
+            type:q.type,
+            question:q.text?q.text.substring(0,100):'',
+            selectedOption:answers[i]!==undefined?answers[i]:-1,
+            correctOption:_ac[i],
+            correct:answers[i]===_ac[i]
+        });
+    }
+    var resultsPayload = {
+        action:'saveDiagnosticResults',
+        student:'jacob',
+        grade:6,
+        testId:'jacob_diagnostic_week8_apr2026',
+        testLabel:'Week 8 LEAP Practice Test',
+        timestamp:new Date().toISOString(),
+        effortScore:100,
+        totalQuestions:Q.length,
+        answers:allAnswers,
+        summary:{
+            total:correct,
+            outOf:Q.length,
+            pct:pct,
+            sections:Object.keys(sectionScores).map(function(name){
+                return {name:name,correct:sectionScores[name].correct,total:sectionScores[name].total};
+            })
+        }
+    };
+    fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec',{
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(resultsPayload)
+    }).catch(function(e){console.log('saveDiagnosticResults sent');});
 }
 
 function showResults(pct,correct,total,sectionScores){
