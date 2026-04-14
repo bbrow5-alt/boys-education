@@ -1993,36 +1993,36 @@ async function loadDiagnosticTests() {
   // Diagnostic tests are managed via hardcoded entries (updated each time a new test is built).
   // The API endpoint returns stale data, so we skip it and use the local definition as source of truth.
   // When a new diagnostic is created, replace this single entry.
-  // Week 7 diagnostic (current)
+  // Week 8 diagnostic (current)
+  const signalWeek8 = JSON.parse(localStorage.getItem('chase_diagnostic_week8_signal') || 'null');
+  const isCompletedWeek8 = signalWeek8 && signalWeek8.completed && signalWeek8.testId === 'chase_diagnostic_week8_apr2026';
+
+  // Week 7 diagnostic (previous)
   const signalWeek7 = JSON.parse(localStorage.getItem('chase_diagnostic_week7_signal') || 'null');
   const isCompletedWeek7 = signalWeek7 && signalWeek7.completed && signalWeek7.testId === 'chase_diagnostic_week7_apr2026';
-
-  // Week 6 diagnostic (previous)
-  const signalWeek6 = JSON.parse(localStorage.getItem('chase_diagnostic_week6_signal') || 'null');
-  const isCompletedWeek6 = signalWeek6 && signalWeek6.completed && signalWeek6.testId === 'chase_diagnostic_week6_mar2026';
-  const diagDayDataW6 = getDayData('2026-03-29');
-  const pastDueW6 = new Date() > new Date('2026-03-30');
-  const isCompletedW6FromSync = pastDueW6 && diagDayDataW6 && diagDayDataW6.session === true;
+  const diagDayDataW7 = getDayData('2026-04-06');
+  const pastDueW7 = new Date() > new Date('2026-04-12');
+  const isCompletedW7FromSync = pastDueW7 && diagDayDataW7 && diagDayDataW7.session === true;
 
   diagnosticTests = [
-    {
-      TestLabel: 'Week 6 LEAP Practice Test — All Subjects',
-      Month: 'March 2026',
-      TestURL: 'Diagnostic_Test_Chase_Week6_March2026.html',
-      AvailableDate: '2026-03-29',
-      DueDate: '2026-03-30',
-      Completed: (isCompletedWeek6 || isCompletedW6FromSync) ? 'TRUE' : 'FALSE',
-      CompletedDate: isCompletedWeek6 ? signalWeek6.date : (isCompletedW6FromSync ? '2026-03-29' : ''),
-      PointsAwarded: 15
-    },
     {
       TestLabel: 'Week 7 LEAP Practice Test — All Subjects',
       Month: 'April 2026',
       TestURL: 'Diagnostic_Test_Chase_Week7_April2026.html',
       AvailableDate: '2026-04-06',
       DueDate: '2026-04-12',
-      Completed: isCompletedWeek7 ? 'TRUE' : 'FALSE',
-      CompletedDate: isCompletedWeek7 ? signalWeek7.date : '',
+      Completed: (isCompletedWeek7 || isCompletedW7FromSync) ? 'TRUE' : 'FALSE',
+      CompletedDate: isCompletedWeek7 ? signalWeek7.date : (isCompletedW7FromSync ? '2026-04-06' : ''),
+      PointsAwarded: 15
+    },
+    {
+      TestLabel: 'Week 8 LEAP Practice Test — All Subjects',
+      Month: 'April 2026',
+      TestURL: 'Diagnostic_Test_Chase_Week7_April2026.html',
+      AvailableDate: '2026-04-13',
+      DueDate: '2026-04-19',
+      Completed: isCompletedWeek8 ? 'TRUE' : 'FALSE',
+      CompletedDate: isCompletedWeek8 ? signalWeek8.date : '',
       PointsAwarded: 15
     }
   ];
