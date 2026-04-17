@@ -66,7 +66,7 @@
         .option { background-color: #111820; border: 2px solid #1e2d3d; border-radius: 8px; padding: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; }
         .option:hover:not(.disabled) { border-color: #00ff41; background-color: #152028; }
         .option.selected { border-color: #00ff41; background-color: #152028; }
-        .option.correct { border-color: #00cc33; background-color: rgba(0,204,51,0.1); }
+        .option.correct { border-color: #00cc33 !important; background: rgba(0,204,51,0.18) !important; }
         .option.incorrect { border-color: #ff4444; background-color: rgba(255,68,68,0.1); }
         .option.disabled { cursor: not-allowed; }
         .option-letter { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background-color: #1e2d3d; border-radius: 50%; font-weight: 700; font-size: 13px; color: #00ff41; flex-shrink: 0; }
@@ -684,7 +684,7 @@
         if (result) {
             const isCorrect = result.correct;
             options.forEach((opt, i) => {
-                if (i === result.correctAnswer) opt.classList.add('correct');
+                if (result.correctAnswer !== undefined && i === parseInt(result.correctAnswer)) opt.classList.add('correct');
                 if (i === index && !isCorrect) opt.classList.add('incorrect');
             });
             fb.className = 'feedback-box show ' + (isCorrect ? 'correct' : 'incorrect');
@@ -737,7 +737,7 @@
             currentAnswers[currentQuestionIndex] = { partA: ebsrPartAAnswer, partB: index, score: score, isEBSR: true };
 
             options.forEach((opt, i) => {
-                if (i === result.correctAnswer) opt.classList.add('correct');
+                if (result.correctAnswer !== undefined && i === parseInt(result.correctAnswer)) opt.classList.add('correct');
                 if (i === index && !partBCorrect) opt.classList.add('incorrect');
             });
 
@@ -789,7 +789,7 @@
 
             // Highlight correct/incorrect
             options.forEach((opt, i) => {
-                if (i === result.correctAnswer) opt.classList.add('correct');
+                if (result.correctAnswer !== undefined && i === parseInt(result.correctAnswer)) opt.classList.add('correct');
                 if (i === index && !isCorrect) opt.classList.add('incorrect');
             });
 

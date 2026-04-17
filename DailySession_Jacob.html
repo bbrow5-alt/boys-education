@@ -74,7 +74,7 @@
         .option { background-color: #231e17; border: 2px solid #3d3428; border-radius: 8px; padding: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; }
         .option:hover:not(.disabled) { border-color: #c9a84c; background-color: #2d2620; }
         .option.selected { border-color: #c9a84c; background-color: #2d2620; }
-        .option.correct { border-color: #7fb069; background-color: rgba(127,176,105,0.1); }
+        .option.correct { border-color: #4CAF50 !important; background: rgba(76, 175, 80, 0.15) !important; }
         .option.incorrect { border-color: #c44536; background-color: rgba(196,69,54,0.1); }
         .option.disabled { cursor: not-allowed; }
         .option.checking { border-color: #c9a84c; background-color: #2d2620; opacity: 0.7; }
@@ -861,7 +861,7 @@
         var correctIndex = -1;
         if (result && result.correct !== undefined) {
             isCorrect = result.correct;
-            correctIndex = result.correctAnswer !== undefined ? result.correctAnswer : -1;
+            correctIndex = result.correctAnswer !== undefined ? parseInt(result.correctAnswer) : -1;
         }
 
         // Reveal Part A result
@@ -919,7 +919,7 @@
         if (result) {
             partBCorrect = !!result.correct;
             partACorrect = !!result.partACorrect;
-            correctIndex = result.correctAnswer !== undefined ? result.correctAnswer : -1;
+            correctIndex = result.correctAnswer !== undefined ? parseInt(result.correctAnswer) : -1;
             explanation = result.explanation || '';
             score = result.score !== undefined ? result.score : (partACorrect && partBCorrect ? 2 : partACorrect ? 1 : 0);
         }
@@ -976,7 +976,7 @@
         var explanation = '';
         if (result) {
             isCorrect = !!result.correct;
-            correctIndex = result.correctAnswer !== undefined ? result.correctAnswer : -1;
+            correctIndex = result.correctAnswer !== undefined ? parseInt(result.correctAnswer) : -1;
             explanation = result.explanation || '';
         }
 
