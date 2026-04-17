@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEAP Diagnostic Test - Jacob Brown, Week 8</title>
+    <style>
+        :root {
+            --bg-dark: #1a1510;
+            --bg-card: #2a2420;
+            --accent: #c9a84c;
+            --text-light: #e8e6e1;
+            --text-muted: #a9a39d;
+            --error: #ff6b6b;
+            --success: #51cf66;
+            --warning: #ffd43b;
+            --border: #3a3430;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+
+        /* Screen control */
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .welcome-card {
+            background: var(--bg-card);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 500px;
+            margin: 20px;
+        }
+        .logo {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        .welcome-card h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+        .welcome-card h2 {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-weight: normal;
+        }
+        .test-info {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .test-info p {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .test-info strong { color: var(--accent); }
+        .test-info .value { color: var(--text-light); }
+
+        /* Buttons */
+        button {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 12px 32px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 10px;
+        }
+        button:hover {
+            background: #d9b85d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3);
+        }
+        button:active { transform: translateY(0); }
+        button.secondary {
+            background: transparent;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+        }
+        button.secondary:hover {
+            background: rgba(201, 168, 76, 0.1);
+        }
+        button.danger {
+            background: var(--error);
+            color: white;
+        }
+        button.danger:hover {
+            background: #ff5252;
+        }
+
+        /* Test Screen */
+        .test-screen {
+            padding-bottom: 100px;
+        }
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+            min-width: 120px;
+        }
+        .timer.warning { color: var(--warning); }
+        .timer.danger { color: var(--error); animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .progress-info {
+            text-align: center;
+            font-size: 14px;
+        }
+        .progress-info strong { color: var(--accent); }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #d9b85d);
+            transition: width 0.3s;
+        }
+
+        /* Question card */
+        .question-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .question-number {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+        .question-text {
+            font-size: 18px;
+            margin-bottom: 25px;
+            line-height: 1.8;
+            color: var(--text-light);
+        }
+        .question-text .passage {
+            background: var(--bg-dark);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        /* Options */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .option {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .option:hover {
+            border-color: var(--accent);
+            background: rgba(201, 168, 76, 0.05);
+        }
+        .option input[type="radio"] {
+            margin-top: 3px;
+            cursor: pointer;
+            accent-color: var(--accent);
+            width: 20px;
+            height: 20px;
+        }
+        .option label {
+            cursor: pointer;
+            flex: 1;
+            user-select: none;
+        }
+        .option.selected {
+            border-color: var(--accent);
+            background: rgba(201, 168, 76, 0.1);
+        }
+        .option.correct {
+            border-color: var(--success);
+            background: rgba(81, 207, 102, 0.1);
+        }
+        .option.incorrect {
+            border-color: var(--error);
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        /* Navigation */
+        .question-nav {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .nav-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .nav-btn {
+            width: 100%;
+            aspect-ratio: 1;
+            padding: 0;
+            font-size: 12px;
+            border-radius: 6px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover { border-color: var(--accent); }
+        .nav-btn.current {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            font-weight: 600;
+        }
+        .nav-btn.answered {
+            border-color: var(--success);
+            color: var(--success);
+        }
+        .nav-btn.unanswered {
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        /* Button group */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+        .button-group button { margin: 0; }
+
+        /* Results Screen */
+        .results-screen {
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .results-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .final-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        .score-message {
+            font-size: 24px;
+            color: var(--text-light);
+            margin-bottom: 30px;
+        }
+        .section-results {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .section-stat {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .section-bar {
+            background: var(--bg-dark);
+            border-radius: 4px;
+            height: 24px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .section-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #d9b85d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .tutor-message {
+            background: var(--bg-card);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .tutor-name {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .tutor-message p {
+            margin-bottom: 10px;
+            line-height: 1.8;
+        }
+
+        .review-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .review-title {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .wrong-item {
+            background: var(--bg-dark);
+            border-left: 4px solid var(--error);
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
+        .wrong-q {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-light);
+        }
+        .wrong-detail {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: var(--bg-card);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-content h2 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        .modal-content p {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .modal-buttons button { margin: 0; flex: 1; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .question-card { padding: 20px; }
+            .welcome-card { padding: 25px; }
+            .final-score { font-size: 36px; }
+            .nav-grid { grid-template-columns: repeat(auto-fit, minmax(35px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Anti-cheat protection -->
+<script>
+(function() {
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    document.addEventListener('keydown', function(e) {
+        var blocked = (e.keyCode===123 ||
+            (e.ctrlKey&&e.shiftKey&&e.keyCode===73) ||
+            (e.ctrlKey&&e.shiftKey&&e.keyCode===74) ||
+            (e.ctrlKey&&e.shiftKey&&e.keyCode===67) ||
+            (e.ctrlKey&&e.keyCode===85) ||
+            (e.metaKey&&e.altKey&&e.keyCode===73));
+        if(blocked){e.preventDefault();e.stopPropagation();return false;}
+    },true);
+    var _devOpen=false;
+    setInterval(function(){
+        var w=window.outerWidth-window.innerWidth>160;
+        var h=window.outerHeight-window.innerHeight>160;
+        if((w||h)&&!_devOpen){
+            _devOpen=true;
+            var o=document.createElement('div');
+            o.id='_ac_overlay';
+            o.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0f1a;z-index:999999;display:flex;align-items:center;justify-content:center;flex-direction:column;';
+            o.innerHTML='<div style="font-size:48px;">⚠️</div><div style="color:#ff4444;font-size:22px;font-weight:700;margin:16px 0;">Browser tools detected.</div><div style="color:#aaa;font-size:15px;">Close DevTools and refresh the page to continue.</div>';
+            document.body.appendChild(o);
+        } else if(!w&&!h&&_devOpen){
+            _devOpen=false;
+            var el=document.getElementById('_ac_overlay');
+            if(el)el.remove();
+        }
+    },800);
+})();
+</script>
+
+<div class="container">
+    <!-- Welcome Screen -->
+    <div class="screen welcome-screen active">
+        <div class="welcome-card">
+            <div class="logo">🎓</div>
+            <h1>LEAP Diagnostic Test</h1>
+            <h2>Week 8 Assessment</h2>
+
+            <div class="test-info">
+                <p><strong>Student:</strong> <span class="value">Jacob Brown</span></p>
+                <p><strong>Grade:</strong> <span class="value">6th Grade</span></p>
+                <p><strong>AI Tutor:</strong> <span class="value">Gary</span></p>
+                <p><strong>Duration:</strong> <span class="value">60 minutes</span></p>
+                <p><strong>Total Questions:</strong> <span class="value">55</span></p>
+            </div>
+
+            <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 14px; color: var(--text-muted); line-height: 1.8;">
+                <strong style="color: var(--accent);">Test Structure:</strong><br>
+                • ELA: 15 questions<br>
+                • Mathematics: 20 questions<br>
+                • Science: 12 questions<br>
+                • Social Studies: 8 questions
+            </div>
+
+            <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 14px;">
+                This test assesses your knowledge across all LEAP subjects. Answer each question to the best of your ability. You can navigate between questions and review your answers before submitting.
+            </p>
+
+            <button onclick="startTest()">Begin Test</button>
+        </div>
+    </div>
+
+    <!-- Test Screen -->
+    <div class="screen test-screen">
+        <div class="test-header">
+            <div class="timer" id="timer">60:00</div>
+            <div class="progress-info">
+                Question <strong id="questionNum">1</strong> of <strong id="totalQuestions">55</strong>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <div class="question-card">
+            <div class="question-number" id="sectionLabel">ELA — Question 1</div>
+            <div class="question-text" id="questionText"></div>
+            <div class="options" id="optionsContainer"></div>
+        </div>
+
+        <div class="question-nav">
+            <div class="nav-label">Question Navigator</div>
+            <div class="nav-grid" id="navGrid"></div>
+        </div>
+
+        <div class="button-group">
+            <button class="secondary" onclick="previousQuestion()">← Previous</button>
+            <button class="secondary" onclick="nextQuestion()">Next →</button>
+            <button class="danger" onclick="openSubmitModal()">Submit Test</button>
+        </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div class="screen results-screen">
+        <div class="container">
+            <div class="results-header">
+                <div class="final-score" id="finalScore">--</div>
+                <div class="score-message" id="scoreMessage"></div>
+            </div>
+
+            <div id="sectionsResults"></div>
+
+            <div class="tutor-message">
+                <div class="tutor-name">💡 Gary (Your AI Tutor)</div>
+                <div id="tutorMessage"></div>
+            </div>
+
+            <div class="review-section" id="reviewSection" style="display:none;">
+                <div class="review-title">Review: Incorrect Answers</div>
+                <div id="reviewList"></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <button onclick="returnToDashboard()">Return to Dashboard</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Submit Confirmation Modal -->
+<div class="modal" id="submitModal">
+    <div class="modal-content">
+        <h2>Submit Test?</h2>
+        <p>You are about to submit your test. You will not be able to change your answers after submission. Are you sure?</p>
+        <div class="modal-buttons">
+            <button onclick="closeSubmitModal()" class="secondary">Cancel</button>
+            <button onclick="confirmSubmit()">Submit Now</button>
+        </div>
+    </div>
+</div>
+
+<!-- Question Data -->
+<script>
+var Q = [
+    // =============================================
+    // ELA Section (0-14): 15 questions
+    // =============================================
+
+    // Q0 — grade-level — correct: B (index 1)
+    {type:'mc',sec:1,text:'Read the passage below:\n\n"The Amazon rainforest is often called the \'lungs of the Earth.\' Covering over 2.1 million square miles, it produces approximately 20 percent of the world\'s oxygen. The rainforest is home to more species of plants and animals than any other ecosystem on the planet. Scientists estimate that one in ten known species lives in the Amazon."\n\nWhat is the MAIN idea of this passage?',opts:['The Amazon rainforest is located in South America','The Amazon rainforest is extremely important to the planet because of its size, oxygen production, and biodiversity','Scientists study species that live in the Amazon','The Amazon produces exactly 20 percent of all oxygen'],dif:'grade-level'},
+
+    // Q1 — baseline — correct: C (index 2)
+    {type:'mc',sec:1,text:'In the sentence "The stars danced across the midnight sky," the phrase "stars danced" is an example of which literary device?',opts:['Simile','Alliteration','Personification','Hyperbole'],dif:'baseline'},
+
+    // Q2 — grade-level — correct: A (index 0)
+    {type:'mc',sec:1,text:'Read this passage:\n\n"Every morning, twelve-year-old Marcus woke up before dawn to practice his trumpet. His fingers ached and his lips were sore, but he never missed a day. When the school band competition arrived, Marcus played a solo that brought the audience to its feet. His band director said it was the finest performance she had heard in twenty years of teaching."\n\nWhat is the author\'s PRIMARY purpose in writing this passage?',opts:['To show how hard work and dedication lead to success','To explain the rules of a band competition','To convince readers to learn a musical instrument','To describe what it is like to wake up early'],dif:'grade-level'},
+
+    // Q3 — baseline — correct: D (index 3)
+    {type:'mc',sec:1,text:'The word "abundant" in the sentence "The garden had an abundant supply of tomatoes this summer" most closely means:',opts:['Scarce and limited','Poisonous and harmful','Colorful and bright','Plentiful and more than enough'],dif:'baseline'},
+
+    // Q4 — grade-level — correct: B (index 1)
+    {type:'mc',sec:1,text:'Which of the following is the BEST summary of a text about the invention of the telephone?\n\nA) Alexander Graham Bell was born in Scotland.\nB) Alexander Graham Bell invented the telephone in 1876, revolutionizing long-distance communication and changing the way people connected with each other.\nC) Telephones use wires to carry sound.\nD) Many inventors worked on communication devices in the 1800s.',opts:['Alexander Graham Bell was born in Scotland.','Alexander Graham Bell invented the telephone in 1876, revolutionizing long-distance communication and changing the way people connected with each other.','Telephones use wires to carry sound.','Many inventors worked on communication devices in the 1800s.'],dif:'grade-level'},
+
+    // Q5 — grade-level — correct: A (index 0)
+    {type:'mc',sec:1,text:'PART A: Read the sentence:\n\n"The firefighter\'s courageous actions during the blaze saved three families from certain danger."\n\nBased on context clues, what does "courageous" most likely mean in this sentence?',opts:['Brave and fearless','Careless and reckless','Slow and cautious','Confused and uncertain'],dif:'grade-level'},
+
+    // Q6 — grade-level — correct: C (index 2)
+    {type:'mc',sec:1,text:'PART B (Connected to Part A): Which context clue in the sentence most helps you understand the meaning of "courageous"?\n\nA) The word "firefighter\'s"\nB) The phrase "three families"\nC) The phrase "saved three families from certain danger"\nD) The word "actions"',opts:['The word "firefighter\'s"','The phrase "three families"','The phrase "saved three families from certain danger"','The word "actions"'],dif:'grade-level'},
+
+    // Q7 — grade-level — correct: D (index 3)
+    {type:'mc',sec:1,text:'A text about volcanoes includes these headings:\n\n1. What Causes a Volcano to Form\n2. The Stages of a Volcanic Eruption\n3. How Communities Prepare for Eruptions\n\nHow do these headings help organize the text?',opts:['They compare different types of volcanoes around the world','They list reasons why volcanoes are dangerous','They contrast active and dormant volcanoes','They move from explaining the cause, to the event, to the human response'],dif:'grade-level'},
+
+    // Q8 — challenging — correct: B (index 1)
+    {type:'mc',sec:1,text:'Read the passage:\n\n"Lena checked out seven books from the library every Saturday. She kept a journal where she rated each book and wrote her favorite quotes. By the end of sixth grade, she had read over 300 books and her vocabulary test scores were the highest in her class."\n\nWhat inference can be made about Lena based on this passage?',opts:['She did not have any hobbies besides reading','Her consistent reading habit contributed to her strong vocabulary','She was forced to read by her teachers','She only read books that were easy for her level'],dif:'challenging'},
+
+    // Q9 — baseline — correct: A (index 0)
+    {type:'mc',sec:1,text:'Which sentence correctly uses an apostrophe to show possession?\n\nA) The dog\'s collar was bright red.\nB) The dogs collar was bright red.\nC) The dog\'s collar were bright red.\nD) The dogs\' collar was bright red for one dog.',opts:['The dog\'s collar was bright red.','The dogs collar was bright red.','The dog\'s collar were bright red.','The dogs\' collar was bright red for one dog.'],dif:'baseline'},
+
+    // Q10 — challenging — correct: C (index 2)
+    {type:'mc',sec:1,text:'A student is writing a persuasive essay about why students should learn a second language in elementary school. Which of the following BEST supports this argument?',opts:['Many countries have their own languages.','Some students already speak two languages at home.','Studies show that children who learn a second language early develop stronger problem-solving skills and perform better academically.','Learning a language takes many years of practice.'],dif:'challenging'},
+
+    // Q11 — grade-level — correct: B (index 1)
+    {type:'mc',sec:1,text:'Read the passage:\n\n"Before refrigeration existed, people preserved food using salt, smoke, and drying. Meat was packed in salt to prevent bacteria from growing. Fish was hung over fires to smoke for days. Fruits were dried in the sun until all moisture was removed. These methods allowed families to store food through long winters when fresh food was unavailable."\n\nBased on the passage, WHY did people use preservation methods like salting and smoking?',opts:['Because they enjoyed the taste of smoked and salted food','Because they needed to keep food safe to eat during times when fresh food was not available','Because refrigerators had not been invented yet and they wanted cold food','Because salt and smoke made food look more appealing'],dif:'grade-level'},
+
+    // Q12 — grade-level — correct: A (index 0)
+    {type:'mc',sec:1,text:'Which of the following sentences uses a semicolon correctly?\n\nA) The concert was canceled; the storm knocked out power to the entire venue.\nB) The concert was canceled, the storm knocked out power to the entire venue.\nC) The concert was canceled the storm; knocked out power to the entire venue.\nD) The concert; was canceled the storm knocked out power to the entire venue.',opts:['The concert was canceled; the storm knocked out power to the entire venue.','The concert was canceled, the storm knocked out power to the entire venue.','The concert was canceled the storm; knocked out power to the entire venue.','The concert; was canceled the storm knocked out power to the entire venue.'],dif:'grade-level'},
+
+    // Q13 — grade-level — correct: D (index 3)
+    {type:'mc',sec:1,text:'A text about space exploration begins with the heading "The Race to Reach the Moon." This heading suggests the text will PRIMARILY:',opts:['Describe the surface of the moon','Explain how rockets are built','List all the planets in the solar system','Discuss the competition between nations to land on the moon first'],dif:'grade-level'},
+
+    // Q14 — challenging — correct: C (index 2)
+    {type:'mc',sec:1,text:'Read the following two sentences:\n\nSentence 1: "The school board voted to extend the school year by ten days."\nSentence 2: "Test scores had declined for three consecutive years, and parents demanded action."\n\nWhat relationship do these two sentences BEST demonstrate?',opts:['Sentence 1 explains why Sentence 2 happened','Both sentences present the same idea using different words','Sentence 2 provides the cause that led to the action described in Sentence 1','Sentence 1 contradicts the information in Sentence 2'],dif:'challenging'},
+
+    // =============================================
+    // Mathematics Section (15-34): 20 questions
+    // =============================================
+
+    // Q15 — baseline — correct: B (index 1)
+    {type:'mc',sec:2,text:'A bag contains 24 marbles. If 3/8 of the marbles are blue, how many blue marbles are in the bag?',opts:['6','9','12','8'],dif:'baseline'},
+
+    // Q16 — grade-level — correct: A (index 0)
+    {type:'mc',sec:2,text:'The ratio of boys to girls in a classroom is 3:4. If there are 28 students in total, how many boys are in the class?',opts:['12','16','14','21'],dif:'grade-level'},
+
+    // Q17 — grade-level — correct: C (index 2)
+    {type:'mc',sec:2,text:'A car travels 180 miles using 6 gallons of gas. At this rate, how many miles can it travel on 10 gallons?',opts:['200 miles','250 miles','300 miles','360 miles'],dif:'grade-level'},
+
+    // Q18 — grade-level — correct: D (index 3)
+    {type:'mc',sec:2,text:'What is the area of a triangle with a base of 12 cm and a height of 9 cm?',opts:['108 cm²','21 cm²','96 cm²','54 cm²'],dif:'grade-level'},
+
+    // Q19 — grade-level — correct: B (index 1)
+    {type:'mc',sec:2,text:'A data set contains the following values: 14, 22, 18, 22, 10, 22, 16. What is the mean (average) of this data set?',opts:['22','Approximately 17.7','16','18'],dif:'grade-level'},
+
+    // Q20 — baseline — correct: C (index 2)
+    {type:'mc',sec:2,text:'Which number is equivalent to 3.05 × 10²?\n\nA) 3.05\nB) 30.5\nC) 305\nD) 3,050',opts:['3.05','30.5','305','3,050'],dif:'baseline'},
+
+    // Q21 — grade-level — correct: A (index 0)
+    {type:'mc',sec:2,text:'Solve: 4x - 7 = 21\n\nWhat is the value of x?',opts:['7','3.5','14','28'],dif:'grade-level'},
+
+    // Q22 — grade-level — correct: D (index 3)
+    {type:'mc',sec:2,text:'A basketball player made 45 baskets out of 60 attempts. What is the ratio of baskets made to baskets missed?',opts:['45:60','60:15','60:45','45:15'],dif:'grade-level'},
+
+    // Q23 — challenging — correct: B (index 1)
+    {type:'mc',sec:2,text:'A map has a scale of 1 inch = 25 miles. Two cities are 3.5 inches apart on the map. What is the actual distance between the two cities?',opts:['75 miles','87.5 miles','100 miles','62.5 miles'],dif:'challenging'},
+
+    // Q24 — grade-level — correct: A (index 0)
+    {type:'mc',sec:2,text:'A rectangular fish tank is 20 inches long, 10 inches wide, and 12 inches tall. What is the volume of the fish tank in cubic inches?',opts:['2,400','240','420','1,200'],dif:'grade-level'},
+
+    // Q25 — grade-level — correct: C (index 2)
+    {type:'mc',sec:2,text:'A student recorded the number of books read each month for five months: 3, 5, 7, 4, 6. What is the median of this data set?',opts:['4','6','5','3'],dif:'grade-level'},
+
+    // Q26 — baseline — correct: A (index 0)
+    {type:'mc',sec:2,text:'What is the greatest common factor (GCF) of 36 and 48?',opts:['12','6','24','8'],dif:'baseline'},
+
+    // Q27 — baseline — correct: D (index 3)
+    {type:'mc',sec:2,text:'A runner completes a 5-kilometer race in 25 minutes. What is the runner\'s average speed in kilometers per minute?',opts:['5 km/min','0.5 km/min','1 km/min','0.2 km/min'],dif:'baseline'},
+
+    // Q28 — grade-level — correct: B (index 1)
+    {type:'mc',sec:2,text:'A proportional relationship is shown in the table:\n\nInput | Output\n  3   |   12\n  5   |   20\n  8   |   32\n\nWhat is the constant of proportionality?',opts:['3','4','8','12'],dif:'grade-level'},
+
+    // Q29 — challenging — correct: C (index 2)
+    {type:'mc',sec:2,text:'Solve: 5(2x + 3) = 45\n\nWhat is the value of x?',opts:['6','4.5','3','9'],dif:'challenging'},
+
+    // Q30 — baseline — correct: A (index 0)
+    {type:'mc',sec:2,text:'A pizza is cut into 8 equal slices. Jacob eats 3 slices and his friend eats 2 slices. What fraction of the pizza is left?',opts:['3/8','5/8','2/8','1/2'],dif:'baseline'},
+
+    // Q31 — challenging — correct: B (index 1)
+    {type:'mc',sec:2,text:'If the diameter of a circle is 14 cm, and you use π ≈ 3.14, which is closest to the area of the circle?\n\nA) 43.96 cm²\nB) 153.86 cm²\nC) 615.44 cm²\nD) 87.92 cm²',opts:['43.96 cm²','153.86 cm²','615.44 cm²','87.92 cm²'],dif:'challenging'},
+
+    // Q32 — grade-level — correct: D (index 3)
+    {type:'mc',sec:2,text:'A spinner has 5 equal sections colored red, blue, green, yellow, and purple. What is the probability of landing on blue or green on one spin?',opts:['1/5','1/3','1/10','2/5'],dif:'grade-level'},
+
+    // Q33 — grade-level — correct: A (index 0)
+    {type:'mc',sec:2,text:'On a number line, which of the following correctly orders the numbers from least to greatest?\n\n-3, 1.5, -7, 4, 0',opts:['-7, -3, 0, 1.5, 4','-3, -7, 0, 1.5, 4','4, 1.5, 0, -3, -7','0, -3, -7, 1.5, 4'],dif:'grade-level'},
+
+    // Q34 — challenging — correct: C (index 2)
+    {type:'mc',sec:2,text:'A store is having a sale where everything is 30% off. If a jacket originally costs $80, how much will the jacket cost after the discount?',opts:['$24','$50','$56','$64'],dif:'challenging'},
+
+    // =============================================
+    // Science Section (35-46): 12 questions
+    // =============================================
+
+    // Q35 — grade-level — correct: B (index 1)
+    {type:'mc',sec:3,text:'In humans, brown eye color (B) is dominant over blue eye color (b). If both parents have the genotype Bb, what percentage of their offspring is expected to have blue eyes?\n\n(Use a Punnett square to determine the answer)',opts:['50%','25%','75%','0%'],dif:'grade-level'},
+
+    // Q36 — grade-level — correct: D (index 3)
+    {type:'mc',sec:3,text:'Which of the following is an example of energy being transformed from one form to another?\n\nA) A rock sitting on a hilltop\nB) Water stored in a lake behind a dam\nC) A book resting on a shelf\nD) A light bulb converting electrical energy into light and heat energy',opts:['A rock sitting on a hilltop','Water stored in a lake behind a dam','A book resting on a shelf','A light bulb converting electrical energy into light and heat energy'],dif:'grade-level'},
+
+    // Q37 — baseline — correct: A (index 0)
+    {type:'mc',sec:3,text:'What is the role of decomposers in an ecosystem?\n\nA) They break down dead organisms and return nutrients to the soil\nB) They produce food through photosynthesis\nC) They hunt and eat other animals\nD) They compete with producers for sunlight',opts:['They break down dead organisms and return nutrients to the soil','They produce food through photosynthesis','They hunt and eat other animals','They compete with producers for sunlight'],dif:'baseline'},
+
+    // Q38 — grade-level — correct: C (index 2)
+    {type:'mc',sec:3,text:'Clouds form in the atmosphere when water vapor cools and changes into tiny water droplets. This process is called:\n\nA) evaporation\nB) precipitation\nC) condensation\nD) transpiration',opts:['Evaporation','Precipitation','Condensation','Transpiration'],dif:'grade-level'},
+
+    // Q39 — baseline — correct: B (index 1)
+    {type:'mc',sec:3,text:'Which of the following is an example of a learned behavior in animals?\n\nA) A baby sea turtle crawling toward the ocean after hatching\nB) A dog sitting on command after being trained\nC) A spider spinning a web\nD) Birds migrating south for the winter',opts:['A baby sea turtle crawling toward the ocean after hatching','A dog sitting on command after being trained','A spider spinning a web','Birds migrating south for the winter'],dif:'baseline'},
+
+    // Q40 — grade-level — correct: A (index 0)
+    {type:'mc',sec:3,text:'A student wants to test whether fertilizer helps plants grow taller. She plants 10 identical seeds in the same type of soil. Five plants receive fertilizer and five do not. All other conditions are kept the same. What is the independent variable in this experiment?',opts:['Whether or not the plant receives fertilizer','The height of the plants','The type of soil used','The amount of sunlight each plant receives'],dif:'grade-level'},
+
+    // Q41 — baseline — correct: D (index 3)
+    {type:'mc',sec:3,text:'In the water cycle, what happens during precipitation?\n\nA) Water evaporates from lakes and oceans\nB) Water vapor rises into the atmosphere\nC) Water vapor condenses to form clouds\nD) Water falls from clouds as rain, snow, sleet, or hail',opts:['Water evaporates from lakes and oceans','Water vapor rises into the atmosphere','Water vapor condenses to form clouds','Water falls from clouds as rain, snow, sleet, or hail'],dif:'baseline'},
+
+    // Q42 — grade-level — correct: C (index 2)
+    {type:'mc',sec:3,text:'A hurricane forms over warm ocean water and moves toward land. As the hurricane moves over land, it begins to weaken. Why does this happen?',opts:['The land is too flat for the hurricane to continue','Mountains block the wind from spinning','The hurricane loses its energy source because it is no longer over warm water','The air pressure over land is always lower than over the ocean'],dif:'grade-level'},
+
+    // Q43 — grade-level — correct: B (index 1)
+    {type:'mc',sec:3,text:'In a pond ecosystem, algae are eaten by small fish, which are eaten by larger fish, which are eaten by herons. If the small fish population suddenly decreased, what would MOST LIKELY happen first?',opts:['The heron population would immediately increase','The larger fish population would decrease because they have less food','The algae population would decrease','Nothing would change in the ecosystem'],dif:'grade-level'},
+
+    // Q44 — challenging — correct: A (index 0)
+    {type:'mc',sec:3,text:'A trait in fruit flies is controlled by a single gene with two alleles: W (red eyes, dominant) and w (white eyes, recessive). A female fly with genotype Ww is crossed with a male fly with genotype Ww. What fraction of offspring are expected to have white eyes?',opts:['1/4','1/2','3/4','All of them'],dif:'challenging'},
+
+    // Q45 — grade-level — correct: D (index 3)
+    {type:'mc',sec:3,text:'Which layer of the Earth\'s atmosphere do we live in and where most weather occurs?\n\nA) Stratosphere\nB) Mesosphere\nC) Thermosphere\nD) Troposphere',opts:['Stratosphere','Mesosphere','Thermosphere','Troposphere'],dif:'grade-level'},
+
+    // Q46 — challenging — correct: C (index 2)
+    {type:'mc',sec:3,text:'An ecosystem has producers, primary consumers, secondary consumers, and tertiary consumers. Which level of the energy pyramid contains the MOST total energy?',opts:['Tertiary consumers (top predators)','Secondary consumers','Producers (plants and algae at the base)','Primary consumers (herbivores)'],dif:'challenging'},
+
+    // =============================================
+    // Social Studies Section (47-54): 8 questions
+    // =============================================
+
+    // Q47 — baseline — correct: B (index 1)
+    {type:'mc',sec:4,text:'The three branches of the United States government are:\n\nA) Federal, state, and local\nB) Legislative, executive, and judicial\nC) Army, navy, and air force\nD) Senate, House, and Supreme Court',opts:['Federal, state, and local','Legislative, executive, and judicial','Army, navy, and air force','Senate, House, and Supreme Court'],dif:'baseline'},
+
+    // Q48 — grade-level — correct: C (index 2)
+    {type:'mc',sec:4,text:'The Civil War (1861-1865) was fought primarily over which issue?',opts:['Taxation without representation','Control of western territories','Slavery and the rights of states to allow it','Trade agreements with European nations'],dif:'grade-level'},
+
+    // Q49 — grade-level — correct: A (index 0)
+    {type:'mc',sec:4,text:'In economics, the term "supply and demand" refers to:\n\nA) The relationship between how much of a product is available and how much people want to buy it\nB) The total amount of money a government collects in taxes\nC) The number of workers in a country compared to the number of jobs\nD) How much a company spends on advertising its products'],dif:'grade-level'},
+
+    // Q50 — baseline — correct: D (index 3)
+    {type:'mc',sec:4,text:'Which ocean is the largest on Earth?',opts:['Atlantic Ocean','Indian Ocean','Arctic Ocean','Pacific Ocean'],dif:'baseline'},
+
+    // Q51 — grade-level — correct: B (index 1)
+    {type:'mc',sec:4,text:'The Declaration of Independence, adopted on July 4, 1776, was primarily written by:\n\nA) George Washington\nB) Thomas Jefferson\nC) Benjamin Franklin\nD) John Adams',opts:['George Washington','Thomas Jefferson','Benjamin Franklin','John Adams'],dif:'grade-level'},
+
+    // Q52 — grade-level — correct: A (index 0)
+    {type:'mc',sec:4,text:'Which of the following is an example of a civic responsibility of United States citizens?\n\nA) Serving on a jury when called\nB) Traveling to other countries\nC) Attending college\nD) Joining a sports team',opts:['Serving on a jury when called','Traveling to other countries','Attending college','Joining a sports team'],dif:'grade-level'},
+
+    // Q53 — challenging — correct: C (index 2)
+    {type:'mc',sec:4,text:'The ancient Egyptian civilization developed along the Nile River. Which of the following BEST explains why the Nile was so important to ancient Egypt?',opts:['The Nile provided a natural barrier against all invaders','The Nile was the only source of drinking water in Africa','The Nile\'s annual flooding deposited rich soil that allowed farming in an otherwise desert region','The Nile connected Egypt directly to Rome for trade'],dif:'challenging'},
+
+    // Q54 — grade-level — correct: D (index 3)
+    {type:'mc',sec:4,text:'What is the PRIMARY purpose of the system of "checks and balances" in the United States government?',opts:['To make sure elections happen every four years','To allow the President to make all important decisions','To ensure that all citizens pay their taxes','To prevent any one branch of government from becoming too powerful'],dif:'grade-level'}
+];
+
+// Verify array length
+if(Q.length!==55)console.error('ERROR: Q array has '+Q.length+' questions, expected 55');
+
+// Correct answers — XOR-encoded (key=17). Do not modify.
+// Q0:1  Q1:2  Q2:0  Q3:3  Q4:1  Q5:0  Q6:2  Q7:3  Q8:1  Q9:0
+// Q10:2 Q11:1 Q12:0 Q13:3 Q14:2
+// Q15:1 Q16:0 Q17:2 Q18:3 Q19:1 Q20:2 Q21:0 Q22:3 Q23:1 Q24:0
+// Q25:2 Q26:0 Q27:3 Q28:1 Q29:2 Q30:0 Q31:1 Q32:3 Q33:0 Q34:2
+// Q35:1 Q36:3 Q37:0 Q38:2 Q39:1 Q40:0 Q41:3 Q42:2 Q43:1 Q44:0
+// Q45:3 Q46:2 Q47:1 Q48:2 Q49:0 Q50:3 Q51:1 Q52:0 Q53:2 Q54:3
+var _ac = (function(){
+    var k=17, e=[16,19,17,18,16,17,19,18,16,17,19,16,17,18,19,16,17,19,18,16,19,17,18,16,17,19,17,18,16,19,17,16,18,17,19,16,18,17,19,16,17,18,19,16,17,18,19,16,19,17,18,16,17,19,18];
+    return e.map(function(v){return v^k;});
+})();
+
+// Verify XOR-encoded array
+if(_ac.length!==55)console.error('ERROR: _ac array has '+_ac.length+' values, expected 55');
+
+// Section definitions
+var SECTIONS = [
+    {name:'ELA',range:[0,14]},
+    {name:'Mathematics',range:[15,34]},
+    {name:'Science',range:[35,46]},
+    {name:'Social Studies',range:[47,54]}
+];
+
+// Verify SECTIONS consistency
+if(SECTIONS[SECTIONS.length-1].range[1]!==Q.length-1){
+    console.error('ERROR: Last section range ['+SECTIONS[SECTIONS.length-1].range[1]+'] does not match Q.length-1 ['+(Q.length-1)+']');
+}
+
+// Global state
+var currentQ = 0;
+var answers = {};
+var timeLeft = 3600; // 60 minutes in seconds
+var testStarted = false;
+var testSubmitted = false;
+
+// Initialize
+function init(){
+    buildNavGrid();
+    updateQuestion();
+    startTimer();
+}
+
+function buildNavGrid(){
+    var grid = document.getElementById('navGrid');
+    grid.innerHTML = '';
+    for(var i=0;i<Q.length;i++){
+        var btn = document.createElement('button');
+        btn.className = 'nav-btn';
+        btn.textContent = (i+1);
+        btn.dataset.index = i;
+        btn.onclick = function(){
+            currentQ = parseInt(this.dataset.index);
+            updateQuestion();
+        };
+        grid.appendChild(btn);
+    }
+}
+
+function updateQuestion(){
+    var q = Q[currentQ];
+    var sec = SECTIONS.find(function(s){return currentQ>=s.range[0]&&currentQ<=s.range[1];});
+
+    document.getElementById('questionNum').textContent = (currentQ+1);
+    document.getElementById('totalQuestions').textContent = Q.length;
+    document.getElementById('sectionLabel').textContent = sec.name + ' — Question ' + (currentQ-sec.range[0]+1);
+    document.getElementById('questionText').innerHTML = q.text.replace(/\n\n/g,'<br><br>');
+
+    var optHtml = '';
+    var optLabels = ['A','B','C','D'];
+    for(var i=0;i<q.opts.length;i++){
+        var checked = answers[currentQ]===i?'checked':'';
+        optHtml += '<label class="option ' + (answers[currentQ]===i?'selected':'') + '">' +
+            '<input type="radio" name="option" value="'+i+'" '+checked+' onchange="selectOption('+i+')">' +
+            '<label><strong>'+optLabels[i]+':</strong> '+q.opts[i]+'</label>' +
+            '</label>';
+    }
+    document.getElementById('optionsContainer').innerHTML = optHtml;
+
+    updateProgress();
+    updateNav();
+}
+
+function selectOption(idx){
+    answers[currentQ] = idx;
+    updateQuestion();
+}
+
+function updateProgress(){
+    var pct = ((currentQ+1)/Q.length)*100;
+    document.getElementById('progressFill').style.width = pct+'%';
+}
+
+function updateNav(){
+    var navBtns = document.querySelectorAll('.nav-btn');
+    for(var i=0;i<navBtns.length;i++){
+        navBtns[i].classList.remove('current','answered','unanswered');
+        if(i===currentQ)navBtns[i].classList.add('current');
+        else if(answers[i]!==undefined)navBtns[i].classList.add('answered');
+        else navBtns[i].classList.add('unanswered');
+    }
+}
+
+function previousQuestion(){
+    if(currentQ>0){
+        currentQ--;
+        updateQuestion();
+        window.scrollTo(0,0);
+    }
+}
+
+function nextQuestion(){
+    if(currentQ<Q.length-1){
+        currentQ++;
+        updateQuestion();
+        window.scrollTo(0,0);
+    }
+}
+
+function openSubmitModal(){
+    document.getElementById('submitModal').classList.add('active');
+}
+
+function closeSubmitModal(){
+    document.getElementById('submitModal').classList.remove('active');
+}
+
+function confirmSubmit(){
+    closeSubmitModal();
+    submitTest();
+}
+
+function submitTest(){
+    testSubmitted = true;
+    var correct = 0;
+    var sectionScores = {};
+
+    for(var i=0;i<SECTIONS.length;i++){
+        var sec = SECTIONS[i];
+        var total = 0, correct_sec = 0;
+        for(var j=sec.range[0];j<=Math.min(sec.range[1],Q.length-1);j++){
+            if(Q[j]&&Q[j].type==='mc'){
+                total++;
+                if(answers[j]===_ac[j]){
+                    correct++;
+                    correct_sec++;
+                }
+            }
+        }
+        sectionScores[sec.name] = {correct:correct_sec,total:total};
+    }
+
+    var pct = Math.round((correct/Q.length)*100);
+    var totalAnswered = Object.keys(answers).length;
+
+    showResults(pct,correct,totalAnswered,sectionScores);
+
+    // Write localStorage signal so dashboard knows test is complete
+    var today = new Date().toISOString().slice(0,10);
+    var signalData = {
+        completed: true,
+        testId:'jacob_diagnostic_week8_apr2026',
+        student:'jacob',
+        score:pct,
+        correct:correct,
+        total:Q.length,
+        date:today,
+        timestamp:new Date().toISOString(),
+        points:15
+    };
+    localStorage.setItem('jacob_diagnostic_week8_signal', JSON.stringify(signalData));
+    localStorage.setItem('jacob_diagnostic_signal', JSON.stringify(signalData));
+
+    // Update dashboard localStorage
+    var dashKey = 'jacob_dashboard_v3';
+    var dashData = JSON.parse(localStorage.getItem(dashKey) || '{}');
+    if (!dashData.days) dashData.days = {};
+    if (!dashData.days[today]) dashData.days[today] = {};
+    dashData.days[today].session = true;
+    dashData.days[today].diagnosticComplete = true;
+    dashData.days[today].diagnosticPoints = 15;
+    localStorage.setItem(dashKey, JSON.stringify(dashData));
+
+    // Send data to Apps Script
+    var payload = {
+        action:'completeDiagnosticTest',
+        student:'jacob',
+        testId:'jacob_diagnostic_week8_apr2026',
+        score:pct,
+        total:correct,
+        outOf:Q.length,
+        sections:Object.keys(sectionScores).map(function(name){
+            return {name:name,correct:sectionScores[name].correct,total:sectionScores[name].total};
+        }),
+        timestamp:new Date().toISOString()
+    };
+
+    fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec',{
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+    }).catch(function(e){console.log('completeDiagnosticTest sent');});
+
+    // Save detailed diagnostic results (per-question answers) to DiagnosticResults sheet
+    var allAnswers = [];
+    for(var i=0;i<Q.length;i++){
+        var q = Q[i];
+        var sec = SECTIONS.find(function(s){return i>=s.range[0]&&i<=s.range[1];});
+        allAnswers.push({
+            index:i,
+            section:sec?sec.name.toLowerCase():'unknown',
+            type:q.type,
+            question:q.text?q.text.substring(0,100):'',
+            selectedOption:answers[i]!==undefined?answers[i]:-1,
+            correctOption:_ac[i],
+            correct:answers[i]===_ac[i]
+        });
+    }
+    var resultsPayload = {
+        action:'saveDiagnosticResults',
+        student:'jacob',
+        grade:6,
+        testId:'jacob_diagnostic_week8_apr2026',
+        testLabel:'Week 8 LEAP Practice Test',
+        timestamp:new Date().toISOString(),
+        effortScore:100,
+        totalQuestions:Q.length,
+        answers:allAnswers,
+        summary:{
+            total:correct,
+            outOf:Q.length,
+            pct:pct,
+            sections:Object.keys(sectionScores).map(function(name){
+                return {name:name,correct:sectionScores[name].correct,total:sectionScores[name].total};
+            })
+        }
+    };
+    fetch('https://script.google.com/macros/s/AKfycbx-nDlBMubq1I-u9M-fpkhwJbfROgyOXjgXjXmJtQuAPUjXvSn0vzO9yDQ0GJmUHSTPrA/exec',{
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(resultsPayload)
+    }).catch(function(e){console.log('saveDiagnosticResults sent');});
+}
+
+function showResults(pct,correct,total,sectionScores){
+    var grade = pct>=90?'Advanced':pct>=80?'Proficient':pct>=70?'Developing':'Needs Improvement';
+    var message = '';
+
+    if(grade==='Advanced'){
+        message = 'Excellent work! Your understanding across all subjects is very strong. Keep pushing yourself with more challenging problems.';
+    } else if(grade==='Proficient'){
+        message = 'Great job! You\'re showing solid understanding. Review the sections where you had difficulty, and keep practicing.';
+    } else if(grade==='Developing'){
+        message = 'Good effort! You\'re building understanding. Let\'s focus on the areas that gave you trouble and work through more practice problems together.';
+    } else {
+        message = 'Let\'s work together! I\'ve identified your weak areas. We\'ll start with the basics and build up gradually. You\'ve got this!';
+    }
+
+    document.getElementById('finalScore').textContent = pct+'%';
+    document.getElementById('scoreMessage').textContent = grade;
+
+    var sectionsHtml = '';
+    for(var i=0;i<SECTIONS.length;i++){
+        var sec = SECTIONS[i];
+        var s = sectionScores[sec.name];
+        var secPct = Math.round((s.correct/s.total)*100);
+        sectionsHtml += '<div class="section-results">' +
+            '<div class="section-title">' +
+            '<span>'+sec.name+'</span>' +
+            '<span class="section-stat">'+s.correct+'/'+s.total+' correct ('+secPct+'%)</span>' +
+            '</div>' +
+            '<div class="section-bar">' +
+            '<div class="section-fill" style="width:'+secPct+'%">'+secPct+'%</div>' +
+            '</div>' +
+            '</div>';
+    }
+    document.getElementById('sectionsResults').innerHTML = sectionsHtml;
+
+    document.getElementById('tutorMessage').innerHTML = '<p>'+message+'</p>' +
+        '<p><strong style="color:var(--accent);">What\'s next:</strong> Review your incorrect answers below, focus on the weak areas we\'ve identified, and we\'ll tackle a new practice test next week. You\'re making great progress!</p>';
+
+    // Build review section
+    var wrong = [];
+    for(var i=0;i<Q.length;i++){
+        if(answers[i]!==_ac[i]){
+            wrong.push(i);
+        }
+    }
+
+    if(wrong.length>0){
+        document.getElementById('reviewSection').style.display='block';
+        var reviewHtml = '';
+        for(var i=0;i<Math.min(wrong.length,10);i++){
+            var qIdx = wrong[i];
+            var q = Q[qIdx];
+            var sec = SECTIONS.find(function(s){return qIdx>=s.range[0]&&qIdx<=s.range[1];});
+            var userAns = answers[qIdx];
+            var correctAns = _ac[qIdx];
+            var optLabels = ['A','B','C','D'];
+            reviewHtml += '<div class="wrong-item">' +
+                '<div class="wrong-q">Question '+(qIdx+1)+' ('+sec.name+')</div>' +
+                '<div class="wrong-detail"><strong>You answered:</strong> '+optLabels[userAns]+') '+q.opts[userAns]+'</div>' +
+                '<div class="wrong-detail"><strong>Correct answer:</strong> '+optLabels[correctAns]+') '+q.opts[correctAns]+'</div>' +
+                '</div>';
+        }
+        if(wrong.length>10){
+            reviewHtml += '<div style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:15px;">... and '+(wrong.length-10)+' more incorrect answers</div>';
+        }
+        document.getElementById('reviewList').innerHTML = reviewHtml;
+    }
+
+    showScreen('results');
+}
+
+function startTimer(){
+    var timerEl = document.getElementById('timer');
+    var interval = setInterval(function(){
+        timeLeft--;
+        var mins = Math.floor(timeLeft/60);
+        var secs = timeLeft%60;
+        timerEl.textContent = (mins<10?'0':'')+mins+':'+(secs<10?'0':'')+secs;
+
+        if(timeLeft<=300){
+            timerEl.classList.add('warning');
+        }
+        if(timeLeft<=60){
+            timerEl.classList.remove('warning');
+            timerEl.classList.add('danger');
+        }
+
+        if(timeLeft<=0){
+            clearInterval(interval);
+            if(!testSubmitted){
+                submitTest();
+            }
+        }
+    },1000);
+}
+
+function showScreen(name){
+    document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+    if(name==='welcome')document.querySelector('.welcome-screen').classList.add('active');
+    else if(name==='test')document.querySelector('.test-screen').classList.add('active');
+    else if(name==='results')document.querySelector('.results-screen').classList.add('active');
+}
+
+function startTest(){
+    testStarted = true;
+    showScreen('test');
+    init();
+}
+
+function returnToDashboard(){
+    window.location.href = 'Jacob_Dashboard.html?signal=jacob_diagnostic_week8_signal';
+}
+
+// Start on load
+window.onload = function(){
+    showScreen('welcome');
+};
+</script>
+
+</body>
+</html>
