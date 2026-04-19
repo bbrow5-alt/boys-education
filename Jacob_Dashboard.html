@@ -644,7 +644,7 @@
 
 <!-- WEEKLY COMPLETION METER -->
 <div class="weekly-meter">
-  <div class="section-title">— This Week (Mon-Fri) —</div>
+  <div class="section-title">— This Week (Sun-Thu) —</div>
   <div class="meter-header">
     <div class="meter-count"><span id="meterCredits">0</span><span class="total"> / 5 days</span></div>
     <div class="meter-label-right" id="meterStatus"></div>
@@ -1447,9 +1447,10 @@ function calculateStreak() {
 }
 
 function getWeekDates() {
-  const today = new Date(); const day = today.getDay(); const monday = new Date(today);
-  monday.setDate(today.getDate() - ((day + 6) % 7));
-  return Array.from({length:7}, (_,i) => { const d = new Date(monday); d.setDate(monday.getDate()+i); return d; });
+  // Week starts Sunday (Jacob changed from Mon-Fri to Sun-Thu on Apr 19, 2026)
+  const today = new Date(); const day = today.getDay(); const sunday = new Date(today);
+  sunday.setDate(today.getDate() - day);
+  return Array.from({length:7}, (_,i) => { const d = new Date(sunday); d.setDate(sunday.getDate()+i); return d; });
 }
 
 function render() {
@@ -1498,7 +1499,7 @@ function render() {
   let weekdaysPassed = 0;
   weekDates.forEach(d => {
     const dow = d.getDay();
-    if (dow >= 1 && dow <= 5) { // Mon-Fri (Jacob's active days)
+    if (dow === 0 || (dow >= 1 && dow <= 4)) { // Sun-Thu (Jacob's active days — changed Apr 9, 2026)
       const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       if (d <= todayNow) {
         weekdaysPassed++;
@@ -1592,7 +1593,7 @@ function renderCalendar() {
     if (ds === today) cell.classList.add('today-cal');
     const isPast = cd < new Date(new Date().setHours(0,0,0,0));
     const dayDow = cd.getDay();
-    const isActiveDay = dayDow >= 1 && dayDow <= 5; // Mon-Fri for Jacob
+    const isActiveDay = dayDow === 0 || (dayDow >= 1 && dayDow <= 4); // Sun-Thu for Jacob (changed Apr 19, 2026)
     const tc = dayTaskCount(ds);
     if (!isActiveDay) {
       cell.classList.add('off-day');
@@ -1705,7 +1706,7 @@ function calculateTotalEarnedLocal() {
   const data = loadData();
   if (!data || !data.days) return 0;
 
-  // Jacob: Mon(1)-Fri(5), week starts Monday
+  // Jacob: Sun(0)-Thu(4), week starts Sunday (changed Apr 19, 2026 from Mon-Fri)
   // Collect all dates with sessions
   const sessionDates = new Set();
   Object.entries(data.days).forEach(function(entry) {
@@ -1717,9 +1718,9 @@ function calculateTotalEarnedLocal() {
   const earliest = new Date(sorted[0] + 'T12:00:00');
   const latest = new Date(sorted[sorted.length - 1] + 'T12:00:00');
 
-  // Align to Monday
+  // Align to Sunday
   var weekStart = new Date(earliest);
-  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
 
   var totalEarned = 0;
   while (weekStart <= latest) {
@@ -1728,7 +1729,7 @@ function calculateTotalEarnedLocal() {
       var d = new Date(weekStart);
       d.setDate(weekStart.getDate() + i);
       var dow = d.getDay();
-      if (dow >= 1 && dow <= 5) { // Mon-Fri
+      if (dow === 0 || (dow >= 1 && dow <= 4)) { // Sun-Thu
         var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
         if (sessionDates.has(ds)) sessionCount++;
       }
@@ -1809,7 +1810,7 @@ function calculateWeeklyCompliance() {
 
   weekDates.forEach(d => {
     const dayOfWeek = d.getDay();
-    if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Mon-Fri only
+    if (dayOfWeek === 0 || (dayOfWeek >= 1 && dayOfWeek <= 4)) { // Sun-Thu only (changed Apr 19, 2026)
       totalWeekdays++;
       const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       if (d <= today) {
@@ -1824,14 +1825,15 @@ function calculateWeeklyCompliance() {
 
   const weekdaysPassed = weekDates.filter(d => {
     const dow = d.getDay();
-    return dow >= 1 && dow <= 5 && d < today;
+    return (dow === 0 || (dow >= 1 && dow <= 4)) && d < today;
   }).length;
 
-  const isFriday = today.getDay() === 5;
+  // "Last day of the week" is now Thursday (dow=4), not Friday
+  const isLastDayOfWeek = today.getDay() === 4;
   const isPerfect = completeDays >= weekdaysPassed && weekdaysPassed > 0;
   const isFullWeekComplete = completeDays === 5;
 
-  return { completeDays, totalWeekdays: 5, missedDays, isPerfect, isFullWeekComplete, isFriday };
+  return { completeDays, totalWeekdays: 5, missedDays, isPerfect, isFullWeekComplete, isFriday: isLastDayOfWeek };
 }
 
 function renderWeeklyPayout() {
@@ -1861,7 +1863,7 @@ function renderWeeklyPayout() {
   } else {
     statusEl.style.background = 'var(--accent-dim)';
     statusEl.style.color = 'var(--text-dim)';
-    statusEl.innerHTML = 'Week starts Monday. Complete all 3 tasks every weekday.';
+    statusEl.innerHTML = 'Week starts Sunday. Complete all 3 tasks every weekday (Sun-Thu).';
     missedEl.style.display = 'none';
   }
 }

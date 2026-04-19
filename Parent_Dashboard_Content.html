@@ -1669,13 +1669,12 @@
             return date.toLocaleDateString('en-US', { weekday: 'short' });
         }
 
-        // Active school days per student: Jacob=Mon-Fri, Chase=Sun-Thu
+        // Active school days per student: both boys Sun-Thu (Jacob changed from Mon-Fri on Apr 19, 2026)
         function isActiveSchoolDay(student, dow) {
-            if (student === 'Chase') return dow >= 0 && dow <= 4; // Sun=0, Thu=4
-            return dow >= 1 && dow <= 5; // Mon=1, Fri=5
+            return dow === 0 || (dow >= 1 && dow <= 4); // Sun=0, Thu=4
         }
         function getActiveDayLabel(student) {
-            return student === 'Chase' ? 'Sun-Thu' : 'M-F';
+            return 'Sun-Thu';
         }
 
         // Calculate total earned using $60/week model (5/5 sessions = $60)
@@ -1690,13 +1689,9 @@
             const earliest = new Date(sorted[0] + 'T12:00:00');
             const latest = new Date(sorted[sorted.length - 1] + 'T12:00:00');
 
-            // Align to week start: Monday for Jacob, Sunday for Chase
+            // Both boys Sun-Thu now: align week start to Sunday
             var weekStart = new Date(earliest);
-            if (student === 'Chase') {
-                weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // align to Sunday
-            } else {
-                weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7)); // align to Monday
-            }
+            weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // align to Sunday
 
             var totalEarned = 0;
             while (weekStart <= latest) {
