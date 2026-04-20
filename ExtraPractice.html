@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Extra Practice</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #141a28;
+    --card-border: rgba(0,255,136,0.15);
+    --accent: #00ff41;
+    --accent-dim: rgba(0,255,65,0.1);
+    --text: #d0d6e0;
+    --text-dim: #5a6a7a;
+    --gold: #c9a84c;
+    --danger: #ff4444;
+    --correct: #00cc33;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Courier New', Courier, monospace;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .back-btn {
+    background: none; border: 1px solid var(--text-dim); color: var(--text-dim);
+    padding: 6px 14px; border-radius: 6px; cursor: pointer;
+    font-family: inherit; font-size: 12px;
+  }
+  .back-btn:hover { color: var(--text); border-color: var(--text); }
+  .title { font-size: 20px; color: var(--accent); font-weight: 700; letter-spacing: 1px; }
+  .subtitle { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+  .stats {
+    display: flex; justify-content: space-between; gap: 16px;
+    margin-bottom: 20px; padding: 12px; background: var(--card);
+    border: 1px solid var(--card-border); border-radius: 8px;
+  }
+  .stat { flex: 1; text-align: center; }
+  .stat-value { font-size: 24px; color: var(--accent); font-weight: 700; }
+  .stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  .question-card {
+    background: var(--card); border: 2px solid var(--card-border);
+    border-radius: 12px; padding: 20px; margin-bottom: 20px;
+  }
+  .question-meta {
+    display: flex; gap: 8px; margin-bottom: 12px;
+    font-size: 11px; color: var(--text-dim);
+  }
+  .standard-tag {
+    padding: 2px 8px; background: var(--accent-dim);
+    border-radius: 4px; color: var(--accent); font-weight: 700;
+  }
+  .question-text { font-size: 16px; line-height: 1.6; margin-bottom: 16px; color: var(--text); }
+  .options-list { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px; background: var(--bg); border: 2px solid var(--card-border);
+    border-radius: 8px; cursor: pointer; transition: all 0.15s ease;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-dim); }
+  .option.disabled { cursor: default; opacity: 0.8; }
+  .option.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .option.correct { border-color: var(--correct); background: rgba(0,204,51,0.15); }
+  .option.incorrect { border-color: var(--danger); background: rgba(255,68,68,0.12); }
+  .option-letter { font-weight: 700; color: var(--accent); min-width: 20px; }
+  .option-text { flex: 1; font-size: 14px; line-height: 1.5; }
+  .feedback {
+    margin-top: 16px; padding: 12px 14px; border-radius: 8px;
+    font-size: 13px; line-height: 1.6; display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct { background: rgba(0,204,51,0.08); border: 1px solid var(--correct); color: var(--correct); }
+  .feedback.incorrect { background: rgba(255,68,68,0.08); border: 1px solid var(--danger); color: var(--danger); }
+  .feedback-label { font-weight: 700; margin-bottom: 6px; }
+  .feedback-text { color: var(--text); font-size: 13px; }
+  .next-btn {
+    display: block; width: 100%; padding: 14px;
+    background: var(--accent); color: var(--bg); border: none;
+    border-radius: 8px; font-family: inherit; font-size: 14px;
+    font-weight: 700; cursor: pointer; letter-spacing: 1px;
+    margin-top: 16px;
+  }
+  .next-btn:hover { background: #00ff70; }
+  .next-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .loading {
+    text-align: center; padding: 60px 20px; color: var(--text-dim);
+  }
+  .spinner {
+    display: inline-block; width: 30px; height: 30px; border: 3px solid var(--accent-dim);
+    border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .summary {
+    text-align: center; padding: 40px 20px;
+    background: var(--card); border: 2px solid var(--accent);
+    border-radius: 12px;
+  }
+  .summary-title { font-size: 24px; color: var(--accent); margin-bottom: 8px; }
+  .summary-score { font-size: 48px; color: var(--accent); font-weight: 700; margin: 12px 0; }
+  .summary-detail { font-size: 14px; color: var(--text-dim); margin-bottom: 20px; }
+  .summary-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-secondary {
+    padding: 12px 20px; background: transparent; border: 1px solid var(--accent);
+    color: var(--accent); border-radius: 8px; cursor: pointer; font-family: inherit;
+    font-size: 13px; font-weight: 700; text-decoration: none; display: inline-block;
+  }
+  .btn-primary {
+    padding: 12px 20px; background: var(--accent); border: none;
+    color: var(--bg); border-radius: 8px; cursor: pointer; font-family: inherit;
+    font-size: 13px; font-weight: 700; text-decoration: none; display: inline-block;
+  }
+  .error {
+    background: rgba(255,68,68,0.08); border: 1px solid var(--danger);
+    color: var(--danger); padding: 16px; border-radius: 8px; text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <button class="back-btn" id="backBtn">&larr; Back</button>
+    <div style="text-align:right;">
+      <div class="title" id="headerTitle">Extra Practice</div>
+      <div class="subtitle" id="headerSubtitle"></div>
+    </div>
+  </div>
+
+  <div class="stats" id="statsBar" style="display:none;">
+    <div class="stat">
+      <div class="stat-value" id="statAnswered">0</div>
+      <div class="stat-label">Answered</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="statCorrect" style="color:var(--correct);">0</div>
+      <div class="stat-label">Correct</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="statPct" style="color:var(--gold);">0%</div>
+      <div class="stat-label">Accuracy</div>
+    </div>
+  </div>
+
+  <div id="loadingScreen" class="loading">
+    <div class="spinner"></div>
+    <div>Loading fresh questions from the bank&hellip;</div>
+    <div style="font-size:12px; margin-top:8px;">Should take 2-5 seconds</div>
+  </div>
+
+  <div id="questionScreen" style="display:none;">
+    <div class="question-card">
+      <div class="question-meta">
+        <span>Question <span id="qNum">1</span> of <span id="qTotal">10</span></span>
+        <span class="standard-tag" id="standardTag" style="display:none;"></span>
+      </div>
+      <div class="question-text" id="questionText"></div>
+      <div class="options-list" id="optionsList"></div>
+      <div class="feedback" id="feedback">
+        <div class="feedback-label" id="feedbackLabel"></div>
+        <div class="feedback-text" id="feedbackText"></div>
+      </div>
+      <button class="next-btn" id="nextBtn" style="display:none;">Next Question &rarr;</button>
+    </div>
+  </div>
+
+  <div id="summaryScreen" style="display:none;">
+    <div class="summary">
+      <div class="summary-title">Practice Complete!</div>
+      <div class="summary-score" id="summaryScore">0%</div>
+      <div class="summary-detail" id="summaryDetail"></div>
+      <div class="summary-actions">
+        <button class="btn-primary" id="anotherRoundBtn">More of Same Subject</button>
+        <button class="btn-secondary" id="dashboardBtn">Back to Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="errorScreen" style="display:none;">
+    <div class="error" id="errorText"></div>
+    <button class="btn-secondary" id="errorBackBtn" style="margin-top:16px; width:100%;">Return to Dashboard</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// EXTRA PRACTICE — subject-specific drill using V17.1 Opus bank
+// ============================================================
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec';
+
+const SUBJECT_NAMES = {
+  'math': 'Math',
+  'science': 'Science',
+  'social_studies': 'Social Studies',
+  'ela_language': 'ELA Language'
+};
+const SUBJECT_ICONS = {
+  'math': '🔢',
+  'science': '🔬',
+  'social_studies': '🌍',
+  'ela_language': '✍️'
+};
+
+// Parse URL params: ?student=Chase&subject=math&count=10
+const params = new URLSearchParams(window.location.search);
+const STUDENT = params.get('student') || 'Chase';
+const SUBJECT = params.get('subject') || 'math';
+const COUNT = parseInt(params.get('count')) || 10;
+const DASHBOARD_URL = STUDENT === 'Jacob' ? 'Jacob_Dashboard.html' : 'Chase_Dashboard.html';
+
+let questions = [];
+let currentIndex = 0;
+let answered = 0;
+let correct = 0;
+
+document.getElementById('headerTitle').textContent =
+  (SUBJECT_ICONS[SUBJECT] || '⚡') + ' ' + (SUBJECT_NAMES[SUBJECT] || SUBJECT);
+document.getElementById('headerSubtitle').textContent = STUDENT + ' · Extra Practice';
+document.title = 'Extra ' + (SUBJECT_NAMES[SUBJECT] || SUBJECT) + ' — ' + STUDENT;
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  window.location.href = DASHBOARD_URL;
+});
+document.getElementById('dashboardBtn').addEventListener('click', () => {
+  window.location.href = DASHBOARD_URL;
+});
+document.getElementById('errorBackBtn').addEventListener('click', () => {
+  window.location.href = DASHBOARD_URL;
+});
+document.getElementById('anotherRoundBtn').addEventListener('click', () => {
+  window.location.reload();
+});
+document.getElementById('qTotal').textContent = COUNT;
+
+async function loadQuestions() {
+  try {
+    const url = APPS_SCRIPT_URL +
+      '?action=bonusPracticeFromBank' +
+      '&student=' + encodeURIComponent(STUDENT) +
+      '&subject=' + encodeURIComponent(SUBJECT) +
+      '&count=' + COUNT;
+    const resp = await fetch(url, { signal: AbortSignal.timeout(30000) });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    if (!data.questions || data.questions.length === 0) {
+      throw new Error('No questions returned from bank');
+    }
+    questions = data.questions;
+    document.getElementById('qTotal').textContent = questions.length;
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('questionScreen').style.display = 'block';
+    document.getElementById('statsBar').style.display = 'flex';
+    showQuestion(0);
+  } catch (e) {
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('errorScreen').style.display = 'block';
+    document.getElementById('errorText').textContent =
+      'Could not load questions: ' + e.message;
+  }
+}
+
+function showQuestion(idx) {
+  if (idx >= questions.length) {
+    showSummary();
+    return;
+  }
+  currentIndex = idx;
+  const q = questions[idx];
+
+  document.getElementById('qNum').textContent = idx + 1;
+  document.getElementById('questionText').textContent = q.text || q.question_text || '';
+
+  if (q.standard) {
+    document.getElementById('standardTag').textContent = q.standard;
+    document.getElementById('standardTag').style.display = 'inline-block';
+  } else {
+    document.getElementById('standardTag').style.display = 'none';
+  }
+
+  const optList = document.getElementById('optionsList');
+  optList.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  (q.options || []).forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.innerHTML = '<span class="option-letter">' + letters[i] + '</span><span class="option-text">' + opt + '</span>';
+    div.onclick = () => selectAnswer(i);
+    optList.appendChild(div);
+  });
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+}
+
+function selectAnswer(selectedIdx) {
+  const q = questions[currentIndex];
+  const correctIdx = parseInt(q.correct);
+  const isCorrect = selectedIdx === correctIdx;
+
+  answered++;
+  if (isCorrect) correct++;
+  updateStats();
+
+  const opts = document.querySelectorAll('#optionsList .option');
+  opts.forEach((el, i) => {
+    el.classList.add('disabled');
+    el.onclick = null;
+    if (i === correctIdx) el.classList.add('correct');
+    if (i === selectedIdx && !isCorrect) el.classList.add('incorrect');
+    if (i === selectedIdx && isCorrect) el.classList.add('selected');
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'incorrect');
+  fb.style.display = 'block';
+  document.getElementById('feedbackLabel').textContent = isCorrect ? '\u2713 Correct!' : '\u2717 Not quite';
+  document.getElementById('feedbackText').textContent = q.explanation || '';
+
+  document.getElementById('nextBtn').style.display = 'block';
+  document.getElementById('nextBtn').onclick = () => showQuestion(currentIndex + 1);
+  if (currentIndex === questions.length - 1) {
+    document.getElementById('nextBtn').textContent = 'See Results →';
+  }
+}
+
+function updateStats() {
+  document.getElementById('statAnswered').textContent = answered;
+  document.getElementById('statCorrect').textContent = correct;
+  const pct = answered > 0 ? Math.round(100 * correct / answered) : 0;
+  document.getElementById('statPct').textContent = pct + '%';
+}
+
+function showSummary() {
+  document.getElementById('questionScreen').style.display = 'none';
+  document.getElementById('summaryScreen').style.display = 'block';
+  const pct = answered > 0 ? Math.round(100 * correct / answered) : 0;
+  document.getElementById('summaryScore').textContent = pct + '%';
+  document.getElementById('summaryDetail').textContent =
+    correct + ' out of ' + answered + ' correct · ' + (SUBJECT_NAMES[SUBJECT] || SUBJECT);
+}
+
+loadQuestions();
+</script>
+</body>
+</html>
