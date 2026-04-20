@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnostic Test</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #141a28;
+    --card-border: rgba(201,168,76,0.3);
+    --accent: #c9a84c;
+    --accent-dim: rgba(201,168,76,0.1);
+    --text: #d0d6e0;
+    --text-dim: #5a6a7a;
+    --green: #00ff41;
+    --danger: #ff4444;
+    --correct: #00cc33;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Courier New', Courier, monospace;
+    padding: 20px; min-height: 100vh;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .title { font-size: 20px; color: var(--accent); font-weight: 700; letter-spacing: 2px; }
+  .subtitle { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .back-btn {
+    background: none; border: 1px solid var(--text-dim); color: var(--text-dim);
+    padding: 6px 14px; border-radius: 6px; cursor: pointer;
+    font-family: inherit; font-size: 12px;
+  }
+  .timer-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
+  }
+  .timer-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .timer-value { font-size: 20px; color: var(--accent); font-weight: 700; font-family: 'Courier New', monospace; }
+  .progress-bar {
+    height: 6px; background: var(--accent-dim); border-radius: 3px; margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill { height: 100%; background: var(--accent); transition: width 0.3s ease; }
+  .question-card {
+    background: var(--card); border: 2px solid var(--card-border);
+    border-radius: 12px; padding: 20px; margin-bottom: 16px;
+  }
+  .question-meta {
+    display: flex; gap: 8px; margin-bottom: 12px;
+    font-size: 11px; color: var(--text-dim);
+  }
+  .standard-tag {
+    padding: 2px 8px; background: var(--accent-dim);
+    border-radius: 4px; color: var(--accent); font-weight: 700;
+  }
+  .question-text { font-size: 16px; line-height: 1.6; margin-bottom: 16px; color: var(--text); }
+  .options-list { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px; background: var(--bg); border: 2px solid var(--card-border);
+    border-radius: 8px; cursor: pointer; transition: all 0.15s ease;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-dim); }
+  .option.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .option-letter { font-weight: 700; color: var(--accent); min-width: 20px; }
+  .option-text { flex: 1; font-size: 14px; line-height: 1.5; }
+  .nav-buttons {
+    display: flex; gap: 10px; margin-top: 20px;
+  }
+  .nav-btn {
+    flex: 1; padding: 12px; background: var(--bg); border: 1px solid var(--accent);
+    color: var(--accent); border-radius: 8px; cursor: pointer;
+    font-family: inherit; font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-btn.primary { background: var(--accent); color: var(--bg); }
+  .loading { text-align: center; padding: 60px 20px; color: var(--text-dim); }
+  .spinner {
+    display: inline-block; width: 30px; height: 30px;
+    border: 3px solid var(--accent-dim); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .intro {
+    background: var(--card); border: 2px solid var(--accent);
+    border-radius: 12px; padding: 24px; text-align: center;
+  }
+  .intro h2 { color: var(--accent); font-size: 22px; margin-bottom: 12px; }
+  .intro p { color: var(--text); line-height: 1.6; margin-bottom: 12px; font-size: 14px; }
+  .intro .rules { background: var(--bg); border-left: 3px solid var(--accent); padding: 12px 16px; margin: 16px 0; text-align: left; }
+  .intro .rules-item { font-size: 13px; color: var(--text); padding: 4px 0; }
+  .summary { background: var(--card); border: 2px solid var(--accent); border-radius: 12px; padding: 24px; }
+  .summary h2 { text-align: center; color: var(--accent); margin-bottom: 8px; font-size: 24px; }
+  .summary-score { text-align: center; font-size: 56px; color: var(--accent); font-weight: 700; margin: 12px 0; }
+  .summary-detail { text-align: center; color: var(--text-dim); font-size: 14px; margin-bottom: 24px; }
+  .breakdown {
+    background: var(--bg); border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 14px; margin-bottom: 16px;
+  }
+  .breakdown-title { font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .breakdown-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; font-size: 13px; border-bottom: 1px solid rgba(201,168,76,0.1);
+  }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-std { color: var(--text); font-family: 'Courier New', monospace; }
+  .breakdown-score { color: var(--accent); font-weight: 700; }
+  .breakdown-score.weak { color: var(--danger); }
+  .breakdown-score.strong { color: var(--correct); }
+  .summary-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .btn-primary { padding: 12px 20px; background: var(--accent); border: none; color: var(--bg); border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-block; letter-spacing: 1px; }
+  .btn-secondary { padding: 12px 20px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-block; letter-spacing: 1px; }
+  .error { background: rgba(255,68,68,0.08); border: 1px solid var(--danger); color: var(--danger); padding: 16px; border-radius: 8px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <button class="back-btn" id="backBtn">&larr; Exit</button>
+    <div style="text-align:right;">
+      <div class="title" id="headerTitle">Diagnostic Test</div>
+      <div class="subtitle" id="headerSubtitle"></div>
+    </div>
+  </div>
+
+  <div id="introScreen" class="intro">
+    <h2 id="introTitle">LEAP Practice Test</h2>
+    <p id="introDescription"></p>
+    <div class="rules">
+      <div class="rules-item">&bull; <strong>15 questions</strong> drawn from the bank (never repeats)</div>
+      <div class="rules-item">&bull; <strong>Timed:</strong> take your time but try to work steadily</div>
+      <div class="rules-item">&bull; <strong>No hints</strong> during the test &mdash; just like the real LEAP</div>
+      <div class="rules-item">&bull; <strong>Full breakdown</strong> at the end, showing which standards need work</div>
+      <div class="rules-item">&bull; <strong>Give it your best shot.</strong> This tells us what to practice.</div>
+    </div>
+    <button class="btn-primary" id="startBtn" style="width:100%; padding:14px;">Start Test</button>
+  </div>
+
+  <div id="loadingScreen" class="loading" style="display:none;">
+    <div class="spinner"></div>
+    <div>Preparing your test questions&hellip;</div>
+    <div style="font-size:12px; margin-top:8px;">Loading from the bank (2-5 seconds)</div>
+  </div>
+
+  <div id="questionScreen" style="display:none;">
+    <div class="timer-bar">
+      <div>
+        <div class="timer-label">Question</div>
+        <div class="timer-value"><span id="qNum">1</span> / <span id="qTotal">15</span></div>
+      </div>
+      <div>
+        <div class="timer-label">Elapsed</div>
+        <div class="timer-value" id="timerDisplay">0:00</div>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+    <div class="question-card">
+      <div class="question-meta">
+        <span class="standard-tag" id="standardTag" style="display:none;"></span>
+      </div>
+      <div class="question-text" id="questionText"></div>
+      <div class="options-list" id="optionsList"></div>
+      <div class="nav-buttons">
+        <button class="nav-btn" id="prevBtn">&larr; Previous</button>
+        <button class="nav-btn primary" id="nextBtn">Next &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="summaryScreen" style="display:none;">
+    <div class="summary">
+      <h2>Test Complete</h2>
+      <div class="summary-score" id="summaryScore">0%</div>
+      <div class="summary-detail" id="summaryDetail"></div>
+
+      <div class="breakdown" id="standardBreakdown">
+        <div class="breakdown-title">Performance by Standard</div>
+        <div id="breakdownBody"></div>
+      </div>
+
+      <div class="breakdown" id="weakAreasCard" style="display:none;">
+        <div class="breakdown-title" style="color:var(--danger);">Focus Areas</div>
+        <div id="weakAreasBody" style="font-size:13px; color:var(--text); line-height:1.6;"></div>
+      </div>
+
+      <div class="summary-actions">
+        <button class="btn-primary" id="dashboardBtn">Back to Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="errorScreen" style="display:none;">
+    <div class="error" id="errorText"></div>
+    <button class="btn-secondary" id="errorBackBtn" style="margin-top:16px; width:100%;">Return to Dashboard</button>
+  </div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec';
+
+const SUBJECT_NAMES = {
+  'math': 'Math',
+  'science': 'Science',
+  'social_studies': 'Social Studies',
+  'ela_language': 'ELA Language'
+};
+
+const params = new URLSearchParams(window.location.search);
+const STUDENT = params.get('student') || 'Chase';
+const SUBJECT = params.get('subject') || 'math';
+const TEST_LENGTH = parseInt(params.get('length')) || 15;
+const DASHBOARD_URL = STUDENT === 'Jacob' ? 'Jacob_Dashboard.html' : 'Chase_Dashboard.html';
+
+document.getElementById('headerTitle').textContent = 'LEAP Practice Test';
+document.getElementById('headerSubtitle').textContent =
+  STUDENT + ' · ' + (SUBJECT_NAMES[SUBJECT] || SUBJECT);
+document.getElementById('introTitle').textContent =
+  (SUBJECT_NAMES[SUBJECT] || SUBJECT) + ' Practice Test';
+document.getElementById('introDescription').textContent =
+  'This is a LEAP-style practice test just for ' + STUDENT + '. ' +
+  (SUBJECT_NAMES[SUBJECT] || SUBJECT) + ', ' + TEST_LENGTH + ' questions. ' +
+  'No explanations until the end — just like the real thing.';
+document.title = 'Diagnostic ' + (SUBJECT_NAMES[SUBJECT] || SUBJECT) + ' — ' + STUDENT;
+document.getElementById('qTotal').textContent = TEST_LENGTH;
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  if (confirm('Exit the test? Your answers will NOT be saved.')) {
+    window.location.href = DASHBOARD_URL;
+  }
+});
+document.getElementById('dashboardBtn').addEventListener('click', () => {
+  window.location.href = DASHBOARD_URL;
+});
+document.getElementById('errorBackBtn').addEventListener('click', () => {
+  window.location.href = DASHBOARD_URL;
+});
+document.getElementById('startBtn').addEventListener('click', startTest);
+document.getElementById('prevBtn').addEventListener('click', () => showQuestion(currentIndex - 1));
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if (currentIndex === questions.length - 1) finishTest();
+  else showQuestion(currentIndex + 1);
+});
+
+let questions = [];
+let answers = {}; // index -> selected option index
+let currentIndex = 0;
+let startTime = null;
+let timerInterval = null;
+
+async function startTest() {
+  document.getElementById('introScreen').style.display = 'none';
+  document.getElementById('loadingScreen').style.display = 'block';
+
+  try {
+    // Use bonusPracticeFromBank with context=diagnostic (diagnostic_eligible + unseen only)
+    // The V17.1 Bank_Loader needs a `context` param support — use bonusPracticeFromBank for now
+    // (pickQuestionsFromBank internally hardcodes context='bonus' but diagnostic_eligible filter
+    //  still applies through the bank metadata. True diagnostic lockout requires server update.)
+    const url = APPS_SCRIPT_URL +
+      '?action=bonusPracticeFromBank' +
+      '&student=' + encodeURIComponent(STUDENT) +
+      '&subject=' + encodeURIComponent(SUBJECT) +
+      '&count=' + TEST_LENGTH;
+    const resp = await fetch(url, { signal: AbortSignal.timeout(30000) });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    if (!data.questions || data.questions.length === 0) {
+      throw new Error('No questions returned');
+    }
+    questions = data.questions;
+    document.getElementById('qTotal').textContent = questions.length;
+
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('questionScreen').style.display = 'block';
+
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 1000);
+
+    showQuestion(0);
+  } catch (e) {
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('errorScreen').style.display = 'block';
+    document.getElementById('errorText').textContent = 'Could not start test: ' + e.message;
+  }
+}
+
+function updateTimer() {
+  const sec = Math.floor((Date.now() - startTime) / 1000);
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  document.getElementById('timerDisplay').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function showQuestion(idx) {
+  if (idx < 0 || idx >= questions.length) return;
+  currentIndex = idx;
+  const q = questions[idx];
+
+  document.getElementById('qNum').textContent = idx + 1;
+  document.getElementById('questionText').textContent = q.text || q.question_text || '';
+
+  if (q.standard) {
+    document.getElementById('standardTag').textContent = q.standard;
+    document.getElementById('standardTag').style.display = 'inline-block';
+  } else {
+    document.getElementById('standardTag').style.display = 'none';
+  }
+
+  const optList = document.getElementById('optionsList');
+  optList.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  (q.options || []).forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option' + (answers[idx] === i ? ' selected' : '');
+    div.innerHTML = '<span class="option-letter">' + letters[i] + '</span><span class="option-text">' + opt + '</span>';
+    div.onclick = () => selectAnswer(i);
+    optList.appendChild(div);
+  });
+
+  const progressPct = (idx / questions.length) * 100;
+  document.getElementById('progressFill').style.width = progressPct + '%';
+
+  document.getElementById('prevBtn').disabled = (idx === 0);
+  document.getElementById('nextBtn').textContent =
+    (idx === questions.length - 1) ? 'Finish Test →' : 'Next →';
+}
+
+function selectAnswer(optIdx) {
+  answers[currentIndex] = optIdx;
+  const opts = document.querySelectorAll('#optionsList .option');
+  opts.forEach((el, i) => {
+    el.classList.toggle('selected', i === optIdx);
+  });
+}
+
+function finishTest() {
+  const unanswered = [];
+  for (let i = 0; i < questions.length; i++) {
+    if (answers[i] === undefined) unanswered.push(i + 1);
+  }
+  if (unanswered.length > 0) {
+    if (!confirm('You have ' + unanswered.length + ' unanswered question(s) (Q' + unanswered.join(', Q') + '). Submit anyway?')) {
+      return;
+    }
+  }
+
+  clearInterval(timerInterval);
+  const durationSec = Math.round((Date.now() - startTime) / 1000);
+  const durationMin = Math.max(1, Math.round(durationSec / 60));
+
+  // Compute score locally (questions include correct + correctText)
+  let correct = 0;
+  const standardStats = {};
+  questions.forEach((q, i) => {
+    const std = q.standard || 'unknown';
+    if (!standardStats[std]) standardStats[std] = { correct: 0, total: 0 };
+    standardStats[std].total++;
+    if (answers[i] === q.correct) {
+      correct++;
+      standardStats[std].correct++;
+    }
+  });
+  const pct = Math.round(100 * correct / questions.length);
+
+  // Log to Apps Script (best-effort)
+  try {
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({
+        action: 'saveDiagnostic',
+        student: STUDENT,
+        subject: SUBJECT,
+        score: pct,
+        correct: correct,
+        total: questions.length,
+        durationSec: durationSec,
+        standardStats: standardStats,
+        timestamp: new Date().toISOString()
+      })
+    });
+  } catch (e) {}
+
+  document.getElementById('questionScreen').style.display = 'none';
+  document.getElementById('summaryScreen').style.display = 'block';
+  document.getElementById('summaryScore').textContent = pct + '%';
+  document.getElementById('summaryDetail').textContent =
+    correct + ' of ' + questions.length + ' correct · ' + durationMin + ' min · ' + (SUBJECT_NAMES[SUBJECT] || SUBJECT);
+
+  // Breakdown by standard
+  const breakdownBody = document.getElementById('breakdownBody');
+  breakdownBody.innerHTML = '';
+  const weakAreas = [];
+  Object.keys(standardStats).sort().forEach(std => {
+    const s = standardStats[std];
+    const sPct = Math.round(100 * s.correct / s.total);
+    let cls = '';
+    if (sPct < 60) { cls = 'weak'; weakAreas.push(std); }
+    else if (sPct >= 80) { cls = 'strong'; }
+    const row = document.createElement('div');
+    row.className = 'breakdown-row';
+    row.innerHTML =
+      '<span class="breakdown-std">' + std + '</span>' +
+      '<span class="breakdown-score ' + cls + '">' + s.correct + '/' + s.total + ' (' + sPct + '%)</span>';
+    breakdownBody.appendChild(row);
+  });
+
+  if (weakAreas.length > 0) {
+    document.getElementById('weakAreasCard').style.display = 'block';
+    document.getElementById('weakAreasBody').textContent =
+      'Standards to focus on: ' + weakAreas.join(', ') +
+      '. Use the "Extra Practice" buttons on the dashboard to drill these.';
+  }
+}
+</script>
+</body>
+</html>
