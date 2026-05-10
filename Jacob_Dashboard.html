@@ -658,27 +658,29 @@
 <!-- Diagnostic Test Notification -->
 <div id="diagnosticSection" style="display:none;"></div>
 
-<!-- LEAP Countdown -->
-<div id="leapCountdown" style="background:linear-gradient(135deg, rgba(92,164,232,0.08) 0%, rgba(201,168,76,0.05) 100%); border:1px solid rgba(92,164,232,0.3); border-radius:10px; padding:14px 16px; margin-bottom:16px;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-    <div style="font-size:11px; color:#5ca4e8; font-weight:700; text-transform:uppercase; letter-spacing:1px;">LEAP Prep Mode</div>
-    <div style="font-size:22px; color:var(--accent); font-weight:700;" id="leapDaysLeft"></div>
+<!-- Long-Arc Mission Banner — post-LEAP 2026 -->
+<div id="missionBanner" style="background:linear-gradient(135deg, rgba(92,164,232,0.08) 0%, rgba(201,168,76,0.05) 100%); border:1px solid rgba(92,164,232,0.3); border-radius:10px; padding:14px 16px; margin-bottom:16px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+    <div style="font-size:11px; color:#5ca4e8; font-weight:700; text-transform:uppercase; letter-spacing:1px;">The Long Arc</div>
+    <div style="font-size:22px; color:var(--accent); font-weight:700; font-family:Georgia,serif;" id="missionStat">7th Grade Mastery</div>
   </div>
-  <div style="font-size:12px; color:var(--text-dim);" id="leapDateDisplay"></div>
+  <div style="font-size:13px; color:var(--text-dim); line-height:1.6;">
+    <div><strong style="color:#c9a84c;">Next test:</strong> 7th grade LEAP &mdash; Spring 2027 (<span id="leapDaysLeft"></span>)</div>
+    <div style="margin-top:2px;"><strong style="color:#c9a84c;">Long-range:</strong> PSAT 8/9 in 8th grade &mdash; Fall 2028</div>
+    <div style="margin-top:6px; font-style:italic; color:#a89968; font-size:12px;">"You build the swordsmith. The blade is forged daily, not the day before battle."</div>
+  </div>
   <div id="leapWeaknessAreas" style="margin-top:8px; font-size:12px; color:#5ca4e8; display:none;">
-    <strong>Focus Areas:</strong> <span id="leapWeaknessList"></span>
+    <strong>Current focus areas:</strong> <span id="leapWeaknessList"></span>
   </div>
 </div>
 <script>
 (function(){
-  const leapDate = new Date('2026-04-27');
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const days = Math.ceil((leapDate - today) / 86400000);
-  document.getElementById('leapDaysLeft').textContent = days + ' days';
-  document.getElementById('leapDateDisplay').textContent = 'LEAP Test: April 27, 2026';
-  if (days <= 0) document.getElementById('leapCountdown').style.display = 'none';
-  // Try to load weakness profile
+  // Spring 2027 LEAP — using April 26 as conservative target (actual date TBD)
+  const nextLeap = new Date('2027-04-26');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Math.ceil((nextLeap - today) / 86400000);
+  document.getElementById('leapDaysLeft').textContent = '~' + days + ' days';
+  // Try to load weakness profile (still useful year-round)
   fetch('https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec?action=getWeaknessProfile&student=Jacob')
     .then(r=>r.json()).then(p=>{
       if(p&&p.weaknesses){

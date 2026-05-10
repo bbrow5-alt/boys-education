@@ -681,26 +681,28 @@
 <!-- Diagnostic Test Notification -->
 <div id="diagnosticSection" style="display:none;"></div>
 
-<!-- LEAP Countdown -->
-<div id="leapCountdown" style="background:linear-gradient(135deg, rgba(0,191,255,0.08) 0%, rgba(0,255,65,0.04) 100%); border:1px solid rgba(0,191,255,0.3); border-radius:10px; padding:14px 16px; margin-bottom:16px;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-    <div style="font-size:11px; color:#00bfff; font-weight:700; text-transform:uppercase; letter-spacing:1px;">LEAP Prep Mode</div>
-    <div style="font-size:22px; color:var(--accent); font-weight:700;" id="leapDaysLeft"></div>
+<!-- Long-Arc Mission Banner — post-LEAP 2026 -->
+<div id="missionBanner" style="background:linear-gradient(135deg, rgba(0,191,255,0.08) 0%, rgba(0,255,65,0.04) 100%); border:1px solid rgba(0,191,255,0.3); border-radius:10px; padding:14px 16px; margin-bottom:16px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+    <div style="font-size:11px; color:#00bfff; font-weight:700; text-transform:uppercase; letter-spacing:1px;">The Long Mission</div>
+    <div style="font-size:22px; color:var(--accent); font-weight:700;" id="missionStat">6th Grade Ready</div>
   </div>
-  <div style="font-size:12px; color:var(--text-dim);" id="leapDateDisplay"></div>
+  <div style="font-size:13px; color:var(--text-dim); line-height:1.6;">
+    <div><strong style="color:#00bfff;">Next test:</strong> 6th grade LEAP &mdash; Spring 2027 (<span id="leapDaysLeft"></span>)</div>
+    <div style="margin-top:2px;"><strong style="color:#00bfff;">Long-range:</strong> PSAT 8/9 in 8th grade &mdash; Fall 2029</div>
+    <div style="margin-top:6px; font-style:italic; color:var(--text-dim); font-size:12px;">"Train every day. Test days are just check-ins on the journey."</div>
+  </div>
   <div id="leapWeaknessAreas" style="margin-top:8px; font-size:12px; color:#00bfff; display:none;">
-    <strong>Focus Areas:</strong> <span id="leapWeaknessList"></span>
+    <strong>Current focus areas:</strong> <span id="leapWeaknessList"></span>
   </div>
 </div>
 <script>
 (function(){
-  const leapDate = new Date('2026-04-27');
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const days = Math.ceil((leapDate - today) / 86400000);
-  document.getElementById('leapDaysLeft').textContent = days + ' days';
-  document.getElementById('leapDateDisplay').textContent = 'LEAP Test: April 27, 2026';
-  if (days <= 0) document.getElementById('leapCountdown').style.display = 'none';
+  // Spring 2027 LEAP — using April 26 as conservative target
+  const nextLeap = new Date('2027-04-26');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Math.ceil((nextLeap - today) / 86400000);
+  document.getElementById('leapDaysLeft').textContent = '~' + days + ' days';
   fetch('https://script.google.com/macros/s/AKfycby6BhujnfDQt9oguJFSemP-5iBhyUkWr9e8m2iDgs3MkRsB2AKm5tvoc53gajmd6DCVjQ/exec?action=getWeaknessProfile&student=Chase')
     .then(r=>r.json()).then(p=>{
       if(p&&p.weaknesses){
@@ -2024,45 +2026,12 @@ render = function() {
 let diagnosticTests = [];
 
 async function loadDiagnosticTests() {
-  // Diagnostic tests are managed via hardcoded entries (updated each time a new test is built).
-  // The API endpoint returns stale data, so we skip it and use the local definition as source of truth.
-  // When a new diagnostic is created, replace this single entry.
-  // Week 8 diagnostic (current)
-  const signalWeek8 = JSON.parse(localStorage.getItem('chase_diagnostic_week8_signal') || 'null');
-  const isCompletedWeek8 = signalWeek8 && signalWeek8.completed && signalWeek8.testId === 'chase_diagnostic_week8_apr2026';
-
-  // Week 7 diagnostic (previous)
-  const signalWeek7 = JSON.parse(localStorage.getItem('chase_diagnostic_week7_signal') || 'null');
-  const isCompletedWeek7 = signalWeek7 && signalWeek7.completed && signalWeek7.testId === 'chase_diagnostic_week7_apr2026';
-  const diagDayDataW7 = getDayData('2026-04-06');
-  const pastDueW7 = new Date() > new Date('2026-04-12');
-  const isCompletedW7FromSync = pastDueW7 && diagDayDataW7 && diagDayDataW7.session === true;
-
-  diagnosticTests = [
-    {
-      TestLabel: 'Week 7 LEAP Practice Test — All Subjects',
-      Month: 'April 2026',
-      TestURL: 'Diagnostic_Test_Chase_Week7_April2026.html',
-      AvailableDate: '2026-04-06',
-      DueDate: '2026-04-12',
-      Completed: (isCompletedWeek7 || isCompletedW7FromSync) ? 'TRUE' : 'FALSE',
-      CompletedDate: isCompletedWeek7 ? signalWeek7.date : (isCompletedW7FromSync ? '2026-04-06' : ''),
-      PointsAwarded: 15
-    },
-    {
-      TestLabel: 'Week 8 LEAP Practice Test — All Subjects',
-      Month: 'April 2026',
-      TestURL: 'Diagnostic_Test_Chase_Week8_April2026.html',
-      AvailableDate: '2026-04-13',
-      DueDate: '2026-04-19',
-      Completed: isCompletedWeek8 ? 'TRUE' : 'FALSE',
-      CompletedDate: isCompletedWeek8 ? signalWeek8.date : '',
-      PointsAwarded: 15
-    }
-  ];
-
-  // Check for diagnostic completion signal and credit points
-  checkDiagnosticReturn();
+  // Post-LEAP 2026 — Week 7/8 Expedition Assessments retired.
+  // Year-round LEAP-prep diagnostics now live in the "LEAP Practice Test"
+  // section below (DiagnosticTest.html, 4 subjects, 15 questions each).
+  // If we add new dated weekly Expedition Assessments later, push them here.
+  diagnosticTests = [];
+  checkDiagnosticReturn(); // still checks localStorage for past completions
   renderDiagnosticSection();
 }
 
