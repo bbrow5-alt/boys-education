@@ -362,13 +362,15 @@
                 if (weakSubjects.length > 0) targetSubject = weakSubjects[Math.floor(Math.random() * weakSubjects.length)];
             }
 
-            const url = APPS_SCRIPT_URL + '?action=generateContent&student=Jacob&grade=6&subject=' + encodeURIComponent(targetSubject) + '&count=5&difficulty=grade-level&mode=leap_prep';
+            // V17.2 (May 14): pull from the curated Opus question bank, not live Haiku/Sonnet
+            // generation. Live AI occasionally produced math questions with wrong answer keys.
+            const url = APPS_SCRIPT_URL + '?action=bonusPracticeFromBank&student=Jacob&subject=' + encodeURIComponent(targetSubject) + '&count=5';
             fetch(url, { signal: AbortSignal.timeout(15000) })
                 .then(r => r.ok ? r.json() : null)
                 .then(data => {
                     if (!data || !data.questions || !Array.isArray(data.questions)) return;
                     data.questions.forEach((q, i) => {
-                        const newId = 'api_' + targetSubject + '_' + Date.now() + '_' + i;
+                        const newId = q.id || ('bank_' + targetSubject + '_' + Date.now() + '_' + i);
                         // Only add if it has the required fields
                         if (q.text && q.options && q.options.length === 4 && typeof q.correct === 'number') {
                             QUESTION_BANK.push({
@@ -377,6 +379,7 @@
                                 text: q.text,
                                 options: q.options,
                                 correct: q.correct,
+                                correctText: q.correctText || q.options[q.correct],
                                 explanation: q.explanation || '',
                                 standard: q.standard || ''
                             });
